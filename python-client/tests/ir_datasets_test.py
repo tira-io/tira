@@ -2,7 +2,6 @@ import os
 import unittest
 
 import ir_datasets
-
 from tira.third_party_integrations import (
     ensure_pyterrier_is_loaded,
     load_ir_datasets,
@@ -111,7 +110,7 @@ class TestIRDatasets(unittest.TestCase):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
         ir_datasets = load_ir_datasets()
         dataset = ir_datasets.load("cranfield")
-        queries = {i.query_id: i.text for i in dataset.queries_iter()}
+        queries = {str(i.query_id): i.text for i in dataset.queries_iter()}
 
         assert len(list(dataset.queries_iter())) == 225
         assert queries["269"] == "has a criterion been established for determining the axial compressor\nchoking line ."
@@ -120,7 +119,7 @@ class TestIRDatasets(unittest.TestCase):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
         ir_datasets = load_ir_datasets()
         dataset = ir_datasets.load("cranfield")
-        queries = {i.query_id: i.text for i in dataset.queries_iter()}
+        queries = {str(i.query_id): i.text for i in dataset.queries_iter()}
 
         assert len(list(dataset.queries_iter())) == 225
         assert queries["269"] == "has a criterion been established for determining the axial compressor\nchoking line ."
@@ -215,7 +214,7 @@ class TestIRDatasets(unittest.TestCase):
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:cranfield")
-        queries = {i["qid"]: i["query"] for _, i in dataset.get_topics().iterrows()}
+        queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
         assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
@@ -225,7 +224,7 @@ class TestIRDatasets(unittest.TestCase):
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:cranfield")
-        queries = {i["qid"]: i["query"] for _, i in dataset.get_topics().iterrows()}
+        queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
         assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
