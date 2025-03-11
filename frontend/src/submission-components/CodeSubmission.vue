@@ -19,6 +19,7 @@
     </v-col>
   </v-row>
 
+  <v-skeleton-loader type="card" v-if="loading"/>
 
   <v-window v-model="tab" v-if="!loading && userinfo.role !== 'guest'" :touch="{ left: undefined, right: undefined }">
     <v-window-item v-for="ds in softwares" :value="ds.docker_software_id">
@@ -169,7 +170,7 @@ export default {
         token: '<ADD-YOUR-TOKEN-HERE>',
         userinfo: inject('userinfo') as UserInfo,
         rest_url: inject("REST base URL"),
-        datasets: [{ "dataset_id": null, "display_name": "loading..." }],
+        datasets: [],
         re_ranking_datasets: [{ "dataset_id": null, "display_name": "loading..." }],
         softwares: [{ 'display_name': 'loading', 'docker_software_id': '1' }],
         resources: ["loading..."],
@@ -212,12 +213,9 @@ export default {
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))*/
       get(this.rest_url + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/code')
-      .then((result) => { this.$data.softwares = result.context.code.submissions; this.datasets = result.context.datasets; this.resources = result.context.resources;})
+      .then((result) => { this.$data.softwares = result.context.code.submissions; this.datasets = result.context.datasets; this.resources = result.context.resources; this.loading = false;})
         .catch(reportError("Problem While Loading the code submissions.", "This might be a short-term hiccup, please try again. We got the following error: "))
-
-
-      .then(inject_response(this, { 'loading': false }, true))
-    this.loading = false
+    
     this.disabled = true
     this.load_re_ranking_datasets()
     get(this.rest_url + '/api/token/' + this.user_id)
