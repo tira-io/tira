@@ -20,7 +20,7 @@
   </v-row>
 
 
-  <v-window v-model="tab" v-if="!loading && userinfo.role !== 'guest'" :touch="{ left: null, right: null }">
+  <v-window v-model="tab" v-if="!loading && userinfo.role !== 'guest'" :touch="{ left: undefined, right: undefined }">
     <v-window-item v-for="ds in softwares" :value="ds.docker_software_id">
       <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage"
         @modifiedSubmissionDetails="v => handleModifiedSubmission(v, softwares)"
@@ -193,7 +193,7 @@ export default {
     handleDeleteDockerImage() {
       get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
         .then(message => {
-          this.softwares = this.softwares.filter(i => i.id != this.softwares.find(i => i.display_name === this.tab).id)
+          this.softwares = this.softwares.filter(i => i.docker_software_id != this.softwares.find(i => i.display_name === this.tab)?.docker_software_id)
           this.tab = this.softwares.length > 0 ? this.softwares[0].display_name : 'newDockerImage'
         })
         .catch(reportError("Problem While Deleting Docker Image.", "This might be a short-term hiccup, please try again. We got the following error: "))
