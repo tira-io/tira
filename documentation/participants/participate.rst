@@ -29,12 +29,17 @@ see a ``SUBMIT`` button.
 Click on ``SUBMIT``. As you can see now, TIRA has three choices for submission (click on each respective tab to find
 out more):
 
+.. _PrepareSubmission:
+
+Prepare your Submission
+-----------------------
+
 .. tab-set::
 
     .. tab-item:: Code Submission
         :sync: code-submission
 
-        Code submission is the recommended form of submitting to TIRA. Code submissions are compatible with CI/CD systems like `Github Actions <https://github.com/features/actions>`_ and build a docker image from a git repository while collecting important experimental metadata to improve transparency and reproducibility.
+        Code submissions are the recommended form of submitting to TIRA. Code submissions are compatible with CI/CD systems like `Github Actions <https://github.com/features/actions>`_ and build a docker image from a git repository while collecting important experimental metadata to improve transparency and reproducibility.
 
         The requirements for code submissions are:
 
