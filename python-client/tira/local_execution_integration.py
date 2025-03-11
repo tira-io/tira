@@ -79,7 +79,9 @@ class LocalExecutionIntegration:
         image_build_code = subprocess.call(["docker", "build", "-f", str(dockerfile), "-t", str(tag), str(path)])
 
         if image_build_code != 0:
-            raise ValueError("foo")
+            raise ValueError(
+                f"Building the docker image failed with error code {image_build_code}. See above for details."
+            )
 
         print("\n\n Image build successfully.\n\n")
 
