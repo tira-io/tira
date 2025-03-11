@@ -18,6 +18,24 @@ class FormatMsgType(Enum):
 _fmt = FormatMsgType
 
 
+def log_message(message: str, level: _fmt):
+    """
+    Prints a formatted log message with a symbol indicating the status.
+
+    Parameters:
+    - message (str): The log message to display.
+    - level (_fmt): The level of the message; can be _fmt.OK, _fmt.WARN, _fmt.ERROR.
+    """
+    symbols = {
+        _fmt.OK: "\033[92m\u2713\033[0m",  # Green check mark
+        _fmt.WARN: "\033[93m" + b"\xe2\x9a\xa0".decode("utf-8") + "\033[0m",  # Yellow warning
+        _fmt.ERROR: "\033[91m" + b"\xe2\x9c\x96".decode("utf-8") + "\033[0m",  # Red cross
+    }
+
+    symbol = symbols[level]
+    print(f"{symbol} {message}")
+
+
 class FormatBase:
     def all_lines(self, f: Path):
         try:

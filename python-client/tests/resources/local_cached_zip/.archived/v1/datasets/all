@@ -7,6 +7,7 @@
     "display_name": "Display Name",
     "is_confidential": false,
     "is_deprecated": false,
+    "format": ["*.jsonl"],
     "mirrors": {
       "truths": {
         "Zenodo": "URL does not exist"

@@ -21,7 +21,11 @@ from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -51,6 +55,7 @@ class Client(TiraClient):
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.verify = verify
+        self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
@@ -66,6 +71,7 @@ class Client(TiraClient):
         self.failsave_retries = 1
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
+        self.failsave_retries = failsave_retries
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.trectools = TrecToolsIntegration(self)
@@ -74,9 +80,6 @@ class Client(TiraClient):
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
-
-        self.failsave_retries = failsave_retries
-        self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
         try:
@@ -134,7 +137,7 @@ class Client(TiraClient):
             raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def datasets(self, task):
-        return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():
@@ -265,6 +268,7 @@ class Client(TiraClient):
             f"Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your"
             " software."
         )
+        return ret["context"]
 
     def submissions(self, task, dataset):
         response = self.json_response(f"/api/submissions/{task}/{dataset}")["context"]
@@ -913,6 +917,7 @@ class Client(TiraClient):
 
         resp = resp.json()
         print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
+        return resp
 
     def create_group(self, vm_id):
         if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:

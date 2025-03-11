@@ -75,6 +75,16 @@ class LocalExecutionIntegration:
             ),
         }
 
+    def build_docker_image(self, path, tag, dockerfile):
+        image_build_code = subprocess.call(["docker", "build", "-f", str(dockerfile), "-t", str(tag), str(path)])
+
+        if image_build_code != 0:
+            raise ValueError(
+                f"Building the docker image failed with error code {image_build_code}. See above for details."
+            )
+
+        print("\n\n Image build successfully.\n\n")
+
     def ensure_image_available_locally(self, image, client=None):
         try:
             output = subprocess.check_output(["docker", "images", "-q", image])
@@ -131,7 +141,9 @@ class LocalExecutionIntegration:
         return self.make_command_absolute(image_name, " ".join(ret))
 
     def make_command_absolute(self, image_name, command):
-        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        from tira.third_party_integrations import (
+            extract_to_be_executed_notebook_from_command_or_none,
+        )
 
         executable = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -152,6 +164,9 @@ class LocalExecutionIntegration:
             pass
 
         return ret + ["/var/run/docker.sock"]
+
+    def docker_is_installed_failsave(self):
+        return self.__docker_client() is not None
 
     def __docker_client(self):
         try:
