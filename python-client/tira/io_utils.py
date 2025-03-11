@@ -4,7 +4,7 @@ import logging
 import os
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Optional, Union
+from typing import Any, Dict, Generator, Iterable, List, Union
 
 import pandas as pd
 
