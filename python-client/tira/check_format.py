@@ -114,19 +114,25 @@ class RunFormat(FormatBase):
 class JsonlFormat(FormatBase):
     """Checks if a given output is a valid jsonl file."""
 
-    def __init__(self, required_fields=("id",)):
+    def __init__(self, required_fields=("id",), minimum_lines=3):
         self.required_fields = required_fields
+        self.minimum_lines = minimum_lines
 
     def check_format(self, run_output: Path):
         try:
             lines = self.all_lines(run_output)
 
-            if len(lines) < 3:
+            if len(lines) < self.minimum_lines:
                 return [_fmt.ERROR, f"The *.jsonl file contains only {len(lines)} lines, this is likely an error."]
 
             return [_fmt.OK, "The jsonl file has the correct format."]
         except Exception as e:
             return [_fmt.ERROR, str(e)]
+
+    def fail_if_json_line_is_not_valid(self, line):
+        for field in self.required_fields:
+            if not line or field not in line:
+                raise ValueError(f'The json line misses the required field "{field}": "{json.dumps(line)}".')
 
     def all_lines(self, run_output):
         if (str(run_output).endswith(".jsonl") or str(run_output).endswith(".jsonl.gz")) and run_output.is_file():
@@ -150,13 +156,25 @@ class JsonlFormat(FormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
 
         for i in ret:
-            for field in self.required_fields:
-                if not i or field not in i:
-                    raise ValueError(
-                        f'The file {matches[0]} contains a line without an "{field}" field: "{json.dumps(i)}".'
-                    )
+            self.fail_if_json_line_is_not_valid(i)
 
         return ret
+
+
+class GenIrSimulationFormat(JsonlFormat):
+    def __init__(self):
+        super().__init__(required_fields=(), minimum_lines=1)
+
+    def fail_if_json_line_is_not_valid(self, line):
+        if "simulation" not in line:
+            raise ValueError('The json line misses the required field "simulation".')
+        line = line["simulation"]
+
+        if "configuration" not in line:
+            raise ValueError('The json line misses the required field "simulation.configuration".')
+
+        if "userTurns" not in line:
+            raise ValueError('The json line misses the required field "simulation.userTurns".')
 
 
 class TsvFormat(FormatBase):
@@ -418,6 +436,7 @@ FORMAT_TO_CHECK = {
     "text-alignment-features": lambda: TextAlignmentFeaturesFormat(),
     "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
     "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
+    "GenIR-Simulation": lambda: GenIrSimulationFormat(),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
