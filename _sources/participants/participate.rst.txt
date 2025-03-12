@@ -29,6 +29,24 @@ see a ``SUBMIT`` button.
 Click on ``SUBMIT``. As you can see now, TIRA has three choices for submission (click on each respective tab to find
 out more):
 
+.. _Requirements:
+
+Requirements to your Software
+-----------------------------
+
+TIRA aims to enable double-blind evaluation of ideas and approaches in diverse domains. Therefore, we aim to make minimal requirements to the software that implements your ideas and approaches. We need that software is POSIX compatible and shipped in a Docker image and reads its inputs from a dynamic input directory (via the ``$inputDataset`` variable) and writes the results to a dynamic output directory (via the ``$outputDir`` variable).
+
+On a high level, your software is compatible if it can be invoked like this:
+
+.. code-block::
+
+   your-software --input-directory $inputDataset --output-directory $outputDir
+
+.. note:: Please note that TIRA makes environment variables available so that you do not need to pass the input and output directory via the command line, your software has access to the following environment variables:
+
+   - ``inputDataset``: Points to the POSIX path containing the input dataset. The format and structure of the contents of this directory depend on your task.
+   - ``outputDir``:  Points to the POSIX path containing where your software should store its predictions. The expected format structure how your software should store its predictions depends on your task.
+
 .. _PrepareSubmission:
 
 Prepare your Submission

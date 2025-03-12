@@ -332,6 +332,22 @@ see a <code class="docutils literal notranslate"><span class="pre">SUBMIT</span>
 <p>Click on <code class="docutils literal notranslate"><span class="pre">SUBMIT</span></code>. As you can see now, TIRA has three choices for submission (click on each respective tab to find
 out more):</p>
 </section>
+<section id="requirements-to-your-software">
+<span id="requirements"></span><h2>Requirements to your Software<a class="headerlink" href="#requirements-to-your-software" title="Link to this heading">¶</a></h2>
+<p>TIRA aims to enable double-blind evaluation of ideas and approaches in diverse domains. Therefore, we aim to make minimal requirements to the software that implements your ideas and approaches. We need that software is POSIX compatible and shipped in a Docker image and reads its inputs from a dynamic input directory (via the <code class="docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable) and writes the results to a dynamic output directory (via the <code class="docutils literal notranslate"><span class="pre">$outputDir</span></code> variable).</p>
+<p>On a high level, your software is compatible if it can be invoked like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>your-software --input-directory $inputDataset --output-directory $outputDir
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please note that TIRA makes environment variables available so that you do not need to pass the input and output directory via the command line, your software has access to the following environment variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputDataset</span></code>: Points to the POSIX path containing the input dataset. The format and structure of the contents of this directory depend on your task.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputDir</span></code>:  Points to the POSIX path containing where your software should store its predictions. The expected format structure how your software should store its predictions depends on your task.</p></li>
+</ul>
+</div>
+</section>
 <section id="prepare-your-submission">
 <span id="preparesubmission"></span><h2>Prepare your Submission<a class="headerlink" href="#prepare-your-submission" title="Link to this heading">¶</a></h2>
 <div class="sd-tab-set docutils">
@@ -501,6 +517,7 @@ Run Upload</label><div class="sd-tab-content docutils">
             <ul>
 <li><a class="reference internal" href="#">Participating in a Shared Task</a><ul>
 <li><a class="reference internal" href="#joining-a-task-and-preparing-your-environment">Joining a Task and preparing your Environment</a></li>
+<li><a class="reference internal" href="#requirements-to-your-software">Requirements to your Software</a></li>
 <li><a class="reference internal" href="#prepare-your-submission">Prepare your Submission</a></li>
 <li><a class="reference internal" href="#submitting-your-submission">Submitting your Submission</a></li>
 <li><a class="reference internal" href="#execute-your-submission">Execute Your Submission</a></li>
