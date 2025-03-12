@@ -31,7 +31,7 @@
         @refresh_running_submissions="$emit('refresh_running_submissions')" />
     </v-window-item>
     <v-window-item value="newDockerImage">
-      <v-card class="mt-10">
+      <v-card class="mt-10" title="Make a new submission">
         <v-card-item v-if="loading"><loading :loading="loading"/></v-card-item>
         <v-card-item v-if="!loading && disabled">
         <v-card-text>
@@ -39,43 +39,88 @@
           <p>
             Code submissions are the recommended form of submitting to TIRA. Code submissions are compatible with CI/CD systems like <a href="https://github.com/features/actions" target="_blank">Github Actions</a> and build a Docker image from a git repository while collecting important experimental metadata to improve transparency and reproducibility. Please read how to <a href="https://docs.tira.io/participants/participate.html#prepare-your-submission" target="_blank">prepare your submission</a>.
           </p>
+
           <br>  
           <p>
-            The steps below will guide you through to set up code submissions via Github Actions. Alternatively, you can <a href="https://docs.tira.io/participants/participate.html#submitting-your-submission" target="_blank">run all steps on your local machine</a> with the TIRA_CLIENT_TOKEN shown below.
+            The steps below will guide you to make a new code submissions. Please do not hesitate to contact your organizers <a :href="organizer_link">{{organizer}}</a> or the <a href="https://www.tira.io/categories">forum</a> in case of questions or problems.
           </p>
-          <br>
-          <p>Please do not hesitate to contact your organizers <a :href="organizer_link">{{organizer}}</a> or the <a href="https://www.tira.io/categories">forum</a> in case of questions or problems.</p>
 
           <br><br>
-          You can setup a software submission in Github Actions in three steps:
+          You can setup a code submission in four steps:
           <br>
 
-          <v-stepper :items="['Setup Your Git Repository', 'Add the Github Action', 'Submit']" flat :border=false>
+          <v-stepper :items="stepper_items" flat :border=false>
             <template v-slot:item.1>
               <v-card title="" flat>
-                <h3>Create your Git repository</h3>
-                Please create your git repository with your code. The repository can be private or public.
-                <br><br>
-                <h3>Add the TIRA_CLIENT_TOKEN secret to your Git repository</h3>
-                In your repository, go to "Settings" -> "Secrets and variables" -> "Actions" and add a new repository secret with the name TIRA_CLIENT_TOKEN and the value:
-                <br><br>
-                <code-snippet title="TIRA_CLIENT_TOKEN" :code="token" expand_message=""/>
+                <h3>How do you want to submit your code?</h3>
+                <v-radio-group v-model="code_configuration">
+                  <v-radio label="I want to submit from my local machine" value="code-configuration-1" />
+                  <v-radio label="I want to submit via CI/CD such as Github Actions" value="code-configuration-2" />
+                </v-radio-group>
               </v-card>
             </template>
 
             <template v-slot:item.2>
               <v-card title="" flat>
-                Please download the Github action <a :href="'/data-download/git-repo-template/' + user_id + '/' + task_id + '.zip'" target="_blank">here</a>.
-                <br>
-                This zip directory contains the github action in the file ".github/workflows/upload-software-to-tira.yml" that you can add to your git repository. The rest of the zip directory shows exemplary how to connect the code of your repository to your repository, see the README.md in the zip for more details.
+                <h3>Create your Git repository</h3>
+                Please create your git repository with your code. The repository can be private or public. We recommend to use <a href="https://github.com/" target="_blank">GitHub</a>.
+                <br><br>
+                <div v-if="code_configuration == 'code-configuration-2'">
+                  <h3>Add the TIRA_CLIENT_TOKEN secret to your Git repository</h3>
+                  In your repository, go to "Settings" -> "Secrets and variables" -> "Actions" and add a new repository secret with the name TIRA_CLIENT_TOKEN and the value:
+                  <br><br>
+                  <code-snippet title="TIRA_CLIENT_TOKEN" :code="token" expand_message=""/>
+                </div>
               </v-card>
             </template>
 
             <template v-slot:item.3>
               <v-card title="" flat>
-                After you have added the Github action (e.g., ".github/workflows/upload-software-to-tira.yml") to your Github repository, please run it by clicking on "Actions" -> "Upload Software to TIRA" -> "Run workflow".
-                <br><br>
-                After successful completion of the Github action, your new submission appears under the "Docker" tab above where you can select and run your new submission.
+
+                <div v-if="code_configuration == 'code-configuration-1'">
+                  First, please ensure that you have an up-to-date tira client installed:
+                  <code-snippet title="Install" code="pip3 install --upgrade tira" expand_message=""/>
+
+                  Then, please authenticate your TIRA client:
+                  <code-snippet title="Authenticate" :code="'tira-cli login --token ' + token" expand_message=""/>
+
+                  Lastly, please check that your TIRA client installation is valid:
+
+                  <code-snippet title="Install" code="tira-cli verify-installation" expand_message=""/>
+
+                  If the verification above does not show any errors, you can continue. If you want to resolve warnings or face errors, please have a look at the <a href="https://docs.tira.io/participants/python-client.html" target="_blank">installation documentation</a> for more detailed help.
+                </div>
+                <div v-if="code_configuration == 'code-configuration-2'">
+                  Please download the Github action <a :href="'/data-download/git-repo-template/' + user_id + '/' + task_id + '.zip'" target="_blank">here</a>.
+                  <br>
+                  This zip directory contains the github action in the file ".github/workflows/upload-software-to-tira.yml" that you can add to your git repository. The rest of the zip directory shows exemplary how to connect the code of your repository to your repository, see the README.md in the zip for more details.
+                </div>
+              </v-card>
+            </template>
+
+            <template v-slot:item.4>
+              <v-card title="" flat>
+                <div v-if="code_configuration == 'code-configuration-1'">
+                  Assumed that you have your code in a directory "my-submission" that is under version control, please first ensure that your git repository is clean:
+
+                  <code-snippet title="Ensure the git repository is clean" code="git status" expand_message=""/>
+
+                  <br>
+                  This should report "nothing to commit, working tree clean".
+                  <br>
+                  Then, you can submit via:
+
+                  <code-snippet title="Install" :code="'tira-cli code-submission --path my-submission --task ' + task_id" expand_message=""/>
+
+                  You can modify the parameters accordingly, please see the <a href="https://docs.tira.io/participants/participate.html#submitting-your-submission" target="_blank">correspoding documentation</a> or help for more details:
+
+                  <code-snippet title="Install" code="tira-cli code-submission --help" expand_message=""/>
+                </div>
+                <div v-if="code_configuration == 'code-configuration-2'">
+                  After you have added the Github action (e.g., ".github/workflows/upload-software-to-tira.yml") to your Github repository, please run it by clicking on "Actions" -> "Upload Software to TIRA" -> "Run workflow".
+                  <br><br>
+                  After successful completion of the Github action, your new submission appears under the "Docker" tab above where you can select and run your new submission.
+                </div>
               </v-card>
             </template>
           </v-stepper>
@@ -138,8 +183,6 @@
       </v-card>
     </v-window-item>
   </v-window>
-
-
 </template>
 
 <script lang="ts">
@@ -167,6 +210,7 @@ export default {
         http_owner_url: '',
         disabled: false,
         tab: '',
+        code_configuration: 'code-configuration-1',
         token: '<ADD-YOUR-TOKEN-HERE>',
         userinfo: inject('userinfo') as UserInfo,
         rest_url: inject("REST base URL"),
@@ -223,6 +267,13 @@ export default {
   },
   computed: {
     organizer_link() {return get_link_to_organizer(this.organizer_id)},
+    stepper_items() {
+      if (this.code_configuration == 'code-configuration-1') {
+        return ['How?', 'Setup Your Git Repository', 'Prepare Your Environment', 'Submit']
+      } else {
+        return ['How?', 'Setup Your Git Repository', 'Add the Github Action', 'Submit']
+      }
+    },
     code_for_merging() {
       return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.ssh_repo_url + '\ngit config pull.rebase true\ngit pull tira main\ngit push tira main'
     },
