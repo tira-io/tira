@@ -54,12 +54,12 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
     def test_invalid_on_query_output_directory(self):
         actual = check_format(IR_QUERY_OUTPUT, "*.jsonl")
         self.assertEqual(actual[0], _ERROR)
-        self.assertTrue('contains a line without an "id" field' in actual[1])
+        self.assertTrue('The json line misses the required field "id"' in actual[1])
 
     def test_invalid_on_query_output_file(self):
         actual = check_format(IR_QUERY_OUTPUT / "queries.jsonl", "*.jsonl")
         self.assertEqual(actual[0], _ERROR)
-        self.assertTrue('contains a line without an "id" field' in actual[1])
+        self.assertTrue('The json line misses the required field "id"' in actual[1])
 
     def test_invalid_trec_run_file(self):
         expected = [_ERROR, "No unique *.jsonl file was found, only the files ['run.txt'] were available."]
