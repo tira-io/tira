@@ -144,6 +144,7 @@ class TiraClient(ABC):
         user_id: "Optional[str]" = None,
         docker_file: "Optional[Path]" = None,
         dry_run: "Optional[bool]" = False,
+        allow_network: "Optional[bool]" = False,
     ):
         """Build a tira submission from a git repository.
 
@@ -224,8 +225,7 @@ class TiraClient(ABC):
         except:
             raise ValueError("No branch in the git repository")
 
-        print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
-        print("Build Docker image...")
+        print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
 
         if docker_file is None:
             docker_file = path / "Dockerfile"
@@ -237,8 +237,13 @@ class TiraClient(ABC):
         directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
         submission_name = directory_in_path.replace("/", "-")
         docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
+
         if repo.is_dirty(untracked_files=True):
-            raise ValueError("The git repository is not clean.")
+            if not dry_run:
+                raise ValueError("The git repository is not clean.")
+        else:
+            print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
+        print("Build Docker image...")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
         self.local_execution.build_docker_image(path, docker_tag, docker_file)
@@ -250,7 +255,13 @@ class TiraClient(ABC):
             command = self.local_execution.extract_entrypoint(docker_tag)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            self.local_execution.run(image=docker_tag, command=command, input_dir=dataset_path, output_dir=tmp_dir)
+            self.local_execution.run(
+                image=docker_tag,
+                command=command,
+                input_dir=dataset_path,
+                output_dir=tmp_dir,
+                allow_network=allow_network,
+            )
             result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0])
             if result != _fmt.OK:
                 print(msg)

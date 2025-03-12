@@ -71,6 +71,26 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="The path used to build the docker image, must be in a clean git repository.",
     )
+    parser.add_argument(
+        "--command",
+        required=False,
+        default=None,
+        help="The command that executes your approach in the docker image (default: the Docker Entrypoint). The command should read the data from $inputDataset to write predictions to $outputDir.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Make a dry-run, i.e., to develop your solution, i.e., not uploading to TIRA and not requiring that the git repo is clean.",
+    )
+    parser.add_argument(
+        "--allow-network",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
+    )
     parser.add_argument("--task", required=True, default=None, help="The task to which the code should be submitted.")
 
     parser.set_defaults(executable=code_submission_command)
@@ -109,9 +129,11 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
     return 0
 
 
-def code_submission_command(path: Path, task: str, **kwargs) -> int:
+def code_submission_command(
+    path: Path, task: str, dry_run: bool, allow_network: bool, command: Optional[str], **kwargs
+) -> int:
     client: "TiraClient" = RestClient()
-    client.submit_code(Path(path), task)
+    client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network)
 
     return 0
 
