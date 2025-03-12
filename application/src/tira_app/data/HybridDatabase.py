@@ -744,6 +744,28 @@ class HybridDatabase(object):
         if hf_models and len(hf_models) > 0:
             mount_hf_model = hf_models[0].mount_hf_model
 
+        source_code_remotes = None
+        try:
+            source_code_remotes = None if not ds.source_code_remotes else json.loads(ds.source_code_remotes)
+        except:
+            pass
+
+        if source_code_remotes:
+            source_code_remotes = [{"display_name": k, "name": v} for k, v in source_code_remotes.items()]
+
+            if ds.source_code_commit:
+                for i in source_code_remotes:
+                    remote = i["name"]
+                    if remote.startswith("https://github.com/"):
+                        i["href"] = remote.replace(".git", "") + "/tree/" + ds.source_code_commit
+                    if remote.startswith("git@github.com:"):
+                        i["href"] = (
+                            "https://github.com/"
+                            + remote.split("git@github.com:")[1].replace(".git", "")
+                            + "/tree/"
+                            + ds.source_code_commit
+                        )
+
         return {
             "docker_software_id": ds.docker_software_id,
             "display_name": ds.display_name,
@@ -755,6 +777,9 @@ class HybridDatabase(object):
             "description": ds.description,
             "paper_link": ds.paper_link,
             "input_docker_software": input_docker_software,
+            "source_code_active_branch": ds.source_code_active_branch,
+            "source_code_commit": ds.source_code_commit,
+            "source_code_remotes": source_code_remotes,
             "input_docker_software_id": (
                 ds.input_docker_software.docker_software_id if ds.input_docker_software else None
             ),

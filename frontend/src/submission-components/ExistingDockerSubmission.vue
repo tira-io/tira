@@ -33,6 +33,14 @@
         into the Docker image.
         </div>
 
+        <div v-if="docker_software_details.source_code_active_branch && docker_software_details.source_code_commit && docker_software_details.source_code_remotes">
+        This software was created from the git repository 
+        <span v-for="link in docker_software_details.source_code_remotes">
+          <a v-if="link.href" :href="link.href" target="_blank">{{link.name}}</a><span v-if="!link.href">{{link.name}}</span>&nbsp;
+        </span>
+        <br>(Branch: {{ docker_software_details.source_code_active_branch }}. Commit: {{ docker_software_details.source_code_commit }}).<br>
+        </div>
+
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
         <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
       </v-form>
@@ -71,7 +79,8 @@ export default {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }]
+        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
+        'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("gRPC base URL"),
