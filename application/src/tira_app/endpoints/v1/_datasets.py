@@ -102,7 +102,7 @@ def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
         i = load_mirrored_resource(i.mirrored_resource.md5_sum)
         if not i or not i["mirrors"] or not resource_type or resource_type not in ret:
             continue
-
+        ret[f"{resource_type}-md5_sum"] = i["md5_sum"]
         for k, v in i["mirrors"].items():
             ret[resource_type][k] = v
 
