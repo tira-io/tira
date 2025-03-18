@@ -99,10 +99,17 @@ def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
     ret = {"truths": {}, "inputs": {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
         resource_type = i.resource_type
+        subdirectory = i.subdirectory
+        rename_to = i.rename_to
         i = load_mirrored_resource(i.mirrored_resource.md5_sum)
         if not i or not i["mirrors"] or not resource_type or resource_type not in ret:
             continue
         ret[f"{resource_type}-md5_sum"] = i["md5_sum"]
+        if subdirectory:
+            ret[f"{resource_type}-subdirectory"] = subdirectory
+        if rename_to:
+            ret[f"{resource_type}-rename_to"] = rename_to
+
         for k, v in i["mirrors"].items():
             ret[resource_type][k] = v
 
