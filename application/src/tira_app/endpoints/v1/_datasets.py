@@ -22,6 +22,7 @@ class DatasetSerializer(ModelSerializer):
     description = SerializerMethodField()
     file_listing = SerializerMethodField()
     format = SerializerMethodField()
+    evaluator = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
@@ -39,6 +40,7 @@ class DatasetSerializer(ModelSerializer):
             "mirrors",
             "file_listing",
             "format",
+            "evaluator",
         ]
 
     def get_mirrors(self, obj):
@@ -71,6 +73,17 @@ class DatasetSerializer(ModelSerializer):
             return [obj.ir_datasets_id, obj.ir_datasets_id_2]
         else:
             return obj.ir_datasets_id
+
+    def get_evaluator(self, obj):
+        if (
+            obj.evaluator
+            and obj.evaluator.is_git_runner
+            and obj.evaluator.git_runner_image
+            and obj.evaluator.git_runner_command
+        ):
+            return {"image": obj.evaluator.git_runner_image, "command": obj.evaluator.git_runner_command}
+        else:
+            return None
 
 
 class _DatasetView(ModelViewSet):
