@@ -144,9 +144,7 @@ class LocalExecutionIntegration:
         return self.make_command_absolute(image_name, " ".join(ret))
 
     def make_command_absolute(self, image_name, command):
-        from tira.third_party_integrations import (
-            extract_to_be_executed_notebook_from_command_or_none,
-        )
+        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
 
         executable = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -343,6 +341,46 @@ class LocalExecutionIntegration:
 
         return "Measures runtime, energy, and many other" in help_response
 
+    def evaluate(self, eval_dir: Path, output_dir: Path, allow_network: bool, evaluate: dict, client=None):
+        if not client:
+            client = self.__docker_client()
+
+        evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
+
+        if type(evaluate) is dict and evaluate["evaluator_id"]:
+            evaluation_volumes[str(evaluate["truth_directory"])] = {"bind": "/tira-data/input_truth", "mode": "ro"}
+            evaluation_volumes[str(output_dir)] = {"bind": "/tira-data/input-run", "mode": "ro"}
+
+            evaluate, image, command = (
+                None,
+                evaluate["evaluator_git_runner_image"],
+                evaluate["evaluator_git_runner_command"],
+            )
+        elif type(evaluate) is not str:
+            raise ValueError("ToDo Implement this case. I.e., set evaluate variable")
+
+        if image is None or command is None:
+            evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
+
+        command = self.__normalize_command(command, True)
+        logging.debug(
+            f"Evaluate software with: docker run --rm -ti -v {output_dir}:/tira-data/input -v"
+            f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
+        )
+
+        container = client.containers.run(
+            image,
+            entrypoint="sh",
+            command=f'-c "{command}; sleep .1"',
+            volumes=evaluation_volumes,
+            detach=True,
+            remove=True,
+            network_disabled=not allow_network,
+        )
+
+        for line in container.attach(stdout=True, stream=True, logs=True):
+            print(line.decode("utf-8"), flush=True)
+
     def run(
         self,
         identifier=None,
@@ -481,41 +519,7 @@ class LocalExecutionIntegration:
             print(line.decode("utf-8"))
 
         if evaluate:
-            evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
-
-            if type(evaluate) is dict and evaluate["evaluator_id"]:
-                evaluation_volumes[str(evaluate["truth_directory"])] = {"bind": "/tira-data/input_truth", "mode": "ro"}
-                evaluation_volumes[str(output_dir)] = {"bind": "/tira-data/input-run", "mode": "ro"}
-
-                evaluate, image, command = (
-                    None,
-                    evaluate["evaluator_git_runner_image"],
-                    evaluate["evaluator_git_runner_command"],
-                )
-            elif type(evaluate) is not str:
-                raise ValueError("ToDo Implement this case. I.e., set evaluate variable")
-
-            if image is None or command is None:
-                evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
-
-            command = self.__normalize_command(command, True)
-            logging.debug(
-                f"Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v"
-                f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
-            )
-
-            container = client.containers.run(
-                image,
-                entrypoint="sh",
-                command=f'-c "{command}; sleep .1"',
-                volumes=evaluation_volumes,
-                detach=True,
-                remove=True,
-                network_disabled=not allow_network,
-            )
-
-            for line in container.attach(stdout=True, stream=True, logs=True):
-                print(line.decode("utf-8"), flush=True)
+            self.evaluate(eval_dir, output_dir, allow_network, client)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'

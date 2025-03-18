@@ -63,6 +63,22 @@ def setup_login_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=login_command)
 
 
+def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--directory", required=True, default=None, help="The directory with the predictions to evaluate."
+    )
+    parser.add_argument("--dataset", required=True, help="The dataset for which the predictions are made.")
+    parser.set_defaults(executable=evaluate_command)
+
+
+def evaluate_command(directory: Path, dataset: str, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    client.evaluate(Path(directory), dataset)
+
+    return 0
+
+
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
@@ -178,6 +194,7 @@ def parse_args():
     setup_code_submission_command(
         subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
     )
+    setup_evaluation_command(subparsers.add_parser("evaluate", help="Evaluate some predictions on your local machine."))
 
     return parser.parse_args()
 

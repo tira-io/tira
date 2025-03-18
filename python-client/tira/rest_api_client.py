@@ -596,6 +596,7 @@ class Client(TiraClient):
         url = None
         expected_md5 = None
         subdirectory = None
+        rename_to = None
         if (
             not meta_data
             or "mirrors" not in meta_data
@@ -606,9 +607,10 @@ class Client(TiraClient):
         else:
             url = list(meta_data["mirrors"][suffix].values())[0]
 
-            if "dataset_extraction" in meta_data and suffix in meta_data["dataset_extraction"]:
-                expected_md5 = meta_data["dataset_extraction"][suffix]["md5sum"]
-                subdirectory = meta_data["dataset_extraction"][suffix]["subdirectory"]
+            if suffix in meta_data["mirrors"] and f"{suffix}-md5_sum" in meta_data["mirrors"]:
+                expected_md5 = meta_data["mirrors"][f"{suffix}-md5_sum"]
+                subdirectory = meta_data["mirrors"].get(f"{suffix}-subdirectory", None)
+                rename_to = meta_data["mirrors"].get(f"{suffix}-rename_to", None)
 
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
@@ -618,8 +620,8 @@ class Client(TiraClient):
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
 
-        if expected_md5 and subdirectory:
-            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory)
+        if expected_md5:
+            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory, rename_to)
         else:
             self.download_and_extract_zip(url, target_dir)
 
@@ -698,32 +700,61 @@ class Client(TiraClient):
 
         return ret
 
-    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory):
+    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory, rename_to=None):
         if expected_md5 is None or not expected_md5:
             raise ValueError("foo")
 
         if not (Path(self.tira_cache_dir) / ".archived" / expected_md5).exists():
-            raise ValueError("foo")
+            r = requests.get(url, stream=True)
+            total = int(r.headers.get("content-length", 0))
+            status_code = r.status_code
+            if status_code < 200 or status_code >= 300:
+                raise ValueError(f"Got non 200 status code {status_code} for {url}.")
+            response_content = io.BytesIO()
+            with tqdm(
+                desc="Download",
+                total=total,
+                unit="iB",
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as bar:
+                for data in r.iter_content(chunk_size=1024):
+                    size = response_content.write(data)
+                    bar.update(size)
 
-        z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
+            actual_md5 = hashlib.md5(response_content.getbuffer()).hexdigest()
+            if actual_md5 != expected_md5:
+                raise ValueError(
+                    f'MD5 is unexpected: I expected "{expected_md5}" but got "{actual_md5}" for URL "{url}".'
+                )
 
-        members_to_extract = []
-        for i in z.namelist():
-            if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
-                members_to_extract.append(i)
+            print("Download finished. Persist...")
+            with open(Path(self.tira_cache_dir) / ".archived" / expected_md5, "wb") as file_out:
+                file_out.write(response_content.getbuffer())
 
-        if len(members_to_extract) == 0:
-            raise ValueError("I found no files in te zip.")
+        if rename_to and not subdirectory:
+            Path(target_dir).mkdir(exist_ok=True, parents=True)
+            shutil.copy(src=Path(self.tira_cache_dir) / ".archived" / expected_md5, dst=Path(target_dir) / rename_to)
+        else:
+            z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            for i in members_to_extract:
-                z._extract_member(i, Path(tmpdirname), pwd=None)
+            members_to_extract = []
+            for i in z.namelist():
+                if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
+                    members_to_extract.append(i)
 
-            src_dir = Path(tmpdirname)
-            if subdirectory:
-                src_dir = src_dir / subdirectory
-            Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
-            shutil.move(src=src_dir, dst=target_dir)
+            if len(members_to_extract) == 0:
+                raise ValueError("I found no files in te zip.")
+
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                for i in members_to_extract:
+                    z._extract_member(i, Path(tmpdirname), pwd=None)
+
+                src_dir = Path(tmpdirname)
+                if subdirectory:
+                    src_dir = src_dir / subdirectory
+                Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
+                shutil.move(src=src_dir, dst=target_dir)
 
         return
 

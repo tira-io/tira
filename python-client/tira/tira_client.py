@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import tempfile
@@ -134,6 +135,91 @@ class TiraClient(ABC):
                 file_path = os.path.join(repo.working_tree_dir, file)
                 zipf.write(file_path, arcname=file)
         return zip_path
+
+    def evaluate(self, directory: Path, dataset_id: str):
+        """Evaluate some predictions made for some dataset on your local machine.
+
+        Args:
+            directory (Path): The path to the directory that contains the predictions that you want to evaluate.
+            dataset_id (str): The ID of the TIRA dataset on which the directory is to be evaluated.
+        """
+        from tira.io_utils import load_output_of_directory
+
+        all_messages = []
+
+        def print_message(message, level):
+            all_messages.append((message, level))
+            os.system("cls" if os.name == "nt" else "clear")
+            print(f"TIRA Evaluation on '{dataset_id}':")
+            for m, l in all_messages:
+                log_message(m, l)
+
+        dataset_handle = self.get_dataset(dataset_id)
+        if (
+            not dataset_handle
+            or "mirrors" not in dataset_handle
+            or "inputs" not in dataset_handle["mirrors"]
+            or "format" not in dataset_handle
+            or len(dataset_handle["format"]) == 0
+        ):
+            raise ValueError("Dataset configuration is invalid: " + str(dataset_handle))
+
+        if (
+            "evaluator" not in dataset_handle
+            or "image" not in dataset_handle["evaluator"]
+            or "command" not in dataset_handle["evaluator"]
+        ):
+            raise ValueError("Dataset configuration has no evaluator configured: " + str(dataset_handle))
+
+        if not directory or not directory.exists():
+            print_message(f"The directory {directory} does not exist.", _fmt.ERROR)
+            raise ValueError(f"The directory {directory} does not exist.")
+
+        result, msg = check_format(directory, dataset_handle["format"][0])
+        if result != _fmt.OK:
+            print_message(msg, result)
+            raise ValueError(msg)
+        print_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
+
+        print(dataset_handle)
+        dataset_path = self.download_dataset(dataset_handle["default_task"], dataset_id, truth_dataset=True)
+
+        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
+
+        if not self.local_execution.docker_is_installed_failsave():
+            msg = "Docker is not installed, I can not run the dockerized evaluator..."
+            print_message(msg, _fmt.ERROR)
+            raise ValueError(msg)
+
+        print_message("Docker is installed. I can run the dockerized evaluator.", _fmt.OK)
+        self.local_execution.ensure_image_available_locally(dataset_handle["evaluator"]["image"])
+
+        print_message(f"The evaluator image {dataset_handle['evaluator']['image']} is available locally.", _fmt.OK)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            eval_config = {
+                "evaluator_id": "1",
+                "evaluator_git_runner_image": dataset_handle["evaluator"]["image"],
+                "evaluator_git_runner_command": dataset_handle["evaluator"]["command"],
+                "truth_directory": str(Path(dataset_path).absolute().resolve()),
+            }
+            self.local_execution.evaluate(
+                Path(tmp_dir).absolute().resolve(),
+                directory.absolute().resolve(),
+                allow_network=False,
+                evaluate=eval_config,
+            )
+
+            preds = None
+            try:
+                preds = json.dumps(load_output_of_directory(Path(tmp_dir), evaluation=True))
+            except:
+                msg = "The evaluator failed to produce a valid evaluation..."
+                print(msg)
+                raise ValueError(msg)
+
+            print_message("The evaluator was successfull.", _fmt.OK)
+            print("\n\nResult:\n\t" + preds)
 
     def submit_code(
         self,
