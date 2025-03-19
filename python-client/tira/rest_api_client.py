@@ -21,7 +21,11 @@ from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -760,11 +764,11 @@ class Client(TiraClient):
 
     def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)["urls"][0]
-        if url.split("://")[1].startswith("files.webis.de"):
+        if "://" in url and url.split("://")[1].startswith("files.webis.de"):
             print(f"Download from the Incubator: {url}")
             print("\tThis is only used for last spot checks before archival to Zenodo.")
 
-        if url.split("://")[1].startswith("zenodo.org"):
+        if "://" in url and url.split("://")[1].startswith("zenodo.org"):
             print(f"Download from Zenodo: {url}")
 
         for _ in range(self.failsave_retries):
