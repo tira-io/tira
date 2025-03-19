@@ -439,9 +439,23 @@ class TiraClient(ABC):
                 if task_identifier == dataset["default_task"] and dataset_in_task == dataset["id"]:
                     return dataset
 
+                if task_identifier == dataset["default_task"] and dataset_in_task == dataset["display_name"]:
+                    return dataset
+
         for dataset in datasets:
             if "ir_datasets_id" not in dataset or not dataset["ir_datasets_id"] or len(dataset["ir_datasets_id"]) < 3:
                 continue
 
             if dataset_identifier and dataset_identifier == dataset["ir_datasets_id"]:
                 return dataset
+
+        matches = []
+        for dataset in datasets:
+            if "default_task" not in dataset or not dataset["default_task"]:
+                continue
+
+            if dataset_identifier and dataset_identifier == dataset["display_name"]:
+                matches.append(dataset)
+
+        if len(matches) == 1:
+            return matches[0]

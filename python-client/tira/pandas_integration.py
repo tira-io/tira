@@ -97,8 +97,10 @@ class PandasIntegration:
         return sorted(list(ret))
 
     def __extract_task_and_dataset_id(self, task, dataset):
-        if dataset == None:
+        if dataset == None and task and len(task.split("/")) == 2:
             task, dataset = task.split("/")
+        else:
+            task, dataset = None, task
 
         return task, dataset
 
