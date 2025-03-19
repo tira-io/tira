@@ -14,17 +14,11 @@
       },
       "inputs": {
         "Zenodo": "URL does not exist"
-      }
-    },
-    "dataset_extraction": {
-      "truths": {
-        "md5sum": "608b4b658c190d9c3bd840d43653f021",
-        "subdirectory": "pointwise/labels"
       },
-      "inputs": {
-        "md5sum": "608b4b658c190d9c3bd840d43653f021",
-        "subdirectory": "pointwise/inputs"
-      }
+      "truths-md5_sum": "608b4b658c190d9c3bd840d43653f021",
+      "truths-subdirectory": "pointwise/labels",
+      "inputs-md5_sum": "608b4b658c190d9c3bd840d43653f021",
+      "inputs-subdirectory": "pointwise/inputs"
     }
   },
   {
