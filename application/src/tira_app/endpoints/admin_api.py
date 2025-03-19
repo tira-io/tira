@@ -17,11 +17,7 @@ from slugify import slugify
 
 from .. import tira_model as model
 from ..authentication import auth
-from ..checks import (
-    check_conditional_permissions,
-    check_permissions,
-    check_resources_exist,
-)
+from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
 from .v1._datasets import download_mirrored_resource
@@ -219,18 +215,19 @@ def admin_delete_task(request, task_id):
 def file_listing(path, title):
     path = Path(path)
     children = []
-    for f in os.listdir(path):
-        if len(children) > 5:
-            children += [{"title": "..."}]
-            break
+    if path and Path(path).exists() and Path(path).is_dir():
+        for f in os.listdir(path):
+            if len(children) > 5:
+                children += [{"title": "..."}]
+                break
 
-        if os.path.isdir(path / f):
-            c = file_listing(path / f, str(f))["children"]
-            children += [{"title": f, "children": c}]
-        else:
-            md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
-            size = os.path.getsize(path / f)
-            children += [{"title": f + f" (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5}]
+            if os.path.isdir(path / f):
+                c = file_listing(path / f, str(f))["children"]
+                children += [{"title": f, "children": c}]
+            else:
+                md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
+                size = os.path.getsize(path / f)
+                children += [{"title": f + f" (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5}]
 
     current_item = {"title": title}
     if len(children) > 0:

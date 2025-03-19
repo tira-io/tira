@@ -84,6 +84,9 @@
         let ret : Record<string, string> = {}
         for (let resource_type of Object.keys(mirrors)) {
           for (let resource_name of Object.keys(mirrors[resource_type])) {
+            if (resource_type.includes('md5_sum') || resource_type.includes('subdirectory') || resource_type.includes('rename_to')) {
+              continue
+            }
             ret[resource_name + ' (' + resource_type + ')'] = mirrors[resource_type][resource_name]
           }
         }

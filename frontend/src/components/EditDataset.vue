@@ -194,6 +194,9 @@
       },
       watch: {
         evaluation_type(new_value, old_value) {
+          if (this.dataset_id_from_props) {
+            return
+          }
           if (new_value != old_value && new_value == 'eval-1') {
             this.git_runner_image = "ubuntu:18.04"
             this.git_runner_command = "echo 'this is no real evaluator'"
