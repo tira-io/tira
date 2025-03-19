@@ -455,6 +455,28 @@ ir_datasets</label><div class="sd-tab-content docutils">
 </div>
 <p>This code will work inside and outside the TIRA sandbox (within the sandbox thst has no access to the internet, the code above will use the dataset mou ted read only into the container as anounced via environment variables).</p>
 <p>Now that the data is available, please configure next its evaluation by adding an <a class="reference external" href="#add-an-evaluator">Evaluator</a>.</p>
+</section>
+<hr class="docutils" />
+<section id="test-your-evaluator">
+<h2>Test your Evaluator<a class="headerlink" href="#test-your-evaluator" title="Link to this heading">¶</a></h2>
+<p>As soon as you have <a class="reference external" href="#add-a-new-dataset">added a dataset</a> and <a class="reference external" href="#add-an-evaluator">configured the evaluator</a>, you can test it locally and in TIRA.io. In the following, we assume that you have predictions in a directory <code class="docutils literal notranslate"><span class="pre">my-predictions</span></code>.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Local Testing</label><div class="sd-tab-content docutils">
+<p>Please use the <cite>tira-cli evaluate</cite> command to test your evaluator locally by passing the ID of the dataset and the directory that contains the predictions for the dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>evaluate<span class="w"> </span>--directory<span class="w"> </span>my-predictions<span class="w"> </span>--dataset<span class="w"> </span>DATASET-ID
+</pre></div>
+</div>
+<p>If the evaluator works as expected, the output will look like this:</p>
+<img alt="../_images/run-evaluator-locally.png" src="../_images/run-evaluator-locally.png" />
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Test in TIRA.io</label><div class="sd-tab-content docutils">
+<p>The simplest option to test that your evaluator works in TIRA.io is to upload the predictions so that the evaluator will run.</p>
+</div>
+</div>
 <hr class="docutils" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -685,6 +707,7 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
 <li><a class="reference internal" href="#">Organizing Tasks</a><ul>
 <li><a class="reference internal" href="#add-an-evaluator">Add an Evaluator</a></li>
 <li><a class="reference internal" href="#add-a-new-dataset">Add a new Dataset</a></li>
+<li><a class="reference internal" href="#test-your-evaluator">Test your Evaluator</a></li>
 <li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a><ul>
 <li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a></li>
 </ul>

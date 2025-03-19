@@ -166,6 +166,37 @@ This code will work inside and outside the TIRA sandbox (within the sandbox thst
 
 Now that the data is available, please configure next its evaluation by adding an `Evaluator <#add-an-evaluator>`_.
 
+
+
+------
+
+Test your Evaluator
+~~~~~~~~~~~~~~~~~~~
+
+
+As soon as you have `added a dataset <#add-a-new-dataset>`_ and `configured the evaluator <#add-an-evaluator>`_, you can test it locally and in TIRA.io. In the following, we assume that you have predictions in a directory ``my-predictions``.
+
+
+.. tab-set::
+
+   .. tab-item:: Local Testing
+
+      Please use the `tira-cli evaluate` command to test your evaluator locally by passing the ID of the dataset and the directory that contains the predictions for the dataset:
+
+      .. code:: bash
+
+        tira-cli evaluate --directory my-predictions --dataset DATASET-ID
+
+      If the evaluator works as expected, the output will look like this:
+
+      .. image:: run-evaluator-locally.png
+
+
+   .. tab-item:: Test in TIRA.io
+
+       The simplest option to test that your evaluator works in TIRA.io is to upload the predictions so that the evaluator will run.
+
+
 ------
 
 .. note:: This is the previous version
