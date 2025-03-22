@@ -37,7 +37,8 @@ def log_message(message: str, level: _fmt):
 
 
 class FormatBase:
-    def all_lines(self, f: Path):
+    
+    def yield_next_entry(self, f: Path):
         try:
             f_size = f.stat().st_size
         except:
@@ -48,14 +49,18 @@ class FormatBase:
 
         if str(f).endswith(".gz"):
             with gzip.open(f, "rt") as o:
-                return o.readlines()
+                for line in o:
+                    yield line.rstrip('\n')
         else:
             with open(f, "r") as o:
-                return o.readlines()
+                for line in o:
+                    yield line.rstrip('\n')
+
+    def all_lines(self, f: Path):
+        return list(self.yield_next_entry(f))
 
     def max_size(self):
         return 25 * 1024 * 1024
-
 
 
 class RunFormat(FormatBase):
@@ -103,13 +108,19 @@ class RunFormat(FormatBase):
 
         return [_fmt.OK, "The run.txt file has the correct format."]
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         if (run_output / "run.txt").exists():
-            return [i.strip() for i in super().all_lines(run_output / "run.txt")]
-        if (run_output / "run.txt.gz").exists():
-            return [i.strip() for i in super().all_lines(run_output / "run.txt.gz")]
+            file_path = run_output / "run.txt"
+        elif (run_output / "run.txt.gz").exists():
+            file_path = run_output / "run.txt.gz"
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
+        
+        for line in super().yield_next_entry(file_path):
+            yield line.strip()
+
+    def all_lines(self, run_output):
+        return list(self.yield_next_entry(run_output))
 
 
 class JsonlFormat(FormatBase):
@@ -135,7 +146,7 @@ class JsonlFormat(FormatBase):
             if not line or field not in line:
                 raise ValueError(f'The json line misses the required field "{field}": "{json.dumps(line)}".')
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         if (str(run_output).endswith(".jsonl") or str(run_output).endswith(".jsonl.gz")) and run_output.is_file():
             matches = [run_output]
         else:
@@ -147,19 +158,19 @@ class JsonlFormat(FormatBase):
             raise ValueError(
                 "No unique *.jsonl file was found, only the files " + str(os.listdir(run_output)) + " were available."
             )
-
-        ret_raw = [i.strip() for i in super().all_lines(matches[0])]
-        ret = []
-        for i in ret_raw:
+        
+        for line in super().yield_next_entry(matches[0]):
+            line = line.strip()
             try:
-                ret.append(json.loads(i))
-            except:
-                raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
+                parsed_line = json.loads(line)
+                self.fail_if_json_line_is_not_valid(parsed_line)
+                yield parsed_line
+            except json.JSONDecodeError:
+                raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
-        for i in ret:
-            self.fail_if_json_line_is_not_valid(i)
+    def all_lines(self, run_output):
+        return list(self.yield_next_entry(run_output))
 
-        return ret
 
 
 class GenIrSimulationFormat(JsonlFormat):
@@ -195,7 +206,7 @@ class TsvFormat(FormatBase):
 
         return [_fmt.OK, "The tsv file has the correct format."]
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         matches = [i for i in os.listdir(run_output) if i.endswith(".tsv")]
         if len(matches) != 1:
             msg = "No unique *.tsv file was found, only the files "
@@ -203,17 +214,18 @@ class TsvFormat(FormatBase):
             raise ValueError(msg)
 
         f = run_output / matches[0]
-        with open(f, "r") as tsv_file:
-            columns = None
-            ret = []
-            for l in tsv_file:
-                l_parsed = l.strip().split("\t")
-                if columns is None:
-                    columns = len(l_parsed)
-                if len(l_parsed) != columns:
-                    raise ValueError("The *.tsv file is invalid: The number of columns varies.")
-                ret += [l_parsed]
-            return ret
+        columns = None
+        
+        for line in super().yield_next_entry(f):
+            l_parsed = line.strip().split("\t")
+            if columns is None:
+                columns = len(l_parsed)
+            if len(l_parsed) != columns:
+                raise ValueError("The *.tsv file is invalid: The number of columns varies.")
+            yield l_parsed
+
+    def all_lines(self, run_output):
+        return list(self.yield_next_entry(run_output))
 
 
 class TextAlignmentFeaturesFormat(FormatBase):
@@ -428,27 +440,6 @@ class TextAlignmentCorpusFormat(FormatBase):
 
                 yield entry
 
-class QueryProcessorFormat(JsonlFormat):
-    """Checks if a given output is a valid query processor output in JSONL format."""
-    
-    def __init__(self):
-        super().__init__(required_fields=("qid", "originalQuery", "segmentationApproach", "segmentation"), minimum_lines=1)
-    
-    def fail_if_json_line_is_not_valid(self, line):
-        super().fail_if_json_line_is_not_valid(line)
-        
-        if not isinstance(line["segmentation"], list):
-            raise ValueError('The "segmentation" field must be a list.')
-        
-        if len(line["segmentation"]) == 0:
-            raise ValueError('The "segmentation" field cannot be empty.')
-
-class DocumentProcessorFormat(JsonlFormat):
-    """Checks if a given output is a valid document processor output in JSONL format."""
-
-    def __init__(self):
-        super().__init__(required_fields=("docno", "key"), minimum_lines=1)
-
     
 FORMAT_TO_CHECK = {
     "run.txt": lambda: RunFormat(),
@@ -459,8 +450,6 @@ FORMAT_TO_CHECK = {
     "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
     "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
     "GenIR-Simulation": lambda: GenIrSimulationFormat(),
-    "query-processor": lambda: QueryProcessorFormat(),
-    "document-processor": lambda: DocumentProcessorFormat(),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
