@@ -47,6 +47,9 @@
           <p v-for="[k, v] of Object.entries(mirrored_resources(item.mirrors))">
             <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
           </p>
+          <p v-for="[k, v] of Object.entries(tira_resources(item))">
+            <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
+          </p>
         </template>
       </v-data-table>
     </div>
@@ -91,6 +94,15 @@
           }
         }
 
+        return ret
+      },
+      tira_resources(item: any) {
+        let ret : Record<string, string> = {}
+        if (item.dataset_id && !item.is_confidential && item.mirrors && Object.getOwnPropertyNames(this.mirrored_resources(item.mirrors)).length == 0) {
+          ret['Inputs'] = "https://www.tira.io/data-download/" + (item.dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-/' + item.dataset_id + '.zip'
+          ret['Truths'] = "https://www.tira.io/data-download/" + (item.dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + item.dataset_id + '.zip'
+        }
+        
         return ret
       }
     },
