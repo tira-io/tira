@@ -1,0 +1,79 @@
+implementation:
+  executable: null
+  python:
+    interactive: false
+    modules: 3.10.12
+    packages: [Brotli==1.1.0, CacheControl==0.14.2, Deprecated==1.2.18, FastWARC==0.14.9, GitPython==3.1.44, GoDaddyPy==2.5.1, HeapDict==1.0.1, Jinja2==3.1.5, Mako==1.3.8, MarkupSafe==3.0.2, PyGObject==3.42.1, PyYAML==5.4.1, PyYAML==6.0.2, Pygments==2.18.0, RapidFuzz==3.11.0, SecretStorage==3.3.3, UNKNOWN==0.0.0, annotated-types==0.7.0, asttokens==3.0.0, backports.tarfile==1.2.0, beautifulsoup4==4.13.3, bs4==0.0.2, build==1.2.2.post1, cbor==1.0.0, ceph==1.0.0, cephfs==2.0.0, certifi==2020.6.20, cffi==1.17.1, chardet==4.0.0, charset-normalizer==3.4.0, chatnoir-api==3.2.1, chatnoir-pyterrier==3.1.2, chest==0.2.3, cleo==2.1.0, click==8.1.7, contourpy==1.3.1, crashtest==0.4.1, cryptography==44.0.0, cycler==0.12.1, dataclasses-json==0.6.7, dbus-python==1.2.18, decorator==4.4.2, defusedxml==0.7.1, dill==0.3.9, distlib==0.3.9, docker==7.1.0, dulwich==0.22.7, exceptiongroup==1.2.2, executing==2.2.0, fail2ban==0.11.2, fastjsonschema==2.21.1, filelock==3.16.1, fonttools==4.56.0, future==1.0.0, gitdb==4.0.12, idna==3.3, ijson==3.3.0, importlib_metadata==8.6.1, importlib_resources==6.5.2, inscriptis==2.5.3, installer==0.7.0, iotop==0.6, ipython==8.34.0, ir-datasets-clueweb22==0.1.0, ir_datasets==0.5.9, ir_measures==0.3.7, jaraco.classes==3.4.0, jaraco.context==6.0.1, jaraco.functools==4.1.0, jedi==0.19.2, jeepney==0.8.0, joblib==1.4.2, keyring==25.6.0, kiwisolver==1.4.8, lxml==5.3.1, lz4==4.4.3, markdown-it-py==3.0.0, marshmallow==3.26.1, matplotlib-inline==0.1.7, matplotlib==3.10.1, mdurl==0.1.2, more-itertools==10.5.0, msgpack==1.1.0, mypy-extensions==1.0.0, numpy==1.26.4, oic==1.7.0, packaging==24.2, pandas==2.2.3, parso==0.8.4, patsy==1.0.1, pexpect==4.9.0, pillow==11.1.0, pip==22.0.2, pkginfo==1.12.0, platformdirs==4.3.6, plotly==5.24.1, poetry-core==2.0.1, poetry==2.0.1, prettytable==2.5.0, prometheus-client==0.9.0, prompt_toolkit==3.0.50, ptyprocess==0.7.0, pure_eval==0.2.3, pycparser==2.22, pycryptodomex==3.21.0, pydantic-settings==2.7.0, pydantic==2.10.3, pydantic_core==2.27.1, pyinotify==0.9.6, pyjnius==1.6.1, pyjwkest==1.4.2, pyparsing==3.2.1, pyproject_hooks==1.2.0, python-dateutil==2.9.0.post0, python-dotenv==1.0.1, python-gitlab==3.15.0, python-terrier==0.12.1, pytrec-eval-terrier==0.5.6, pytz==2024.2, rados==2.0.0, rbd==2.0.0, requests-toolbelt==1.0.0, requests==2.25.1, requests==2.32.3, rich==13.9.4, ruamel.yaml.clib==0.2.12, ruamel.yaml==0.18.10, sarge==0.1.7.post1, scikit-learn==1.6.1, scipy==1.15.2, setuptools-scm==8.2.0, setuptools==59.6.0, setuptools==62.0.0, shellingham==1.5.4, six==1.16.0, smmap==5.0.2, soupsieve==2.6, stack-data==0.6.3, statsmodels==0.14.4, systemd-python==234, tenacity==9.0.0, threadpoolctl==3.5.0, tira==0.0.145, tomli==2.2.1, tomlkit==0.13.2, tqdm==4.67.1, traitlets==5.14.3, trec-car-tools==2.6, trectools==0.0.50, trove-classifiers==2025.1.10.15, typing-inspect==0.9.0, typing_extensions==4.12.2, tzdata==2024.2, unlzw3==0.2.3, urllib3==1.26.5, virtualenv==20.28.1, warc3-wet-clueweb09==0.2.5, warc3-wet==0.2.5, wcwidth==0.2.5, webis-cmd==3.0.0, websocket-client==1.8.0, wget==3.2, wheel==0.37.1, wrapt==1.17.2, zipp==3.21.0, zlib-state==0.1.9]
+  script: {path: /mnt/ceph/storage/data-tmp/2024/kibi9872/ecir25-counterfactual-query-rewriting/chatnoir-baseline/chatnoir-retrieval.py}
+  source:
+    archive: {path: /mnt/ceph/storage/data-tmp/2024/kibi9872/ecir25-counterfactual-query-rewriting/chatnoir-baseline/bm25/.tirex-tracker/code.zip, script path: chatnoir-baseline/chatnoir-retrieval.py}
+    branch: main
+    commit: a3656eddce74f262e46ff732d1f5d8d1ff82f396
+    hash: adcd3c6882597964c2cdf63a6a1c4e9c6d120c94
+    is repo: 1
+    lang: null
+    repository: git@github.com:webis-de/ecir25-counterfactual-query-rewriting.git
+    tags: []
+    unchecked files: 1
+    uncommitted changes: 0
+    unpushed changes: 0
+    upstream branch: refs/remotes/origin/main
+platform:
+  hardware:
+    cpu:
+      architecture: x86_64
+      byte order: Little Endian
+      caches: {l1d: 384 KiB, l1i: 384 KiB, l2: 3072 KiB, l3: 30720 KiB}
+      features: rdtsc rdtscp mwait fxsave xsave fpu mmx mmx_plus daz sse sse2 sse3 ssse3 sse4_1 sse4_2 avx f16c cmov cmpxchg8b cmpxchg16b lahf_sahf popcnt aes pclmulqdq rdrand
+      frequency:
+        avg: 0
+        max: 0
+        min: 0
+        timeseries:
+          timestamps: [1001ms, 2001ms, 3002ms, 4003ms, 5003ms, 6004ms, 7004ms, 8005ms, 9005ms, 10006ms, 11007ms, 12007ms, 13008ms, 14008ms, 15009ms, 16009ms, 17010ms]
+          values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      frequency max: 2600000 MHz
+      frequency min: 1200000 MHz
+      model: Intel Xeon E5-2620 v2
+      number of cores: 12
+      threads per core: 2
+      vendor id: Intel Corporation
+      virtualization: null
+    gpu: {supported: 0}
+    ram: 202735 MB
+  operating system: {distribution: Ubuntu 22.04.5 LTS, kernel: Linux 6.8.0-49-generic x86_64}
+  software: {}
+resources:
+  cpu:
+    used process:
+      avg: 0
+      max: 43
+      min: 0
+      timeseries:
+        timestamps: [1001ms, 2001ms, 3002ms, 4002ms, 5003ms, 6004ms, 7004ms, 8005ms, 9005ms, 10006ms, 11007ms, 12007ms, 13008ms, 14008ms, 15009ms, 16009ms, 17010ms]
+        values: [11, 18, 29, 28, 31, 16, 29, 30, 18, 13, 14, 41, 15, 43, 32, 14, 13]
+    used system:
+      avg: 0
+      max: 9
+      min: 0
+      timeseries:
+        timestamps: [1001ms, 2001ms, 3002ms, 4002ms, 5003ms, 6004ms, 7004ms, 8005ms, 9005ms, 10006ms, 11007ms, 12007ms, 13008ms, 14008ms, 15009ms, 16009ms, 17010ms]
+        values: [7, 5, 7, 5, 4, 7, 8, 5, 5, 4, 7, 5, 8, 7, 5, 6, 9]
+  gpu: null
+  ram:
+    used process:
+      avg: 0
+      max: 129761
+      min: 0
+      timeseries:
+        timestamps: [1001ms, 2001ms, 3002ms, 4002ms, 5003ms, 6004ms, 7004ms, 8005ms, 9005ms, 10006ms, 11007ms, 12007ms, 13008ms, 14008ms, 15009ms, 16009ms, 17010ms]
+        values: [126418, 127008, 127598, 128385, 128778, 128974, 129368, 129564, 129564, 129564, 129564, 129564, 129564, 129761, 129761, 129761, 129761]
+    used system:
+      avg: 0
+      max: 192924
+      min: 0
+      timeseries:
+        timestamps: [1001ms, 2001ms, 3002ms, 4002ms, 5003ms, 6004ms, 7004ms, 8005ms, 9005ms, 10006ms, 11007ms, 12007ms, 13008ms, 14008ms, 15009ms, 16009ms, 17010ms]
+        values: [192886, 192891, 192886, 192886, 192904, 192924, 192917, 192899, 192902, 192897, 192890, 192890, 192898, 192890, 192889, 192876, 192909]
+  runtime: {system: 120 ms, user: 4020 ms, wallclock: 17850 ms}
+schema version: 0.2

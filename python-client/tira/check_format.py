@@ -8,6 +8,8 @@ from glob import glob
 from pathlib import Path
 from typing import Sequence, Union
 
+import yaml
+
 
 class FormatMsgType(Enum):
     OK = 0
@@ -428,6 +430,49 @@ class TextAlignmentCorpusFormat(FormatBase):
                 yield entry
 
 
+class IrMetadataFormat(FormatBase):
+    """Checks if a given output contains valid ir_metadata."""
+
+    def __init__(self, positive_fields=("platform", "implementation", "resources")):
+        self.positive_fields = positive_fields
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = list(self.yield_lines(run_output))
+
+            if len(lines) < 1:
+                return [_fmt.ERROR, "At least one valid ir_metadata file was expected, but there was none."]
+
+            return [_fmt.OK, "The output provides valid ir_metadata."]
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+    def all_lines(self, run_output):
+        return [i for i in self.yield_lines(run_output)]
+
+    def yield_lines(self, run_output: Path):
+        candidates = [run_output]
+        for pattern in ["/*.yml", "/*.yaml", "/.*.yml", "/.*.yaml"]:
+            for depth in ["", "/**", "/**/**"]:
+                candidates += glob(str(run_output) + depth + pattern)
+
+        for candidate in candidates:
+            if not Path(candidate).exists() or not Path(candidate).is_file():
+                continue
+
+            with open(candidate) as stream:
+                try:
+                    content = yaml.safe_load(stream)
+                    at_least_one_positive_field = any(i in content for i in self.positive_fields)
+
+                    if not at_least_one_positive_field:
+                        continue
+
+                    yield {"name": candidate.split("/")[-1], "content": content}
+                except yaml.YAMLError:
+                    pass
+
+
 FORMAT_TO_CHECK = {
     "run.txt": lambda: RunFormat(),
     "*.jsonl": lambda: JsonlFormat(),
@@ -437,6 +482,7 @@ FORMAT_TO_CHECK = {
     "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
     "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
     "GenIR-Simulation": lambda: GenIrSimulationFormat(),
+    "ir_metadata": lambda: IrMetadataFormat(),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
