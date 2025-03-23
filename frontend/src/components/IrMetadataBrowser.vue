@@ -90,7 +90,7 @@ export default {
       }
 
       for (let k in keys) {
-        if ((this.pos % keys.length) == k) {
+        if ((this.pos % keys.length) + '' == '' + k) {
           return keys[k]
         }
       }
@@ -98,9 +98,17 @@ export default {
       return undefined
     },
     used_process() {
+      if (!this.measurement || !this.resource_plots) {
+        return undefined
+      }
+
       return this.resource_plots[this.measurement]['process']
     },
     used_system() {
+      if (!this.measurement || !this.resource_plots) {
+        return undefined
+      }
+
       return this.resource_plots[this.measurement]['system']
     },
     resource_plots() {
