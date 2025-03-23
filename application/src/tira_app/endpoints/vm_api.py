@@ -553,10 +553,14 @@ def anonymous_upload(request, dataset_id):
         with zipfile.ZipFile(result_dir / "upload.zip", "r") as zip_ref:
             zip_ref.extractall(result_dir / "extracted")
 
-        status_code, message = check_format(result_dir / "extracted", dataset["format"][0])
+        formats = dataset["format"]
+        if len(formats) == 1:
+            formats = formats[0]
+
+        status_code, message = check_format(result_dir / "extracted", formats)
 
         if status_code != _fmt.OK:
-            HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+            return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
         from .. import model as modeldb
 
         anon_uploads_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads"

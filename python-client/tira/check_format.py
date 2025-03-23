@@ -3,6 +3,7 @@ import json
 import os
 import re
 import xml.dom.minidom
+from collections.abc import Iterable
 from enum import Enum
 from glob import glob
 from pathlib import Path
@@ -513,6 +514,18 @@ def check_format(run_output: Path, format: Union[str, Sequence[str]]):
         format (Union[str, Sequence[str]]): The allowed format or a list of allowed formats.
         run_output (Path): the output produced by some run that is to-be checked.
     """
+    if not isinstance(format, str) and isinstance(format, Iterable):
+        ret = {}
+        for f in format:
+            ret[f] = check_format(run_output, f)
+
+        if all(i[0] == _fmt.OK for i in ret.values()):
+            return [_fmt.OK, "The output is valid."]
+        else:
+            error_msg = [i[1] for i in ret.values() if i[0] != _fmt.OK]
+
+            return [_fmt.ERROR, "The output is not valid. Problems: " + " ".join(error_msg)]
+
     if format not in SUPPORTED_FORMATS:
         raise ValueError(f"Format {format} is not supported. Supported formats are {SUPPORTED_FORMATS}.")
 

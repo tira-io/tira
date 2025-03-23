@@ -119,6 +119,10 @@ def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
 
 def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
+    parser.add_argument(
+        "--directory", required=True, default=None, help="The directory with the predictions to upload."
+    )
+    parser.add_argument("--dataset", required=True, help="The dataset for to which the predictions should be uploaded.")
     parser.set_defaults(executable=upload_command)
 
 
@@ -169,8 +173,11 @@ def verify_installation_command(**kwards) -> int:
     return 0 if status == _fmt.OK else 1
 
 
-def upload_command() -> None:
-    pass
+def upload_command(dataset: str, directory: Path, **kwargs) -> None:
+    client: "TiraClient" = RestClient()
+    resp = client.upload_run_anonymous(directory, dataset)
+
+    return 0 if resp and "uuid" in resp and resp["uuid"] else 1
 
 
 """
