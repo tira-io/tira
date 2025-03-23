@@ -8,7 +8,6 @@ from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
 
-from auto_ir_metadata import load_ir_metadata
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
@@ -570,12 +569,42 @@ def anonymous_upload(request, dataset_id):
         has_metadata = False
         metadata_git_repo = None
         metadata_has_notebook = False
+        from tira.check_format import lines_if_valid
 
         try:
-            metadata = load_ir_metadata(upload_dir)
-            has_metadata = True
-            metadata_git_repo = metadata["git_url"] if "git_url" in metadata else None
-            metadata_has_notebook = "notebook" in metadata and "notebook_html" in metadata
+            lines = lines_if_valid(upload_dir, "ir_metadata")
+            has_metadata = len(lines) > 0
+            metadata_git_repo = None
+
+            for line in lines:
+                content = line["content"]
+
+                if (
+                    "implementation" in content
+                    and "source" in content["implementation"]
+                    and "repository" in content["implementation"]["source"]
+                    and "commit" in content["implementation"]["source"]
+                    and "branch" in content["implementation"]["source"]
+                ):
+                    repo = content["implementation"]["source"]["repository"]
+                    commit = content["implementation"]["source"]["commit"]
+                    repo = repo.replace(".git", "")
+                    if repo.startswith("git@"):
+                        repo = repo.replace(":", "/")
+                        repo = repo.replace("git@", "https://")
+
+                    if commit:
+                        repo = f"{repo}/tree/{commit}"
+
+                    if "archive" in content["implementation"]["source"]:
+                        archive = content["implementation"]["source"]["archive"]
+                        if "script path" in archive:
+                            repo += "/" + archive["script path"]
+
+                    if not metadata_git_repo:
+                        metadata_git_repo = repo
+
+                    # metadata_has_notebook = "notebook" in metadata and "notebook_html" in metadata
         except:
             pass
 

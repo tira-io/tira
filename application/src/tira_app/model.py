@@ -234,6 +234,14 @@ class AnonymousUploads(models.Model):
     def get_path_in_file_system(self):
         return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
 
+    def ir_metadata_records(self):
+        from tira.check_format import lines_if_valid
+
+        try:
+            return {i["name"]: i["content"] for i in lines_if_valid(self.get_path_in_file_system(), "ir_metadata")}
+        except:
+            return {}
+
 
 class DockerSoftware(models.Model):
     docker_software_id = models.AutoField(primary_key=True)

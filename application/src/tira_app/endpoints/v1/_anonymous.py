@@ -35,7 +35,7 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
     """
     try:
         ret = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
-        ret = {
+        ret_serialized = {
             "uuid": ret.uuid,
             "dataset_id": ret.dataset.dataset_id,
             "created": ret.created,
@@ -43,11 +43,16 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
             "metadata_git_repo": ret.metadata_git_repo,
             "metadata_has_notebook": ret.metadata_has_notebook,
         }
-        if not ret["has_metadata"]:
-            del ret["metadata_git_repo"]
-            del ret["metadata_has_notebook"]
+        if not ret_serialized["has_metadata"]:
+            del ret_serialized["metadata_git_repo"]
+            del ret_serialized["metadata_has_notebook"]
 
-        return Response(ret)
+        if ret_serialized["has_metadata"]:
+            metadata = ret.ir_metadata_records()
+            if metadata:
+                ret_serialized["available_metadata"] = sorted(list(metadata.keys()))
+
+        return Response(ret_serialized)
     except Exception as e:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
@@ -80,7 +85,7 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
         or not upload.dataset.default_task
         or not upload.dataset.default_task.task_id
     ):
-        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Unexpected format."}))
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Unexpected format."}))
 
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
     format = json.loads(upload.dataset.format)
@@ -119,7 +124,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
         or not upload.dataset.default_task
         or not upload.dataset.default_task.task_id
     ):
-        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Unexpected format."}))
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Unexpected format."}))
 
     body = request.body.decode("utf-8")
     body = json.loads(body)
@@ -166,6 +171,27 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
 
 @api_view(["GET"])
+def render_metadata_of_submission(request: Request, submission_uuid: str, metadata: str) -> Response:
+    try:
+        upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+    except:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
+        )
+    all_metadata = upload.ir_metadata_records()
+
+    if metadata in all_metadata:
+        with open(upload.get_path_in_file_system() / metadata, "r") as f:
+            raw_metadata = f.read()
+
+        return Response({"metadata": all_metadata[metadata], "raw_metadata": raw_metadata, "status": "0"})
+    else:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Metadata with name {html.escape(metadata)} does not exist."})
+        )
+
+
+@api_view(["GET"])
 def render_notebook_of_submission(request: Request, submission_uuid: str) -> Response:
     """Read information about an anonymous submission identified by the ownership uuid.
 
@@ -207,6 +233,7 @@ def render_notebook_of_submission(request: Request, submission_uuid: str) -> Res
 endpoints = [
     path("claim/<str:vm_id>/<str:submission_uuid>", claim_submission),
     path("view/<str:submission_uuid>/jupyter-notebook.html", render_notebook_of_submission),
+    path("view/<str:submission_uuid>/metadata/<str:metadata>", render_metadata_of_submission),
     path("<str:submission_uuid>.zip", download_anonymous_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
 ]
