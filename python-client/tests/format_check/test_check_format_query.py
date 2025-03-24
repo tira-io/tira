@@ -48,3 +48,30 @@ class TestQueryProcessorFormat(unittest.TestCase):
             })
         
         self.assertIn("cannot be empty", str(context.exception))
+
+    def test_query_processor_missing_query_id(self):
+        """Test validation fails when an id is missing."""
+        validator = QueryProcessorFormat()
+        with self.assertRaises(ValueError) as context:
+            validator.fail_if_json_line_is_not_valid({
+                "wrong_id": "123",
+                "originalQuery": "test query",
+                "segmentationApproach": "test-approach",
+                "segmentation": ["stuff", "more stuff"] 
+            })
+        
+        self.assertIn("At least one of ", str(context.exception))
+
+    def test_query_processor_unequal_queries(self):
+        """Test validation fails both possible id names are present and unequal."""
+        validator = QueryProcessorFormat()
+        with self.assertRaises(ValueError) as context:
+            validator.fail_if_json_line_is_not_valid({
+                "query_id": "123",
+                "qid": "456",
+                "originalQuery": "test query",
+                "segmentationApproach": "test-approach",
+                "segmentation": ["stuff", "more stuff"] 
+            })
+        
+        self.assertIn("they must be equal", str(context.exception))

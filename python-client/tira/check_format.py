@@ -432,11 +432,17 @@ class QueryProcessorFormat(JsonlFormat):
     """Checks if a given output is a valid query processor output in JSONL format."""
     
     def __init__(self):
-        super().__init__(required_fields=("qid", "originalQuery", "segmentationApproach", "segmentation"), minimum_lines=1)
+        super().__init__(required_fields=(), minimum_lines=1)
     
     def fail_if_json_line_is_not_valid(self, line):
         super().fail_if_json_line_is_not_valid(line)
         
+        if "qid" not in line and "query_id" not in line:
+            raise ValueError('At least one of "qid" or "query_id" fields is required.')
+        
+        if "qid" in line and "query_id" in line and line["qid"] != line["query_id"]:
+            raise ValueError('If both "qid" and "query_id" fields are present, they must be equal.')
+
         if not isinstance(line["segmentation"], list):
             raise ValueError('The "segmentation" field must be a list.')
         
