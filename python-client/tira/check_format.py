@@ -119,8 +119,6 @@ class RunFormat(FormatBase):
         for line in super().yield_next_entry(file_path):
             yield line.strip()
 
-    def all_lines(self, run_output):
-        return list(self.yield_next_entry(run_output))
 
 
 class JsonlFormat(FormatBase):
@@ -167,10 +165,6 @@ class JsonlFormat(FormatBase):
                 yield parsed_line
             except json.JSONDecodeError:
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
-
-    def all_lines(self, run_output):
-        return list(self.yield_next_entry(run_output))
-
 
 
 class GenIrSimulationFormat(JsonlFormat):
@@ -223,9 +217,6 @@ class TsvFormat(FormatBase):
             if len(l_parsed) != columns:
                 raise ValueError("The *.tsv file is invalid: The number of columns varies.")
             yield l_parsed
-
-    def all_lines(self, run_output):
-        return list(self.yield_next_entry(run_output))
 
 
 class TextAlignmentFeaturesFormat(FormatBase):
