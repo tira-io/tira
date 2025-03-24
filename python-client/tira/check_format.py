@@ -448,6 +448,31 @@ class QueryProcessorFormat(JsonlFormat):
         
         if len(line["segmentation"]) == 0:
             raise ValueError('The "segmentation" field cannot be empty.')
+        
+    def all_lines(self, run_output):
+        lines = super().all_lines(run_output)
+        
+        normalized_lines = []
+        for line in lines:
+            # Create a new dictionary to avoid modifying the original
+            normalized_line = dict(line)
+            
+            if "qid" in line:
+                query_id_value = line["qid"]
+            elif "query_id" in line:
+                query_id_value = line["query_id"]
+            
+            normalized_line[self.qid_name] = query_id_value
+            
+            # Remove redundant ID fields if they differ from the normalized name
+            if "qid" in normalized_line and "qid" != self.qid_name:
+                del normalized_line["qid"]
+            if "query_id" in normalized_line and "query_id" != self.qid_name:
+                del normalized_line["query_id"]
+                
+            normalized_lines.append(normalized_line)
+            
+        return normalized_lines
 
 class DocumentProcessorFormat(JsonlFormat):
     """Checks if a given output is a valid document processor output in JSONL format."""
