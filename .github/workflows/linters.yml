@@ -3,28 +3,30 @@ name: Linters
 on:
   push: {}
   workflow_dispatch: {}
+  pull_request: {}
 
 jobs:
   mypy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
       - name: Install mypy
         run: pip3 install mypy
       - name: Run mypy on backend
-        continue-on-error: true
         working-directory: ${{github.workspace}}/application
         run: |
           mkdir .mypy_cache
           mypy . --non-interactive --cache-dir=.mypy_cache/
       - name: Run mypy on python-client
-        continue-on-error: true
         working-directory: ${{github.workspace}}/python-client
         run: |
           mkdir .mypy_cache
@@ -36,20 +38,21 @@ jobs:
   flake8:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
       - name: Install flake8
         run: pip3 install flake8
       - name: Run flake8 on backend
-        continue-on-error: true
         working-directory: ${{github.workspace}}/application
         run: flake8 .
       - name: Run flake8 on python-client
-        continue-on-error: true
         working-directory: ${{github.workspace}}/python-client
         run: flake8 .
       - name: Fail Never
@@ -59,9 +62,12 @@ jobs:
   black:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
@@ -77,9 +83,12 @@ jobs:
   isort:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
