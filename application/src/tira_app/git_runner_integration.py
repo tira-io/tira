@@ -6,6 +6,7 @@ import stat
 import string
 import tempfile
 from copy import deepcopy
+from datetime import date
 from datetime import datetime as dt
 from glob import glob
 from itertools import chain
@@ -14,6 +15,7 @@ from pathlib import Path
 import gitlab
 import markdown
 import requests
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.template.loader import render_to_string
 from git import Repo
@@ -1052,7 +1054,7 @@ class GitLabRunner(GitRunner):
                 "name": repo,
                 "scopes": ["read_registry", "write_registry"],
                 "access_level": 30,
-                "expires_at": "2024-10-08",
+                "expires_at": dt.strftime(date.today() + relativedelta(months=+11), "%Y-%m-%d"),
             }
         )
 

@@ -1,9 +1,32 @@
 <template>
   <tira-breadcrumb />
-  <loading :loading="task_list === undefined" />
 
-  <v-container v-if="task_list !== undefined">
-    <h3 class="text-h3 py-5">Choose a Task</h3>
+  <v-skeleton-loader type="card" v-if="task_list === undefined || serverinfo === undefined" />
+
+  <v-container v-if="task_list !== undefined && serverinfo !== undefined">
+    <h3 class="text-h3 py-5">Featured Tasks</h3>
+    <div class="d-none d-md-block">
+      <v-row>
+        <v-col cols="4" v-for="t in featured_tasks">
+          <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
+            <v-card :text="t.task_description" :title="t.task_name" style="max-height: 100px; min-height: 100px"/>
+          </router-link>
+        </v-col>
+      </v-row>
+    </div>
+    <div class="d-md-none">
+      <v-row>
+        <v-col cols="12" v-for="t in featured_tasks">
+          <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
+            <v-card :text="t.task_description" :title="t.task_name" style="max-height: 100px; min-height: 100px"/>
+          </router-link>
+        </v-col>
+      </v-row>
+    </div>
+
+    <div class="pt-5">TIRA hosts {{ task_list.length }} tasks with <router-link to="/systems">{{ serverinfo.publicSystemCount }} public systems</router-link> and <router-link to="/datasets">{{ serverinfo.datasetCount }} datasets</router-link>.</div>
+
+    <h3 class="text-h3 py-5">All Task</h3>
     <div class="py-5"></div>
     <div class="d-flex">
       <v-responsive min-width="220px" id="task-search">
@@ -21,7 +44,7 @@
         </tr>
       </template>
       <template #item.task_name="{ item }">
-        <a :href="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</a>
+        <router-link :to="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</router-link>
       </template>
     </v-data-table>
 
@@ -34,7 +57,7 @@
         </tr>
       </template>
       <template #item.task_name="{ item }">
-        <a :href="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</a>
+        <router-link :to="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</router-link>
       </template>
     </v-data-table>
   </v-container>
@@ -43,13 +66,13 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, fetchUserInfo, type UserInfo } from './utils';
-import { Loading, TiraBreadcrumb, EditTask } from './components'
+import { get_from_archive, reportError, inject_response, type UserInfo, ServerInfo } from './utils';
+import { TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
   "task_id": String,
-  "task_name": String,
-  "task_description": String,
+  "task_name": string,
+  "task_description": string,
   "organizer": String,
   "organizer_id": String,
   "web": String,
@@ -81,10 +104,10 @@ interface Task {
 
 export default {
   name: "tasks",
-  components: { Loading, TiraBreadcrumb, EditTask },
+  components: { TiraBreadcrumb, EditTask },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       task_filter: '',
       expanded: [],
       headers_md: [
@@ -102,18 +125,18 @@ export default {
         { text: 'Description', value: 'data-table-expand' },
       ],
       task_list: undefined as (Task[] | undefined),
+      serverinfo: inject("serverInfo") as ServerInfo,
     }
   },
-  methods: {
-    logData(toLog: any) {
-      console.log(toLog)
-    }
+  computed: {
+    featured_tasks(): Task[] {
+      return this.task_list === undefined ? [] : this.task_list?.filter(i => i.featured)
+    },
   },
   beforeMount() {
-    get(inject("REST base URL") + '/api/task-list')
+    get_from_archive('/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   }
 }
 

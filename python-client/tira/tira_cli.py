@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import argparse
 import logging
+from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
 from tira import __version__
+from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
 
 if TYPE_CHECKING:
@@ -61,8 +63,66 @@ def setup_login_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=login_command)
 
 
+def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--directory", required=True, default=None, help="The directory with the predictions to evaluate."
+    )
+    parser.add_argument("--dataset", required=True, help="The dataset for which the predictions are made.")
+    parser.set_defaults(executable=evaluate_command)
+
+
+def evaluate_command(directory: Path, dataset: str, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    client.evaluate(Path(directory), dataset)
+
+    return 0
+
+
+def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--path",
+        required=True,
+        default=None,
+        help="The path used to build the docker image, must be in a clean git repository.",
+    )
+    parser.add_argument(
+        "--command",
+        required=False,
+        default=None,
+        help="The command that executes your approach in the docker image (default: the Docker Entrypoint). The command should read the data from $inputDataset to write predictions to $outputDir.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Make a dry-run, i.e., to develop your solution, i.e., not uploading to TIRA and not requiring that the git repo is clean.",
+    )
+    parser.add_argument(
+        "--allow-network",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
+    )
+    parser.add_argument("--task", required=True, default=None, help="The task to which the code should be submitted.")
+
+    parser.set_defaults(executable=code_submission_command)
+
+
+def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.set_defaults(executable=verify_installation_command)
+
+
 def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
+    parser.add_argument(
+        "--directory", required=True, default=None, help="The directory with the predictions to upload."
+    )
+    parser.add_argument("--dataset", required=True, help="The dataset for to which the predictions should be uploaded.")
     parser.set_defaults(executable=upload_command)
 
 
@@ -89,8 +149,35 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
     return 0
 
 
-def upload_command() -> None:
-    pass
+def code_submission_command(
+    path: Path, task: str, dry_run: bool, allow_network: bool, command: Optional[str], **kwargs
+) -> int:
+    client: "TiraClient" = RestClient()
+    client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network)
+
+    return 0
+
+
+def verify_installation_command(**kwards) -> int:
+    status = verify_tira_installation()
+
+    print("\nResult:")
+    msg = "Your TIRA installation is valid."
+    if status == _fmt.WARN:
+        msg = "There are some warnings, you might not use all features."
+
+    if status == _fmt.ERROR:
+        msg = "Your installation is not valid, you might not use all features."
+
+    log_message(msg, status)
+    return 0 if status == _fmt.OK else 1
+
+
+def upload_command(dataset: str, directory: Path, **kwargs) -> None:
+    client: "TiraClient" = RestClient()
+    resp = client.upload_run_anonymous(directory, dataset)
+
+    return 0 if resp and "uuid" in resp and resp["uuid"] else 1
 
 
 """
@@ -108,6 +195,13 @@ def parse_args():
     setup_download_command(subparsers.add_parser("download", help="Download runs or datasets from TIRA.io"))
     setup_upload_command(subparsers.add_parser("upload", help="Upload runs or datasets to TIRA.io"))
     setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
+    setup_verify_installation(
+        subparsers.add_parser("verify-installation", help="Verify that your local TIRA client is correctly installed.")
+    )
+    setup_code_submission_command(
+        subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
+    )
+    setup_evaluation_command(subparsers.add_parser("evaluate", help="Evaluate some predictions on your local machine."))
 
     return parser.parse_args()
 

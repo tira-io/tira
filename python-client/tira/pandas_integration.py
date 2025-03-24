@@ -96,6 +96,14 @@ class PandasIntegration:
 
         return sorted(list(ret))
 
+    def __extract_task_and_dataset_id(self, task, dataset):
+        if dataset is None and task and len(task.split("/")) == 2:
+            task, dataset = task.split("/")
+        elif dataset is None:
+            task, dataset = None, task
+
+        return task, dataset
+
     def transform_queries(
         self, approach: str, dataset: str, file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz")
     ):
@@ -180,7 +188,7 @@ class PandasIntegration:
 
         return ret
 
-    def inputs(self, task, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
+    def inputs(self, task, dataset=None, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
         """Load the inputs to systems for a task from tira.
 
         Args:
@@ -199,6 +207,7 @@ class PandasIntegration:
         """
         import pandas as pd
 
+        task, dataset = self.__extract_task_and_dataset_id(task, dataset)
         matching_files = self.__matching_dataset_files(task, dataset, False, file_selection)
 
         if len(matching_files) == 0:
@@ -210,7 +219,7 @@ class PandasIntegration:
 
         return pd.read_json(matching_files[0], lines=True, dtype=dtype)
 
-    def truths(self, task, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
+    def truths(self, task, dataset=None, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
         """Load the truths, i.e., ground truth labels, for a task from tira.
 
         Args:
@@ -229,6 +238,7 @@ class PandasIntegration:
         """
         import pandas as pd
 
+        task, dataset = self.__extract_task_and_dataset_id(task, dataset)
         matching_files = self.__matching_dataset_files(task, dataset, True, file_selection)
 
         if len(matching_files) == 0:

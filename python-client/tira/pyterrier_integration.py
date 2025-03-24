@@ -1,5 +1,8 @@
 import os
+import uuid
 from pathlib import Path
+
+from tira.tirex import IRDS_TO_TIREX_DATASET
 
 
 class PyTerrierIntegration:
@@ -131,9 +134,9 @@ class PyTerrierIntegration:
         ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + "/index"
         return pt.IndexFactory.of(os.path.abspath(ret))
 
-    def from_submission(self, approach, dataset=None, datasets=None):
+    def from_submission(self, approach, dataset=None, datasets=None, file_to_re_rank=None):
         if self.__is_re_ranker(approach):
-            return self.from_retriever_submission(approach, dataset, datasets=datasets)
+            return self.from_retriever_submission(approach, dataset, datasets=datasets, file_to_re_rank=file_to_re_rank)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
 
@@ -144,11 +147,21 @@ class PyTerrierIntegration:
             # If the input run is in the sandbox, everything behaves as a re-ranker
             return True
 
-        software = self.tira_client.docker_software(approach)
+        _, team, software = approach.split("/")
+        software = self.tira_client.public_system_details(team, software)
         return software.get("ir_re_ranker", False)
 
-    def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
+    def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None, file_to_re_rank=None):
+        from tira.ir_datasets_loader import IrDatasetsLoader
         from tira.pyterrier_util import TiraSourceTransformer
+
+        if file_to_re_rank:
+            re_rank_dir = Path(self.tira_client.tira_cache_dir) / "extracted_datasets" / str(uuid.uuid4())
+            log_file = Path(f"{self.tira_client.tira_cache_dir}/.archived/local-executions.jsonl")
+            re_rank_dir = IrDatasetsLoader().reformat_to_re_rank_dataset(
+                Path(file_to_re_rank), dataset, re_rank_dir, log_file
+            )
+            dataset = str(Path(re_rank_dir))
 
         ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
         return TiraSourceTransformer(ret)
@@ -306,3 +319,12 @@ class PyTerrierSpladeIntegration:
             / "spladeindex"
         )
         return pt.IndexFactory.of(os.path.abspath(ret))
+
+
+def pt_transformer(path):
+    import pyterrier as pt
+
+    if not pt.started():
+        pt.init()
+    # TODO hacked for the moment, in reality, we must delegate to the classes above.
+    return pt.transformer.get_transformer(pt.io.read_results(path + "/output/run.txt"))

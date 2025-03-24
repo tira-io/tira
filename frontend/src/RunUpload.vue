@@ -15,14 +15,14 @@
   </v-row>
 
   <v-window v-model="tab" :touch="{left: null, right: null}">
-      <v-window-item value="upload-submission">
-        <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
+      <v-window-item value="code-submission">
+        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id" :is_ir_task="is_ir_task"/>
       </v-window-item>
-    <v-window-item value="docker-submission">
+      <v-window-item value="docker-submission">
         <docker-submission :organizer="organizer" :organizer_id="organizer_id" :step_prop="step === null ? '' : step" :is_ir_task="is_ir_task" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
-    <v-window-item value="code-submission">
-        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id"/>
+      <v-window-item value="upload-submission">
+        <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     </v-window>
     </div>
@@ -50,9 +50,9 @@ export default {
         is_ir_task: false, task_name: "", task_description: "",
         organizer: "", organizer_id: "", web: "",
         all_tabs: [
-          {'id': 'upload-submission', 'title': 'Uploads', 'icon': 'mdi-folder-upload-outline'},
-          {'id': 'docker-submission', 'title': 'Docker', 'icon': 'mdi-docker'},
-          {'id': 'code-submission', 'title': 'Code Submission', 'icon': 'mdi-code-json'}
+          {'id': 'code-submission', 'title': 'Code Submissions', 'icon': 'mdi-code-json'},
+          {'id': 'docker-submission', 'title': 'Docker Submissions', 'icon': 'mdi-docker'},
+          {'id': 'upload-submission', 'title': 'Run Uploads', 'icon': 'mdi-folder-upload-outline'}
         ]
     }
   },

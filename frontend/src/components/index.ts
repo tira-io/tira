@@ -1,4 +1,5 @@
 import Loading from "./Loading.vue";
+import DirectoryInspector from "./DirectoryInspector.vue";
 import RunActions from "./RunActions.vue";
 import RunList from "./RunList.vue";
 import SoftwareDetails from "./SoftwareDetails.vue";
@@ -14,12 +15,13 @@ import EditTask from "./EditTask.vue"
 import SubissionIcon from "./SubmissionIcon.vue"
 import ConfirmDelete from "./ConfirmDelete.vue"
 import CodeSnippet from "./CodeSnippet.vue"
+import IrMetadataBrowser from "./IrMetadataBrowser.vue";
 
 import { useDisplay } from 'vuetify'
 
-function is_mobile() {   
+function is_mobile() {
     const { mobile } = useDisplay()
     return mobile.value
 }
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, is_mobile}
+export { Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, DirectoryInspector, IrMetadataBrowser, is_mobile }

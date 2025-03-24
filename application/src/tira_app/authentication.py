@@ -276,25 +276,15 @@ class DisraptorAuthentication(Authentication):
 
         return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
-    def _create_discourse_vm_group(self, vm):
+    def _create_discourse_vm_group(self, team_name: str):
         """Create the vm group in the distaptor. Members of this group will be owners of the vm and
-            have all permissions.
-        :param vm: a vm dict as returned by tira_model.get_vm
-            {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
+        have all permissions.
 
         """
-        group_bio = f"""Members of this group have access to the virtual machine {vm['vm_id']}:<br><br>
-    <ul>
-      <li>Host: {vm['host']}</li>
-      <li>User: {vm['vm_id']}</li>
-      <li>Passwort: {vm['user_password']}</li>
-      <li>SSH Port: {vm['ssh']}</li>
-      <li>RDP Port: {vm['rdp']}</li>
-      <li>SSH Example: <code>sshpass -p {vm['user_password']} ssh {vm['vm_id']}@{vm['host']} -p {vm['ssh']} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no</code></li>
-    </ul><br><br>
-    Please contact us when you have questions.
-    """
-        return self.discourse_client.create_group(f"tira_vm_{vm['vm_id']}", group_bio, 2)
+        group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
+
+        Please do not hesitate to design your team's page accorging to your needs."""
+        return self.discourse_client.create_group(f"tira_vm_{team_name}", group_bio, 2)
 
     def notify_organizers_of_new_participants(self, data, task_id):
         task = model.get_task(task_id)
@@ -322,18 +312,18 @@ Best regards"""
             "tira_org_" + slugify(task["organizer"].lower()),
         )
 
-    def create_group(self, vm):
+    def create_group(self, team_name: str) -> dict[str, str]:
         """Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
-        :param vm: a vm dict as returned by tira_model.get_vm
+        :param team_name: the name of the team.
         """
-        vm_group = self._create_discourse_vm_group(vm)
+        vm_group = self._create_discourse_vm_group(team_name)
         invite_link = self.discourse_client.create_invite_link(vm_group)
         message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}.
                       After login to TIRA, you can find the credentials and usage examples for your
-                      dedicated virtual machine {vm['vm_id']} here: https://www.tira.io/g/tira_vm_{vm['vm_id']}"""
+                      dedicated virtual machine {team_name} here: https://www.tira.io/g/tira_vm_{team_name}"""
 
-        return message
+        return {"message": message, "invite_link": invite_link}
 
     def create_organizer_group(self, organizer_name, user_name):
         group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}.
@@ -352,6 +342,12 @@ Best regards"""
         group_id = self.discourse_client.create_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
         model.get_vm(team_name, create_if_none=True)
         self.discourse_client.add_user_as_owner_to_group(group_id, user_name)
+        invite_link = self.discourse_client.create_invite_link(group_id)
+        return {
+            "group_id": group_id,
+            "invite_link": invite_link,
+            "group_link": f"https://www.tira.io/g/tira_vm_{slugify(team_name)}",
+        }
 
     def user_is_organizer_for_endpoint(
         self,

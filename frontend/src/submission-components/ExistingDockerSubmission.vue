@@ -33,6 +33,14 @@
         into the Docker image.
         </div>
 
+        <div v-if="docker_software_details.source_code_active_branch && docker_software_details.source_code_commit && docker_software_details.source_code_remotes">
+        This software was created from the git repository 
+        <span v-for="link in docker_software_details.source_code_remotes">
+          <a v-if="link.href" :href="link.href" target="_blank">{{link.name}}</a><span v-if="!link.href">{{link.name}}</span>&nbsp;
+        </span>
+        <br>(Branch: {{ docker_software_details.source_code_active_branch }}. Commit: {{ docker_software_details.source_code_commit }}).<br>
+        </div>
+
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
         <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
       </v-form>
@@ -58,7 +66,7 @@
 import { inject } from 'vue'
 
 import {Loading, RunList} from "../components"
-import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl } from '../utils'
+import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -71,9 +79,12 @@ export default {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }]
+        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
+        'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
       },
-      task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: ''
+      task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
+      rest_url: inject("gRPC base URL"),
+      userinfo: inject('userinfo') as UserInfo
     }
   },
   methods: {
@@ -98,7 +109,7 @@ export default {
           }
         }
 
-        post(inject("gRPC base URL")+`/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {})
+        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {}, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })

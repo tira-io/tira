@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from tira.check_format import _fmt, log_message
 from tira.io_utils import huggingface_model_mounts
 from tira.local_client import Client
 from tira.local_execution_integration import LocalExecutionIntegration
@@ -40,6 +41,28 @@ def upload_run_command(args: argparse.Namespace) -> int:
         task_id=args.task_id, vm_id=args.vm_id, dataset_id=args.dataset_id, upload_id=upload_id, filestream=args.runfile
     )
     return 0 if success else 1
+
+
+def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[str]" = None):
+    if tira_vm_id:
+        return tira_vm_id
+    tmp = rest_client.metadata_for_task(tira_task_id)
+    if tmp and "status" in tmp and 0 == tmp["status"] and "context" in tmp and "user_vms_for_task" in tmp["context"]:
+        if len(tmp["context"]["user_vms_for_task"]) != 1:
+            log_message(
+                f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to'
+                " specify the vm.",
+                _fmt.ERROR,
+            )
+            return None
+        else:
+            return tmp["context"]["user_vms_for_task"][0]
+    else:
+        log_message(
+            "The option --tira-vm-id (or environment variable TIRA_VM_ID) is required to upload submissions to TIRA.",
+            _fmt.ERROR,
+        )
+        return
 
 
 def parse_args():
@@ -209,26 +232,9 @@ def parse_args():
                 "The option --tira-task-id (or environment variable TIRA_TASK_ID) is required when --push is active."
             )
 
+        args.tira_vm_id = guess_vm_id_of_user(args.tira_task_id, rest_client, args.tira_vm_id)
         if not args.tira_vm_id:
-            tmp = rest_client.metadata_for_task(args.tira_task_id)
-            if (
-                tmp
-                and "status" in tmp
-                and 0 == tmp["status"]
-                and "context" in tmp
-                and "user_vms_for_task" in tmp["context"]
-            ):
-                if len(tmp["context"]["user_vms_for_task"]) != 1:
-                    parser.error(
-                        f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to'
-                        " specify the vm."
-                    )
-                else:
-                    args.tira_vm_id = tmp["context"]["user_vms_for_task"][0]
-            else:
-                parser.error(
-                    "The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active."
-                )
+            parser.error("There was an error (see above).")
 
         if not args.tira_client_user:
             tmp = rest_client.metadata_for_task(args.tira_task_id)
@@ -276,6 +282,13 @@ def parse_args():
         parser.error("Please specify what you want to run.")
 
     return args
+
+
+def push_image(client, image, tira_task_id, tira_vm_id):
+    registry_prefix = client.docker_registry() + "/code-research/tira/tira-user-" + tira_vm_id + "/"
+    print("Push Docker image")
+
+    return client.local_execution.push_image(image, registry_prefix, tira_task_id, tira_vm_id)
 
 
 def main(args=None):
@@ -455,10 +468,8 @@ def main(args=None):
                 print("You did not specify yes, I will not push the software.")
                 return
 
-        registry_prefix = client.docker_registry() + "/code-research/tira/tira-user-" + args.tira_vm_id + "/"
-        print("Push Docker image")
+        image = push_image(client, args.image, args.tira_task_id, args.tira_vm_id)
 
-        image = client.local_execution.push_image(args.image, registry_prefix, args.tira_task_id, args.tira_vm_id)
         print("Upload TIRA_SOFTWARE")
         prev_stages = []
         for i in args.previous_stages:

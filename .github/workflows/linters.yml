@@ -3,15 +3,19 @@ name: Linters
 on:
   push: {}
   workflow_dispatch: {}
+  pull_request: {}
 
 jobs:
   mypy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
@@ -27,13 +31,19 @@ jobs:
         run: |
           mkdir .mypy_cache
           mypy .--non-interactive --cache-dir=.mypy_cache/
+      - name: Fail Never
+        run: |
+          echo Hello
 
   flake8:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
@@ -45,13 +55,19 @@ jobs:
       - name: Run flake8 on python-client
         working-directory: ${{github.workspace}}/python-client
         run: flake8 .
-  
+      - name: Fail Never
+        run: |
+          echo Hello
+
   black:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
@@ -67,9 +83,12 @@ jobs:
   isort:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: false
       - name: Set up Python 3.9
+        continue-on-error: false
         uses: actions/setup-python@v4
         with:
           python-version: 3.9

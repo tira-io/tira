@@ -558,11 +558,11 @@ def get_docker_softwares_with_runs(task_id, vm_id):
     return model.get_docker_softwares_with_runs(task_id, vm_id)
 
 
-def get_docker_softwares(task_id, vm_id):
+def get_docker_softwares(task_id, vm_id, return_code_submissions=False):
     """
     Returns all docker software for a task and vm with runs as dictionaries.
     """
-    return model.get_docker_softwares(task_id, vm_id)
+    return model.get_docker_softwares(task_id, vm_id, return_code_submissions=return_code_submissions)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
@@ -590,7 +590,7 @@ def get_software_by_task(task_id, vm_id):
 
 
 def add_upload(task_id, vm_id, rename_to: Optional[str] = None):
-    """ " Add empty new upload"""
+    """Add empty new upload"""
     return model.add_upload(task_id, vm_id, rename_to)
 
 
@@ -620,7 +620,17 @@ def add_docker_software_mounts(docker_software, mounts):
 
 
 def add_docker_software(
-    task_id, vm_id, image, command, software_inputs=None, submission_git_repo=None, build_environment=None
+    task_id,
+    vm_id,
+    image,
+    command,
+    software_inputs=None,
+    submission_git_repo=None,
+    build_environment=None,
+    source_code_remotes=None,
+    commit=None,
+    active_branch=None,
+    try_run_metadata_uuid=None,
 ):
     """Add the docker software to the user of the vm and return it"""
 
@@ -649,6 +659,10 @@ def add_docker_software(
         input_upload,
         submission_git_repo,
         build_environment,
+        source_code_remotes,
+        commit,
+        active_branch,
+        try_run_metadata_uuid,
     )
 
 
@@ -737,6 +751,10 @@ def add_dataset(
     irds_docker_image: Optional[str] = None,
     irds_import_command: Optional[str] = None,
     irds_import_truth_command: Optional[str] = None,
+    dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -748,6 +766,10 @@ def add_dataset(
         irds_docker_image=irds_docker_image,
         irds_import_command=irds_import_command,
         irds_import_truth_command=irds_import_truth_command,
+        dataset_format=dataset_format,
+        description=description,
+        chatnoir_id=chatnoir_id,
+        ir_datasets_id=ir_datasets_id,
     )
 
 
@@ -911,6 +933,10 @@ def edit_dataset(
     git_runner_image: Optional[str] = None,
     git_runner_command: Optional[str] = None,
     git_repository_id: Optional[str] = None,
+    dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -926,6 +952,10 @@ def edit_dataset(
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        dataset_format,
+        description,
+        chatnoir_id,
+        ir_datasets_id,
     )
 
 

@@ -6,10 +6,30 @@
     <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TIRA Reproducible Experiments</title>
+    <style>
+        @keyframes loadingpulse {
+            0% {
+                transform: scale(90%);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(50%);
+                opacity: 0.3;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <div style="display: flex; justify-content: center; align-items: center; height: 40vh;">
+            <img style="animation: loadingpulse 1s ease-in-out 0s infinite alternate;" width=300pt
+                src="https://assets.tira.io/tira-icons/tira-logo.svg"></img>
+        </div>
+
+
+    </div>
     <script type="module" src="./src/main.ts"></script>
 
     <!-- This is a work-around since otherwise back and forth buttons don't work with Disraptor TODO: find a better solution-->

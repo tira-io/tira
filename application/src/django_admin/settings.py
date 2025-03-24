@@ -377,7 +377,9 @@ USE_TZ = True
 
 DISCOURSE_API_URL = custom_settings["discourse_api_url"]
 DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
-PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
+PUBLIC_TRAINING_DATA = set(
+    ["jena-topics-20231026-test", "leipzig-topics-20231025-test", "subsampled-ms-marco-ir-lab-20250105-test"]
+)
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     "ir-lab-jena-leipzig-wise-2023": "tira-io/tira-ir-lab-wise-submission-template",
@@ -398,4 +400,15 @@ REFERENCE_DATASETS = {
     ),
 }
 
+WELL_KNOWN = {
+    "api": custom_settings["tira_rest_api"]["base_url"],
+    "grpc": custom_settings["tira_rest_api"]["grpc_url"],
+    "archived": custom_settings["tira_rest_api"]["archived_url"],
+    "login": custom_settings["tira_rest_api"]["login_url"],
+    "logout": custom_settings["tira_rest_api"]["logout_url"],
+    "notifications": custom_settings["tira_rest_api"]["notifications_url"],
+    "disraptorURL": custom_settings["tira_rest_api"]["disraptor_url"],
+}
+
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
+CSRF_TRUSTED_ORIGINS = ["https://127.0.0.1:8082", "https://127.0.0.1:8080", "https://127.0.0.1:8081"]

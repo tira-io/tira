@@ -1,0 +1,120 @@
+[
+  {
+    "id": "dataset-does-not-exist-20241201-training",
+    "dataset_id": "dataset-does-not-exist-20241201-training",
+    "default_task": "task-does-not-exist",
+    "default_task_name": "task-does-not-exist",
+    "display_name": "Display Name",
+    "is_confidential": false,
+    "is_deprecated": false,
+    "format": ["*.jsonl"],
+    "mirrors": {
+      "truths": {
+        "Zenodo": "URL does not exist"
+      },
+      "inputs": {
+        "Zenodo": "URL does not exist"
+      },
+      "truths-md5_sum": "608b4b658c190d9c3bd840d43653f021",
+      "truths-subdirectory": "pointwise/labels",
+      "inputs-md5_sum": "608b4b658c190d9c3bd840d43653f021",
+      "inputs-subdirectory": "pointwise/inputs"
+    }
+  },
+  {
+    "id": "pairwise-20250309-test",
+    "dataset_id": "pairwise-20250309-test",
+    "description": "<p>The Pairwise test dataset for WOWS-Eval.</p>",
+    "default_task": "wows-eval",
+    "default_task_name": "wows-eval",
+    "display_name": "pairwise",
+    "is_confidential": true,
+    "is_deprecated": false,
+    "ir_datasets_id": null,
+    "chatnoir_id": null,
+    "mirrors": {
+      "truths": {
+        "Zenodo": "https://zenodo.org/records/14996733/files/pairwise-test-inputs.zip"
+      },
+      "inputs": {
+        "Zenodo": "https://zenodo.org/records/14996733/files/pairwise-test-inputs.zip"
+      }
+    },
+    "file_listing": [
+      {
+        "title": "$inputDir",
+        "children": [
+          {
+            "title": "inputs.jsonl (size: 30569364; md5sum: e5d076e120d7964894c22765c33ecca0)",
+            "size": 30569364,
+            "md5sum": "e5d076e120d7964894c22765c33ecca0"
+          }
+        ]
+      },
+      {
+        "title": "$inputDataset",
+        "children": [
+          {
+            "title": "inputs.jsonl (size: 30569364; md5sum: e5d076e120d7964894c22765c33ecca0)",
+            "size": 30569364,
+            "md5sum": "e5d076e120d7964894c22765c33ecca0"
+          }
+        ]
+      }
+    ],
+    "format": [
+      "*.jsonl"
+    ]
+  },
+  {
+    "id": "pointwise-20250309-test-foooo",
+    "dataset_id": "pointwise-20250309-test-foooo",
+    "description": "<p>The pointwise test dataset for wows-eval.</p>",
+    "default_task": "wows-eval-foooo",
+    "default_task_name": "wows-eval-foooo",
+    "display_name": "pointwise",
+    "is_confidential": true,
+    "is_deprecated": false,
+    "ir_datasets_id": null,
+    "chatnoir_id": null,
+    "mirrors": {
+      "truths": {
+        "Zenodo": "https://zenodo.org/records/14996733/files/pointwise-test-inputs.zip"
+      },
+      "inputs": {
+        "Zenodo": "https://zenodo.org/records/14996733/files/pointwise-test-inputs.zip"
+      },
+      "inputs-md5_sum": "55cf8aef4bc8c29cef89912f5ce83bfe",
+      "truths-md5_sum": "55cf8aef4bc8c29cef89912f5ce83bfe"
+    },
+    "file_listing": [
+      {
+        "title": "$inputDir",
+        "children": [
+          {
+            "title": "inputs.jsonl (size: 1330214; md5sum: 82c0c8836f55875ccc967035682551b9)",
+            "size": 1330214,
+            "md5sum": "82c0c8836f55875ccc967035682551b9"
+          }
+        ]
+      },
+      {
+        "title": "$inputDataset",
+        "children": [
+          {
+            "title": "inputs.jsonl (size: 1330214; md5sum: 82c0c8836f55875ccc967035682551b9)",
+            "size": 1330214,
+            "md5sum": "82c0c8836f55875ccc967035682551b9"
+          }
+        ]
+      }
+    ],
+    "format": [
+      "*.jsonl"
+    ],
+    "evaluator": {
+      "image": "ubuntu:18.04",
+      "command": "echo 'this is no real evaluator'"
+    }
+  }
+]

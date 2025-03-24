@@ -1,5 +1,7 @@
 import logging
+from pathlib import Path
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -154,6 +156,12 @@ class Dataset(models.Model):
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
     meta_dataset_of = models.TextField(default=None, null=True)
+    format = models.CharField(max_length=50, null=True, default=None)
+    chatnoir_id = models.CharField(max_length=100, null=True, default=None)
+    ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
+    ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
+    description = models.TextField(default="", null=True)
+    file_listing = models.TextField(default=None, null=True)
 
 
 class TaskHasDataset(models.Model):
@@ -163,6 +171,24 @@ class TaskHasDataset(models.Model):
 
     class Meta:
         unique_together = (("task_id", "dataset_id"),)
+
+
+class MirroredResource(models.Model):
+    md5_sum = models.CharField(max_length=150, primary_key=True)
+    md5_first_kilobyte = models.CharField(max_length=150)
+    size = models.BigIntegerField()
+    mirrors = models.CharField(max_length=500, null=True, default=None)
+
+    def get_path_in_file_system(self):
+        return Path(settings.TIRA_ROOT) / "data" / "mirrored-resources" / self.md5_sum
+
+
+class DatasetHasMirroredResource(models.Model):
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.CASCADE)
+    resource_type = models.CharField(max_length=15)
+    subdirectory = models.TextField(default=None, null=True)
+    rename_to = models.TextField(default=None, null=True)
 
 
 class Software(models.Model):
@@ -197,6 +223,26 @@ class Upload(models.Model):
     rename_to = models.TextField(default=None, null=True)
 
 
+class AnonymousUploads(models.Model):
+    uuid = models.CharField(max_length=150, primary_key=True)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    created = models.DateField(auto_now_add=True)
+    has_metadata = models.BooleanField(default=False)
+    metadata_git_repo = models.CharField(max_length=500, default=None, null=True)
+    metadata_has_notebook = models.BooleanField(default=False)
+
+    def get_path_in_file_system(self):
+        return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
+
+    def ir_metadata_records(self):
+        from tira.check_format import lines_if_valid
+
+        try:
+            return {i["name"]: i["content"] for i in lines_if_valid(self.get_path_in_file_system(), "ir_metadata")}
+        except:
+            return {}
+
+
 class DockerSoftware(models.Model):
     docker_software_id = models.AutoField(primary_key=True)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
@@ -215,6 +261,10 @@ class DockerSoftware(models.Model):
     ir_re_ranking_input = models.BooleanField(default=False)
     public_image_name = models.TextField(default=None, null=True)
     public_image_size = models.BigIntegerField(default=None, null=True)
+    source_code_remotes = models.TextField(default=None, null=True)
+    source_code_commit = models.TextField(default=None, null=True)
+    source_code_active_branch = models.TextField(default=None, null=True)
+    try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
 
 
 class DockerSoftwareHasAdditionalInput(models.Model):

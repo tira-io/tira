@@ -8,6 +8,7 @@ from http import HTTPStatus
 from io import StringIO
 from typing import Any, Union
 
+import django.middleware.csrf as csrf
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
@@ -337,7 +338,13 @@ def get_organizer(request, context, organizer_id):
 @add_context
 def get_role(request, context):
     return JsonResponse(
-        {"status": 0, "role": context["role"], "organizer_teams": auth.get_organizer_ids(request), "context": context}
+        {
+            "status": 0,
+            "role": context["role"],
+            "csrf": csrf.get_token(request),
+            "organizer_teams": auth.get_organizer_ids(request),
+            "context": context,
+        }
     )
 
 
@@ -466,7 +473,7 @@ def add_registration(request, context, task_id, vm_id):
         data["task_id"] = task_id
         model.add_registration(data)
 
-        auth.create_docker_group(data["group"], data["initial_owner"])
+        context["created_group"] = auth.create_docker_group(data["group"], data["initial_owner"])
         auth.notify_organizers_of_new_participants(data, task_id)
 
         context["user_is_registered"] = True
@@ -664,8 +671,13 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
         context["all_uploadgroups"] += [i for i in cloned_submissions if i["type"] == "upload"]
+    elif submission_type == "code":
+        context["code"] = {"submissions": model.get_docker_softwares(task_id, user_id, return_code_submissions=True)}
+        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "docker":
-        context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["docker"] = {
+            "docker_softwares": model.get_docker_softwares(task_id, user_id, return_code_submissions=False)
+        }
         context["docker"]["docker_softwares"] += [i for i in cloned_submissions if i["type"] == "docker"]
         context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":

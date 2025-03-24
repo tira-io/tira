@@ -4,9 +4,108 @@ import logging
 import os
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Union
+from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import pandas as pd
+
+from tira.check_format import _fmt, log_message
+from tira.tira_client import TiraClient
+
+
+def dataset_as_dataframe(
+    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Returns:
+        pd.DataFrame: The entries in the dataset parsed into a pandas DataFrame.
+    """
+    import pandas as pd
+
+    ret = [i for i in dataset_as_iterator(dataset_id_or_path, dataset_format, tira_client)]
+    return pd.DataFrame(ret)
+
+
+def dataset_as_iterator(
+    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Yields:
+        ANY: the entries in the dataset parsed in the specified format.
+    """
+    if Path(dataset_id_or_path).exists():
+        dataset = Path(dataset_id_or_path)
+    else:
+        if tira_client is None:
+            from tira.rest_api_client import Client
+
+            tira_client = Client()
+
+        dataset = Path(tira_client.download_dataset(dataset=dataset_id_or_path, task=None, allow_local_dataset=True))
+    from tira.check_format import lines_if_valid
+
+    for i in lines_if_valid(dataset, dataset_format):
+        yield i
+
+
+def verify_docker_installation():
+    try:
+        from tira.local_execution_integration import LocalExecutionIntegration
+
+        local_execution = LocalExecutionIntegration()
+        assert local_execution.docker_is_installed_failsave()
+        return _fmt.OK, "Docker/Podman is installed."
+    except:
+        return _fmt.ERROR, "Docker/Podman is not installed. You can not run dockerized TIRA submissions."
+
+
+def tira_home_exists():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Path(Client().tira_cache_dir).exists()
+        return _fmt.OK, "TIRA home is writable."
+    except:
+        return _fmt.ERROR, "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable."
+
+
+def api_key_is_valid():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Client().api_key_is_valid()
+        return _fmt.OK, "You are authenticated against www.tira.io."
+    except:
+        return _fmt.WARN, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+
+
+def verify_tirex_tracker():
+    return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+
+
+def verify_tira_installation():
+    ret = _fmt.OK
+
+    for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
+        status, msg = i()
+        log_message(msg, status)
+        if status == _fmt.ERROR:
+            ret = _fmt.ERROR
+        if status == _fmt.WARN and ret != _fmt.ERROR:
+            ret = _fmt.WARN
+
+    return ret
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
