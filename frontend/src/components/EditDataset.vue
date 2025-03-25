@@ -103,7 +103,7 @@
 
                     <v-row>
                       <v-col cols="6">
-                        <v-text-field v-model="truthUrlHandle" label="Zenodo Download URL for Ground Truth Data." :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
+                        <v-text-field v-model="truthUrlHandle" label="Zenodo Download URL for Ground Truth Data."/>
                       </v-col>
                       <v-col cols="6">
                         <v-text-field v-if="!is_zip(truthUrlHandle)" v-model="truthFileRename" label="Rename truth file for unified access (optional)"/>

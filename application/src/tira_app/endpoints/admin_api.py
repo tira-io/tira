@@ -306,7 +306,7 @@ def admin_add_dataset(request, task_id):
                 )
 
             for url in [systemUrlHandle, truthUrlHandle]:
-                if "://zenodo.org" not in url:
+                if url and "://zenodo.org" not in url:
                     return JsonResponse(
                         {
                             "status": 1,
@@ -316,7 +316,11 @@ def admin_add_dataset(request, task_id):
                     )
 
             system_inputs = download_mirrored_resource(systemUrlHandle, "Zenodo")
-            truth_data = download_mirrored_resource(truthUrlHandle, "Zenodo")
+
+            if truthUrlHandle:
+                truth_data = download_mirrored_resource(truthUrlHandle, "Zenodo")
+            else:
+                truth_data = None
 
         if not data.get("use_existing_repository", True):
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -378,7 +382,9 @@ def admin_add_dataset(request, task_id):
                 input_path, truth_path = [Path(i) for i in paths]
 
                 for target_path, mirror in [(input_path, system_inputs), (truth_path, truth_data)]:
-                    print(mirror)
+                    if not mirror:
+                        continue
+
                     url = list(json.loads(mirror.mirrors).values())[0]
                     resource_type = "inputs" if target_path == input_path else "truths"
 
