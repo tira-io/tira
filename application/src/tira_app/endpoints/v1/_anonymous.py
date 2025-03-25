@@ -193,6 +193,12 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
 
         if "resources" in all_metadata[metadata] and "runtime" in all_metadata[metadata]["resources"]:
             ret["resources"] = {"runtime": all_metadata[metadata]["resources"]["runtime"]}
+
+        if "implementation" in all_metadata[metadata] and "source" in all_metadata[metadata]["implementation"]:
+            ret["implementation"] = {"source": all_metadata[metadata]["implementation"]["source"]}
+            if "script" in all_metadata[metadata]["implementation"]:
+                ret["implementation"]["script"] = all_metadata[metadata]["implementation"]["script"]
+
         raw_metadata = yaml.dump(ret)
 
         if "resources" in all_metadata[metadata]:
