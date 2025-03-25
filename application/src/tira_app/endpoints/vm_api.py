@@ -577,32 +577,35 @@ def anonymous_upload(request, dataset_id):
             metadata_git_repo = None
 
             for line in lines:
-                content = line["content"]
+                try:
+                    content = line["content"]
 
-                if (
-                    "implementation" in content
-                    and "source" in content["implementation"]
-                    and "repository" in content["implementation"]["source"]
-                    and "commit" in content["implementation"]["source"]
-                    and "branch" in content["implementation"]["source"]
-                ):
-                    repo = content["implementation"]["source"]["repository"]
-                    commit = content["implementation"]["source"]["commit"]
-                    repo = repo.replace(".git", "")
-                    if repo.startswith("git@"):
-                        repo = repo.replace(":", "/")
-                        repo = repo.replace("git@", "https://")
+                    if (
+                        "implementation" in content
+                        and "source" in content["implementation"]
+                        and "repository" in content["implementation"]["source"]
+                        and "commit" in content["implementation"]["source"]
+                        and "branch" in content["implementation"]["source"]
+                    ):
+                        repo = content["implementation"]["source"]["repository"]
+                        commit = content["implementation"]["source"]["commit"]
+                        repo = repo.replace(".git", "")
+                        if repo.startswith("git@"):
+                            repo = repo.replace(":", "/")
+                            repo = repo.replace("git@", "https://")
 
-                    if commit:
-                        repo = f"{repo}/tree/{commit}"
+                        if commit:
+                            repo = f"{repo}/tree/{commit}"
 
-                    if "archive" in content["implementation"]["source"]:
-                        archive = content["implementation"]["source"]["archive"]
-                        if "script path" in archive:
-                            repo += "/" + archive["script path"]
+                        if "archive" in content["implementation"]["source"]:
+                            archive = content["implementation"]["source"]["archive"]
+                            if "script path" in archive:
+                                repo += "/" + archive["script path"]
 
-                    if not metadata_git_repo:
-                        metadata_git_repo = repo
+                        if not metadata_git_repo:
+                            metadata_git_repo = repo
+                except:
+                    pass
 
                     # metadata_has_notebook = "notebook" in metadata and "notebook_html" in metadata
         except:
