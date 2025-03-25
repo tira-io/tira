@@ -230,15 +230,19 @@ class AnonymousUploads(models.Model):
     has_metadata = models.BooleanField(default=False)
     metadata_git_repo = models.CharField(max_length=500, default=None, null=True)
     metadata_has_notebook = models.BooleanField(default=False)
+    valid_formats = models.TextField(default=None, null=True)
 
     def get_path_in_file_system(self):
         return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
 
-    def ir_metadata_records(self):
+    def ir_metadata_record(self, metadata_record):
         from tira.check_format import lines_if_valid
 
         try:
-            return {i["name"]: i["content"] for i in lines_if_valid(self.get_path_in_file_system(), "ir_metadata")}
+            return {
+                i["name"]: i["content"]
+                for i in lines_if_valid(self.get_path_in_file_system() / metadata_record, "ir_metadata")
+            }
         except:
             return {}
 

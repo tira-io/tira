@@ -4,6 +4,7 @@ import json
 import zipfile
 from pathlib import Path
 
+import yaml
 from auto_ir_metadata import load_ir_metadata
 from django.conf import settings
 from django.core.cache import cache
@@ -48,9 +49,10 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
             del ret_serialized["metadata_has_notebook"]
 
         if ret_serialized["has_metadata"]:
-            metadata = ret.ir_metadata_records()
-            if metadata:
-                ret_serialized["available_metadata"] = sorted(list(metadata.keys()))
+            try:
+                ret_serialized["available_metadata"] = json.loads(ret.valid_formats)["ir_metadata"]
+            except:
+                pass
 
         return Response(ret_serialized)
     except Exception as e:
@@ -129,7 +131,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     body = request.body.decode("utf-8")
     body = json.loads(body)
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
-    format = json.loads(upload.dataset.format)[0]
+    format = json.loads(upload.dataset.format)
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
@@ -178,13 +180,40 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
-    all_metadata = upload.ir_metadata_records()
-
+    all_metadata = upload.ir_metadata_record(metadata)
     if metadata in all_metadata:
-        with open(upload.get_path_in_file_system() / metadata, "r") as f:
-            raw_metadata = f.read()
+        ret = all_metadata[metadata].copy()
+        ret = {i: ret[i] for i in ["method", "platform", "schema version"] if i in ret}
+        if (
+            "platform" in ret
+            and "hardware" in ret["platform"]
+            and "frequency" in ret["platform"]["hardware"].get("cpu", {})
+        ):
+            del ret["platform"]["hardware"]["cpu"]["frequency"]
+        raw_metadata = yaml.dump(ret)
 
-        return Response({"metadata": all_metadata[metadata], "raw_metadata": raw_metadata, "status": "0"})
+        if "resources" in all_metadata[metadata]:
+            tmp = {}
+            for i in ["cpu", "gpu", "ram"]:
+                if i not in all_metadata[metadata]["resources"]:
+                    raise ValueError("fooo")
+                    continue
+                v = {}
+                for c in ["system", "process"]:
+                    if f"used {c}" not in all_metadata[metadata]["resources"][i]:
+                        continue
+                    if "timeseries" not in all_metadata[metadata]["resources"][i][f"used {c}"]:
+                        continue
+                    if "values" not in all_metadata[metadata]["resources"][i][f"used {c}"]["timeseries"]:
+                        continue
+
+                    v[c] = all_metadata[metadata]["resources"][i][f"used {c}"]["timeseries"]["values"]
+
+                if len(v.keys()) == 2:
+                    tmp[i] = v
+        ret["resources"] = tmp
+
+        return Response({"metadata": ret, "raw_metadata": raw_metadata, "status": "0"})
     else:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Metadata with name {html.escape(metadata)} does not exist."})

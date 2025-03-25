@@ -3,9 +3,9 @@
     
     <h3 class="text-h3 py-5">Datasets</h3>
     <div class="py-5"></div>
-    <v-skeleton-loader type="card" v-if="datasets === undefined"/>
+    <v-skeleton-loader type="card" v-if="loading"/>
 
-    <div v-if="datasets !== undefined">
+    <div v-if="!loading">
       <div class="d-flex">
         <v-responsive min-width="220px" id="task-search">
           <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="query" />
@@ -66,6 +66,7 @@
     components: { Loading, TiraBreadcrumb, DirectoryInspector },
     data() {
       return {
+        loading: true,
         userinfo: inject('userinfo') as UserInfo,
         query: undefined as string|undefined,
         datasets: [] as DatasetInfo[],
@@ -108,9 +109,13 @@
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined
+      this.loading = true
       get_from_archive('/v1/datasets/all')
         .then(
-            (result) => { this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)}
+            (result) => { 
+              this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)
+              this.loading = false
+            }
         )
         .catch(reportError("Problem While Loading the Overview of the Datasets.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },

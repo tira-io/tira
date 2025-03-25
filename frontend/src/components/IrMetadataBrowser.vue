@@ -7,7 +7,8 @@
     :items="items"  variant="underlined"
     v-model="selected_metadata"
   />
-  <p v-if="uuid && selected_metadata">
+  <v-skeleton-loader type="card" v-if="loading && selected_metadata"/>
+  <p v-if="!loading && uuid && selected_metadata">
     <div v-if="resource_plots">
       <h1>Resources</h1>
     </div>
@@ -115,17 +116,15 @@ export default {
       if (!this.metadata || !('resources' in this.metadata)) {
         return undefined
       }
+
       let ret: Record<string, any> = {}
       for (let k of Object.keys(this.metadata['resources'])) {
         let resources = this.metadata['resources'][k]
-        if (!resources || !('used process' in resources) || !('used system' in resources)) {
+        if (!resources || !('process' in resources) || !('system' in resources)) {
             continue
         }
 
-        let used_process = resources['used process']['timeseries']['values']
-        let used_system = resources['used system']['timeseries']['values']
-        
-        ret[k] = {'process': used_process, 'system': used_system}
+        ret[k] = resources
       }
 
       return ret

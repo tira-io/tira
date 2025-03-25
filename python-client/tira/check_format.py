@@ -9,8 +9,6 @@ from glob import glob
 from pathlib import Path
 from typing import Sequence, Union
 
-import yaml
-
 
 class FormatMsgType(Enum):
     OK = 0
@@ -452,7 +450,9 @@ class IrMetadataFormat(FormatBase):
         return [i for i in self.yield_lines(run_output)]
 
     def yield_lines(self, run_output: Path):
-        candidates = [run_output]
+        import yaml
+
+        candidates = [str(run_output)]
         for pattern in ["/*.yml", "/*.yaml", "/.*.yml", "/.*.yaml"]:
             for depth in ["", "/**", "/**/**"]:
                 candidates += glob(str(run_output) + depth + pattern)
@@ -505,6 +505,13 @@ def lines_if_valid(run_output: Path, format: Union[str, Sequence[str]]):
         raise ValueError(msg)
 
     return checker.all_lines(run_output)
+
+
+def report_valid_formats(run_output: Path):
+    valid_formats = {}
+    if _fmt.OK == check_format(run_output, "ir_metadata")[0]:
+        valid_formats["ir_metadata"] = sorted([i["name"] for i in lines_if_valid(run_output, "ir_metadata")])
+    return valid_formats
 
 
 def check_format(run_output: Path, format: Union[str, Sequence[str]]):

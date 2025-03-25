@@ -569,7 +569,7 @@ def anonymous_upload(request, dataset_id):
         has_metadata = False
         metadata_git_repo = None
         metadata_has_notebook = False
-        from tira.check_format import lines_if_valid
+        from tira.check_format import lines_if_valid, report_valid_formats
 
         try:
             lines = lines_if_valid(upload_dir, "ir_metadata")
@@ -608,6 +608,9 @@ def anonymous_upload(request, dataset_id):
         except:
             pass
 
+        valid_formats = json.dumps(report_valid_formats(upload_dir))
+        if not valid_formats or len(valid_formats) <= 4:
+            valid_formats = None
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
         modeldb.AnonymousUploads.objects.create(
             uuid=upload_id,
@@ -615,6 +618,7 @@ def anonymous_upload(request, dataset_id):
             has_metadata=has_metadata,
             metadata_git_repo=metadata_git_repo,
             metadata_has_notebook=metadata_has_notebook,
+            valid_formats=valid_formats,
         )
 
         return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
