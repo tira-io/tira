@@ -8,11 +8,10 @@
     v-model="selected_metadata"
   />
   <v-skeleton-loader type="card" v-if="loading && selected_metadata"/>
-  <p v-if="!loading && uuid && selected_metadata">
-    <div v-if="resource_plots">
-      <h1>Resources</h1>
-    </div>
 
+  <code-snippet v-if="!loading && selected_metadata && raw_metadata" title="IR-Metadata (Preview)" :code="raw_metadata" expand_message=""/>
+
+  <p v-if="!loading && uuid && selected_metadata">
     <v-card v-if="measurement" class="mx-auto" color="surface-light">
       <template v-slot:prepend>
         <v-btn class="align-self-start" icon="mdi-arrow-left-thick" size="34" variant="text" @click="pos = pos - 1"/>
@@ -26,13 +25,11 @@
         <v-btn class="align-self-start" icon="mdi-arrow-right-thick" size="34" variant="text" @click="pos = pos + 1"/>
       </template>
 
-      <v-sheet color="transparent" >
-        <v-sparkline :line-width="3" :model-value="used_process" stroke-linecap="round" auto-draw label="Process" color="#80D8FF"/>
-        <v-sparkline :line-width="3" :model-value="used_system" stroke-linecap="round" auto-draw color="#4CAF50"/>
-      </v-sheet>
+      
+      <div v-if="resource_plots && resource_plots_chart">
+        <Line :data="resource_plots_chart" :options="chart_options"/>
+      </div>
     </v-card>
-
-    <code-snippet v-if="raw_metadata" title="IR-Metadata" :code="raw_metadata" expand_message=""/>
   </p>
 </template>
 
@@ -40,11 +37,24 @@
 import { inject } from 'vue'
 import {get, reportError} from "@/utils";
 import {CodeSnippet} from '../components'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+import { Line } from 'vue-chartjs'
+
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale)
 
 
 export default {
   name: "ir-metadata-browser",
-  components: {CodeSnippet},
+  components: {CodeSnippet, Line},
   props: ['items', 'uuid'],
   data() {
     return {
@@ -53,7 +63,13 @@ export default {
       loading: true,
       metadata: undefined,
       raw_metadata: undefined,
-      pos: 0
+      pos: 0,
+      chart_options: {
+        scales: {
+          x: {grid: {display: false}},
+          y: {grid: {display: false}}
+        }
+      }
     }
   },
   watch: {
@@ -97,6 +113,22 @@ export default {
       }
 
       return undefined
+    },
+    resource_plots_chart() {
+      let p = this.used_process
+      let s = this.used_system
+      if (!p || ! s) {
+        return undefined;
+      }
+      let labels: string[] = Array.from({ length: s.length }, () => "");
+
+      return {
+        labels: labels,
+        datasets: [
+          {label: 'Process', backgroundColor: '#80D8FF', borderColor: '#80D8FF', data: p},
+          {label: 'System', backgroundColor: '#4CAF50', borderColor: '#4CAF50', data: s},
+        ]
+      }
     },
     used_process() {
       if (!this.measurement || !this.resource_plots) {

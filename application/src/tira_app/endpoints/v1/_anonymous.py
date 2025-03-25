@@ -190,6 +190,9 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
             and "frequency" in ret["platform"]["hardware"].get("cpu", {})
         ):
             del ret["platform"]["hardware"]["cpu"]["frequency"]
+
+        if "resources" in all_metadata[metadata] and "runtime" in all_metadata[metadata]["resources"]:
+            ret["resources"] = {"runtime": all_metadata[metadata]["resources"]["runtime"]}
         raw_metadata = yaml.dump(ret)
 
         if "resources" in all_metadata[metadata]:
