@@ -5,7 +5,6 @@ import zipfile
 from pathlib import Path
 
 import yaml
-from auto_ir_metadata import load_ir_metadata
 from django.conf import settings
 from django.core.cache import cache
 from django.http import FileResponse, HttpResponse, HttpResponseServerError
@@ -16,6 +15,8 @@ from rest_framework.response import Response
 from tira.check_format import _fmt, check_format, lines_if_valid
 from tira.third_party_integrations import temporary_directory
 from werkzeug.utils import secure_filename
+
+from tira_app.endpoints.vm_api import load_notebook
 
 from ... import model as modeldb
 from ... import tira_model as model
@@ -253,7 +254,7 @@ def render_notebook_of_submission(request: Request, submission_uuid: str) -> Res
                 {"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} has no jupyter notebook."}
             )
         )
-    metadata = load_ir_metadata(upload.get_path_in_file_system())
+    metadata = load_notebook(upload.get_path_in_file_system())
 
     if not metadata or "notebook_html" not in metadata:
         return HttpResponseServerError(

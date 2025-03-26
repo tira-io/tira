@@ -497,6 +497,103 @@ def upload(request, task_id, vm_id, dataset_id, upload_id):
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
 
+def parse_notebook_to_html(notebook_content):
+    import nbformat
+    from nbconvert import HTMLExporter
+
+    try:
+        notebook = nbformat.reads(notebook_content, as_version=4)
+        html_exporter = HTMLExporter(template_name="classic")
+        (body, _) = html_exporter.from_notebook_node(notebook)
+        return body
+    except Exception:
+        pass
+
+
+def load_notebook(upload_dir):
+    if not (upload_dir / "code.zip").exists():
+        return {}
+
+    try:
+        archive = zipfile.ZipFile(upload_dir / "code.zip", "r")
+        files = [i.filename for i in archive.filelist]
+        if "notebook.ipynb" not in files or "script.py" not in files:
+            return {}
+
+        with archive.open("notebook.ipynb") as file:
+            notebook_content = file.read().decode("utf-8")
+
+        with archive.open("script.py") as file:
+            script_content = file.read().decode("utf-8")
+
+        return {
+            "notebook_html": parse_notebook_to_html(json.dumps(json.loads(notebook_content))),
+            "notebook": notebook_content,
+            "script": script_content,
+        }
+    except:
+        pass
+
+
+def parse_metadata_from_upload(upload_dir):
+    has_metadata = False
+    metadata_git_repo = None
+    metadata_has_notebook = False
+    from tira.check_format import lines_if_valid, report_valid_formats
+
+    try:
+        lines = lines_if_valid(upload_dir, "ir_metadata")
+        has_metadata = len(lines) > 0
+        metadata_git_repo = None
+
+        for line in lines:
+            try:
+                content = line["content"]
+
+                if (
+                    "implementation" in content
+                    and "source" in content["implementation"]
+                    and "repository" in content["implementation"]["source"]
+                    and "commit" in content["implementation"]["source"]
+                    and "branch" in content["implementation"]["source"]
+                ):
+                    repo = content["implementation"]["source"]["repository"]
+                    commit = content["implementation"]["source"]["commit"]
+                    repo = repo.replace(".git", "")
+                    if repo.startswith("git@"):
+                        repo = repo.replace(":", "/")
+                        repo = repo.replace("git@", "https://")
+
+                    if commit:
+                        repo = f"{repo}/tree/{commit}"
+
+                    if (
+                        "script" in content["implementation"]
+                        and "path" in content["implementation"]["script"]
+                        and not content["implementation"]["script"]["path"].startswith("/")
+                    ):
+                        repo += "/" + content["implementation"]["script"]["path"]
+
+                    if not metadata_git_repo:
+                        metadata_git_repo = repo
+            except:
+                pass
+
+    except:
+        pass
+
+    metadata_has_notebook = "notebook_html" in load_notebook(Path(upload_dir))
+    valid_formats = json.dumps(report_valid_formats(upload_dir))
+    if not valid_formats or len(valid_formats) <= 4:
+        valid_formats = None
+    return {
+        "has_metadata": has_metadata,
+        "metadata_git_repo": metadata_git_repo,
+        "metadata_has_notebook": metadata_has_notebook,
+        "valid_formats": valid_formats,
+    }
+
+
 @csrf_exempt
 def anonymous_upload(request, dataset_id):
     if request.method == "POST":
@@ -566,62 +663,16 @@ def anonymous_upload(request, dataset_id):
         (anon_uploads_dir).mkdir(exist_ok=True, parents=True)
         upload_dir = anon_uploads_dir / upload_id
         shutil.move(result_dir / "extracted", upload_dir)
-        has_metadata = False
-        metadata_git_repo = None
-        metadata_has_notebook = False
-        from tira.check_format import lines_if_valid, report_valid_formats
 
-        try:
-            lines = lines_if_valid(upload_dir, "ir_metadata")
-            has_metadata = len(lines) > 0
-            metadata_git_repo = None
-
-            for line in lines:
-                try:
-                    content = line["content"]
-
-                    if (
-                        "implementation" in content
-                        and "source" in content["implementation"]
-                        and "repository" in content["implementation"]["source"]
-                        and "commit" in content["implementation"]["source"]
-                        and "branch" in content["implementation"]["source"]
-                    ):
-                        repo = content["implementation"]["source"]["repository"]
-                        commit = content["implementation"]["source"]["commit"]
-                        repo = repo.replace(".git", "")
-                        if repo.startswith("git@"):
-                            repo = repo.replace(":", "/")
-                            repo = repo.replace("git@", "https://")
-
-                        if commit:
-                            repo = f"{repo}/tree/{commit}"
-
-                        if "archive" in content["implementation"]["source"]:
-                            archive = content["implementation"]["source"]["archive"]
-                            if "script path" in archive:
-                                repo += "/" + archive["script path"]
-
-                        if not metadata_git_repo:
-                            metadata_git_repo = repo
-                except:
-                    pass
-
-                    # metadata_has_notebook = "notebook" in metadata and "notebook_html" in metadata
-        except:
-            pass
-
-        valid_formats = json.dumps(report_valid_formats(upload_dir))
-        if not valid_formats or len(valid_formats) <= 4:
-            valid_formats = None
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        metadata_from_upload = parse_metadata_from_upload(upload_dir)
         modeldb.AnonymousUploads.objects.create(
             uuid=upload_id,
             dataset=dataset,
-            has_metadata=has_metadata,
-            metadata_git_repo=metadata_git_repo,
-            metadata_has_notebook=metadata_has_notebook,
-            valid_formats=valid_formats,
+            has_metadata=metadata_from_upload["has_metadata"],
+            metadata_git_repo=metadata_from_upload["metadata_git_repo"],
+            metadata_has_notebook=metadata_from_upload["metadata_has_notebook"],
+            valid_formats=metadata_from_upload["valid_formats"],
         )
 
         return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
