@@ -217,8 +217,23 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
                             continue
                         if "values" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]:
                             continue
+                        if (
+                            "timestamps"
+                            not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]
+                        ):
+                            continue
 
-                        v[c] = all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"]
+                        timestamps = all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"][
+                            "timestamps"
+                        ]
+                        timestamps = [int(i.split("ms")[0].strip()) for i in timestamps]
+                        vals = zip(
+                            all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"],
+                            timestamps,
+                        )
+                        if prefix == "vram ":
+                            vals = [(i[0] * 1024, i[1]) for i in vals]
+                        v[c] = [{"x": i[1], "y": i[0]} for i in vals]
 
                     if len(v.keys()) == 0:
                         continue

@@ -27,7 +27,7 @@
 
       
       <div v-if="resource_plots && resource_plots_chart">
-        <Line :data="resource_plots_chart" :options="chart_options"/>
+        <Scatter :data="resource_plots_chart" :options="chart_options"/>
       </div>
     </v-card>
   </p>
@@ -45,16 +45,17 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+
 } from 'chart.js'
-import { Line } from 'vue-chartjs'
+import { Scatter} from 'vue-chartjs'
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale)
 
 
 export default {
   name: "ir-metadata-browser",
-  components: {CodeSnippet, Line},
+  components: {CodeSnippet, Scatter},
   props: ['items', 'uuid'],
   data() {
     return {
@@ -65,11 +66,73 @@ export default {
       raw_metadata: undefined,
       pos: 0,
       chart_options: {
+        showLine: true,
         scales: {
-          x: {grid: {display: false}},
-          y: {grid: {display: false}}
+          x: {
+            grid: {display: false},
+            ticks: {
+              callback: function(value: any, index: any, ticks: any) {
+                if (value < (3*60*1000)) {
+                  return (value/1000) + 's';
+                } else {
+                  return (value/(1000*60)) + 'min';
+                }
+              }
+            }
+          },
+          y: {
+            grid: {display: false},
+            ticks: {
+              callback: function(value: any, index: any, ticks: any) {
+                if (value < (5*1024)) {
+                  return value;
+                } else if (value < (1024*1024)){
+                  return (value/(1024)).toFixed(1) + 'MB';
+                } else {
+                  return (value/(1024*1024)).toFixed(1) + 'GB';
+                }
+              }
+            }
+          }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context: any) {
+                        let label = context.dataset.label || '';
+
+                        if (label) {
+                          if (context.parsed.x !== null) {
+                            let x = context.parsed.x
+                            if (x < (3*60*1000)) {
+                              x = (Math.round((x/100))/10) + 's';
+                            } else {
+                              x = (Math.round(x/(100*60))/10) + 'min';
+                            }
+
+                            label += ' (' + x + ')'
+                          }
+
+                          label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                          let y = context.parsed.y 
+
+                          if (y < (5*1024)) {
+                            y = y
+                          } else if (y < (1024*1024)){
+                            y = (y/(1024)).toFixed(1) + 'MB';
+                          } else {
+                            y = (y/(1024*1024)).toFixed(1) + 'GB';
+                          }
+                          label += y
+                        }
+                        return label;
+                    }
+                }
+            }
         }
-      }
+      },
     }
   },
   watch: {
@@ -117,10 +180,9 @@ export default {
     resource_plots_chart() {
       let p = this.used_process
       let s = this.used_system
-      if (!p && ! s) {
+      if (!p && !s) {
         return undefined;
       }
-      let labels: string[] = Array.from({ length: s.length }, () => "");
       let datasets: any[] = []
       if (p) {
         datasets.push({label: 'Process', backgroundColor: '#80D8FF', borderColor: '#80D8FF', data: p})
@@ -128,9 +190,7 @@ export default {
       if (s) {
         datasets.push({label: 'System', backgroundColor: '#4CAF50', borderColor: '#4CAF50', data: s})
       }
-
       return {
-        labels: labels,
         datasets: datasets
       }
     },
