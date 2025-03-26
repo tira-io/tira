@@ -933,7 +933,7 @@ class Client(TiraClient):
         for root, _, files in os.walk(file_path):
             for name in files:
                 filePath = os.path.join(root, name)
-                zf.write(filePath, arcname=name)
+                zf.write(filePath, arcname=Path(filePath).relative_to(file_path))
 
         zf.close()
         headers = {"Accept": "application/json"}

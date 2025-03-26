@@ -511,11 +511,11 @@ def parse_notebook_to_html(notebook_content):
 
 
 def load_notebook(upload_dir):
-    if not (upload_dir / "code.zip").exists():
+    if not (upload_dir / ".tirex-tracker" / "code.zip").exists():
         return {}
 
     try:
-        archive = zipfile.ZipFile(upload_dir / "code.zip", "r")
+        archive = zipfile.ZipFile(upload_dir / ".tirex-tracker" / "code.zip", "r")
         files = [i.filename for i in archive.filelist]
         if "notebook.ipynb" not in files or "script.py" not in files:
             return {}
