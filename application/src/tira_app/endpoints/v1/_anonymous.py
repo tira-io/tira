@@ -204,23 +204,29 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
 
         if "resources" in all_metadata[metadata]:
             tmp = {}
-            for i in ["cpu", "gpu", "ram"]:
-                if i not in all_metadata[metadata]["resources"]:
-                    raise ValueError("fooo")
-                    continue
-                v = {}
-                for c in ["system", "process"]:
-                    if f"used {c}" not in all_metadata[metadata]["resources"][i]:
+
+            for prefix in ["", "vram "]:
+                for i in ["cpu", "gpu", "ram"]:
+                    if i not in all_metadata[metadata]["resources"]:
                         continue
-                    if "timeseries" not in all_metadata[metadata]["resources"][i][f"used {c}"]:
-                        continue
-                    if "values" not in all_metadata[metadata]["resources"][i][f"used {c}"]["timeseries"]:
+                    v = {}
+                    for c in ["system", "process"]:
+                        if f"{prefix}used {c}" not in all_metadata[metadata]["resources"][i]:
+                            continue
+                        if "timeseries" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]:
+                            continue
+                        if "values" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]:
+                            continue
+
+                        v[c] = all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"]
+
+                    if len(v.keys()) == 0:
                         continue
 
-                    v[c] = all_metadata[metadata]["resources"][i][f"used {c}"]["timeseries"]["values"]
-
-                if len(v.keys()) == 2:
-                    tmp[i] = v
+                    name = i
+                    if prefix:
+                        name += " (" + prefix.strip() + ")"
+                    tmp[name] = v
         ret["resources"] = tmp
 
         return Response({"metadata": ret, "raw_metadata": raw_metadata, "status": "0"})

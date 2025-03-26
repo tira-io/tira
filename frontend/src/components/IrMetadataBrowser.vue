@@ -117,17 +117,21 @@ export default {
     resource_plots_chart() {
       let p = this.used_process
       let s = this.used_system
-      if (!p || ! s) {
+      if (!p && ! s) {
         return undefined;
       }
       let labels: string[] = Array.from({ length: s.length }, () => "");
+      let datasets: any[] = []
+      if (p) {
+        datasets.push({label: 'Process', backgroundColor: '#80D8FF', borderColor: '#80D8FF', data: p})
+      }
+      if (s) {
+        datasets.push({label: 'System', backgroundColor: '#4CAF50', borderColor: '#4CAF50', data: s})
+      }
 
       return {
         labels: labels,
-        datasets: [
-          {label: 'Process', backgroundColor: '#80D8FF', borderColor: '#80D8FF', data: p},
-          {label: 'System', backgroundColor: '#4CAF50', borderColor: '#4CAF50', data: s},
-        ]
+        datasets: datasets
       }
     },
     used_process() {
@@ -152,7 +156,7 @@ export default {
       let ret: Record<string, any> = {}
       for (let k of Object.keys(this.metadata['resources'])) {
         let resources = this.metadata['resources'][k]
-        if (!resources || !('process' in resources) || !('system' in resources)) {
+        if (!resources || (!('process' in resources) && !('system' in resources))) {
             continue
         }
 
