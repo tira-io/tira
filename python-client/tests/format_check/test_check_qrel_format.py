@@ -6,8 +6,8 @@ from . import (
     _ERROR,
     _OK,
     EMPTY_OUTPUT,
-    VALID_QREL_PATH,
     TSV_OUTPUT_VALID,
+    VALID_QREL_PATH,
 )
 
 

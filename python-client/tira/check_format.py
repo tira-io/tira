@@ -74,29 +74,21 @@ class RunFormat(FormatBase):
             # maximum size of 10MB
             lines = self.all_lines(run_output)
         except Exception as e:
-            return [_fmt.ERROR, repr(e)]
+            return [_fmt.ERROR, e.args[0]]
 
         if len(lines) < 10:
             return [_fmt.ERROR, f"The run file contains only {len(lines)} lines, this is likely an error."]
 
         query_to_docs = {}
-        for l in lines:
-            l = l.strip()
-            cols = re.split("\\s+", l)
-            if len(cols) != 6:
+        for line in lines:
+            if line["qid"] not in query_to_docs:
+                query_to_docs[line["qid"]] = set()
+            if line["docno"] in query_to_docs[line["qid"]]:
                 return [
                     _fmt.ERROR,
-                    f'Invalid line in the run file, expected 6 columns, but found a line "{l}" with {len(cols)} columns.',
+                    f'The run file has duplicate documents: the document with id "{line['docno']}" appears multiple times for query "{line['qid']}".',
                 ]
-            qid, _, docno, _, _, _ = cols
-            if qid not in query_to_docs:
-                query_to_docs[qid] = set()
-            if docno in query_to_docs[qid]:
-                return [
-                    _fmt.ERROR,
-                    f'The run file has duplicate documents: the document with id "{docno}" appears multiple times for query "{qid}".',
-                ]
-            query_to_docs[qid].add(docno)
+            query_to_docs[line["qid"]].add(line["docno"])
 
         if len(query_to_docs.keys()) < 3:
             return [_fmt.ERROR, f"The run file has only {len(query_to_docs)} queries which is likely an error."]
@@ -105,12 +97,33 @@ class RunFormat(FormatBase):
 
     def all_lines(self, run_output):
         if (run_output / "run.txt").exists():
-            return [i.strip() for i in super().all_lines(run_output / "run.txt")]
-        if (run_output / "run.txt.gz").exists():
-            return [i.strip() for i in super().all_lines(run_output / "run.txt.gz")]
+            ret = [i.strip() for i in super().all_lines(run_output / "run.txt")]
+        elif (run_output / "run.txt.gz").exists():
+            ret = [i.strip() for i in super().all_lines(run_output / "run.txt.gz")]
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
 
+        ret_parsed = []
+        for i in ret:
+            cols = re.split("\\s+", i)
+            if len(cols) != 6:
+                raise ValueError(
+                    f'Invalid line in the run file, expected 6 columns, but found a line "{i}" with {len(cols)} columns.'
+                )
+            qid, q0, docno, rank, score, system = cols
+            try:
+                rank = int(rank)
+            except ValueError:
+                raise ValueError(f"Could not parse the rank. Got {rank}. Line: {i}")
+
+            try:
+                score = float(score)
+            except ValueError:
+                raise ValueError(f"Could not parse the rank. Got {rank}. Line: {i}")
+
+            ret_parsed.append({"qid": qid, "q0": q0, "docno": docno, "rank": rank, "score": score, "system": system})
+
+        return ret_parsed
 
 
 class QrelFormat(FormatBase):
@@ -129,29 +142,21 @@ class QrelFormat(FormatBase):
             # maximum size of 10MB
             lines = self.all_lines(run_output)
         except Exception as e:
-            return [_fmt.ERROR, repr(e)]
+            return [_fmt.ERROR, e.args[0]]
 
         if len(lines) < 10:
             return [_fmt.ERROR, f"The run file contains only {len(lines)} lines, this is likely an error."]
 
         query_to_docs = {}
-        for l in lines:
-            l = l.strip()
-            cols = re.split("\\s+", l)
-            if len(cols) != 4:
+        for line in lines:
+            if line["qid"] not in query_to_docs:
+                query_to_docs[line["qid"]] = set()
+            if line["docno"] in query_to_docs[line["qid"]]:
                 return [
                     _fmt.ERROR,
-                    f'Invalid line in the qrel file, expected 4 columns, but found a line "{l}" with {len(cols)} columns.',
+                    f'The qrel file has duplicate documents: the document with id "{line['docno']}" appears multiple times for query "{line['qid']}".',
                 ]
-            qid, _, docno, rel = cols
-            if qid not in query_to_docs:
-                query_to_docs[qid] = set()
-            if docno in query_to_docs[qid]:
-                return [
-                    _fmt.ERROR,
-                    f'The qrel file has duplicate documents: the document with id "{docno}" appears multiple times for query "{qid}".',
-                ]
-            query_to_docs[qid].add(docno)
+            query_to_docs[line["qid"]].add(line["docno"])
 
         if len(query_to_docs.keys()) < 3:
             return [_fmt.ERROR, f"The run file has only {len(query_to_docs)} queries which is likely an error."]
@@ -160,11 +165,29 @@ class QrelFormat(FormatBase):
 
     def all_lines(self, run_output):
         if (run_output / "qrels.txt").exists():
-            return [i.strip() for i in super().all_lines(run_output / "qrels.txt")]
-        if (run_output / "qrels.txt.gz").exists():
-            return [i.strip() for i in super().all_lines(run_output / "qrels.txt.gz")]
+            ret = [i.strip() for i in super().all_lines(run_output / "qrels.txt")]
+        elif (run_output / "qrels.txt.gz").exists():
+            ret = [i.strip() for i in super().all_lines(run_output / "qrels.txt.gz")]
         else:
             raise ValueError("Could not find a file qrels.txt or qrels.txt.gz")
+
+        ret_parsed = []
+        for l in ret:
+            l = l.strip()
+            cols = re.split("\\s+", l)
+            if len(cols) != 4:
+                return [
+                    _fmt.ERROR,
+                    f'Invalid line in the qrel file, expected 4 columns, but found a line "{l}" with {len(cols)} columns.',
+                ]
+            qid, q0, docno, rel = cols
+            try:
+                rel = int(rel)
+            except:
+                raise ValueError(f"I expected that the relevance is an integer, got {rel} in line {l}")
+            ret_parsed.append({"qid": qid, "q0": q0, "docno": docno, "rel": rel})
+        return ret_parsed
+
 
 class JsonlFormat(FormatBase):
     """Checks if a given output is a valid jsonl file."""
