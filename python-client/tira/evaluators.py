@@ -36,6 +36,47 @@ class TiraBaseEvaluator:
         raise ValueError("This is not implemented")
 
 
+class RunFileEvaluator(TiraBaseEvaluator):
+    def configuration_is_valid(self, run_format, truth_format, config):
+        if "run.txt" != run_format and "run.txt" not in run_format:
+            raise ValueError("I can only use the RunFileEvaluator for run.txt format")
+
+        self.run_format = "run.txt"
+        if "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
+            self.truth_format = "qrels.txt"
+
+    def evaluate(self, run: Path, truths: Path):
+        self.is_valid(run, self.run_format, True)
+
+        expected_queries = None
+        if self.truth_format is not None:
+
+            self.is_valid(truths, self.truth_format)
+            expected_queries = set([i["qid"] for i in lines_if_valid(truths, self.truth_format)])
+
+        run_data = lines_if_valid(run, self.run_format)
+        counts = {}
+
+        for i in run_data:
+            if expected_queries and i["qid"] not in expected_queries:
+                continue
+            if i["qid"] not in counts:
+                counts[i["qid"]] = set()
+            counts[i["qid"]].add(i["docno"])
+
+        lengths = [len(i) for i in counts.values()]
+        num_queries = len(counts.keys())
+
+        ret = {
+            "Docs Per Query (Avg)": sum(lengths) / num_queries,
+            "Docs Per Query (Min)": min(lengths),
+            "Docs Per Query (Max)": max(lengths),
+            "NumQueries": num_queries,
+        }
+
+        return {k: ret[k] for k in self.measures}
+
+
 class TrecToolsEvaluator(TiraBaseEvaluator):
     def configuration_is_valid(self, run_format, truth_format, config):
         if "run.txt" != run_format and "run.txt" not in run_format:
@@ -80,9 +121,17 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         return {k: ret[k] for k in self.measures}
 
 
-EVALUATORS = {"TrecTools": TrecToolsEvaluator}
+EVALUATORS = {"TrecTools": TrecToolsEvaluator, "RunFileEvaluator": RunFileEvaluator}
 
-MEASURE_TO_EVALUATORS = {"nDCG@10": "TrecTools", "RR": "TrecTools", "P@10": "TrecTools"}
+MEASURE_TO_EVALUATORS = {
+    "nDCG@10": "TrecTools",
+    "RR": "TrecTools",
+    "P@10": "TrecTools",
+    "Docs Per Query (Avg)": "RunFileEvaluator",
+    "Docs Per Query (Min)": "RunFileEvaluator",
+    "Docs Per Query (Max)": "RunFileEvaluator",
+    "NumQueries": "RunFileEvaluator",
+}
 
 
 def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient] = None):
@@ -94,9 +143,6 @@ def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient]
             raise ValueError(f'No trusted evaluation is configured for the dataset "{config}".')
 
         return load_evaluator_config(dataset_config["trusted_evaluator"])
-
-    if "evaluator" not in config:
-        raise ValueError("Configuration of the evaluator is invalid: No evaluator name is specified.")
 
     if "measures" not in config or not config["measures"]:
         raise ValueError("Configuration of the evaluator is invalid: No measures are specified.")

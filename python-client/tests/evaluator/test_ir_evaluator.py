@@ -1,19 +1,17 @@
 import unittest
 from pathlib import Path
 
-from tests.format_check import VALID_QREL_PATH, VALID_RUN_OUTPUT
+from tests.format_check import EMPTY_OUTPUT, VALID_QREL_PATH, VALID_RUN_OUTPUT
+from tira.evaluators import evaluate as _eval
 
 
 def evaluate(run: Path, truths: Path):
-    from tira.evaluators import evaluate as _eval
-
     return _eval(
         run,
         truths,
         {
             "run_format": "run.txt",
             "truth_format": "qrels.txt",
-            "evaluator": "ir",
             "measures": ["nDCG@10", "RR", "P@10"],
         },
     )
@@ -30,3 +28,48 @@ class TestIrEvaluators(unittest.TestCase):
     def test_evaluate_fails_on_invalid_input(self):
         with self.assertRaises(ValueError):
             evaluate(VALID_RUN_OUTPUT, VALID_RUN_OUTPUT)
+
+        with self.assertRaises(ValueError):
+            evaluate(VALID_QREL_PATH, VALID_QREL_PATH)
+
+    def test_evaluate_docs_per_query(self):
+        expected = {
+            "Docs Per Query (Avg)": 3.3333333,
+            "Docs Per Query (Min)": 1,
+            "Docs Per Query (Max)": 7,
+            "NumQueries": 3,
+        }
+        actual = _eval(
+            VALID_RUN_OUTPUT,
+            EMPTY_OUTPUT,
+            {
+                "run_format": "run.txt",
+                "truth_format": None,
+                "measures": ["Docs Per Query (Avg)", "Docs Per Query (Min)", "Docs Per Query (Max)", "NumQueries"],
+            },
+        )
+
+        self.assertEqual(expected.keys(), actual.keys())
+        for k, v in expected.items():
+            self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
+    def test_evaluate_docs_per_query_with_qrels(self):
+        expected = {
+            "Docs Per Query (Avg)": 3.3333333,
+            "Docs Per Query (Min)": 1,
+            "Docs Per Query (Max)": 7,
+            "NumQueries": 3,
+        }
+        actual = _eval(
+            VALID_RUN_OUTPUT,
+            VALID_QREL_PATH,
+            {
+                "run_format": "run.txt",
+                "truth_format": "qrels.txt",
+                "measures": ["Docs Per Query (Avg)", "Docs Per Query (Min)", "Docs Per Query (Max)", "NumQueries"],
+            },
+        )
+
+        self.assertEqual(expected.keys(), actual.keys())
+        for k, v in expected.items():
+            self.assertAlmostEqual(v, actual[k], delta=0.0001)
