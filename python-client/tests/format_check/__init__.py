@@ -8,6 +8,7 @@ _WARN = FormatMsgType.WARN
 
 RESOURCES = Path(__file__).parent.parent / "resources"
 VALID_RUN_OUTPUT = RESOURCES / "ranking-outputs"
+VALID_QREL_PATH = RESOURCES / "valid-qrels"
 VALID_RUN_WITH_METADATA_OUTPUT = RESOURCES / "ranking-with-metadata"
 RUN_OUTPUT_WITH_TOO_FEW_QUERIES = RESOURCES / "ranking-output-invalid-too-few-queries"
 RUN_OUTPUT_WITH_DUPLICATE_DOCUMENTS = RESOURCES / "ranking-output-invalid-duplicate-documents"

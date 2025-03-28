@@ -112,6 +112,60 @@ class RunFormat(FormatBase):
             raise ValueError("Could not find a file run.txt or run.txt.gz")
 
 
+
+class QrelFormat(FormatBase):
+    """Checks if a given output is a valid qrel file."""
+
+    def check_format(self, run_output: Path):
+        if (run_output / "qrels.txt").exists() and (run_output / "qrels.txt.gz").exists():
+            msg = f"Found multiple qrels.txt or qrels.txt.gz files: {os.listdir(run_output)} ."
+            return [_fmt.ERROR, msg]
+        if not (run_output / "qrels.txt").exists() and not (run_output / "qrels.txt.gz").exists():
+            msg = "No unique qrels.txt file was found, only the files "
+            msg += str(os.listdir(run_output)) + " were available."
+            return [_fmt.ERROR, msg]
+
+        try:
+            # maximum size of 10MB
+            lines = self.all_lines(run_output)
+        except Exception as e:
+            return [_fmt.ERROR, repr(e)]
+
+        if len(lines) < 10:
+            return [_fmt.ERROR, f"The run file contains only {len(lines)} lines, this is likely an error."]
+
+        query_to_docs = {}
+        for l in lines:
+            l = l.strip()
+            cols = re.split("\\s+", l)
+            if len(cols) != 4:
+                return [
+                    _fmt.ERROR,
+                    f'Invalid line in the qrel file, expected 4 columns, but found a line "{l}" with {len(cols)} columns.',
+                ]
+            qid, _, docno, rel = cols
+            if qid not in query_to_docs:
+                query_to_docs[qid] = set()
+            if docno in query_to_docs[qid]:
+                return [
+                    _fmt.ERROR,
+                    f'The qrel file has duplicate documents: the document with id "{docno}" appears multiple times for query "{qid}".',
+                ]
+            query_to_docs[qid].add(docno)
+
+        if len(query_to_docs.keys()) < 3:
+            return [_fmt.ERROR, f"The run file has only {len(query_to_docs)} queries which is likely an error."]
+
+        return [_fmt.OK, "The qrels are valid."]
+
+    def all_lines(self, run_output):
+        if (run_output / "qrels.txt").exists():
+            return [i.strip() for i in super().all_lines(run_output / "qrels.txt")]
+        if (run_output / "qrels.txt.gz").exists():
+            return [i.strip() for i in super().all_lines(run_output / "qrels.txt.gz")]
+        else:
+            raise ValueError("Could not find a file qrels.txt or qrels.txt.gz")
+
 class JsonlFormat(FormatBase):
     """Checks if a given output is a valid jsonl file."""
 
@@ -484,6 +538,7 @@ FORMAT_TO_CHECK = {
     "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
     "GenIR-Simulation": lambda: GenIrSimulationFormat(),
     "ir_metadata": lambda: IrMetadataFormat(),
+    "qrels.txt": QrelFormat,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
