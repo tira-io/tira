@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -42,7 +43,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
             raise ValueError("I can only use the RunFileEvaluator for run.txt format")
 
         self.run_format = "run.txt"
-        if "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
+        if truth_format and "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
             self.truth_format = "qrels.txt"
 
     def evaluate(self, run: Path, truths: Path):
@@ -52,7 +53,8 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if self.truth_format is not None:
 
             self.is_valid(truths, self.truth_format)
-            expected_queries = set([i["qid"] for i in lines_if_valid(truths, self.truth_format)])
+            expected_queries = lines_if_valid(truths, self.truth_format)
+            expected_queries = set([i["qid"] for i in expected_queries])
 
         run_data = lines_if_valid(run, self.run_format)
         counts = {}
@@ -75,6 +77,57 @@ class RunFileEvaluator(TiraBaseEvaluator):
         }
 
         return {k: ret[k] for k in self.measures}
+
+
+class HuggingFaceEvaluator(TiraBaseEvaluator):
+    def configuration_is_valid(self, run_format, truth_format, config):
+        if not run_format or not truth_format:
+            raise ValueError(
+                f"Configuration error. I need a run and truth format. Got: run_format={run_format} and truth_format={truth_format}."
+            )
+
+        if "run_label_column" not in config or "run_id_column" not in config:
+            raise ValueError(f"Configuration error. I need to extract the label and id column from runs.")
+
+        self.run_label_column = config["run_label_column"]
+        self.run_id_column = config["run_id_column"]
+        if "truth_label_column" not in config or "truth_id_column" not in config:
+            raise ValueError(f"Configuration error. I need to extract the label and id column from truths.")
+
+        self.truth_label_column = config["truth_label_column"]
+        self.truth_id_column = config["truth_id_column"]
+        if "additional_args" in config and config["additional_args"]:
+            self.additional_args = config["additional_args"]
+        else:
+            self.additional_args = {}
+
+        import evaluate
+        from evaluate.utils.file_utils import DownloadConfig
+
+        if os.environ.get("OFFLINE", False):
+            evaluate.config.HF_EVALUATE_OFFLINE = True
+
+    def _eval(self, run_data, truth_data):
+        run_data = [{"id": i[self.run_id_column], "prediction": i[self.run_label_column]} for i in run_data]
+        truth_data = [{"id": i[self.truth_id_column], "truth": i[self.truth_label_column]} for i in truth_data]
+
+        import evaluate
+        import pandas as pd
+        from evaluate.utils.file_utils import DownloadConfig
+
+        download_config = None
+        if os.environ.get("OFFLINE", False):
+            download_config = DownloadConfig(local_files_only=True)
+
+        df = pd.merge(pd.DataFrame(run_data), pd.DataFrame(truth_data), left_index=True, right_index=True)
+        run_data = df.iloc[:, 0].tolist()
+        truth_data = df.iloc[:, 1].tolist()
+        ret = {}
+        for m in self.measures:
+            ret[m] = evaluate.load(m, download_config=download_config).compute(
+                predictions=run_data, references=truth_data, **self.additional_args
+            )[m]
+        return ret
 
 
 class TrecToolsEvaluator(TiraBaseEvaluator):
@@ -121,7 +174,11 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         return {k: ret[k] for k in self.measures}
 
 
-EVALUATORS = {"TrecTools": TrecToolsEvaluator, "RunFileEvaluator": RunFileEvaluator}
+EVALUATORS = {
+    "TrecTools": TrecToolsEvaluator,
+    "RunFileEvaluator": RunFileEvaluator,
+    "HuggingFaceEvaluator": HuggingFaceEvaluator,
+}
 
 MEASURE_TO_EVALUATORS = {
     "nDCG@10": "TrecTools",
@@ -131,6 +188,10 @@ MEASURE_TO_EVALUATORS = {
     "Docs Per Query (Min)": "RunFileEvaluator",
     "Docs Per Query (Max)": "RunFileEvaluator",
     "NumQueries": "RunFileEvaluator",
+    "accuracy": "HuggingFaceEvaluator",
+    "recall": "HuggingFaceEvaluator",
+    "precision": "HuggingFaceEvaluator",
+    "f1": "HuggingFaceEvaluator",
 }
 
 
@@ -168,7 +229,9 @@ def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClien
 
     ret = []
     for evaluator, measures in evaluator_to_measures.items():
-        ret.append(EVALUATORS[evaluator](config["run_format"], config["truth_format"], measures))
+        impl = EVALUATORS[evaluator](config["run_format"], config["truth_format"], measures)
+        impl.configuration_is_valid(config["run_format"], config["truth_format"], config)
+        ret.append(impl)
 
     return ret
 
