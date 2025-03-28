@@ -26,3 +26,7 @@ class TestIrEvaluators(unittest.TestCase):
         self.assertEqual(expected.keys(), actual.keys())
         for k, v in expected.items():
             self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
+    def test_evaluate_fails_on_invalid_input(self):
+        with self.assertRaises(ValueError):
+            evaluate(VALID_RUN_OUTPUT, VALID_RUN_OUTPUT)
