@@ -499,7 +499,7 @@ def _evaluator_config(data):
                 ret["additional_args"] = json.loads(data["additional_args"])
             except:
                 raise ValueError(
-                    f"I expected that the additional arguments is valid json. But I got '{data["additional_args"]}'."
+                    f"I expected that the additional arguments is valid json. But I got '{data['additional_args']}'."
                 )
 
     ret_serialized = json.dumps(ret)
