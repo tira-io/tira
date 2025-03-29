@@ -1,7 +1,6 @@
 import unittest
 
 from tests.format_check import JSONL_OUTPUT_VALID
-
 from tira.evaluators import evaluate
 
 
