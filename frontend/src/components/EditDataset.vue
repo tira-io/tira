@@ -63,6 +63,7 @@
 
 
                 <v-divider/>
+
                 <h2 class="my-1">Public Access to the Data and Submissions</h2>
                 <p>
                   You can make the data public so that users can download the data and submissions, e.g., after the shared task is finished or for participants to verify their software.
@@ -127,30 +128,61 @@
                   </p>
                 </div>
                 <v-divider/>
-                <h2 class="my-1">Evaluation</h2>
-                <p v-if="newDataset()">Please specify how you want to evaluate submissions. An evaluator has a submissions and the ground truth as input to produce an evaluation. We have prepared evaluators covering common evaluation scenarious.
+                <h2 class="my-1">Evaluation (<a href="https://docs.tira.io/organizers/organizing-tasks.html#add-an-evaluator" target="_blank">Documentation</a>)</h2>
+                <p v-if="newDataset()">Please specify how you want to evaluate submissions. An evaluator has a submissions and the ground truth as input to produce an evaluation. We have prepared evaluators covering common evaluation scenarious. Evaluators are either trusted evaluators that are implemented in the TIRA python client that can run outside the sandbox (i.e., fast) or custom docker images that are executed in the sandbox.
                 </p>
 
-                <v-radio-group v-if="newDataset()" v-model="evaluation_type">
-                  <v-radio label="I want to configure the evaluation later" value="eval-1"/>
-                  <v-radio value="eval-2">
-                    <template v-slot:label>
-                      Evaluate with Huggingface Metrics&nbsp;(<a href="https://github.com/tira-io/hf-evaluator" target="_blank">documentation</a>).
-                    </template>
-                  </v-radio>
-                  <v-radio value="eval-3">
-                    <template v-slot:label>
-                      Evaluate with ir_measures&nbsp;(<a href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures" target="_blank">documentation</a>).
-                    </template>
-                  </v-radio>
-                  <v-radio value="eval-4">
-                    <template v-slot:label>
-                      Evaluate with a custom evaluator&nbsp;(<a href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures" target="_blank">documentation</a>).
-                    </template>
-                  </v-radio>
+
+                <v-radio-group v-if="newDataset()" v-model="sandboxed">
+                  <v-radio label="I want to configure the evaluator later" value="later"/>
+                  <v-radio label="I want to use existing trusted evaluators (runs without sandbox)" value="false"/>
+                  <v-radio label="I want to use my own custom Evaluator that runs in the sandbox" value="true"/>
                 </v-radio-group>
-                <v-text-field v-model="git_runner_image" v-if="evaluation_type !== 'eval-1'" label="Docker Image of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
-                <v-text-field  v-model="git_runner_command" v-if="evaluation_type !== 'eval-1'" label="Command of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
+
+                <v-radio-group v-if="newDataset()" v-model="evaluation_type">
+
+                  <span v-if="(sandboxed + '').toLowerCase() == 'false'">
+                    <h2>Configure the Evaluation with the <a href="https://github.com/tira-io/tira/blob/main/python-client/tira/evaluators.py" target="_blank">TIRA python client</a></h2>
+                    <v-radio label="Use retrieval measures" value="eval-5"/>
+                    <v-radio label="Use classification measures" value="eval-6"/>
+                  </span>
+
+                  <span v-if="(sandboxed + '').toLowerCase() == 'true'">
+                    <h2>Configure the Evaluation with a custom Docker Evaluator</h2>
+                    <v-radio value="eval-2">
+                      <template v-slot:label>
+                        Evaluate with dockerized Huggingface Metrics&nbsp;(<a href="https://github.com/tira-io/hf-evaluator" target="_blank">documentation</a>).
+                      </template>
+                    </v-radio>
+                    <v-radio value="eval-3">
+                      <template v-slot:label>
+                        Evaluate with dockerized ir_measures&nbsp;(<a href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures" target="_blank">documentation</a>).
+                      </template>
+                    </v-radio>
+                    <v-radio value="eval-4">
+                      <template v-slot:label>
+                        Evaluate with a custom dockerized evaluator&nbsp;(<a href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures" target="_blank">documentation</a>).
+                      </template>
+                    </v-radio>
+                  </span>
+                </v-radio-group>
+                <v-text-field v-model="git_runner_image" v-if="use_dockerized_evaluator" label="Docker Image of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
+                <v-text-field  v-model="git_runner_command" v-if="use_dockerized_evaluator" label="Command of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
+
+                <v-autocomplete v-model="trusted_measures" v-if="evaluation_type === 'eval-5'" clearable chips label="Retrieval Measures" :items="serverinfo.trustedEvaluators.Retrieval" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one retrieval measure.']" required></v-autocomplete>
+
+                <span v-if="evaluation_type === 'eval-6'">
+                  The evaluator loads the run and the truth data. From both, it extracts one field as an ID to join the run with the truth data and then compares a label field in the run with a label field in the truth data to calculate the provided measure(s) with the <a href="https://huggingface.co/docs/evaluate/index" target="_blank">HuggingFace evaluate method</a>.
+
+                  <v-autocomplete v-model="trusted_measures" clearable chips label="Classification Measures" :items="serverinfo.trustedEvaluators.Classification" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one classification measure.']" required></v-autocomplete>
+
+                  <v-text-field label="ID field in the Truth data" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
+                  <v-text-field label="Label field in the Truth data" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
+
+                  <v-text-field label="ID field in the runs" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
+                  <v-text-field label="Label field in the runs" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
+                  <v-text-field label="Custom arguments in JSON format for the Huggingface Evaluator (e.g.: {&quot;average&quot;: &quot;micro&quot;})"/>
+                </span>
               </v-form>
           </v-card-text>
           <v-card-actions class="justify-end">
@@ -186,13 +218,37 @@
         systemFileHandle: undefined, truthFileHandle: undefined,
         git_repository_id: '', rest_endpoint: inject("REST base URL") as string, file_listing: '',
         userinfo: inject('userinfo') as UserInfo, serverinfo: inject("serverInfo") as ServerInfo,
+        trusted_measures: undefined, sandboxed: "later"
       }),
       computed: {
         title() {
           return this.newDataset() ? 'Add New Dataset' : 'Edit Dataset ' + this.dataset_id_from_props;
+        },
+        use_dockerized_evaluator() {
+          return this.evaluation_type !== 'eval-1' && this.evaluation_type !== 'eval-5' && this.evaluation_type !== 'eval-6';
         }
       },
       watch: {
+        sandboxed(new_value, old_value) {
+          if (this.dataset_id_from_props) {
+            return
+          }
+          if (new_value != old_value && new_value == 'true') {
+            this.evaluation_type = "eval-4"
+            this.git_runner_image = "ubuntu:18.04"
+            this.git_runner_command = "echo 'this is no real evaluator'"
+          } else if (new_value != old_value && new_value == 'false') {
+            this.evaluation_type = "eval-5"
+            this.trusted_measures = undefined
+            this.git_runner_image = "ubuntu:18.04"
+            this.git_runner_command = "echo 'this is no real evaluator'"
+          } else if (new_value != old_value && new_value == 'later') {
+            this.evaluation_type = "eval-1"
+            this.trusted_measures = undefined
+            this.git_runner_image = "ubuntu:18.04"
+            this.git_runner_command = "echo 'this is no real evaluator'"
+          }
+        },
         evaluation_type(new_value, old_value) {
           if (this.dataset_id_from_props) {
             return
@@ -208,6 +264,10 @@
           else if (new_value != old_value && new_value == 'eval-3') {
             this.git_runner_image = "webis/ir_measures_evaluator:1.0.5"
             this.git_runner_command = '/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures "P@10" "nDCG@10" "MRR"'
+          } else if (new_value != old_value && (new_value == 'eval-5' || new_value == 'eval-6')) {
+            this.trusted_measures = undefined
+            this.git_runner_image = "ubuntu:18.04"
+            this.git_runner_command = "echo 'this is no real evaluator'"
           }
         }
       },
