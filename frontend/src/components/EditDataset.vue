@@ -32,6 +32,7 @@
                 <v-text-field v-model="default_upload_name" label="Default Upload Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
 
                 <v-select v-model="format" :items="serverinfo.supportedFormats" label="Dataset Format" clearable multiple/>
+                <v-select v-model="truth_format" :items="serverinfo.supportedFormats" label="Truth Format" clearable multiple/>
 
                 <div>
                   Consider to integrate the data into <a href="https://ir-datasets.com/" target="_blank">ir-datasets</a> and <a href="https://www.chatnoir.eu/" target="_blank">ChatNoir</a> for simplified access and improved visibility.
@@ -211,7 +212,7 @@
       data: () => ({
         loading: true, valid: false, submitInProgress: false, dataset_id: '',
         display_name: '', description: '', is_confidential: 'true', dataset_type: 'test', upload_type: 'upload-0',
-        irds_image: '', irds_command: '', format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
+        irds_image: '', irds_command: '', format: undefined, truth_format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         systemUrlHandle: "", systemUrlDirectory: "", truthUrlHandle: "", truthUrlDirectory: "", systemFileRename: "inputs.jsonl", truthFileRename: "labels.jsonl", error_message: "", chatnoir_id: "", ir_datasets_id: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
@@ -332,7 +333,7 @@
               'is_confidential': this.is_confidential !== 'false',
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 
               'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
-              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format, 'description': this.description,
+              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format, 'truth_format': this.truth_format, 'description': this.description,
               'chatnoir_id': this.chatnoir_id, 'ir_datasets_id': this.ir_datasets_id,
           }
 
