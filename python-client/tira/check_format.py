@@ -154,7 +154,7 @@ class QrelFormat(FormatBase):
             if line["docno"] in query_to_docs[line["qid"]]:
                 return [
                     _fmt.ERROR,
-                    f'The qrel file has duplicate documents: the document with id "{line['docno']}" appears multiple times for query "{line['qid']}".',
+                    f'The qrel file has duplicate documents: the document with id "{line["docno"]}" appears multiple times for query "{line["qid"]}".',
                 ]
             query_to_docs[line["qid"]].add(line["docno"])
 
