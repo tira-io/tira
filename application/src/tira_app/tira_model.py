@@ -755,6 +755,7 @@ def add_dataset(
     description: Optional[str] = None,
     chatnoir_id: Optional[str] = None,
     ir_datasets_id: Optional[str] = None,
+    truth_format: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -770,6 +771,7 @@ def add_dataset(
         description=description,
         chatnoir_id=chatnoir_id,
         ir_datasets_id=ir_datasets_id,
+        truth_format=truth_format,
     )
 
 
@@ -788,6 +790,7 @@ def add_evaluator(
     git_runner_image: Optional[str] = None,
     git_runner_command: Optional[str] = None,
     git_repository_id: Optional[str] = None,
+    trusted_evaluation: Optional[str] = None,
 ):
     ret = model.add_evaluator(
         vm_id,
@@ -800,6 +803,7 @@ def add_evaluator(
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        trusted_evaluation,
     )
 
     from django.core.cache import cache
@@ -937,6 +941,8 @@ def edit_dataset(
     description: Optional[str] = None,
     chatnoir_id: Optional[str] = None,
     ir_datasets_id: Optional[str] = None,
+    truth_format: Optional[str] = None,
+    trusted_evaluation: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -956,6 +962,8 @@ def edit_dataset(
         description,
         chatnoir_id,
         ir_datasets_id,
+        truth_format,
+        trusted_evaluation,
     )
 
 
