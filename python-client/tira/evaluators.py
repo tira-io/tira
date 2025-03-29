@@ -9,7 +9,7 @@ from tira.tira_client import TiraClient
 
 
 class TiraBaseEvaluator:
-    def __init__(self, run_format: Union[str | List[str]], truth_format: Union[str | List[str]], measures: List[str]):
+    def __init__(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], measures: List[str]):
         self.run_format = run_format
         self.truth_format = truth_format
         self.measures = measures
@@ -23,7 +23,7 @@ class TiraBaseEvaluator:
 
         return self._eval(run_data, truth_data)
 
-    def is_valid(self, directory: Path, format: Union[str | List[str]], log=False):
+    def is_valid(self, directory: Path, format: Union[str, List[str]], log=False):
         ret = check_format(directory, format)
         if log:
             log_message(ret[1], ret[0])
