@@ -1,5 +1,6 @@
 import os
 from abc import ABC
+from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -11,16 +12,16 @@ from tira.tira_client import TiraClient
 
 class TiraBaseEvaluator(ABC):
     def __init__(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], measures: List[str]):
-        self.run_format = run_format
-        self.truth_format = truth_format
-        self.measures = measures
+        self._run_format = run_format
+        self._truth_format = truth_format
+        self._measures = measures
 
     def evaluate(self, run: Path, truths: Path) -> dict:
-        self.is_valid(run, self.run_format, True)
-        self.is_valid(truths, self.truth_format)
+        self.is_valid(run, self._run_format, True)
+        self.is_valid(truths, self._truth_format)
 
-        run_data = lines_if_valid(run, self.run_format)
-        truth_data = lines_if_valid(truths, self.truth_format)
+        run_data = lines_if_valid(run, self._run_format)
+        truth_data = lines_if_valid(truths, self._truth_format)
 
         return self._eval(run_data, truth_data)
 
@@ -47,28 +48,26 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if "run.txt" != run_format and "run.txt" not in run_format:
             raise ValueError("I can only use the RunFileEvaluator for run.txt format")
 
-        self.run_format = "run.txt"
+        self._run_format = "run.txt"
         if truth_format and "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
-            self.truth_format = "qrels.txt"
+            self._truth_format = "qrels.txt"
 
     def evaluate(self, run: Path, truths: Path) -> dict:
-        self.is_valid(run, self.run_format, True)
+        self.is_valid(run, self._run_format, True)
 
         expected_queries = None
-        if self.truth_format is not None:
+        if self._truth_format is not None:
 
-            self.is_valid(truths, self.truth_format)
-            expected_queries = lines_if_valid(truths, self.truth_format)
+            self.is_valid(truths, self._truth_format)
+            expected_queries = lines_if_valid(truths, self._truth_format)
             expected_queries = set([i["qid"] for i in expected_queries])
 
-        run_data = lines_if_valid(run, self.run_format)
-        counts = {}
+        run_data = lines_if_valid(run, self._run_format)
+        counts = defaultdict(set)
 
         for i in run_data:
             if expected_queries and i["qid"] not in expected_queries:
                 continue
-            if i["qid"] not in counts:
-                counts[i["qid"]] = set()
             counts[i["qid"]].add(i["docno"])
 
         lengths = [len(i) for i in counts.values()]
@@ -81,7 +80,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
             "NumQueries": num_queries,
         }
 
-        return {k: ret[k] for k in self.measures}
+        return {k: ret[k] for k in self._measures}
 
 
 class HuggingFaceEvaluator(TiraBaseEvaluator):
@@ -114,7 +113,7 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
         if os.environ.get("OFFLINE", False):
             evaluate.config.HF_EVALUATE_OFFLINE = True
 
-    def _eval(self, run_data, truth_data):
+    def _eval(self, run_data: List[dict], truth_data: List[dict]):
         run_data = [{"id": i[self.run_id_column], "prediction": i[self.run_label_column]} for i in run_data]
         truth_data = [{"id": i[self.truth_id_column], "truth": i[self.truth_label_column]} for i in truth_data]
 
@@ -130,7 +129,7 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
         run_data = df.iloc[:, 0].tolist()
         truth_data = df.iloc[:, 1].tolist()
         ret = {}
-        for m in self.measures:
+        for m in self._measures:
             ret[m] = evaluate.load(m, download_config=download_config).compute(
                 predictions=run_data, references=truth_data, **self.additional_args
             )[m]
@@ -147,14 +146,14 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         if "qrels.txt" != run_format and "qrels.txt" not in truth_format:
             raise ValueError("I can only use trectools for run.txt format")
 
-        self.run_format = "run.txt"
-        self.truth_format = "qrels.txt"
+        self._run_format = "run.txt"
+        self._truth_format = "qrels.txt"
 
         # check that dependencies are available
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
 
-    def _eval(self, run_data, truth_data):
+    def _eval(self, run_data: List[any], truth_data: List[any]):
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
 
@@ -171,16 +170,16 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         te = TrecEval(run, qrels)
 
         ret = {}
-        if "nDCG@10" in self.measures:
+        if "nDCG@10" in self._measures:
             ret["nDCG@10"] = te.get_ndcg(depth=10)
 
-        if "P@10" in self.measures:
+        if "P@10" in self._measures:
             ret["P@10"] = te.get_precision(depth=10)
 
-        if "RR" in self.measures:
+        if "RR" in self._measures:
             ret["RR"] = te.get_reciprocal_rank()
 
-        return {k: ret[k] for k in self.measures}
+        return {k: ret[k] for k in self._measures}
 
 
 EVALUATORS: dict[str, TiraBaseEvaluator] = {
@@ -229,12 +228,10 @@ def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient]
 def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClient] = None) -> List[TiraBaseEvaluator]:
     config = load_evaluator_config(config, client)
 
-    evaluator_to_measures = {}
+    evaluator_to_measures = defaultdict(list)
     for measure in config["measures"]:
         evaluator = MEASURE_TO_EVALUATORS[measure]
-        if evaluator not in evaluator_to_measures:
-            evaluator_to_measures[evaluator] = []
-        evaluator_to_measures[evaluator] += [measure]
+        evaluator_to_measures[evaluator].append(measure)
 
     ret = []
     for evaluator, measures in evaluator_to_measures.items():
