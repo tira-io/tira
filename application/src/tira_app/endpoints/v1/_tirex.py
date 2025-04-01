@@ -5,6 +5,8 @@ from rest_framework.response import Response
 
 from ... import model as modeldb
 
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
+
 
 @api_view(["GET"])
 def topics(request: Request, dataset_id: str) -> Response:

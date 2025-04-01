@@ -7,6 +7,7 @@ from functools import wraps
 from uuid import uuid4
 
 import grpc
+import grpc.grpc_server
 from django.conf import settings
 from google.protobuf.empty_pb2 import Empty
 
@@ -17,7 +18,7 @@ logger = logging.getLogger("tira")
 grpc_port = settings.HOST_GRPC_PORT
 
 
-def new_transaction(message: str, in_grpc: bool = True):
+def new_transaction(message: str, in_grpc: bool = True) -> str:
     """A convenience method to create a new transaction with a :@param message:, save it to the database,
     and wrap it in a protobuf Transaction to be returned.
     """
@@ -57,13 +58,13 @@ class GrpcClient:
     """Main class for the Application's GRPC client. This client makes calls to a server running on a host specified
     by it's hostname"""
 
-    def __init__(self, hostname: str):
+    def __init__(self, hostname: str) -> None:
         """A channel is opened at init time and closed on deletion. Try not to store these objects for long."""
         self.hostname = hostname
         self.channel = grpc.insecure_channel(hostname + ":" + str(grpc_port))
         self.stub = tira_host_pb2_grpc.TiraHostServiceStub(self.channel)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.channel.close()
 
     def vm_create(self, vm_id: str, ova_file: str, user_id: str, hostname: str):
@@ -80,24 +81,24 @@ class GrpcClient:
         return response
 
     @auto_transaction("vm-start")
-    def vm_start(self, vm_id, transaction):
+    def vm_start(self, vm_id: str, transaction: str):
         response = self.stub.vm_start(tira_host_pb2.VmId(transaction=transaction, vmId=vm_id))
         logger.debug("Application received vm-start response: " + str(response.message))
         return response
 
     @auto_transaction("vm-stop")
-    def vm_stop(self, vm_id, transaction):
+    def vm_stop(self, vm_id: str, transaction: str):
         response = self.stub.vm_stop(tira_host_pb2.VmId(transaction=transaction, vmId=vm_id))
         logger.debug("Application received vm-stop response: " + str(response.message))
         return response
 
     @auto_transaction("vm-shutdown")
-    def vm_shutdown(self, vm_id, transaction):
+    def vm_shutdown(self, vm_id: str, transaction: str):
         response = self.stub.vm_shutdown(tira_host_pb2.VmId(transaction=transaction, vmId=vm_id))
         logger.debug("Application received vm-shutdown response: " + str(response.message))
         return response
 
-    def vm_info(self, vm_id):
+    def vm_info(self, vm_id: str):
         response = self.stub.vm_info(tira_host_pb2.VmId(vmId=vm_id))
         logger.debug("Application received vm-info response: " + str(response.transaction.message))
         return response
@@ -110,16 +111,16 @@ class GrpcClient:
     @auto_transaction("run-execute")
     def run_execute(
         self,
-        vm_id,
-        dataset_id,
-        run_id,
-        input_run_vm_id,
-        input_run_dataset_id,
-        input_run_run_id,
-        optional_parameters,
-        task_id,
-        software_id,
-        transaction,
+        vm_id: str,
+        dataset_id: str,
+        run_id: str,
+        input_run_vm_id: str,
+        input_run_dataset_id: str,
+        input_run_run_id: str,
+        optional_parameters: str,
+        task_id: str,
+        software_id: str,
+        transaction: str,
     ):
         """Initiates a run: the execution of a software to produce output.
         :param software_id:
@@ -156,14 +157,14 @@ class GrpcClient:
     @auto_transaction("run-eval")
     def run_eval(
         self,
-        vm_id,
-        dataset_id,
-        run_id,
-        input_run_vm_id,
-        input_run_dataset_id,
-        input_run_run_id,
-        optional_parameters,
-        transaction,
+        vm_id: str,
+        dataset_id: str,
+        run_id: str,
+        input_run_vm_id: str,
+        input_run_dataset_id: str,
+        input_run_run_id: str,
+        optional_parameters: str,
+        transaction: str,
     ):
         """Initiates the evaluation of a prior run.
         :param vm_id: ID of the vm that can run the evaluation

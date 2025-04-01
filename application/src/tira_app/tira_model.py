@@ -63,7 +63,7 @@ def get_vm(vm_id: str, create_if_none=False):
     return model.get_vm(vm_id, create_if_none)
 
 
-def get_tasks(include_dataset_stats=False) -> list:
+def get_tasks(include_dataset_stats: bool = False) -> list[dict[str, Any]]:
     return model.get_tasks(include_dataset_stats)
 
 
@@ -585,12 +585,12 @@ def get_vm_reviews_by_dataset(dataset_id: str, vm_id: str) -> dict:
     return model.get_vm_reviews_by_dataset(dataset_id, vm_id)
 
 
-def get_software(task_id, vm_id, software_id):
+def get_software(task_id: str, vm_id: str, software_id: str) -> dict[str, Any]:
     """Returns the software of a vm on a task in json"""
     return model.get_software(task_id, vm_id, software_id)
 
 
-def get_software_by_task(task_id, vm_id):
+def get_software_by_task(task_id: str, vm_id: str) -> list[dict[str, Any]]:
     """Returns the software of a vm on a task in json"""
     return model.get_software_by_task(task_id, vm_id)
 
@@ -972,7 +972,7 @@ def delete_docker_software(task_id, vm_id, docker_software_id):
     return model.delete_docker_software(task_id, vm_id, docker_software_id)
 
 
-def delete_software(task_id, vm_id, software_id):
+def delete_software(task_id: str, vm_id: str, software_id: str) -> bool:
     """Set the Software's deleted flag to true and prune it from the cache.
     TODO add option to truly delete the software."""
     return model.delete_software(task_id, vm_id, software_id)

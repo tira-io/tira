@@ -2,11 +2,16 @@ import logging
 from datetime import datetime as dt
 from datetime import timezone
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
+
+if TYPE_CHECKING:
+    from typing import Any, Callable, Optional
+
+    from google.protobuf.message import Message
 
 logger = logging.getLogger("tira")
 
@@ -48,7 +53,7 @@ def reroute_host(hostname: str) -> str:
     return "localhost" if settings.GRPC_HOST == "local" else hostname
 
 
-def auto_reviewer(review_path: Path, run_id: str):
+def auto_reviewer(review_path: Path, run_id: str) -> Message:
     """Do standard checks for reviews so we do not need to wait for a reviewer to check for:
     - failed runs (
     """
@@ -97,7 +102,7 @@ def auto_reviewer(review_path: Path, run_id: str):
     return review
 
 
-def run_cmd(cmd: str, ignore_failure: bool = False):
+def run_cmd(cmd: str, ignore_failure: bool = False) -> None:
     import subprocess
 
     exit_code = subprocess.call(cmd)

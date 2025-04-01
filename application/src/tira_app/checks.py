@@ -165,7 +165,10 @@ def check_permissions(func):
 
 
 def check_conditional_permissions(
-    restricted=False, public_data_ok=False, private_run_ok=False, not_registered_ok=False
+    restricted: bool = False,
+    public_data_ok: bool = False,
+    private_run_ok: bool = False,
+    not_registered_ok: bool = False,
 ):
     """A decorator that checks if the requesting user has the needed permissions to call the decorated function.
     This decorator redirects or blocks requests if the requesting user does not have permission.

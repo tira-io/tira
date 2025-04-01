@@ -3,6 +3,7 @@ These methods are utilities to parse Tira's Model from the protobuf files into a
 """
 
 import logging
+from typing import TYPE_CHECKING
 
 from google.protobuf.text_format import Parse
 from tqdm import tqdm
@@ -11,42 +12,45 @@ from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
 from ..util import auto_reviewer, extract_year_from_dataset_id
 
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Optional
+
+    from google.protobuf.message import Message
+
 logger = logging.getLogger("tira")
 
 
 def index(
-    organizers_file_path,
-    users_file_path,
-    vm_dir_path,
-    tasks_dir_path,
-    datasets_dir_path,
-    softwares_dir_path,
-    runs_dir_path,
-):
+    organizers_file_path: Path,
+    users_file_path: Path,
+    vm_dir_path: Path,
+    tasks_dir_path: Path,
+    datasets_dir_path: Path,
+    softwares_dir_path: Path,
+    runs_dir_path: Path,
+) -> None:
     _parse_organizer_list(organizers_file_path)
     _parse_vm_list(users_file_path, vm_dir_path)
     _parse_dataset_list(datasets_dir_path)
     _parse_task_list(tasks_dir_path)
     _parse_software_list(softwares_dir_path)
     _parse_runs_evaluations(runs_dir_path)
-    pass
 
 
-def reload_vms(users_file_path, vm_dir_path):
+def reload_vms(users_file_path: Path, vm_dir_path: Path) -> None:
     _parse_vm_list(users_file_path, vm_dir_path)
 
 
-def reload_datasets(datasets_dir_path):
+def reload_datasets(datasets_dir_path: Path) -> None:
     _parse_dataset_list(datasets_dir_path)
 
 
-def reload_tasks(tasks_dir_path):
+def reload_tasks(tasks_dir_path: Path) -> None:
     _parse_task_list(tasks_dir_path)
 
 
-def reload_runs(runs_dir_path, vm_id):
-    parse_runs_for_vm(runs_dir_path, vm_id)
-
+def reload_runs(runs_dir_path: Path, vm_id: str) -> None:
     for dataset_dir in runs_dir_path.glob("*"):
         dataset_id = dataset_dir.stem
         for vm_dir in dataset_dir.glob("*"):
@@ -55,19 +59,19 @@ def reload_runs(runs_dir_path, vm_id):
             parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
 
 
-def _parse_organizer_list(organizers_file_path):
+def _parse_organizer_list(organizers_file_path: Path) -> None:
     """Parse the PB Database and extract all hosts.
     :return: a dict {hostId: {"name", "years"}
     """
     organizers = modelpb.Hosts()
-    Parse(open(organizers_file_path, "r").read(), organizers)
+    Parse(organizers_file_path.read_bytes(), organizers)
     for org in organizers.hosts:
         _, _ = modeldb.Organizer.objects.update_or_create(
             organizer_id=org.hostId, defaults={"name": org.name, "years": org.years, "web": org.web}
         )
 
 
-def _parse_vm_list(users_file_path, vm_dir_path):
+def _parse_vm_list(users_file_path: Path, vm_dir_path: Path) -> None:
     users = Parse(open(users_file_path, "r").read(), modelpb.Users())
 
     for user in users.users:
@@ -106,7 +110,7 @@ def _parse_vm_list(users_file_path, vm_dir_path):
             )
 
 
-def _parse_task_list(tasks_dir_path):
+def _parse_task_list(tasks_dir_path: Path) -> None:
     """Parse the PB Database and extract all tasks.
     :return:
     1. a dict with the tasks {"taskId": {"name", "description", "dataset_count", "organizer", "year", "web"}}
@@ -154,7 +158,7 @@ def _parse_task_list(tasks_dir_path):
             modeldb.TaskHasDataset.objects.update_or_create(task=t, dataset=dataset, defaults={"is_test": True})
 
 
-def _parse_dataset_list(datasets_dir_path):
+def _parse_dataset_list(datasets_dir_path: Path) -> None:
     """Load all the datasets from the Filedatabase.
     :return: a dict {dataset_id: dataset protobuf object}
     """
@@ -176,7 +180,7 @@ def _parse_dataset_list(datasets_dir_path):
         )
 
 
-def _parse_software_list(softwares_dir_path):
+def _parse_software_list(softwares_dir_path: Path) -> None:
     """extract the software files. We invent a new id for the lookup since software has none:
       - <task_name>$<user_name>
     Afterwards sets self.software: a dict with the new key and a list of software objects as value
@@ -208,7 +212,7 @@ def _parse_software_list(softwares_dir_path):
             # software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
 
-def _parse_runs_evaluations(runs_dir_path):
+def _parse_runs_evaluations(runs_dir_path: Path) -> None:
     for dataset_dir in tqdm(runs_dir_path.glob("*")):
         dataset_id = dataset_dir.stem
         for vm_dir in tqdm(dataset_dir.glob("*"), desc=f"{dataset_id}"):
@@ -216,8 +220,8 @@ def _parse_runs_evaluations(runs_dir_path):
             parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
 
 
-def _parse_run(run_id, task_id, run_proto, vm, dataset):
-    def __get_docker_software():
+def _parse_run(run_id: str, task_id: str, run_proto: Message, vm: str, dataset: str) -> modeldb.Run:
+    def __get_docker_software() -> Optional[modeldb.DockerSoftware]:
         if "docker-software-" not in run_proto.softwareId:
             return None
         try:
@@ -227,7 +231,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
             logger.exception(f"Run {run_id} lists a docker-software {run_proto.softwareId}, but None exists.")
         return None
 
-    def __get_upload():
+    def __get_upload() -> Optional[modeldb.Upload]:
         if "upload" not in run_proto.softwareId:
             return None
         try:
@@ -238,7 +242,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
 
         return None
 
-    def __get_evaluator():
+    def __get_evaluator() -> Optional[modeldb.Evaluator]:
         if "eval" not in run_proto.softwareId:
             return None
         try:
@@ -248,7 +252,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
 
         return None
 
-    def __get_software():
+    def __get_software() -> Optional[modeldb.Software]:
         try:
             return modeldb.Software.objects.get(software_id=run_proto.softwareId, vm=vm, task__task_id=task_id)
         except modeldb.Software.DoesNotExist:
@@ -282,7 +286,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
     return r
 
 
-def _parse_review(run_dir, run):
+def _parse_review(run_dir: Path, run: modeldb.Run) -> None:
     review_file = run_dir / "run-review.bin"
 
     # AutoReviewer action here
@@ -315,7 +319,7 @@ def _parse_review(run_dir, run):
     )
 
 
-def _parse_evalutions(run_dir, run):
+def _parse_evalutions(run_dir: Path, run: modeldb.Run) -> None:
     if (run_dir / "output/evaluation.prototext").exists() and not (run_dir / "output/evaluation.bin").exists():
         evaluation = Parse(open(run_dir / "output/evaluation.prototext", "r").read(), modelpb.Evaluation())
         open(run_dir / "output" / "evaluation.bin", "wb").write(evaluation.SerializeToString())
@@ -328,7 +332,7 @@ def _parse_evalutions(run_dir, run):
             modeldb.Evaluation.objects.update_or_create(measure_key=measure.key, run=run, measure_value=measure.value)
 
 
-def parse_runs_for_vm(runs_dir_path, dataset_id, vm_id, verbose=False):
+def parse_runs_for_vm(runs_dir_path: Path, dataset_id: str, vm_id: str, verbose: bool = False) -> None:
     vm_dir = runs_dir_path / dataset_id / vm_id
     for run_dir in tqdm(vm_dir.glob("*"), desc=f"{vm_id}"):
         try:
@@ -339,7 +343,7 @@ def parse_runs_for_vm(runs_dir_path, dataset_id, vm_id, verbose=False):
             logger.exception(e)
 
 
-def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
+def parse_run(runs_dir_path: Path, dataset_id: str, vm_id: str, run_id: str) -> str:
     run_dir = runs_dir_path / dataset_id / vm_id / run_id
     return_message = ""
 

@@ -509,9 +509,10 @@ def _parse_notebook_to_html(notebook_content: str) -> Optional[str]:
         return body
     except Exception:
         pass
+    return None
 
 
-def load_notebook(upload_dir: Path) -> dict[str, Optional[str]]:
+def load_notebook(upload_dir: Path) -> Optional[dict[str, Optional[str]]]:
     if not (upload_dir / ".tirex-tracker" / "code.zip").exists():
         return {}
 
@@ -534,6 +535,7 @@ def load_notebook(upload_dir: Path) -> dict[str, Optional[str]]:
         }
     except:
         pass
+    return None
 
 
 def _parse_metadata_from_upload(upload_dir: Path) -> dict[str, Any]:

@@ -615,7 +615,7 @@ class FileDatabase(object):
         assert self.vms is not None
         return self.vms.get(vm_id, None)
 
-    def get_tasks(self) -> list[dict]:
+    def get_tasks(self) -> list[dict[str, Any]]:
         assert self.tasks is not None
         return [self.get_task(task.taskId) for task in self.tasks.values()]
 
