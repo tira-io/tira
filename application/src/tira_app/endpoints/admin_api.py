@@ -477,7 +477,7 @@ def admin_add_dataset(request, task_id):
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
-def _evaluator_config(data):
+def _evaluator_config(data: dict) -> dict:
     if "trusted_measures" not in data:
         return None
 

@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -8,13 +9,13 @@ from tira.rest_api_client import Client
 from tira.tira_client import TiraClient
 
 
-class TiraBaseEvaluator:
+class TiraBaseEvaluator(ABC):
     def __init__(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], measures: List[str]):
         self.run_format = run_format
         self.truth_format = truth_format
         self.measures = measures
 
-    def evaluate(self, run: Path, truths: Path):
+    def evaluate(self, run: Path, truths: Path) -> dict:
         self.is_valid(run, self.run_format, True)
         self.is_valid(truths, self.truth_format)
 
@@ -23,14 +24,14 @@ class TiraBaseEvaluator:
 
         return self._eval(run_data, truth_data)
 
-    def is_valid(self, directory: Path, format: Union[str, List[str]], log=False):
+    def is_valid(self, directory: Path, format: Union[str, List[str]], log:bool=False):
         ret = check_format(directory, format)
         if log:
             log_message(ret[1], ret[0])
         if ret[0] != _fmt.OK:
             raise ValueError(ret[1])
 
-    def configuration_is_valid(run_format, truth_format, config):
+    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
         raise ValueError("This is not implemented")
 
     def _eval(run_data, truth_data):
@@ -38,7 +39,7 @@ class TiraBaseEvaluator:
 
 
 class RunFileEvaluator(TiraBaseEvaluator):
-    def configuration_is_valid(self, run_format, truth_format, config):
+    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
         if "run.txt" != run_format and "run.txt" not in run_format:
             raise ValueError("I can only use the RunFileEvaluator for run.txt format")
 
@@ -46,7 +47,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if truth_format and "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
             self.truth_format = "qrels.txt"
 
-    def evaluate(self, run: Path, truths: Path):
+    def evaluate(self, run: Path, truths: Path) -> dict:
         self.is_valid(run, self.run_format, True)
 
         expected_queries = None
@@ -80,7 +81,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
 
 
 class HuggingFaceEvaluator(TiraBaseEvaluator):
-    def configuration_is_valid(self, run_format, truth_format, config):
+    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
         if not run_format or not truth_format:
             raise ValueError(
                 f"Configuration error. I need a run and truth format. Got: run_format={run_format} and truth_format={truth_format}."
@@ -131,7 +132,7 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
 
 
 class TrecToolsEvaluator(TiraBaseEvaluator):
-    def configuration_is_valid(self, run_format, truth_format, config):
+    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
         if "run.txt" != run_format and "run.txt" not in run_format:
             raise ValueError("I can only use trectools for run.txt format")
 
@@ -174,13 +175,13 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         return {k: ret[k] for k in self.measures}
 
 
-EVALUATORS = {
+EVALUATORS: dict[str, TiraBaseEvaluator] = {
     "TrecTools": TrecToolsEvaluator,
     "RunFileEvaluator": RunFileEvaluator,
     "HuggingFaceEvaluator": HuggingFaceEvaluator,
 }
 
-MEASURE_TO_EVALUATORS = {
+MEASURE_TO_EVALUATORS: dict[str, str] = {
     "nDCG@10": "TrecTools",
     "RR": "TrecTools",
     "P@10": "TrecTools",
@@ -195,7 +196,7 @@ MEASURE_TO_EVALUATORS = {
 }
 
 
-def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient] = None):
+def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient] = None) -> dict:
     if isinstance(config, str):
         if client is None:
             client = Client()
@@ -217,7 +218,7 @@ def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient]
     return config
 
 
-def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClient] = None):
+def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClient] = None) -> List[TiraBaseEvaluator]:
     config = load_evaluator_config(config, client)
 
     evaluator_to_measures = {}
@@ -230,7 +231,7 @@ def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClien
     ret = []
     for evaluator, measures in evaluator_to_measures.items():
         impl = EVALUATORS[evaluator](config["run_format"], config["truth_format"], measures)
-        impl.configuration_is_valid(config["run_format"], config["truth_format"], config)
+        impl.throw_if_conf_invalid(config["run_format"], config["truth_format"], config)
         ret.append(impl)
 
     return ret
@@ -242,7 +243,7 @@ def evaluate(
     config: Union[dict, str],
     output_dir: Optional[Path] = None,
     client: Optional[TiraClient] = None,
-):
+) -> dict:
     config = load_evaluator_config(config, client)
     evaluators = get_evaluators_if_valid(config, client)
     ret = {}
@@ -252,7 +253,6 @@ def evaluate(
 
     if output_dir:
         prototext = to_prototext([ret])
-        with open(output_dir / "evaluation.prototext") as f:
-            f.write(prototext)
+        (output_dir / "evaluation.prototext").write_text(prototext)
 
     return ret
