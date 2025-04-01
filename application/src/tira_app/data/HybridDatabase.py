@@ -6,7 +6,7 @@ import zipfile
 from datetime import datetime as dt
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
 import randomname
 from django.conf import settings
@@ -26,6 +26,9 @@ from ..util import (
     now,
 )
 from . import data as dbops
+
+if TYPE_CHECKING:
+    from typing import _T, Any, Optional
 
 logger = logging.getLogger("tira_db")
 
@@ -407,7 +410,7 @@ class HybridDatabase(object):
         else:
             return [self._dataset_to_dict(d.dataset) for d in ret]
 
-    def get_docker_software(self, docker_software_id: str) -> dict:
+    def get_docker_software(self, docker_software_id: int) -> dict:
         try:
             return self._docker_software_to_dict(
                 modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
@@ -495,7 +498,9 @@ class HybridDatabase(object):
             tira_client_description=discourse_api_descr,
         )
 
-    def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):
+    def get_submission_git_repo_or_none(
+        self, repository_url: str, vm_id: str, return_object: bool = False
+    ) -> dict[str, str]:
         try:
             ret = modeldb.SoftwareSubmissionGitRepository.objects.get(repository_url=repository_url, vm__vm_id=vm_id)
 
@@ -676,17 +681,17 @@ class HybridDatabase(object):
             "rename_to": upload.rename_to,
         }
 
-    def get_upload_with_runs(self, task_id, vm_id):
+    def get_upload_with_runs(self, task_id: str, vm_id: str) -> list[dict[str, Any]]:
         ret = []
         for upload in self.get_uploads(task_id, vm_id, return_names_only=False):
             ret += [self.upload_to_dict(upload, vm_id)]
 
         return ret
 
-    def get_upload(self, task_id, vm_id, upload_id):
+    def get_upload(self, task_id: str, vm_id: str, upload_id: str) -> dict[str, Any]:
         return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
-    def get_discourse_token_for_user(self, vm_id):
+    def get_discourse_token_for_user(self, vm_id: str) -> Optional[str]:
         try:
             return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
         except Exception:
@@ -1217,7 +1222,9 @@ class HybridDatabase(object):
 
         return False
 
-    def get_irds_docker_software_id(self, task_id, vm_id, software_id, docker_software_id):
+    def get_irds_docker_software_id(
+        self, task_id, vm_id, software_id: Optional[str], docker_software_id: int
+    ) -> Optional[modeldb.DockerSoftware]:
         task = self.get_task(task_id, False)
 
         is_ir_task = task.get("is_ir_task", False)
@@ -2054,7 +2061,7 @@ class HybridDatabase(object):
         run: Optional[str] = None,
         deleted: bool = False,
     ):
-        def update(x, y):
+        def update(x: _T, y: Optional[_T]) -> _T:
             return y if y is not None else x
 
         s = self._load_softwares(task_id, vm_id)
@@ -2214,7 +2221,7 @@ class HybridDatabase(object):
 
         return self.upload_to_dict(upload, vm_id)
 
-    def delete_upload(self, task_id, vm_id, upload_id):
+    def delete_upload(self, task_id: str, vm_id: str, upload_id: str) -> None:
         modeldb.Upload.objects.filter(
             id=upload_id,
             vm__vm_id=vm_id,
@@ -2409,7 +2416,7 @@ class HybridDatabase(object):
         try:
             run = self._load_run(dataset_id, vm_id, run_id)
 
-            def update(x, y):
+            def update(x: _T, y: Optional[_T]) -> _T:
                 return y if y is not None else x
 
             run.deleted = update(run.deleted, deleted)

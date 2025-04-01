@@ -5,12 +5,11 @@ import tempfile
 import zipfile
 from http import HTTPStatus
 from pathlib import Path
+from typing import Any
 
 from django.conf import settings
 from django.core.cache import cache
-from django.core.serializers.json import DjangoJSONEncoder
 from django.http import FileResponse, JsonResponse
-from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -48,26 +47,7 @@ def add_context(func):
     return func_wrapper
 
 
-def _add_task_to_context(context, task_id, dataset_id):
-    datasets = model.get_datasets_by_task(task_id)
-
-    context["datasets"] = json.dumps({ds["dataset_id"]: ds for ds in datasets}, cls=DjangoJSONEncoder)
-    context["selected_dataset_id"] = dataset_id
-    context["test_dataset_ids"] = json.dumps(
-        [ds["dataset_id"] for ds in datasets if ds["is_confidential"]], cls=DjangoJSONEncoder
-    )
-    context["training_dataset_ids"] = json.dumps(
-        [ds["dataset_id"] for ds in datasets if not ds["is_confidential"]], cls=DjangoJSONEncoder
-    )
-    task = model.get_task(task_id)
-    context["task_id"] = task["task_id"]
-    context["task_name"] = json.dumps(task["task_name"], cls=DjangoJSONEncoder)
-    context["organizer"] = json.dumps(task["organizer"], cls=DjangoJSONEncoder)
-    context["task_description"] = json.dumps(task["task_description"], cls=DjangoJSONEncoder)
-    context["web"] = json.dumps(task["web"], cls=DjangoJSONEncoder)
-
-
-def _add_user_vms_to_context(request, context, task_id, include_docker_details=True):
+def add_user_vms_to_context(request, context: dict[str, Any], task_id, include_docker_details=True) -> None:
     if context["role"] != auth.ROLE_GUEST:
         allowed_vms_for_task = model.all_allowed_task_teams(task_id)
         vm_id = auth.get_vm_id(request, context["user_id"])

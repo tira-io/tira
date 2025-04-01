@@ -801,7 +801,7 @@ class GitLabRunner(GitRunner):
                 "digest": image_metadata["config"]["digest"].split(":")[-1][:12],
             }
         except Exception as e:
-            logger.warn("Exception during loading of metadata for docker image", exc_info=e)
+            logger.warning("Exception during loading of metadata for docker image", exc_info=e)
             ret = {
                 "architecture": "Loading...",
                 "created": "Loading...",
@@ -1223,7 +1223,7 @@ class GitLabRunner(GitRunner):
                                 if len(i.split("=")) == 2
                             }
         except Exception as e:
-            logger.warn(f'Could not extract job configuration on "{branch}".', exc_info=e)
+            logger.warning(f'Could not extract job configuration on "{branch}".', exc_info=e)
             pass
 
         if (
@@ -1238,7 +1238,7 @@ class GitLabRunner(GitRunner):
 
                 software_from_db = model.get_docker_software(int(ret["TIRA_SOFTWARE_ID"].split("docker-software-")[-1]))
             except Exception as e:
-                logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
+                logger.warning(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
                 software_from_db = {}
 
         return {

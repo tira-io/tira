@@ -14,7 +14,7 @@ def all_git_runners():
             ret += [get_git_runner(git_integration)]
         except Exception:
             print(f"Could not load git integration: {git_integration}. Skip")
-            logger.warn(f"Could not load git integration: {git_integration}. Skip")
+            logger.warning(f"Could not load git integration: {git_integration}. Skip")
 
     return ret
 

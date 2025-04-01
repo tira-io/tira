@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tira_app.endpoints.vm_api import parse_metadata_from_upload
+from tira_app.endpoints.vm_api import _parse_metadata_from_upload
 
 
 class TestFileListing(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestFileListing(unittest.TestCase):
             "valid_formats": None,
         }
         with tempfile.TemporaryDirectory() as f:
-            actual = parse_metadata_from_upload(f)
+            actual = _parse_metadata_from_upload(f)
         self.assertEqual(expected, actual)
 
     def test_for_upload_without_script(self):
@@ -25,7 +25,7 @@ class TestFileListing(unittest.TestCase):
             "valid_formats": '{"ir_metadata": ["metadata.yml"]}',
         }
         upload_dir = Path(__file__).parent.parent / "resources" / "ir-metadata-no-script"
-        actual = parse_metadata_from_upload(upload_dir)
+        actual = _parse_metadata_from_upload(upload_dir)
         self.assertEqual(expected, actual)
 
     def test_for_upload_with_script(self):
@@ -36,7 +36,7 @@ class TestFileListing(unittest.TestCase):
             "valid_formats": '{"ir_metadata": ["metadata.yml"]}',
         }
         upload_dir = Path(__file__).parent.parent / "resources" / "ir-metadata-with-script"
-        actual = parse_metadata_from_upload(upload_dir)
+        actual = _parse_metadata_from_upload(upload_dir)
         self.assertEqual(expected, actual)
 
     def test_for_upload_with_script_and_notebook(self):
@@ -47,5 +47,5 @@ class TestFileListing(unittest.TestCase):
             "valid_formats": '{"ir_metadata": ["metadata.yml"]}',
         }
         upload_dir = Path(__file__).parent.parent / "resources" / "ir-metadata-with-script-and-notebook"
-        actual = parse_metadata_from_upload(upload_dir)
+        actual = _parse_metadata_from_upload(upload_dir)
         self.assertEqual(expected, actual)

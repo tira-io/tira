@@ -2,6 +2,7 @@ import logging
 from datetime import datetime as dt
 from datetime import timezone
 from pathlib import Path
+from typing import Any, Callable, Optional
 
 from django.conf import settings
 
@@ -18,15 +19,15 @@ class TiraModelIntegrityError(Exception):
     pass
 
 
-def get_tira_id():
+def get_tira_id() -> str:
     return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
-def get_today_timestamp():
+def get_today_timestamp() -> str:
     return dt.now().strftime("%Y%m%d")
 
 
-def now():
+def now() -> str:
     return dt.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
 
 
@@ -40,14 +41,14 @@ def extract_year_from_dataset_id(dataset_id: str) -> str:
         return ""
 
 
-def reroute_host(hostname):
+def reroute_host(hostname: str) -> str:
     """If we use a local deployment and use a local (mock) host, we need to change all hostnames to localhost.
     Otherwise we may contact the real vm-hosts while developing.
     """
     return "localhost" if settings.GRPC_HOST == "local" else hostname
 
 
-def auto_reviewer(review_path, run_id):
+def auto_reviewer(review_path: Path, run_id: str):
     """Do standard checks for reviews so we do not need to wait for a reviewer to check for:
     - failed runs (
     """
@@ -96,7 +97,7 @@ def auto_reviewer(review_path, run_id):
     return review
 
 
-def run_cmd(cmd, ignore_failure=False):
+def run_cmd(cmd: str, ignore_failure: bool = False):
     import subprocess
 
     exit_code = subprocess.call(cmd)
@@ -105,14 +106,14 @@ def run_cmd(cmd, ignore_failure=False):
         raise ValueError(f"Command {cmd} did exit with return code {exit_code}.")
 
 
-def link_to_discourse_team(vm_id):
+def link_to_discourse_team(vm_id: str) -> str:
     if not vm_id.endswith("-default"):
         return "https://www.tira.io/g/tira_vm_" + vm_id
     else:
         return "https://www.tira.io/u/" + vm_id.split("-default")[0]
 
 
-def register_run(dataset_id, vm_id, run_id, software_id):
+def register_run(dataset_id: str, vm_id: str, run_id: str, software_id: str) -> None:
     # import tira_model has to be done here since it has a side-effect with django and throws
     # django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
     # if it is imported before django is launched otherwise.
@@ -129,7 +130,9 @@ def register_run(dataset_id, vm_id, run_id, software_id):
     tira_model.add_run(dataset_id=dataset_id, vm_id=vm_id, run_id=run_id)
 
 
-def __run_cmd_as_documented_background_process(cmds, process_id, descriptions, callback):
+def __run_cmd_as_documented_background_process(
+    cmds: str, process_id: int, descriptions: str, callback: Optional[Callable[[], None]]
+) -> None:
     import datetime
     import tempfile
     from subprocess import STDOUT, Popen
@@ -161,7 +164,9 @@ def __run_cmd_as_documented_background_process(cmds, process_id, descriptions, c
             callback()
 
 
-def run_cmd_as_documented_background_process(cmd, vm_id, task_id, title, descriptions, callback=None):
+def run_cmd_as_documented_background_process(
+    cmd: str, vm_id: str, task_id: str, title: str, descriptions: str, callback: Optional[Callable[[], None]] = None
+) -> int:
     """
     Usage: # run_cmd_forwarding(['sh', '-c', 'echo "1"; sleep 2s; echo "2"; sleep 2s; echo "3"; sleep 2s; echo "4"'])
     """
@@ -184,7 +189,7 @@ def run_cmd_as_documented_background_process(cmd, vm_id, task_id, title, descrip
     return process_id
 
 
-def docker_image_details(image):
+def docker_image_details(image: str) -> dict[str, Any]:
     import json
     import subprocess
 

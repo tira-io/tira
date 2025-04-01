@@ -7,8 +7,10 @@ import traceback
 import zipfile
 from datetime import datetime as dt
 from http import HTTPStatus
+from os import PathLike
 from pathlib import Path
 from shutil import copyfile
+from typing import Union
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -28,7 +30,7 @@ from .. import model as modeldb
 logger.info("ajax_routes: Logger active")
 
 
-def handle_get_model_exceptions(func):
+def _handle_get_model_exceptions(func):
     def decorate(request, *args, **kwargs):
         if request.method == "GET":
             try:
@@ -47,35 +49,35 @@ def handle_get_model_exceptions(func):
 
 
 @check_permissions
-@handle_get_model_exceptions
+@_handle_get_model_exceptions
 def admin_reload_data():
     model.build_model()
     return "Model data was reloaded successfully"
 
 
 @check_permissions
-@handle_get_model_exceptions
+@_handle_get_model_exceptions
 def admin_reload_vms():
     model.reload_vms()
     return "VM data was reloaded successfully"
 
 
 @check_permissions
-@handle_get_model_exceptions
+@_handle_get_model_exceptions
 def admin_reload_datasets():
     model.reload_datasets()
     return "Dataset data was reloaded successfully"
 
 
 @check_permissions
-@handle_get_model_exceptions
+@_handle_get_model_exceptions
 def admin_reload_tasks():
     model.reload_tasks()
     return "Task data was reloaded successfully"
 
 
 @check_conditional_permissions(restricted=True)
-@handle_get_model_exceptions
+@_handle_get_model_exceptions
 def admin_reload_runs(vm_id):
     model.reload_runs(vm_id)
     return "Runs data was reloaded for {} on {} successfully"
@@ -212,22 +214,22 @@ def admin_delete_task(request, task_id):
     return JsonResponse({"status": 0, "message": f"Deleted task {task_id}"})
 
 
-def file_listing(path, title):
+def _file_listing(path: PathLike, title: str) -> dict[str, Union[str, int, dict]]:
     path = Path(path)
     children = []
-    if path and Path(path).exists() and Path(path).is_dir():
+    if path and path.is_dir():
         for f in os.listdir(path):
             if len(children) > 5:
-                children += [{"title": "..."}]
+                children.append({"title": "..."})
                 break
 
-            if os.path.isdir(path / f):
-                c = file_listing(path / f, str(f))["children"]
-                children += [{"title": f, "children": c}]
+            if (path / f).is_dir():
+                c = _file_listing(path / f, str(f))["children"]
+                children.append({"title": f, "children": c})
             else:
                 md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
                 size = os.path.getsize(path / f)
-                children += [{"title": f + f" (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5}]
+                children.append({"title": f"{f} (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5})
 
     current_item = {"title": title}
     if len(children) > 0:
@@ -244,7 +246,7 @@ def update_file_listing_for_dataset(dataset_id: str):
 
     for k, v in [("", "$inputDir"), ("-truth", "$inputDataset")]:
         path = model.model.data_path / f"{dataset_type}-datasets{k}" / task_id / dataset_id
-        listing.append(file_listing(path, v))
+        listing.append(_file_listing(path, v))
 
     dataset.file_listing = json.dumps(listing)
     dataset.save()
@@ -827,9 +829,11 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
     else:
         return JsonResponse({"status": 1, "message": "Unknown dataset_id."})
 
-    target_directory = model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
+    target_directory: Path = (
+        model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
+    )
 
-    if not os.path.exists(target_directory):
+    if not target_directory.is_dir():
         return JsonResponse({"status": 1, "message": "Dataset directory 'target_directory' does not exist."})
 
     if len(os.listdir(target_directory)) > 0:

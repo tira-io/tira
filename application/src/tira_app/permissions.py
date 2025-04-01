@@ -9,7 +9,7 @@ class ReadOnly(BasePermission):
 
 class IsOrganizer(BasePermission):
 
-    def has_permission(self, request, view):
+    def has_permission(self, request: HttpRequest, view):
         return True
 
     def has_object_permission(self, request: HttpRequest, view, obj) -> bool:

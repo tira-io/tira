@@ -13,6 +13,8 @@ from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
 
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
+
 
 class DatasetSerializer(ModelSerializer):
     id = CharField(source="dataset_id")

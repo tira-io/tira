@@ -67,7 +67,7 @@ def get_tasks(include_dataset_stats=False) -> list:
     return model.get_tasks(include_dataset_stats)
 
 
-def get_run(dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
+def get_run(dataset_id: Optional[str], vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
     return model.get_run(dataset_id, vm_id, run_id, return_deleted)
 
 
@@ -231,7 +231,13 @@ def get_discourse_token_for_user(vm_id, disraptor_user):
     return model.get_discourse_token_for_user(vm_id)
 
 
-def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None, private=True):
+def get_submission_git_repo(
+    vm_id: str,
+    task_id: str,
+    disraptor_user: Optional[str] = None,
+    external_owner: Optional[str] = None,
+    private: bool = True,
+) -> dict[str, str]:
     user_repository_name = slugify(task_id) + "-" + slugify(vm_id)
     repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + "/" + user_repository_name
     ret = model.get_submission_git_repo_or_none(repository_url, vm_id)
@@ -547,7 +553,7 @@ def import_submission(task_id, vm_id, submission_type, s_id):
     return model.import_submission(task_id, vm_id, submission_type, s_id)
 
 
-def get_upload(task_id, vm_id, upload_id):
+def get_upload(task_id: str, vm_id: str, upload_id: str):
     return model.get_upload(task_id, vm_id, upload_id)
 
 
@@ -594,7 +600,7 @@ def add_upload(task_id, vm_id, rename_to: Optional[str] = None):
     return model.add_upload(task_id, vm_id, rename_to)
 
 
-def delete_upload(task_id, vm_id, upload_id):
+def delete_upload(task_id: str, vm_id: str, upload_id: str) -> None:
     return model.delete_upload(task_id, vm_id, upload_id)
 
 
@@ -1075,7 +1081,7 @@ def latest_output_of_software_on_dataset(
 def create_re_rank_output_on_dataset(
     task_id: str,
     vm_id: str,
-    software_id: str,
+    software_id: Optional[str],
     docker_software_id: int,
     dataset_id: str,
     return_none_if_not_exists=False,

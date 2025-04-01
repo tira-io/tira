@@ -20,8 +20,10 @@ from tira_app.endpoints.vm_api import load_notebook
 
 from ... import model as modeldb
 from ... import tira_model as model
-from ...checks import check_permissions, check_resources_exist
+from ...checks import check_permissions
 from ..vm_api import run_eval
+
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
 
 @api_view(["GET"])

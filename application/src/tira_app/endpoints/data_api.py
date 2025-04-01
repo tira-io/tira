@@ -20,7 +20,7 @@ from ..authentication import auth
 from ..checks import check_permissions, check_resources_exist
 from ..tira_data import get_run_file_list, get_run_runtime, get_stderr, get_stdout, get_tira_log
 from ..util import link_to_discourse_team
-from ..views import _add_user_vms_to_context, add_context
+from ..views import add_context, add_user_vms_to_context
 
 include_navigation = False
 
@@ -84,7 +84,7 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
 
 
 def __inject_user_vms_for_task(request, context, task_id):
-    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
+    add_user_vms_to_context(request, context, task_id, include_docker_details=False)
     return context["user_vms_for_task"] if "user_vms_for_task" in context else []
 
 
@@ -315,7 +315,7 @@ def get_task(request, context, task_id):
         if not d["display_name"]:
             d["display_name"] = d["dataset_id"]
 
-    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
+    add_user_vms_to_context(request, context, task_id, include_docker_details=False)
     return JsonResponse({"status": 0, "context": context})
 
 
@@ -359,7 +359,7 @@ def update_docker_images(request, context, task_id, user_id):
 
 @check_resources_exist("json")
 @add_context
-def get_user(request, context, task_id, user_id):
+def get_user(request, context: dict[str, Any], task_id, user_id):
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
@@ -371,7 +371,7 @@ def get_user(request, context, task_id, user_id):
     # This is the case if the user-vm ends with default or if no host or admin name is configured.
     context["is_default"] = user_id.endswith("default") or not vm["host"] or not vm["admin_name"]
 
-    _add_user_vms_to_context(request, context, task_id)
+    add_user_vms_to_context(request, context, task_id)
 
     return JsonResponse({"status": 0, "context": context})
 

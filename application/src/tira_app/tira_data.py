@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Any
 
 from django.conf import settings
 
@@ -11,14 +12,14 @@ DATA_ROOT = Path(settings.TIRA_ROOT) / "data"
 RUNS_DIR_PATH = DATA_ROOT / "runs"
 
 
-def get_run_runtime(dataset_id, vm_id, run_id):
+def get_run_runtime(dataset_id: str, vm_id: str, run_id: str) -> dict[str, str]:
     """loads a runtime file (runtime.txt) and parses the string to return time, runtime_info"""
     run_dir = RUNS_DIR_PATH / dataset_id / vm_id / run_id
     context = {"time": "0", "cpu": "0", "pagefaults": "0", "swaps": "0", "error": ""}
-    if not (run_dir / "runtime.txt").exists():
+    if not (run_dir / "runtime.txt").is_file():
         return context
 
-    runtime = open(run_dir / "runtime.txt", "r").read()
+    runtime = (run_dir / "runtime.txt").read_text()
     try:
         context["time"] = runtime.split(" ")[2].strip("elapsed")
         context["cpu"] = runtime.split(" ")[3]
@@ -31,7 +32,7 @@ def get_run_runtime(dataset_id, vm_id, run_id):
     return context
 
 
-def get_run_file_list(dataset_id, vm_id, run_id):
+def get_run_file_list(dataset_id: str, vm_id: str, run_id: str) -> dict[str, Any]:
     """load the 2 files that describe the outputof a run:
     - file-list.txt (ascii-view of the files) and
     - size.txt (has line count, file count, subdir count)
@@ -55,7 +56,7 @@ def get_run_file_list(dataset_id, vm_id, run_id):
     return {"size": size[1], "lines": size[2], "files": size[3], "dirs": size[4], "file_list": file_list}
 
 
-def get_stdout(dataset_id, vm_id, run_id):
+def get_stdout(dataset_id: str, vm_id: str, run_id: str) -> str:
     # TODO: Don't open whole file but only read the n last lines to not have a full xGB file in memory
     output_lines = 100
     run_dir = RUNS_DIR_PATH / dataset_id / vm_id / run_id
@@ -70,17 +71,17 @@ def get_stdout(dataset_id, vm_id, run_id):
     return beautify_ansi_text(stdout)
 
 
-def get_stderr(dataset_id, vm_id, run_id):
+def get_stderr(dataset_id: str, vm_id: str, run_id: str) -> str:
     run_dir = RUNS_DIR_PATH / dataset_id / vm_id / run_id
     if not (run_dir / "stderr.txt").exists():
         return "No Stderr recorded"
-    stderr = open(run_dir / "stderr.txt", "r").read()
+    stderr = (run_dir / "stderr.txt").read_text()
     if not stderr:
         return "No Stderr recorded"
     return beautify_ansi_text(stderr)
 
 
-def get_tira_log(dataset_id, vm_id, run_id):
+def get_tira_log(dataset_id: str, vm_id: str, run_id: str) -> str:
     # TODO: read log once it has a fixed position
     #     log_path =
     #     with open(log_path, 'r') as log:

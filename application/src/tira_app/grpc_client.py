@@ -17,7 +17,7 @@ logger = logging.getLogger("tira")
 grpc_port = settings.HOST_GRPC_PORT
 
 
-def new_transaction(message: str, in_grpc=True):
+def new_transaction(message: str, in_grpc: bool = True):
     """A convenience method to create a new transaction with a :@param message:, save it to the database,
     and wrap it in a protobuf Transaction to be returned.
     """
@@ -57,7 +57,7 @@ class GrpcClient:
     """Main class for the Application's GRPC client. This client makes calls to a server running on a host specified
     by it's hostname"""
 
-    def __init__(self, hostname):
+    def __init__(self, hostname: str):
         """A channel is opened at init time and closed on deletion. Try not to store these objects for long."""
         self.hostname = hostname
         self.channel = grpc.insecure_channel(hostname + ":" + str(grpc_port))
@@ -66,7 +66,7 @@ class GrpcClient:
     def __del__(self):
         self.channel.close()
 
-    def vm_create(self, vm_id, ova_file, user_id, hostname):
+    def vm_create(self, vm_id: str, ova_file: str, user_id: str, hostname: str):
         """TODO test and comment"""
         grpc_transaction = new_transaction(f"initialized vm create of {vm_id}")
 
