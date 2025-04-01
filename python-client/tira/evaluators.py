@@ -2,6 +2,7 @@ import os
 from abc import ABC
 from collections import defaultdict
 from pathlib import Path
+from statistics import mean
 from typing import Any, List, Optional, Union
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
@@ -16,7 +17,7 @@ class TiraBaseEvaluator(ABC):
         self._truth_format = truth_format
         self._measures = measures
 
-    def evaluate(self, run: Path, truths: Path) -> dict:
+    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
         self.is_valid(run, self._run_format, True)
         self.is_valid(truths, self._truth_format)
 
@@ -52,7 +53,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if truth_format and "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
             self._truth_format = "qrels.txt"
 
-    def evaluate(self, run: Path, truths: Path) -> dict:
+    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
         self.is_valid(run, self._run_format, True)
 
         expected_queries = None
@@ -81,6 +82,123 @@ class RunFileEvaluator(TiraBaseEvaluator):
         }
 
         return {k: ret[k] for k in self._measures}
+
+
+class WowsEvalEvaluator(TiraBaseEvaluator):
+    def throw_if_conf_invalid(
+        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
+    ) -> None:
+        pass
+
+    def __normalize_data(self, df: Any) -> Any:
+        import pandas as pd
+
+        if isinstance(df, pd.DataFrame):
+            return self.__normalize_data([i.to_dict() for _, i in df.iterrows()])
+        else:
+            ret = []
+            for i in df.copy():
+                i = i.copy()
+                for field_to_delete in ["unknown"]:
+                    if field_to_delete in i:
+                        del i[field_to_delete]
+                ret.append(i)
+            return ret
+
+    def __pointwise_rankings(self, id_to_query_doc, predictions):
+        truths_rankings = {}
+        predictions_rankings = {}
+
+        for k, v in id_to_query_doc.items():
+            if v["query_id"] not in truths_rankings:
+                truths_rankings[v["query_id"]] = []
+                predictions_rankings[v["query_id"]] = []
+
+            truths_rankings[v["query_id"]].append({"doc_id": v["doc_id"], "score": v["qrel"]})
+            predictions_rankings[v["query_id"]].append(
+                {"doc_id": v["doc_id"], "score": float(predictions[k]["probability_relevant"])}
+            )
+
+        return truths_rankings, predictions_rankings
+
+    def __pairwise_rankings(self, id_to_query_doc: Any, predictions: Any):
+        truths_rankings = {}
+        predictions_rankings = {}
+
+        for k, v in id_to_query_doc.items():
+            if v["query_id"] not in truths_rankings:
+                truths_rankings[v["query_id"]] = {}
+                predictions_rankings[v["query_id"]] = {}
+
+            if v["doc_id"] not in truths_rankings[v["query_id"]]:
+                truths_rankings[v["query_id"]][v["doc_id"]] = v["qrel"]
+
+            if v["doc_id"] not in predictions_rankings[v["query_id"]]:
+                predictions_rankings[v["query_id"]][v["doc_id"]] = 0
+
+            predictions_rankings[v["query_id"]][v["doc_id"]] += float(predictions[k]["probability_relevant"])
+
+        ret_truths_ranking = {}
+        ret_predictions_rankings = {}
+
+        for qid, docids in truths_rankings.items():
+            ret_truths_ranking[qid] = [{"doc_id": i, "score": truths_rankings[qid][i]} for i in docids]
+
+        for qid, docids in predictions_rankings.items():
+            ret_predictions_rankings[qid] = [{"doc_id": i, "score": predictions_rankings[qid][i]} for i in docids]
+
+        return ret_truths_ranking, ret_predictions_rankings
+
+    def __sorted(self, ret):
+        import pandas as pd
+
+        ret = pd.DataFrame(ret)
+        ret = ret.sort_values(["score", "doc_id"], ascending=[False, True])
+        return [(i["score"], i["doc_id"]) for _, i in ret.iterrows()]
+
+    def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
+        id_to_query_doc = {}
+        pairwise = False
+        predictions = self.__normalize_data(run_data)
+        truths = self.__normalize_data(truth_data)
+        from trectools import misc
+
+        for i in truths:
+            id_to_query_doc[i["id"]] = {
+                "query_id": i["query_id"],
+                "doc_id": i["unknown_doc_id"],
+                "qrel": int(i["qrel_unknown_doc"]),
+            }
+            if "relevant_doc_id" in i:
+                pairwise = True
+                id_to_query_doc[i["id"]]["relevant_doc_id"] = i["relevant_doc_id"]
+
+        predictions = {i["id"]: i for i in predictions}
+
+        if predictions.keys() != id_to_query_doc.keys():
+            raise ValueError("fooo")
+
+        if pairwise:
+            truths_rankings, predictions_rankings = self.__pairwise_rankings(id_to_query_doc, predictions)
+        else:
+            truths_rankings, predictions_rankings = self.__pointwise_rankings(id_to_query_doc, predictions)
+
+        tau_ap = []
+        kendall = []
+        spearman = []
+        pearson = []
+
+        for query_id in truths_rankings.keys():
+            truth_ranking = self.__sorted(truths_rankings[query_id])
+            predicted_ranking = self.__sorted(predictions_rankings[query_id])
+
+            tau_ap.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="tauap")[0])
+            kendall.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="kendall")[0])
+            spearman.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="spearman")[0])
+            pearson.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="pearson")[0])
+
+        ret = {"tau_ap": mean(tau_ap), "kendall": mean(kendall), "spearman": mean(spearman), "pearson": mean(pearson)}
+        return {i: ret[i] for i in self._measures}
 
 
 class HuggingFaceEvaluator(TiraBaseEvaluator):
@@ -186,6 +304,7 @@ EVALUATORS: dict[str, TiraBaseEvaluator] = {
     "TrecTools": TrecToolsEvaluator,
     "RunFileEvaluator": RunFileEvaluator,
     "HuggingFaceEvaluator": HuggingFaceEvaluator,
+    "WowsEvalEvaluator": WowsEvalEvaluator,
 }
 
 MEASURE_TO_EVALUATORS: dict[str, str] = {
@@ -200,6 +319,10 @@ MEASURE_TO_EVALUATORS: dict[str, str] = {
     "recall": "HuggingFaceEvaluator",
     "precision": "HuggingFaceEvaluator",
     "f1": "HuggingFaceEvaluator",
+    "tau_ap": "WowsEvalEvaluator",
+    "kendall": "WowsEvalEvaluator",
+    "pearson": "WowsEvalEvaluator",
+    "spearman": "WowsEvalEvaluator",
 }
 
 
