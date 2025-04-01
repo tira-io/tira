@@ -2,7 +2,7 @@ import os
 from abc import ABC
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 from tira.io_utils import to_prototext
@@ -37,7 +37,7 @@ class TiraBaseEvaluator(ABC):
     ) -> None:
         raise ValueError("This is not implemented")
 
-    def _eval(run_data, truth_data):
+    def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
         raise ValueError("This is not implemented")
 
 
@@ -113,7 +113,7 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
         if os.environ.get("OFFLINE", False):
             evaluate.config.HF_EVALUATE_OFFLINE = True
 
-    def _eval(self, run_data: List[dict], truth_data: List[dict]):
+    def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
         run_data = [{"id": i[self.run_id_column], "prediction": i[self.run_label_column]} for i in run_data]
         truth_data = [{"id": i[self.truth_id_column], "truth": i[self.truth_label_column]} for i in truth_data]
 
@@ -153,7 +153,7 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
 
-    def _eval(self, run_data: List[any], truth_data: List[any]):
+    def _eval(self, run_data: List[Any], truth_data: List[Any]) -> dict:
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
 
