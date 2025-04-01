@@ -24,14 +24,16 @@ class TiraBaseEvaluator(ABC):
 
         return self._eval(run_data, truth_data)
 
-    def is_valid(self, directory: Path, format: Union[str, List[str]], log:bool=False):
+    def is_valid(self, directory: Path, format: Union[str, List[str]], log: bool = False):
         ret = check_format(directory, format)
         if log:
             log_message(ret[1], ret[0])
         if ret[0] != _fmt.OK:
             raise ValueError(ret[1])
 
-    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
+    def throw_if_conf_invalid(
+        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
+    ) -> None:
         raise ValueError("This is not implemented")
 
     def _eval(run_data, truth_data):
@@ -39,7 +41,9 @@ class TiraBaseEvaluator(ABC):
 
 
 class RunFileEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
+    def throw_if_conf_invalid(
+        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
+    ) -> None:
         if "run.txt" != run_format and "run.txt" not in run_format:
             raise ValueError("I can only use the RunFileEvaluator for run.txt format")
 
@@ -81,7 +85,9 @@ class RunFileEvaluator(TiraBaseEvaluator):
 
 
 class HuggingFaceEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
+    def throw_if_conf_invalid(
+        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
+    ) -> None:
         if not run_format or not truth_format:
             raise ValueError(
                 f"Configuration error. I need a run and truth format. Got: run_format={run_format} and truth_format={truth_format}."
@@ -132,7 +138,9 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
 
 
 class TrecToolsEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict) -> None:
+    def throw_if_conf_invalid(
+        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
+    ) -> None:
         if "run.txt" != run_format and "run.txt" not in run_format:
             raise ValueError("I can only use trectools for run.txt format")
 
