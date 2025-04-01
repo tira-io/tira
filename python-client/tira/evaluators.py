@@ -197,7 +197,7 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
             spearman.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="spearman")[0])
             pearson.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="pearson")[0])
 
-        ret = {"tau_ap": mean(tau_ap), "kendall": mean(kendall), "spearman": mean(spearman), "pearson": mean(pearson)}
+        ret = {"wows_tau_ap": mean(tau_ap), "wows_kendall": mean(kendall), "wows_spearman": mean(spearman), "wows_pearson": mean(pearson)}
         return {i: ret[i] for i in self._measures}
 
 
@@ -319,10 +319,10 @@ MEASURE_TO_EVALUATORS: dict[str, str] = {
     "recall": "HuggingFaceEvaluator",
     "precision": "HuggingFaceEvaluator",
     "f1": "HuggingFaceEvaluator",
-    "tau_ap": "WowsEvalEvaluator",
-    "kendall": "WowsEvalEvaluator",
-    "pearson": "WowsEvalEvaluator",
-    "spearman": "WowsEvalEvaluator",
+    "wows_tau_ap": "WowsEvalEvaluator",
+    "wows_kendall": "WowsEvalEvaluator",
+    "wows_pearson": "WowsEvalEvaluator",
+    "wows_spearman": "WowsEvalEvaluator",
 }
 
 

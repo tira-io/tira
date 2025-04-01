@@ -496,7 +496,7 @@ def _evaluator_config(data: dict) -> dict:
 
             ret[hf_arg] = data[hf_arg]
 
-        if "additional_args" in data isinstance(data["additional_args"], dict) and len(data["additional_args"]) > 1:
+        if "additional_args" in data and isinstance(data["additional_args"], dict) and len(data["additional_args"]) > 1:
             try:
                 ret["additional_args"] = json.loads(data["additional_args"])
             except:

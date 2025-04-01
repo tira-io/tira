@@ -11,7 +11,7 @@ def evaluate(predictions, truth_data):
     config = {
         "run_format": "*.jsonl",
         "truth_format": "*.jsonl",
-        "measures": ["tau_ap", "kendall", "pearson", "spearman"],
+        "measures": ["wows_tau_ap", "wows_kendall", "wows_pearson", "wows_spearman"],
     }
 
     with tempfile.TemporaryDirectory() as d:
@@ -28,7 +28,7 @@ def evaluate(predictions, truth_data):
 
 class TestRegressionEvaluator(unittest.TestCase):
     def test_perfect_correlation_01(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = [
             {"id": "1", "probability_relevant": 2},
@@ -50,7 +50,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_perfect_correlation_01_for_df(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = pd.DataFrame(
             [
@@ -74,7 +74,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_perfect_correlation_02(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = [
             {"id": "1", "probability_relevant": 0.2},
@@ -96,7 +96,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_perfect_correlation_03(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = [
             {"id": "1", "probability_relevant": 10.2},
@@ -118,7 +118,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_perfect_inverse_correlation_01(self):
-        expected = {"tau_ap": 0.0, "kendall": -0.39999999, "pearson": -0.6, "spearman": -0.6}
+        expected = {"wows_tau_ap": 0.0, "wows_kendall": -0.39999999, "wows_pearson": -0.6, "wows_spearman": -0.6}
 
         predictions = [
             {"id": "1", "probability_relevant": -2},
@@ -140,7 +140,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_perfect_inverse_correlation_02(self):
-        expected = {"tau_ap": 0.0, "kendall": -0.39999999, "pearson": -0.6, "spearman": -0.6}
+        expected = {"wows_tau_ap": 0.0, "wows_kendall": -0.39999999, "wows_pearson": -0.6, "wows_spearman": -0.6}
 
         predictions = [
             {"id": "1", "probability_relevant": -0.2},
@@ -162,7 +162,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_pairwise_perfect_correlation_01(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = [
             {"id": "1", "probability_relevant": 2},
@@ -186,7 +186,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_pairwise_perfect_correlation_02(self):
-        expected = {"tau_ap": 1.0, "kendall": 1.0, "pearson": 1.0, "spearman": 1.0}
+        expected = {"wows_tau_ap": 1.0, "wows_kendall": 1.0, "wows_pearson": 1.0, "wows_spearman": 1.0}
 
         predictions = [
             {"id": "1", "probability_relevant": 20},
@@ -210,7 +210,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_pairwise_non_perfect_correlation_01(self):
-        expected = {"tau_ap": 0.5, "kendall": 0.33333333333, "pearson": 0.5, "spearman": 0.5}
+        expected = {"wows_tau_ap": 0.5, "wows_kendall": 0.33333333333, "wows_pearson": 0.5, "wows_spearman": 0.5}
 
         predictions = [
             {"id": "1", "probability_relevant": 20},
@@ -234,7 +234,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_pairwise_non_perfect_correlation_02(self):
-        expected = {"tau_ap": 0.5, "kendall": 0.33333333333, "pearson": 0.5, "spearman": 0.5}
+        expected = {"wows_tau_ap": 0.5, "wows_kendall": 0.33333333333, "wows_pearson": 0.5, "wows_spearman": 0.5}
 
         predictions = [
             {"id": "1", "probability_relevant": 1},
@@ -258,7 +258,7 @@ class TestRegressionEvaluator(unittest.TestCase):
             self.assertAlmostEqual(expected[k], actual[k], delta=0.00001, msg=k)
 
     def test_least_non_perfect_correlation_01(self):
-        expected = {"tau_ap": -0.5, "kendall": -0.33333333333, "pearson": -0.5, "spearman": -0.5}
+        expected = {"wows_tau_ap": -0.5, "wows_kendall": -0.33333333333, "wows_pearson": -0.5, "wows_spearman": -0.5}
 
         predictions = [
             {"id": "1", "probability_relevant": 1},
