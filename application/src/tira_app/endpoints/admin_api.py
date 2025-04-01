@@ -286,6 +286,12 @@ def admin_add_dataset(request, task_id):
         irds_import_truth_command = data.get("irds_import_truth_command", None)
         irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
         dataset_format = data.get("format", None)
+        truth_format = data.get("truth_format", None)
+        try:
+            trusted_evaluation = _evaluator_config(data)
+        except Exception as e:
+            return JsonResponse({"status": 1, "message": e.args[0]})
+
         description = data.get("description", None)
         chatnoir_id = data.get("chatnoir_id", None)
         ir_datasets_id = data.get("ir_datasets_id", None)
@@ -347,6 +353,7 @@ def admin_add_dataset(request, task_id):
                     description,
                     chatnoir_id,
                     ir_datasets_id,
+                    truth_format,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -362,6 +369,7 @@ def admin_add_dataset(request, task_id):
                     description,
                     chatnoir_id,
                     ir_datasets_id,
+                    truth_format,
                 )
 
             model.add_evaluator(
@@ -375,6 +383,7 @@ def admin_add_dataset(request, task_id):
                 git_runner_image,
                 git_runner_command,
                 git_repository_id,
+                trusted_evaluation,
             )
 
             if system_inputs or truth_data:
@@ -468,6 +477,44 @@ def admin_add_dataset(request, task_id):
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
+def _evaluator_config(data: dict) -> dict:
+    if "trusted_measures" not in data:
+        return None
+
+    from tira.evaluators import get_evaluators_if_valid
+
+    ret = {"measures": data["trusted_measures"]}
+
+    hf_args = ["run_id_column", "run_id_column", "run_label_column", "truth_id_column", "truth_label_column"]
+
+    # hf_args[0] is a flag in the UH to make the decision
+    # if the other fields are potentially available or not.
+    if hf_args[0] in data:
+        for hf_arg in hf_args:
+            if hf_arg not in data or not data[hf_arg]:
+                raise ValueError("Invalid configuration, I expected the field {hf_arg}.")
+
+            ret[hf_arg] = data[hf_arg]
+
+        if "additional_args" in data isinstance(data["additional_args"], dict) and len(data["additional_args"]) > 1:
+            try:
+                ret["additional_args"] = json.loads(data["additional_args"])
+            except:
+                raise ValueError(
+                    f"I expected that the additional arguments is valid json. But I got '{data['additional_args']}'."
+                )
+
+    ret_serialized = json.dumps(ret)
+    try:
+        ret["run_format"] = data.get("format", None)
+        ret["truth_format"] = data.get("truth_format", None)
+        get_evaluators_if_valid(ret)
+    except Exception as e:
+        raise ValueError(f"The configuration of the evaluator is wrong: {e.args[0]}")
+
+    return ret_serialized
+
+
 @check_permissions
 @check_resources_exist("json")
 def admin_edit_dataset(request, dataset_id):
@@ -507,9 +554,14 @@ def admin_edit_dataset(request, dataset_id):
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
         dataset_format = data["format"]
+        truth_format = data.get("truth_format", None)
         description = data.get("description", "")
         chatnoir_id = data.get("chatnoir_id", None)
         ir_datasets_id = data.get("ir_datasets_id", None)
+        try:
+            trusted_evaluation = _evaluator_config(data)
+        except Exception as e:
+            return JsonResponse({"status": 1, "message": e.args[0]})
 
         if not data["use_existing_repository"]:
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -536,6 +588,8 @@ def admin_edit_dataset(request, dataset_id):
             description,
             chatnoir_id,
             ir_datasets_id,
+            truth_format,
+            trusted_evaluation,
         )
 
         from django.core.cache import cache
