@@ -487,6 +487,8 @@ def _evaluator_config(data: dict) -> dict:
 
     hf_args = ["run_id_column", "run_id_column", "run_label_column", "truth_id_column", "truth_label_column"]
 
+    # hf_args[0] is a flag in the UH to make the decision
+    # if the other fields are potentially available or not.
     if hf_args[0] in data:
         for hf_arg in hf_args:
             if hf_arg not in data or not data[hf_arg]:
