@@ -36,7 +36,7 @@ class TestIrEvaluators(unittest.TestCase):
         }
         actual = _eval(VALID_RUN_OUTPUT, VALID_QREL_PATH, config, monitored=True)
 
-        self.assertEqual(["stderr.txt", "output", "stdout.txt"], listdir(actual))
+        self.assertEqual(sorted(["stderr.txt", "output", "stdout.txt"]), sorted(listdir(actual)))
         self.assertEqual(["evaluation.prototext"], listdir(actual / "output"))
 
         actual_prototext = {
