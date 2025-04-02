@@ -87,7 +87,7 @@
                   <v-radio-group v-if="newDataset()" v-model="upload_type">
                     <v-radio label="Import from Zenodo (recommended)" value="upload-0"></v-radio>
                     <v-radio label="I want to provide the data later" value="upload-1"></v-radio>
-                    <v-radio label="I want to manually upload the data now" value="upload-2"></v-radio>
+                    <!--<v-radio label="I want to manually upload the data now" value="upload-2"></v-radio>-->
                     <v-radio label="I want to use the ir_datasets integration" value="upload-3"></v-radio>
                   </v-radio-group>
 
@@ -293,13 +293,13 @@
                 if (this.format_configuration) {
                   this.format_configuration = JSON.stringify(this.format_configuration)
                 } else {
-                  this.format_configuration = undefined
+                  this.format_configuration = ''
                 }
                 
                 if (this.truth_format_configuration) {
                   this.truth_format_configuration = JSON.stringify(this.truth_format_configuration)
                 } else {
-                  this.truth_format_configuration = undefined
+                  this.truth_format_configuration = ''
                 }
 
                 if (this.evaluation_type == "eval-5" || this.evaluation_type == "eval-6") {

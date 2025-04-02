@@ -1,8 +1,10 @@
 import unittest
+from os import listdir
 from pathlib import Path
 
 from tests.format_check import EMPTY_OUTPUT, VALID_QREL_PATH, VALID_RUN_OUTPUT
 from tira.evaluators import evaluate as _eval
+from tira.io_utils import parse_prototext_key_values
 
 
 def evaluate(run: Path, truths: Path):
@@ -24,6 +26,26 @@ class TestIrEvaluators(unittest.TestCase):
         self.assertEqual(expected.keys(), actual.keys())
         for k, v in expected.items():
             self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
+    def test_evaluate_works_on_valid_run_with_qrels_monitored(self):
+        expected = {"Ndcg@10": 0.290247, "Rr": 0.33333333, "P@10": 0.066666666666}
+        config = {
+            "run_format": "run.txt",
+            "truth_format": "qrels.txt",
+            "measures": ["nDCG@10", "RR", "P@10"],
+        }
+        actual = _eval(VALID_RUN_OUTPUT, VALID_QREL_PATH, config, monitored=True)
+
+        self.assertEqual(["stderr.txt", "output", "stdout.txt"], listdir(actual))
+        self.assertEqual(["evaluation.prototext"], listdir(actual / "output"))
+
+        actual_prototext = {
+            i["key"]: i["value"] for i in parse_prototext_key_values(actual / "output" / "evaluation.prototext")
+        }
+
+        self.assertEqual(expected.keys(), actual_prototext.keys())
+        for k, v in expected.items():
+            self.assertAlmostEqual(v, actual_prototext[k], delta=0.0001)
 
     def test_evaluate_fails_on_invalid_input(self):
         with self.assertRaises(ValueError):

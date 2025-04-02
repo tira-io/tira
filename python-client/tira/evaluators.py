@@ -390,6 +390,16 @@ def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient]
     return config
 
 
+def unsandboxed_evaluation_is_allowed(config: Union[dict, str], client: Optional[TiraClient] = None) -> bool:
+    try:
+        config = load_evaluator_config(config, client)
+
+        return config and "measures" in config and config["measures"]
+    except:
+        pass
+    return False
+
+
 def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClient] = None) -> List[TiraBaseEvaluator]:
     config = load_evaluator_config(config, client)
 
@@ -419,9 +429,16 @@ def evaluate(
     config: Union[dict, str],
     output_dir: Optional[Path] = None,
     client: Optional[TiraClient] = None,
+    monitored: Optional[bool] = False,
 ) -> dict:
     config = load_evaluator_config(config, client)
     evaluators = get_evaluators_if_valid(config, client)
+
+    if monitored:
+        from tira.io_utils import MonitoredExecution
+
+        return MonitoredExecution().run(lambda i: evaluate(run, truths, config, i))
+
     ret = {}
     for evaluator in evaluators:
         evaluation = evaluator.evaluate(run, truths)

@@ -927,17 +927,10 @@ class Client(TiraClient):
         if error_msg:
             print(error_msg.strip())
             raise ValueError(error_msg.strip())
+        from tira.io_utils import zip_dir
 
-        zip_file = temporary_directory()
-        zip_file = zip_file / "tira-upload.zip"
+        zip_file = zip_dir(file_path)
 
-        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
-        for root, _, files in os.walk(file_path):
-            for name in files:
-                filePath = os.path.join(root, name)
-                zf.write(filePath, arcname=Path(filePath).relative_to(file_path))
-
-        zf.close()
         headers = {"Accept": "application/json"}
         files = {"file": open(zip_file, "rb")}
 

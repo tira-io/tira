@@ -1,9 +1,13 @@
 import gzip
+import io
 import json
 import logging
 import os
+import zipfile
+from contextlib import redirect_stderr, redirect_stdout
 from glob import glob
 from pathlib import Path
+from subprocess import check_output
 from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import pandas as pd
@@ -142,6 +146,22 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
                 obj[field_to_str] = str(obj[field_to_str])
 
     return obj
+
+
+def zip_dir(file_path):
+    from tira.third_party_integrations import temporary_directory
+
+    zip_file = temporary_directory()
+    zip_file = zip_file / "tira-upload.zip"
+
+    zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
+    for root, _, files in os.walk(file_path):
+        for name in files:
+            filePath = os.path.join(root, name)
+            zf.write(filePath, arcname=Path(filePath).relative_to(file_path))
+
+    zf.close()
+    return zip_file
 
 
 def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
@@ -312,8 +332,42 @@ def run_cmd(cmd: List[str], ignore_failure=False):
         raise ValueError(f"Command {cmd} did exit with return code {exit_code}.")
 
 
+def create_tira_size_txt(run_dir):
+    ret = check_output(
+        ["bash", "-c", '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1']
+    )
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f -exec cat {} + | wc -l'])
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f | wc -l'])
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type d | wc -l'])
+    return ret
+
+
+class MonitoredExecution:
+    def run(self, method):
+        from tira.third_party_integrations import temporary_directory
+
+        ret = temporary_directory()
+        output_dir = ret / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        exception_text = ""
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            try:
+                method(output_dir)
+            except Exception as e:
+                exception_text = "\n\n" + str(repr(e))
+
+        (ret / "stdout.txt").write_text(stdout.getvalue() + exception_text)
+        (ret / "stderr.txt").write_text(stderr.getvalue() + exception_text)
+
+        return ret
+
+
 def parse_prototext_key_values(file_name):
-    for i in [i for i in open(file_name, "r").read().split("measure {")]:
+    lines = open(file_name, "r").read()
+    lines = lines.replace("measure{", "measure {")
+    for i in [i for i in lines.split("measure {")]:
         ret = {}
         for line in i.split("\n"):
             if len(line.split(":")) < 2:
