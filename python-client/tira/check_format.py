@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 
 class FormatMsgType(Enum):
@@ -37,6 +37,19 @@ def log_message(message: str, level: _fmt):
     print(f"{symbol} {message}")
 
 
+CONF_REQUIRED_FIELDS = "required_fields"
+CONF_MINIMUM_LINES = "minimum_lines"
+CONF_ID_FIELD = "id_field"
+CONF_VALUE_FIELD = "value_field"
+
+CONFIGURATION_FIELDS = {
+    CONF_REQUIRED_FIELDS: "foo",
+    CONF_MINIMUM_LINES: "foo",
+    CONF_ID_FIELD: "foo",
+    CONF_VALUE_FIELD: "foo",
+}
+
+
 class FormatBase:
     def all_lines(self, f: Path):
         try:
@@ -57,6 +70,12 @@ class FormatBase:
     def max_size(self):
         return 25 * 1024 * 1024
 
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]] = None):
+        pass
+
+    def check_format(self, run_output: Path):
+        return [_fmt.ERROR, "not implemented"]
+
 
 class RunFormat(FormatBase):
     """Checks if a given output is a valid run file."""
@@ -66,8 +85,11 @@ class RunFormat(FormatBase):
             msg = f"Found multiple run.txt or run.txt.gz files: {os.listdir(run_output)} ."
             return [_fmt.ERROR, msg]
         if not (run_output / "run.txt").exists() and not (run_output / "run.txt.gz").exists():
-            msg = "No file run.txt or run.txt.gz was found, only the files "
-            msg += str(os.listdir(run_output)) + " were available."
+            msg = "No file run.txt or run.txt.gz was found."
+            try:
+                msg += " Only the files " + str(os.listdir(run_output)) + " were available."
+            except:
+                pass
             return [_fmt.ERROR, msg]
 
         try:
@@ -189,12 +211,57 @@ class QrelFormat(FormatBase):
         return ret_parsed
 
 
-class JsonlFormat(FormatBase):
-    """Checks if a given output is a valid jsonl file."""
+class KeyValueFormatBase(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+        super().apply_configuration_and_throw_if_invalid(configuration)
 
-    def __init__(self, required_fields=("id",), minimum_lines=3):
+        id_field = None
+        value_field = None
+        required_fields = set()
+        minimum_lines = 1
+
+        if configuration:
+            if CONF_REQUIRED_FIELDS in configuration:
+                required_fields = set(configuration[CONF_REQUIRED_FIELDS])
+            if CONF_MINIMUM_LINES in configuration:
+                minimum_lines = int(configuration[CONF_MINIMUM_LINES])
+
+            if CONF_ID_FIELD in configuration:
+                id_field = configuration[CONF_ID_FIELD]
+
+            if CONF_VALUE_FIELD in configuration:
+                value_field = configuration[CONF_VALUE_FIELD]
+
         self.required_fields = required_fields
         self.minimum_lines = minimum_lines
+        self.id_field = id_field
+        self.value_field = value_field
+
+        if (self.id_field is None and self.value_field is not None) or (
+            self.id_field is not None and self.value_field is None
+        ):
+            raise ValueError(
+                f"Please set both id_field and value_field or none of both. Got id_field = {self.id_field} and value_field = {self.value_field}."
+            )
+
+    def has_id_and_value_field(self):
+        return self.id_field is not None and self.value_field is not None
+
+
+class JsonlFormat(KeyValueFormatBase):
+    """Checks if a given output is a valid jsonl file."""
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+        if not configuration:
+            configuration = {}
+
+        if CONF_REQUIRED_FIELDS not in configuration:
+            configuration[CONF_REQUIRED_FIELDS] = ("id",)
+
+        if CONF_MINIMUM_LINES not in configuration:
+            configuration[CONF_MINIMUM_LINES] = 3
+
+        super().apply_configuration_and_throw_if_invalid(configuration)
 
     def check_format(self, run_output: Path):
         try:
@@ -211,6 +278,11 @@ class JsonlFormat(FormatBase):
         for field in self.required_fields:
             if not line or field not in line:
                 raise ValueError(f'The json line misses the required field "{field}": "{json.dumps(line)}".')
+        if self.has_id_and_value_field():
+            if not line or self.id_field not in line:
+                raise ValueError(f'The json line misses the required field "{self.id_field}": "{json.dumps(line)}".')
+            if not line or self.value_field not in line:
+                raise ValueError(f'The json line misses the required field "{self.value_field}": "{json.dumps(line)}".')
 
     def all_lines(self, run_output):
         if (str(run_output).endswith(".jsonl") or str(run_output).endswith(".jsonl.gz")) and run_output.is_file():
@@ -239,10 +311,29 @@ class JsonlFormat(FormatBase):
         return ret
 
 
-class GenIrSimulationFormat(JsonlFormat):
-    def __init__(self):
-        super().__init__(required_fields=(), minimum_lines=1)
+class LongEvalLags(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+        if not configuration or "lags" not in configuration or not configuration["lags"]:
+            raise ValueError(
+                'Please pass a configuration "lags" that points out on which lags an dataset should run. E.g., {"lags": ["lag-1", "lag-2"]}.'
+            )
 
+        self.lags = configuration["lags"]
+        format = "run.txt"
+        if "format" in configuration:
+            format = configuration["format"]
+        self.format = format
+
+    def check_format(self, run_output: Path):
+        for lag in self.lags:
+            status, msg = check_format(run_output / lag, self.format)
+            if status != _fmt.OK:
+                return [_fmt.ERROR, f"The Lag {lag} is invalid: {msg}"]
+
+        return [_fmt.OK, f"All lags {self.lags} are valid."]
+
+
+class GenIrSimulationFormat(JsonlFormat):
     def fail_if_json_line_is_not_valid(self, line):
         if "simulation" not in line:
             raise ValueError('The json line misses the required field "simulation".')
@@ -254,9 +345,33 @@ class GenIrSimulationFormat(JsonlFormat):
         if "userTurns" not in line:
             raise ValueError('The json line misses the required field "simulation.userTurns".')
 
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+        super().apply_configuration_and_throw_if_invalid(configuration)
 
-class TsvFormat(FormatBase):
+        required_fields = set()
+        minimum_lines = 1
+
+        if configuration:
+            if CONF_REQUIRED_FIELDS in configuration:
+                required_fields = set(configuration[CONF_REQUIRED_FIELDS])
+            if CONF_MINIMUM_LINES in configuration:
+                minimum_lines = int(configuration[CONF_MINIMUM_LINES])
+
+        self.required_fields = required_fields
+        self.minimum_lines = minimum_lines
+
+
+class TsvFormat(KeyValueFormatBase):
     """Checks if a given output is a valid tsv file."""
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+        if not configuration:
+            configuration = {}
+
+        if CONF_MINIMUM_LINES not in configuration:
+            configuration[CONF_MINIMUM_LINES] = 5
+
+        super().apply_configuration_and_throw_if_invalid(configuration)
 
     def check_format(self, run_output: Path):
         try:
@@ -264,7 +379,7 @@ class TsvFormat(FormatBase):
         except Exception as e:
             return [_fmt.ERROR, str(e)]
 
-        if len(lines) < 5:
+        if len(lines) < self.minimum_lines:
             return [_fmt.ERROR, f"The *.tsv file contains only {len(lines)} lines, this is likely an error."]
 
         if len(lines[0]) < 2:
@@ -562,22 +677,38 @@ FORMAT_TO_CHECK = {
     "GenIR-Simulation": lambda: GenIrSimulationFormat(),
     "ir_metadata": lambda: IrMetadataFormat(),
     "qrels.txt": QrelFormat,
+    "LongEvalLags": LongEvalLags,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 
 
-def lines_if_valid(run_output: Path, format: Union[str, Sequence[str]]):
+def check_format_configuration_if_valid(
+    format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None
+) -> FormatBase:
+    if isinstance(format, str):
+        ret = FORMAT_TO_CHECK[format]()
+        ret.apply_configuration_and_throw_if_invalid(configuration)
+        return ret
+    else:
+        ret = []
+        for i in format:
+            ret.append(check_format_configuration_if_valid(i, configuration))
+        return ret
+
+
+def lines_if_valid(run_output: Path, format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None):
     """Load all lines from a user file if they are valid
 
     Args:
         format (Union[str, Sequence[str]]): The allowed format or a list of allowed formats.
         run_output (Path): the output produced by some run that is to-be checked.
+        configuration (Optional[dict[str, Any]]): the configuration to apply to the formatter.
     """
     if format not in SUPPORTED_FORMATS:
         raise ValueError(f"Format {format} is not supported. Supported formats are {SUPPORTED_FORMATS}.")
 
-    checker = FORMAT_TO_CHECK[format]()
+    checker = check_format_configuration_if_valid(format, configuration)
     result, msg = checker.check_format(run_output)
     if result != _fmt.OK:
         raise ValueError(msg)
@@ -592,17 +723,18 @@ def report_valid_formats(run_output: Path):
     return valid_formats
 
 
-def check_format(run_output: Path, format: Union[str, Sequence[str]]):
+def check_format(run_output: Path, format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None):
     """Check if the provided run output is in the specified format. Provides debug messages intended for users.
 
     Args:
         format (Union[str, Sequence[str]]): The allowed format or a list of allowed formats.
         run_output (Path): the output produced by some run that is to-be checked.
+        configuration (Optional[dict[str, Any]]): the configuration to apply to the formatter.
     """
     if not isinstance(format, str) and isinstance(format, Iterable):
         ret = {}
         for f in format:
-            ret[f] = check_format(run_output, f)
+            ret[f] = check_format(run_output, f, configuration)
 
         if all(i[0] == _fmt.OK for i in ret.values()):
             return [_fmt.OK, "The output is valid."]
@@ -614,5 +746,5 @@ def check_format(run_output: Path, format: Union[str, Sequence[str]]):
     if format not in SUPPORTED_FORMATS:
         raise ValueError(f"Format {format} is not supported. Supported formats are {SUPPORTED_FORMATS}.")
 
-    checker = FORMAT_TO_CHECK[format]()
+    checker = check_format_configuration_if_valid(format, configuration)
     return checker.check_format(run_output)

@@ -653,7 +653,7 @@ def anonymous_upload(request, dataset_id):
         if len(formats) == 1:
             formats = formats[0]
 
-        status_code, message = check_format(result_dir / "extracted", formats)
+        status_code, message = check_format(result_dir / "extracted", formats, dataset.get("format_configuration"))
 
         if status_code != _fmt.OK:
             return HttpResponseServerError(json.dumps({"status": 1, "message": message}))

@@ -3,39 +3,61 @@ from abc import ABC
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from tira.check_format import _fmt, check_format, lines_if_valid, log_message
+CONF_ID_FIELD = "id_field"
+from tira.check_format import (
+    CONF_ID_FIELD,
+    CONF_VALUE_FIELD,
+    _fmt,
+    check_format,
+    check_format_configuration_if_valid,
+    lines_if_valid,
+    log_message,
+)
 from tira.io_utils import to_prototext
 from tira.rest_api_client import Client
 from tira.tira_client import TiraClient
 
 
 class TiraBaseEvaluator(ABC):
-    def __init__(self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], measures: List[str]):
+    def __init__(
+        self,
+        run_format: Union[str, List[str]],
+        run_format_configuration: Optional[Dict[str, Any]],
+        truth_format: Union[str, List[str]],
+        truth_format_configuration: Optional[Dict[str, Any]],
+        measures: List[str],
+    ):
         self._run_format = run_format
+        self._run_format_configuration = run_format_configuration
         self._truth_format = truth_format
+        self._truth_format_configuration = truth_format_configuration
         self._measures = measures
 
     def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
-        self.is_valid(run, self._run_format, True)
-        self.is_valid(truths, self._truth_format)
+        self.is_valid(run, self._run_format, self._run_format_configuration, True)
+        self.is_valid(truths, self._truth_format, self._truth_format_configuration)
 
-        run_data = lines_if_valid(run, self._run_format)
-        truth_data = lines_if_valid(truths, self._truth_format)
+        run_data = lines_if_valid(run, self._run_format, self._run_format_configuration)
+        truth_data = lines_if_valid(truths, self._truth_format, self._truth_format_configuration)
 
         return self._eval(run_data, truth_data)
 
-    def is_valid(self, directory: Path, format: Union[str, List[str]], log: bool = False):
-        ret = check_format(directory, format)
+    def is_valid(
+        self,
+        directory: Path,
+        format: Union[str, List[str]],
+        configuration: Optional[Dict[str, Any]] = None,
+        log: bool = False,
+    ):
+        ret = check_format(directory, format, configuration)
         if log:
             log_message(ret[1], ret[0])
         if ret[0] != _fmt.OK:
             raise ValueError(ret[1])
 
-    def throw_if_conf_invalid(
-        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
-    ) -> None:
+    def throw_if_conf_invalid(self, config: dict) -> None:
         raise ValueError("This is not implemented")
 
     def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
@@ -43,14 +65,12 @@ class TiraBaseEvaluator(ABC):
 
 
 class RunFileEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(
-        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
-    ) -> None:
-        if "run.txt" != run_format and "run.txt" not in run_format:
+    def throw_if_conf_invalid(self, config: dict) -> None:
+        if "run.txt" != self._run_format and "run.txt" not in self._run_format:
             raise ValueError("I can only use the RunFileEvaluator for run.txt format")
 
         self._run_format = "run.txt"
-        if truth_format and "qrels.txt" != truth_format and "qrels.txt" not in truth_format:
+        if self._truth_format and "qrels.txt" != self._truth_format and "qrels.txt" not in self._truth_format:
             self._truth_format = "qrels.txt"
 
     def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
@@ -85,9 +105,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
 
 
 class WowsEvalEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(
-        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
-    ) -> None:
+    def throw_if_conf_invalid(self, config: dict) -> None:
         pass
 
     def __normalize_data(self, df: Any) -> Any:
@@ -197,29 +215,37 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
             spearman.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="spearman")[0])
             pearson.append(misc.get_correlation(truth_ranking, predicted_ranking, correlation="pearson")[0])
 
-        ret = {"wows_tau_ap": mean(tau_ap), "wows_kendall": mean(kendall), "wows_spearman": mean(spearman), "wows_pearson": mean(pearson)}
+        ret = {
+            "wows_tau_ap": mean(tau_ap),
+            "wows_kendall": mean(kendall),
+            "wows_spearman": mean(spearman),
+            "wows_pearson": mean(pearson),
+        }
         return {i: ret[i] for i in self._measures}
 
 
 class HuggingFaceEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(
-        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
-    ) -> None:
-        if not run_format or not truth_format:
+    def throw_if_conf_invalid(self, config: dict) -> None:
+        if not self._run_format or not self._truth_format:
             raise ValueError(
-                f"Configuration error. I need a run and truth format. Got: run_format={run_format} and truth_format={truth_format}."
+                f"Configuration error. I need a run and truth format. Got: run_format={self._run_format} and truth_format={self._truth_format}."
             )
 
-        if "run_label_column" not in config or "run_id_column" not in config:
-            raise ValueError(f"Configuration error. I need to extract the label and id column from runs.")
+        run_format_checker = check_format_configuration_if_valid(self._run_format, self._run_format_configuration)
 
-        self.run_label_column = config["run_label_column"]
-        self.run_id_column = config["run_id_column"]
-        if "truth_label_column" not in config or "truth_id_column" not in config:
-            raise ValueError(f"Configuration error. I need to extract the label and id column from truths.")
+        if not run_format_checker.has_id_and_value_field():
+            raise ValueError(f"The run format needs an field {CONF_ID_FIELD} and an field {CONF_VALUE_FIELD}")
 
-        self.truth_label_column = config["truth_label_column"]
-        self.truth_id_column = config["truth_id_column"]
+        self.run_label_column = run_format_checker.value_field
+        self.run_id_column = run_format_checker.id_field
+
+        truth_format_checker = check_format_configuration_if_valid(self._truth_format, self._truth_format_configuration)
+
+        if not truth_format_checker.has_id_and_value_field():
+            raise ValueError(f"The truth format needs an field {CONF_ID_FIELD} and an field {CONF_VALUE_FIELD}")
+
+        self.truth_label_column = truth_format_checker.value_field
+        self.truth_id_column = truth_format_checker.id_field
         if "additional_args" in config and config["additional_args"]:
             self.additional_args = config["additional_args"]
         else:
@@ -255,21 +281,37 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
 
 
 class TrecToolsEvaluator(TiraBaseEvaluator):
-    def throw_if_conf_invalid(
-        self, run_format: Union[str, List[str]], truth_format: Union[str, List[str]], config: dict
-    ) -> None:
-        if "run.txt" != run_format and "run.txt" not in run_format:
-            raise ValueError("I can only use trectools for run.txt format")
+    def throw_if_conf_invalid(self, config: dict) -> None:
 
-        if "qrels.txt" != run_format and "qrels.txt" not in truth_format:
-            raise ValueError("I can only use trectools for run.txt format")
+        if ("LongEvalLags" == self._run_format or "LongEvalLags" in self._run_format) and (
+            "LongEvalLags" == self._truth_format or "LongEvalLags" in self._truth_format
+        ):
+            self.groups_to_evaluate = self._run_format_configuration["lags"]
+            self._run_format = "run.txt"
+            self._truth_format = "qrels.txt"
+        else:
+            if "run.txt" != self._run_format and "run.txt" not in self._run_format:
+                raise ValueError("I can only use trectools for run.txt format")
 
-        self._run_format = "run.txt"
-        self._truth_format = "qrels.txt"
+            if "qrels.txt" != self._run_format and "qrels.txt" not in self._truth_format:
+                raise ValueError("I can only use trectools for run.txt format")
+
+            self._run_format = "run.txt"
+            self._truth_format = "qrels.txt"
+            self.groups_to_evaluate = None
 
         # check that dependencies are available
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
+
+    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
+        if not self.groups_to_evaluate:
+            return super().evaluate(run, truths)
+        else:
+            ret = {}
+            for group in self.groups_to_evaluate:
+                ret[group] = super().evaluate(run / group, truths / group)
+            return ret
 
     def _eval(self, run_data: List[Any], truth_data: List[Any]) -> dict:
         import pandas as pd
@@ -358,8 +400,14 @@ def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClien
 
     ret = []
     for evaluator, measures in evaluator_to_measures.items():
-        impl = EVALUATORS[evaluator](config["run_format"], config["truth_format"], measures)
-        impl.throw_if_conf_invalid(config["run_format"], config["truth_format"], config)
+        impl = EVALUATORS[evaluator](
+            config["run_format"],
+            config.get("run_format_configuration"),
+            config["truth_format"],
+            config.get("truth_format_configuration"),
+            measures,
+        )
+        impl.throw_if_conf_invalid(config)
         ret.append(impl)
 
     return ret

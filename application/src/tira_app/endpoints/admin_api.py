@@ -285,8 +285,23 @@ def admin_add_dataset(request, task_id):
         irds_import_command = None if not irds_import_command else irds_import_command
         irds_import_truth_command = data.get("irds_import_truth_command", None)
         irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
-        dataset_format = data.get("format", None)
-        truth_format = data.get("truth_format", None)
+
+        try:
+            dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the dataset format is invalid:" + str(e.args[0])}
+            )
+
+        try:
+            truth_format, truth_format_configuration = _format_and_configuration(data, "truth_format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the truth format is invalid:" + str(e.args[0])}
+            )
+
         try:
             trusted_evaluation = _evaluator_config(data)
         except Exception as e:
@@ -354,6 +369,8 @@ def admin_add_dataset(request, task_id):
                     chatnoir_id,
                     ir_datasets_id,
                     truth_format,
+                    dataset_format_configuration,
+                    truth_format_configuration,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -370,6 +387,8 @@ def admin_add_dataset(request, task_id):
                     chatnoir_id,
                     ir_datasets_id,
                     truth_format,
+                    dataset_format_configuration,
+                    truth_format_configuration,
                 )
 
             model.add_evaluator(
@@ -485,34 +504,48 @@ def _evaluator_config(data: dict) -> dict:
 
     ret = {"measures": data["trusted_measures"]}
 
-    hf_args = ["run_id_column", "run_id_column", "run_label_column", "truth_id_column", "truth_label_column"]
-
-    # hf_args[0] is a flag in the UH to make the decision
-    # if the other fields are potentially available or not.
-    if hf_args[0] in data:
-        for hf_arg in hf_args:
-            if hf_arg not in data or not data[hf_arg]:
-                raise ValueError("Invalid configuration, I expected the field {hf_arg}.")
-
-            ret[hf_arg] = data[hf_arg]
-
-        if "additional_args" in data and isinstance(data["additional_args"], dict) and len(data["additional_args"]) > 1:
+    json_args = ["additional_args", "format_configuration", "truth_format_configuration"]
+    for json_arg in json_args:
+        if json_arg in data and data[json_arg]:
             try:
-                ret["additional_args"] = json.loads(data["additional_args"])
+                ret[json_arg] = json.loads(data[json_arg])
             except:
                 raise ValueError(
-                    f"I expected that the additional arguments is valid json. But I got '{data['additional_args']}'."
+                    f"I expected that the argument {json_arg} is valid json. But I got '{data[json_arg]}'."
                 )
 
     ret_serialized = json.dumps(ret)
     try:
         ret["run_format"] = data.get("format", None)
+        ret["run_format_configuration"] = ret.get("format_configuration", None)
         ret["truth_format"] = data.get("truth_format", None)
+        ret["truth_format_configuration"] = data.get("truth_format_configuration", None)
         get_evaluators_if_valid(ret)
     except Exception as e:
+        logger.warning(e)
         raise ValueError(f"The configuration of the evaluator is wrong: {e.args[0]}")
 
     return ret_serialized
+
+
+def _format_and_configuration(data, field):
+    if field not in data or not data.get(field):
+        return None, None
+
+    ret_name = data[field]
+    ret_config = None
+    if f"{field}_configuration" in data and data[f"{field}_configuration"]:
+        try:
+            ret_config = json.loads(data[f"{field}_configuration"])
+        except:
+            raise ValueError(
+                f"I expected that the configuration is valid json, but I got: {data[f'{field}_configuration']}"
+            )
+
+    from tira.check_format import check_format_configuration_if_valid
+
+    check_format_configuration_if_valid(ret_name, ret_config)
+    return ret_name, ret_config
 
 
 @check_permissions
@@ -539,6 +572,7 @@ def admin_edit_dataset(request, dataset_id):
     - git_repository_id
     """
     if request.method == "POST":
+
         data = json.loads(request.body)
 
         dataset_name = data["name"]
@@ -553,14 +587,30 @@ def admin_edit_dataset(request, dataset_id):
         git_runner_image = data["git_runner_image"]
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
-        dataset_format = data["format"]
-        truth_format = data.get("truth_format", None)
+
+        try:
+            dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the dataset format is invalid:" + str(e.args[0])}
+            )
+
+        try:
+            truth_format, truth_format_configuration = _format_and_configuration(data, "truth_format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the truth format is invalid:" + str(e.args[0])}
+            )
+
         description = data.get("description", "")
         chatnoir_id = data.get("chatnoir_id", None)
         ir_datasets_id = data.get("ir_datasets_id", None)
         try:
             trusted_evaluation = _evaluator_config(data)
         except Exception as e:
+            logger.info(e)
             return JsonResponse({"status": 1, "message": e.args[0]})
 
         if not data["use_existing_repository"]:
@@ -590,6 +640,8 @@ def admin_edit_dataset(request, dataset_id):
             ir_datasets_id,
             truth_format,
             trusted_evaluation,
+            dataset_format_configuration,
+            truth_format_configuration,
         )
 
         from django.core.cache import cache

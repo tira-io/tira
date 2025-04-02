@@ -24,6 +24,7 @@ EVALUATOR_TO_TYPE = {
     "TrecTools": "Retrieval",
     "RunFileEvaluator": "Retrieval",
     "HuggingFaceEvaluator": "Classification",
+    "WowsEvalEvaluator": "Retrieval",
 }
 
 TRUSTED_EVALUATORS = {"Retrieval": [], "Classification": []}

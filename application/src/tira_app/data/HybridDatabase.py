@@ -349,9 +349,24 @@ class HybridDatabase(object):
                 pass
 
         trusted_eval = None
+        format_configuration = None
+        truth_format_configuration = None
+
         if evaluator_id and dataset.evaluator.trusted_evaluation:
             try:
                 trusted_eval = json.loads(dataset.evaluator.trusted_evaluation)
+            except json.JSONDecodeError:
+                pass
+
+        if evaluator_id and dataset.format_configuration:
+            try:
+                format_configuration = json.loads(dataset.format_configuration)
+            except json.JSONDecodeError:
+                pass
+
+        if evaluator_id and dataset.truth_format_configuration:
+            try:
+                truth_format_configuration = json.loads(dataset.truth_format_configuration)
             except json.JSONDecodeError:
                 pass
 
@@ -388,19 +403,20 @@ class HybridDatabase(object):
             "ir_datasets_id": dataset.ir_datasets_id,
             "file_listing": file_listing,
             "trusted_eval": trusted_eval,
+            "format_configuration": format_configuration,
+            "truth_format_configuration": truth_format_configuration,
         }
 
         if trusted_eval:
-            for i in ["run_label_column", "run_id_column", "truth_label_column", "truth_id_column"]:
-                ret[i] = trusted_eval.get(i, None)
+            from tira_app.endpoints.misc import TRUSTED_EVALUATORS
 
             if "additional_args" in trusted_eval and trusted_eval["additional_args"]:
                 ret["additional_args"] = json.dumps(trusted_eval["additional_args"])
 
-            if "run_label_column" in trusted_eval:
-                ret["evaluation_type"] = "eval-6"
-            else:
+            if any(i in TRUSTED_EVALUATORS["Retrieval"] for i in trusted_eval["measures"]):
                 ret["evaluation_type"] = "eval-5"
+            else:
+                ret["evaluation_type"] = "eval-6"
 
             ret["trusted_measures"] = trusted_eval["measures"]
 
@@ -1899,6 +1915,8 @@ class HybridDatabase(object):
         chatnoir_id=None,
         ir_datasets_id=None,
         truth_format=None,
+        format_configuration=None,
+        truth_format_configuration=None,
     ):
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -1925,6 +1943,10 @@ class HybridDatabase(object):
                 "chatnoir_id": None if not chatnoir_id else chatnoir_id,
                 "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
                 "truth_format": None if not truth_format else json.dumps(truth_format),
+                "format_configuration": None if not format_configuration else json.dumps(format_configuration),
+                "truth_format_configuration": (
+                    None if not truth_format_configuration else json.dumps(truth_format_configuration)
+                ),
             },
         )
 
@@ -2588,6 +2610,8 @@ class HybridDatabase(object):
         ir_datasets_id=None,
         truth_format=None,
         trusted_evaluation=None,
+        dataset_format_configuration=None,
+        truth_format_configuration=None,
     ):
         """
 
@@ -2608,6 +2632,10 @@ class HybridDatabase(object):
             description=description,
             chatnoir_id=None if not chatnoir_id else chatnoir_id,
             ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
+            format_configuration=None if not dataset_format_configuration else json.dumps(dataset_format_configuration),
+            truth_format_configuration=(
+                None if not truth_format_configuration else json.dumps(truth_format_configuration)
+            ),
         )
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)

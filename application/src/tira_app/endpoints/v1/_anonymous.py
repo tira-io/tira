@@ -91,14 +91,6 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Unexpected format."}))
 
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
-    format = json.loads(upload.dataset.format)
-    if len(format) == 1:
-        format = format[0]
-
-    status_code, message = check_format(result_dir, format)
-
-    if status_code != _fmt.OK:
-        return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 
     ret = io.BytesIO()
     with zipfile.ZipFile(ret, "w") as zipf:

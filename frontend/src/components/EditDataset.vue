@@ -32,7 +32,9 @@
                 <v-text-field v-model="default_upload_name" label="Default Upload Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
 
                 <v-select v-model="format" :items="serverinfo.supportedFormats" label="Dataset Format" clearable multiple/>
+                <v-text-field v-if="format" v-model="format_configuration" label="Dataset Format arguments in JSON (e.g.: {&quot;id_field&quot;: &quot;ID&quot;})"/>
                 <v-select v-model="truth_format" :items="serverinfo.supportedFormats" label="Truth Format" clearable multiple/>
+                <v-text-field v-if="truth_format" v-model="truth_format_configuration" label="Truth Format in JSON (e.g.: {&quot;id_field&quot;: &quot;ID&quot;})"/>
 
                 <div>
                   Consider to integrate the data into <a href="https://ir-datasets.com/" target="_blank">ir-datasets</a> and <a href="https://www.chatnoir.eu/" target="_blank">ChatNoir</a> for simplified access and improved visibility.
@@ -178,11 +180,6 @@
 
                   <v-autocomplete v-model="trusted_measures" clearable chips label="Classification Measures" :items="serverinfo.trustedEvaluators.Classification" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one classification measure.']" required></v-autocomplete>
 
-                  <v-text-field v-model="truth_id_column" label="ID field in the Truth data" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
-                  <v-text-field v-model="truth_label_column" label="Label field in the Truth data" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
-
-                  <v-text-field v-model="run_id_column" label="ID field in the runs" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
-                  <v-text-field v-model="run_label_column" label="Label field in the runs" :rules="[v => v && v.length >= 1 || 'Please provide the name of the ID.']" required/>
                   <v-text-field v-model="additional_args" label="Custom arguments in JSON format for the Huggingface Evaluator (e.g.: {&quot;average&quot;: &quot;micro&quot;})"/>
                 </span>
               </v-form>
@@ -220,8 +217,8 @@
         systemFileHandle: undefined, truthFileHandle: undefined,
         git_repository_id: '', rest_endpoint: inject("REST base URL") as string, file_listing: '',
         userinfo: inject('userinfo') as UserInfo, serverinfo: inject("serverInfo") as ServerInfo,
-        trusted_measures: undefined, sandboxed: "later",
-        run_id_column:"id", run_label_column:"label", truth_id_column:"id", truth_label_column:"id", additional_args: undefined,
+        trusted_measures: undefined, sandboxed: "later", additional_args: undefined,
+        format_configuration: '', truth_format_configuration: ''
       }),
       computed: {
         title() {
@@ -293,6 +290,18 @@
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
               .then(() => {
                 this.is_confidential = '' + this.is_confidential;
+                if (this.format_configuration) {
+                  this.format_configuration = JSON.stringify(this.format_configuration)
+                } else {
+                  this.format_configuration = undefined
+                }
+                
+                if (this.truth_format_configuration) {
+                  this.truth_format_configuration = JSON.stringify(this.truth_format_configuration)
+                } else {
+                  this.truth_format_configuration = undefined
+                }
+
                 if (this.evaluation_type == "eval-5" || this.evaluation_type == "eval-6") {
                   this.sandboxed = 'false'
                 } else {
@@ -369,14 +378,18 @@
             }
           }
 
+          if (this.format && this.format_configuration) {
+            params['format_configuration'] = this.format_configuration
+          }
+
+          if (this.truth_format && this.truth_format_configuration) {
+            params['truth_format_configuration'] = this.truth_format_configuration
+          }
+
           if ((this.sandboxed + '').toLowerCase() == 'false') {
             params['trusted_measures'] = this.trusted_measures
 
             if (this.evaluation_type === 'eval-6') {
-              params['run_id_column'] = this.run_id_column
-              params['run_label_column'] = this.run_label_column
-              params['truth_id_column'] = this.truth_id_column
-              params['truth_label_column'] = this.truth_label_column
               params['additional_args'] = this.additional_args
             }
           }

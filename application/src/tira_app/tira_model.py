@@ -756,6 +756,8 @@ def add_dataset(
     chatnoir_id: Optional[str] = None,
     ir_datasets_id: Optional[str] = None,
     truth_format: Optional[str] = None,
+    dataset_format_configuration: Optional[str] = None,
+    truth_format_configuration: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -772,6 +774,8 @@ def add_dataset(
         chatnoir_id=chatnoir_id,
         ir_datasets_id=ir_datasets_id,
         truth_format=truth_format,
+        format_configuration=dataset_format_configuration,
+        truth_format_configuration=truth_format_configuration,
     )
 
 
@@ -943,6 +947,8 @@ def edit_dataset(
     ir_datasets_id: Optional[str] = None,
     truth_format: Optional[str] = None,
     trusted_evaluation: Optional[str] = None,
+    dataset_format_configuration: Optional[str] = None,
+    truth_format_configuration: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -964,6 +970,8 @@ def edit_dataset(
         ir_datasets_id,
         truth_format,
         trusted_evaluation,
+        dataset_format_configuration,
+        truth_format_configuration,
     )
 
 

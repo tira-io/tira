@@ -914,8 +914,10 @@ class Client(TiraClient):
         if len(accepted_formats) == 0:
             accepted_formats = ["run.txt"]  # default format
 
+        format_configuration = upload_to_tira.get("format_configuration")
+
         for format in accepted_formats:
-            status_code, msg = check_format(file_path, str(format))
+            status_code, msg = check_format(file_path, str(format), format_configuration)
 
             if status_code != _fmt.OK:
                 error_msg += "\n" + msg

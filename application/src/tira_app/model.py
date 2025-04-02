@@ -164,6 +164,8 @@ class Dataset(models.Model):
     ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
     description = models.TextField(default="", null=True)
     file_listing = models.TextField(default=None, null=True)
+    format_configuration = models.CharField(max_length=150, null=True, default=None)
+    truth_format_configuration = models.CharField(max_length=150, null=True, default=None)
 
 
 class TaskHasDataset(models.Model):

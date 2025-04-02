@@ -16,12 +16,12 @@ from . import (
 
 class TestCheckFormatForNonExistingFormats(unittest.TestCase):
     def test_invalid_validator_on_empty_output(self):
-        expected = [_ERROR, "No file run.txt or run.txt.gz was found, only the files ['.gitkeep'] were available."]
+        expected = [_ERROR, "No file run.txt or run.txt.gz was found. Only the files ['.gitkeep'] were available."]
         actual = check_format(EMPTY_OUTPUT, "run.txt")
         self.assertEqual(expected, actual)
 
     def test_invalid_validator_on_query_output(self):
-        expected = [_ERROR, "No file run.txt or run.txt.gz was found, only the files ['queries.jsonl'] were available."]
+        expected = [_ERROR, "No file run.txt or run.txt.gz was found. Only the files ['queries.jsonl'] were available."]
         actual = check_format(IR_QUERY_OUTPUT, "run.txt")
         self.assertEqual(expected, actual)
 
