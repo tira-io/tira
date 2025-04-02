@@ -705,6 +705,12 @@ def lines_if_valid(run_output: Path, format: Union[str, Sequence[str]], configur
         run_output (Path): the output produced by some run that is to-be checked.
         configuration (Optional[dict[str, Any]]): the configuration to apply to the formatter.
     """
+    if not isinstance(format, str) and isinstance(format, Iterable):
+        if len(format) == 0 or len(format) > 1:
+            raise ValueError("Configuration error, I do not know in which format to read the file, I got {format}")
+        else:
+            format = format[0]
+
     if format not in SUPPORTED_FORMATS:
         raise ValueError(f"Format {format} is not supported. Supported formats are {SUPPORTED_FORMATS}.")
 

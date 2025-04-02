@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
 from glob import glob
@@ -362,6 +363,32 @@ class MonitoredExecution:
         (ret / "stderr.txt").write_text(stderr.getvalue() + exception_text)
 
         return ret
+
+
+def run_prototext(output_dir, run_id, input_run_id, software_id, dataset_id, task_id):
+    with open(output_dir / "run.prototext", "w") as f:
+        f.write(
+            '''softwareId: "'''
+            + str(software_id)
+            + '''"
+runId: "'''
+            + run_id
+            + '''"
+inputDataset: "'''
+            + dataset_id
+            + '''"
+inputRun: "'''
+            + input_run_id
+            + '''"
+downloadable: false
+deleted: false
+taskId: "'''
+            + task_id
+            + '''"
+accessToken: "'''
+            + str(uuid.uuid4())
+            + '''"'''
+        )
 
 
 def parse_prototext_key_values(file_name):

@@ -397,6 +397,7 @@ class HybridDatabase(object):
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
             "format": dataset_format,
+            "run_format": dataset_format,
             "truth_format": truth_format,
             "description": dataset.description,
             "chatnoir_id": dataset.chatnoir_id,
@@ -419,6 +420,7 @@ class HybridDatabase(object):
                 ret["evaluation_type"] = "eval-6"
 
             ret["trusted_measures"] = trusted_eval["measures"]
+            ret["measures"] = trusted_eval["measures"]
 
         return ret
 
