@@ -53,7 +53,7 @@ def reroute_host(hostname: str) -> str:
     return "localhost" if settings.GRPC_HOST == "local" else hostname
 
 
-def auto_reviewer(review_path: Path, run_id: str) -> Message:
+def auto_reviewer(review_path: Path, run_id: str) -> "Message":
     """Do standard checks for reviews so we do not need to wait for a reviewer to check for:
     - failed runs (
     """
@@ -136,7 +136,7 @@ def register_run(dataset_id: str, vm_id: str, run_id: str, software_id: str) -> 
 
 
 def __run_cmd_as_documented_background_process(
-    cmds: str, process_id: int, descriptions: str, callback: Optional[Callable[[], None]]
+    cmds: list[list[str]], process_id: int, descriptions: str, callback: Optional[Callable[[], None]]
 ) -> None:
     import datetime
     import tempfile
@@ -170,7 +170,12 @@ def __run_cmd_as_documented_background_process(
 
 
 def run_cmd_as_documented_background_process(
-    cmd: str, vm_id: str, task_id: str, title: str, descriptions: str, callback: Optional[Callable[[], None]] = None
+    cmd: list[list[str]],
+    vm_id: "Optional[str]",
+    task_id: str,
+    title: str,
+    descriptions: list[str],
+    callback: Optional[Callable[[], None]] = None,
 ) -> int:
     """
     Usage: # run_cmd_forwarding(['sh', '-c', 'echo "1"; sleep 2s; echo "2"; sleep 2s; echo "3"; sleep 2s; echo "4"'])
@@ -199,12 +204,12 @@ def docker_image_details(image: str) -> dict[str, Any]:
     import subprocess
 
     ret = subprocess.check_output(["podman", "image", "inspect", image])
-    ret = json.loads(ret)
+    retjson = json.loads(ret)
     if len(ret) != 1:
-        raise ValueError(f"Could not handle {ret}")
-    ret = ret[0]
-    image_id = ret["Id"] if ":" not in ret["Id"] else ret["Id"].split(":")[1]
-    return {"image_id": image_id, "size": ret["Size"], "virtual_size": ret["VirtualSize"]}
+        raise ValueError(f"Could not handle {retjson}")
+    firstret = retjson[0]
+    image_id = firstret["Id"] if ":" not in firstret["Id"] else firstret["Id"].split(":")[1]
+    return {"image_id": image_id, "size": firstret["Size"], "virtual_size": firstret["VirtualSize"]}
 
 
 def str2bool(text: str) -> bool:

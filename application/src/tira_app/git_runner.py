@@ -1,11 +1,17 @@
 import logging
+from typing import TYPE_CHECKING
 
 from django.conf import settings
+
+if TYPE_CHECKING:
+    from typing import Any, Optional
+
+    from .git_runner_integration import GithubRunner, GitRunner
 
 logger = logging.getLogger("tira")
 
 
-def all_git_runners():
+def all_git_runners() -> "list[Optional[GitRunner]]":
     from .tira_model import model
 
     ret = []
@@ -19,15 +25,15 @@ def all_git_runners():
     return ret
 
 
-def check_that_git_integration_is_valid(namespace_url, private_token):
+def check_that_git_integration_is_valid(namespace_url: str, private_token: str) -> tuple[bool, str]:
     from . import model as modeldb
     from .tira_model import model
 
     git_integration = {"namespace_url": namespace_url, "private_token": private_token}
 
     try:
-        git_integration = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
-        git_integration = model._git_integration_to_dict(git_integration)
+        gitint = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
+        git_integration = model._git_integration_to_dict(gitint)
         git_integration["private_token"] = private_token
     except Exception:
         pass
@@ -47,7 +53,7 @@ def check_that_git_integration_is_valid(namespace_url, private_token):
         return (False, f"The Git credentials are not valid: {e}")
 
 
-def get_git_runner(git_integration):
+def get_git_runner(git_integration: "dict[str, Any]") -> "Optional[GitRunner]":
     from .git_runner_integration import GithubRunner, GitLabRunner
 
     if not git_integration or "namespace_url" not in git_integration:
@@ -67,7 +73,7 @@ def get_git_runner(git_integration):
         )
 
 
-def get_git_runner_for_software_integration():
+def get_git_runner_for_software_integration() -> "GithubRunner":
     from .git_runner_integration import GithubRunner
 
     return GithubRunner(settings.GITHUB_TOKEN)

@@ -1,12 +1,15 @@
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 
 from .endpoints.stdout_beautifier import beautify_ansi_text
 
 logger = logging.getLogger("tira")
+
+if TYPE_CHECKING:
+    from typing import Any, Optional, Sequence
 
 DATA_ROOT = Path(settings.TIRA_ROOT) / "data"
 RUNS_DIR_PATH = DATA_ROOT / "runs"
@@ -32,7 +35,7 @@ def get_run_runtime(dataset_id: str, vm_id: str, run_id: str) -> dict[str, str]:
     return context
 
 
-def get_run_file_list(dataset_id: str, vm_id: str, run_id: str) -> dict[str, Any]:
+def get_run_file_list(dataset_id: str, vm_id: str, run_id: str) -> "dict[str, Any]":
     """load the 2 files that describe the outputof a run:
     - file-list.txt (ascii-view of the files) and
     - size.txt (has line count, file count, subdir count)
@@ -41,7 +44,7 @@ def get_run_file_list(dataset_id: str, vm_id: str, run_id: str) -> dict[str, Any
     """
     run_dir = RUNS_DIR_PATH / dataset_id / vm_id / run_id
     try:
-        size = open(run_dir / "size.txt").read().split("\n")
+        size: list[Optional[str]] = (run_dir / "size.txt").read_text().split("\n")  # type: ignore [assignment]
     except Exception as e:
         logger.error(f"Failed to read output size.txt of: {dataset_id} -- {vm_id} -- {run_id}\nwith error: {e}")
         size = ["No output could be found for this run or output was corrupted", None, None, None, None]
@@ -49,7 +52,7 @@ def get_run_file_list(dataset_id: str, vm_id: str, run_id: str) -> dict[str, Any
     if not (run_dir / "file-list.txt").exists():
         file_list = ["", "There are no files in the Output"]
     else:
-        file_list = open(run_dir / "file-list.txt").read().split("\n")
+        file_list = (run_dir / "file-list.txt").read_text().split("\n")
     if len(size) < 5:
         size.extend(["0"] * (5 - len(size)))
 
@@ -65,10 +68,10 @@ def get_stdout(dataset_id: str, vm_id: str, run_id: str) -> str:
     with open(run_dir / "stdout.txt", "r") as stdout_file:
         stdout = stdout_file.readlines()
         stdout_len = len(stdout)
-        stdout = "".join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
-    if not stdout:
+        stdout_joined = "".join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
+    if not stdout_joined:
         return "No Stdout recorded"
-    return beautify_ansi_text(stdout)
+    return beautify_ansi_text(stdout_joined)
 
 
 def get_stderr(dataset_id: str, vm_id: str, run_id: str) -> str:

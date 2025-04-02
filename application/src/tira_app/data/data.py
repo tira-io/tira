@@ -220,7 +220,7 @@ def _parse_runs_evaluations(runs_dir_path: Path) -> None:
             parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
 
 
-def _parse_run(run_id: str, task_id: str, run_proto: Message, vm: str, dataset: str) -> modeldb.Run:
+def _parse_run(run_id: str, task_id: str, run_proto: "Message", vm: str, dataset: str) -> modeldb.Run:
     def __get_docker_software() -> Optional[modeldb.DockerSoftware]:
         if "docker-software-" not in run_proto.softwareId:
             return None

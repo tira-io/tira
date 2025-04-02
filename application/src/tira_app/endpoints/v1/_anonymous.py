@@ -3,6 +3,7 @@ import io
 import json
 import zipfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 from django.conf import settings
@@ -22,6 +23,9 @@ from ... import model as modeldb
 from ... import tira_model as model
 from ...checks import check_permissions
 from ..vm_api import run_eval
+
+if TYPE_CHECKING:
+    from typing import Any, Iterable
 
 # TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
@@ -176,7 +180,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
 
 @api_view(["GET"])
-def render_metadata_of_submission(request: Request, submission_uuid: str, metadata: str) -> Response:
+def render_metadata_of_submission(request: "Request", submission_uuid: str, metadata: str) -> Response:
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
     except:
@@ -229,7 +233,7 @@ def render_metadata_of_submission(request: Request, submission_uuid: str, metada
                             "timestamps"
                         ]
                         timestamps = [int(i.split("ms")[0].strip()) for i in timestamps]
-                        vals = zip(
+                        vals: Iterable[tuple[Any, int]] = zip(
                             all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"],
                             timestamps,
                         )

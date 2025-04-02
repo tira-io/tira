@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from datetime import timezone
 from pathlib import Path
 from shutil import rmtree
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from django.conf import settings
 from google.protobuf.text_format import Parse
@@ -14,7 +14,7 @@ from ..proto import TiraClientWebMessages_pb2 as modelpb
 from ..util import TiraModelWriteError, auto_reviewer, extract_year_from_dataset_id
 
 if TYPE_CHECKING:
-    from typing import _T, Any, Iterable, Optional, Union, overload
+    from typing import _T, Any, Iterable, Optional, Union
 
     from google.protobuf.message import Message
 
@@ -265,7 +265,7 @@ class FileDatabase(object):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
-                r: Message = Parse((run_dir / "run.prototext").read_bytes(), modelpb.Run())
+                r: "Message" = Parse((run_dir / "run.prototext").read_bytes(), modelpb.Run())
                 (run_dir / "run.bin").write_bytes(r.SerializeToString())
             else:
                 logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
@@ -311,7 +311,7 @@ class FileDatabase(object):
     # ---- save methods to update protos
     # ---------------------------------------------------------------------
 
-    def _save_task(self, task_proto: Message, overwrite: bool = False) -> None:
+    def _save_task(self, task_proto: "Message", overwrite: bool = False) -> None:
         """makes persistant changes to task: store in memory and to file.
         Returns false if task exists and overwrite is false."""
         assert self.tasks is not None
@@ -323,14 +323,14 @@ class FileDatabase(object):
         new_task_file_path.write_text(str(task_proto))
         self._build_task_relations()
 
-    def _save_vm(self, vm_proto: Message, overwrite: bool = False) -> None:
+    def _save_vm(self, vm_proto: "Message", overwrite: bool = False) -> None:
         new_vm_file_path = self.vm_dir_path / f"{vm_proto.virtualMachineId}.prototext"
         if not overwrite and new_vm_file_path.exists():
             raise TiraModelWriteError("Failed to write vm, vm exists and overwrite is not allowed here")
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         new_vm_file_path.write_text(str(vm_proto))
 
-    def _save_dataset(self, dataset_proto: Message, task_id: str, overwrite: bool = False) -> None:
+    def _save_dataset(self, dataset_proto: "Message", task_id: str, overwrite: bool = False) -> None:
         """dataset_dir_path/task_id/dataset_id.prototext"""
         assert self.datasets is not None
         new_dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_proto.datasetId}.prototext"
@@ -340,7 +340,7 @@ class FileDatabase(object):
         new_dataset_file_path.write_text(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
 
-    def _save_review(self, dataset_id: str, vm_id: str, run_id: str, review: Message) -> None:
+    def _save_review(self, dataset_id: str, vm_id: str, run_id: str, review: "Message") -> None:
         review_path: Path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         (review_path / "run-review.prototext").write_text(str(review))
         (review_path / "run-review.bin").write_text(review.SerializeToString())
@@ -350,7 +350,7 @@ class FileDatabase(object):
             # update file
             prototext_file.write(str(softwares))
 
-    def _save_run(self, dataset_id: str, vm_id: str, run_id: str, run: Message) -> None:
+    def _save_run(self, dataset_id: str, vm_id: str, run_id: str, run: "Message") -> None:
         run_dir: Path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -610,7 +610,7 @@ class FileDatabase(object):
     # get methods are the public interface.
     ###################################
 
-    def get_vm(self, vm_id: str, create_if_none: bool = False) -> Message:
+    def get_vm(self, vm_id: str, create_if_none: bool = False) -> "Message":
         # TODO should return as dict
         assert self.vms is not None
         return self.vms.get(vm_id, None)
@@ -695,7 +695,7 @@ class FileDatabase(object):
             and not (dataset.isDeprecated and not include_deprecated)
         ]
 
-    def get_organizer(self, organizer_id: str) -> Message:
+    def get_organizer(self, organizer_id: str) -> "Message":
         # TODO should return as dict
         assert self.organizers is not None
         return self.organizers[organizer_id]

@@ -6,13 +6,13 @@ import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
-from typing import TYPE_CHECKING, Union, overload
+from typing import TYPE_CHECKING, overload
 
 from tira.check_format import _fmt, check_format, log_message
 
 if TYPE_CHECKING:
     import io
-    from typing import Any, Dict, Optional
+    from typing import Any, Dict, Optional, Union
 
     import pandas as pd
 
@@ -47,14 +47,14 @@ class TiraClient(ABC):
         # .. todo:: typehint
         pass
 
-    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[Dict[str, str]]":
+    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[dict[str, str]]":
         # .. todo:: typehint
         pass
 
     def docker_registry(self):
         return "registry.webis.de"
 
-    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]"):
+    def modify_task(self, task_id: str, to_rename: "dict[str, Any]"):
         # .. todo:: typehint
         pass
 

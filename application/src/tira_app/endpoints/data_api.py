@@ -6,7 +6,7 @@ import textwrap
 from copy import deepcopy
 from http import HTTPStatus
 from io import StringIO
-from typing import Any, Union
+from typing import TYPE_CHECKING
 
 import django.middleware.csrf as csrf
 from django.conf import settings
@@ -22,6 +22,13 @@ from ..tira_data import get_run_file_list, get_run_runtime, get_stderr, get_stdo
 from ..util import link_to_discourse_team
 from ..views import add_context, add_user_vms_to_context
 
+if TYPE_CHECKING:
+    from typing import Any, Optional, Union
+
+    from django.http import HttpRequest
+
+    Context = dict[str, Any]
+
 include_navigation = False
 
 logger = logging.getLogger("tira")
@@ -30,7 +37,7 @@ logger.info("ajax_routes: Logger active")
 
 @check_resources_exist("json")
 @add_context
-def get_dataset_for_task(request, context, task_id):
+def get_dataset_for_task(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     if request.method == "GET":
         try:
             datasets = model.get_datasets_by_task(task_id)
@@ -49,7 +56,15 @@ def get_dataset_for_task(request, context, task_id):
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
 
 
-def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task, is_training_dataset=False):
+def __normalize_run(
+    i,
+    ev_keys: list[str],
+    is_admin: bool,
+    user_vms_for_task: list[str],
+    task_id: str,
+    is_ir_task: bool,
+    is_training_dataset: bool = False,
+):
     i = deepcopy(i)
     i["link_to_team"] = link_to_discourse_team(i["vm_id"])
     eval_run_id = i["run_id"]
@@ -64,8 +79,8 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
             except Exception:
                 i[ev_keys[j]] = None
 
-    for j in ["measures"]:
-        del i[j]
+    for k in ["measures"]:
+        del i[k]
 
     i["selectable"] = False
     i["owned_by_user"] = is_admin or i["vm_id"] in user_vms_for_task
@@ -83,13 +98,15 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
     return i
 
 
-def __inject_user_vms_for_task(request, context, task_id):
+def __inject_user_vms_for_task(request: "HttpRequest", context: "Context", task_id: str) -> list[str]:
     add_user_vms_to_context(request, context, task_id, include_docker_details=False)
     return context["user_vms_for_task"] if "user_vms_for_task" in context else []
 
 
 @add_context
-def get_configuration_of_evaluation(request, context, task_id, dataset_id):
+def get_configuration_of_evaluation(
+    request: "HttpRequest", context: "Context", task_id: str, dataset_id: str
+) -> "HttpResponse":
     dataset = model.get_dataset(dataset_id)
 
     context["dataset"] = {
@@ -105,7 +122,9 @@ def get_configuration_of_evaluation(request, context, task_id, dataset_id):
 
 @add_context
 @check_resources_exist("json")
-def get_evaluations_by_dataset(request, context, task_id, dataset_id):
+def get_evaluations_by_dataset(
+    request: "HttpRequest", context: "Context", task_id: str, dataset_id: str
+) -> "HttpResponse":
     """Return all evaluation results for all submission to a dataset
     The frontend calls this to build the leaderboard
     in the task page when a task is selected from the dropdown
@@ -156,7 +175,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
 
 @add_context
 @check_permissions
-def get_evaluations_by_vm(request, context, task_id, vm_id):
+def get_evaluations_by_vm(request: "HttpRequest", context: "Context", task_id: str, vm_id: str) -> "HttpResponse":
     task = model.get_task(task_id, False)
     is_ir_task = "is_ir_task" in task and task["is_ir_task"]
     is_admin = context["role"] == "admin"
@@ -208,7 +227,7 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
 
 @add_context
 @check_permissions
-def get_evaluation(request, context, run_id, vm_id):
+def get_evaluation(request: "HttpRequest", context: "Context", run_id: str, vm_id: str) -> "HttpResponse":
     run = model.get_run(None, None, run_id)
     review = model.get_run_review(None, None, run_id)
 
@@ -228,7 +247,9 @@ def get_evaluation(request, context, run_id, vm_id):
 
 @check_resources_exist("json")
 @add_context
-def get_submissions_by_dataset(request, context, task_id, dataset_id):
+def get_submissions_by_dataset(
+    request: "HttpRequest", context: "Context", task_id: str, dataset_id: str
+) -> "HttpResponse":
     role = context["role"]
     vms = model.get_vms_with_reviews(dataset_id) if role == "admin" else None
     context["task_id"] = task_id
@@ -241,7 +262,7 @@ def get_submissions_by_dataset(request, context, task_id, dataset_id):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_evaluations_of_run(request, context, vm_id, run_id):
+def get_evaluations_of_run(request: "HttpRequest", context: "Context", vm_id: str, run_id: str) -> "HttpResponse":
     context["evaluations"] = model.get_evaluations_of_run(vm_id, run_id)
     return JsonResponse({"status": 0, "context": context})
 
@@ -249,13 +270,15 @@ def get_evaluations_of_run(request, context, vm_id, run_id):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_ova_list(request, context):
+def get_ova_list(request: "HttpRequest", context: "Context"):
     context["ova_list"] = model.get_ova_list()
     return JsonResponse({"status": 0, "context": context})
 
 
 @add_context
-def runs(request, context, task_id, dataset_id, vm_id, software_id):
+def runs(
+    request: "HttpRequest", context: "Context", task_id: str, dataset_id: str, vm_id: str, software_id: str
+) -> "HttpResponse":
     runs = model.runs(task_id, dataset_id, vm_id, software_id)
     context["runs"] = list(set([i["run_id"] for i in runs]))
     if len(runs) > 0:
@@ -267,7 +290,7 @@ def runs(request, context, task_id, dataset_id, vm_id, software_id):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_host_list(request, context):
+def get_host_list(request: "HttpRequest", context: "Context") -> "HttpResponse":
     context["host_list"] = model.get_host_list()
     return JsonResponse({"status": 0, "context": context})
 
@@ -275,7 +298,7 @@ def get_host_list(request, context):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_organizer_list(request, context):
+def get_organizer_list(request: "HttpRequest", context: "Context") -> "HttpResponse":
     organizer_list = model.get_organizer_list()
     is_admin = context and "role" in context and context["role"] == "admin"
     orga_groups_of_user = set(auth.get_organizer_ids(request))
@@ -289,14 +312,14 @@ def get_organizer_list(request, context):
 
 @check_resources_exist("json")
 @add_context
-def get_task_list(request, context):
+def get_task_list(request: "HttpRequest", context: "Context") -> "HttpResponse":
     context["task_list"] = model.get_tasks()
     return JsonResponse({"status": 0, "context": context})
 
 
 @check_resources_exist("json")
 @add_context
-def get_registration_formular(request, context, task_id):
+def get_registration_formular(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["remaining_team_names"] = model.remaining_team_names(task_id)
 
     return JsonResponse({"status": 0, "context": context})
@@ -304,7 +327,7 @@ def get_registration_formular(request, context, task_id):
 
 @check_resources_exist("json")
 @add_context
-def get_task(request, context, task_id):
+def get_task(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["task"] = model.get_task(task_id)
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     # TODO: remove this when vuetify frontend is active
@@ -321,7 +344,7 @@ def get_task(request, context, task_id):
 
 @check_resources_exist("json")
 @add_context
-def get_dataset(request, context, dataset_id):
+def get_dataset(request: "HttpRequest", context: "Context", dataset_id: str) -> "HttpResponse":
     context["dataset"] = model.get_dataset(dataset_id)
     context["evaluator"] = model.get_evaluator(dataset_id)
 
@@ -330,13 +353,13 @@ def get_dataset(request, context, dataset_id):
 
 @check_resources_exist("json")
 @add_context
-def get_organizer(request, context, organizer_id):
+def get_organizer(request: "HttpRequest", context: "Context", organizer_id: str) -> "HttpResponse":
     org = model.get_organizer(organizer_id)
     return JsonResponse({"status": 0, "context": org})
 
 
 @add_context
-def get_role(request, context):
+def get_role(request: "HttpRequest", context: "Context") -> "HttpResponse":
     return JsonResponse(
         {
             "status": 0,
@@ -350,7 +373,7 @@ def get_role(request, context):
 
 @check_resources_exist("json")
 @add_context
-def update_docker_images(request, context, task_id, user_id):
+def update_docker_images(request: "HttpRequest", context: "Context", task_id: str, user_id: str) -> "HttpResponse":
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=True)
     context["docker"] = docker
 
@@ -359,7 +382,7 @@ def update_docker_images(request, context, task_id, user_id):
 
 @check_resources_exist("json")
 @add_context
-def get_user(request, context: dict[str, Any], task_id, user_id):
+def get_user(request: "HttpRequest", context: "Context", task_id: str, user_id: str) -> "HttpResponse":
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
@@ -378,7 +401,9 @@ def get_user(request, context: dict[str, Any], task_id, user_id):
 
 @check_resources_exist("json")
 @add_context
-def get_running_software(request, context, task_id, user_id, force_cache_refresh):
+def get_running_software(
+    request: "HttpRequest", context: "Context", task_id: str, user_id: str, force_cache_refresh: str
+) -> "HttpResponse":
     context["running_software"] = []
 
     evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
@@ -409,13 +434,13 @@ def get_running_software(request, context, task_id, user_id, force_cache_refresh
 
 
 @add_context
-def public_submissions(request, context, task_id):
+def public_submissions(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["public_submissions"] = model.model.get_public_docker_softwares(task_id)
 
     return JsonResponse({"status": 0, "context": context})
 
 
-def public_submission_or_none(task_id, user_id, display_name):
+def public_submission_or_none(task_id: "HttpRequest", user_id: str, display_name: str):
     for i in model.model.get_public_docker_softwares(task_id, return_only_names=False, return_details=True):
         if i["display_name"] == display_name and i["vm_id"] == user_id:
             return i
@@ -423,7 +448,9 @@ def public_submission_or_none(task_id, user_id, display_name):
 
 
 @add_context
-def public_submission(request, context, task_id, user_id, display_name):
+def public_submission(
+    request: "HttpRequest", context: "Context", task_id: str, user_id: str, display_name: str
+) -> "HttpResponse":
     ret = public_submission_or_none(task_id, user_id, display_name)
     if ret:
         context["submission"] = ret
@@ -435,7 +462,7 @@ def public_submission(request, context, task_id, user_id, display_name):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_review(request, context, dataset_id, vm_id, run_id):
+def get_review(request: "HttpRequest", context: "Context", dataset_id: str, vm_id: str, run_id: str) -> "HttpResponse":
     context["dataset"] = model.get_dataset(dataset_id)
     context["run"] = model.get_run(None, None, run_id)
     context["review"] = model.get_run_review(dataset_id, vm_id, run_id)
@@ -464,10 +491,10 @@ def get_review(request, context, dataset_id, vm_id, run_id):
 
 
 @add_context
-def add_registration(request, context, task_id, vm_id):
+def add_registration(request: "HttpRequest", context: "Context", task_id: str, vm_id: str) -> "HttpResponse":
     """get the registration of a user on a task. If there is none"""
     try:
-        data = json.loads(request.body)
+        data: dict[str, Any] = json.loads(request.body)
         data["group"] = slugify(data["group"])
         data["initial_owner"] = context["user_id"]
         data["task_id"] = task_id
@@ -489,7 +516,7 @@ def add_registration(request, context, task_id, vm_id):
         )
 
 
-def expand_links(component):
+def expand_links(component: "Any") -> "list[Any]":
     links = [*component.get("links", [])]
     ir_datasets_id = component.get("ir_datasets_id", None)
     if ir_datasets_id:
@@ -523,13 +550,13 @@ def expand_links(component):
     return component
 
 
-def flatten_components(components):
+def __flatten_components(components: "Any") -> "list[Any]":
     flattened_components = []
     for identifier, data in components.items():
         component = {"identifier": identifier, **data}
 
         if "components" in component:
-            component["components"] = flatten_components(data["components"])
+            component["components"] = __flatten_components(data["components"])
 
         if "tirex_submission_id" in data:
             component["tirex_submission_id"] = data["tirex_submission_id"]
@@ -540,13 +567,13 @@ def flatten_components(components):
 
 
 @add_context
-def tirex_components(request, context):
-    context["tirex_components"] = flatten_components(settings.TIREX_COMPONENTS)
+def tirex_components(request: "HttpRequest", context: "Context") -> "HttpResponse":
+    context["tirex_components"] = __flatten_components(settings.TIREX_COMPONENTS)
     return JsonResponse({"status": 0, "context": context})
 
 
-def flatten_tirex_components_to_id(obj: Union[dict[str, Any], Any], t=None):
-    ret = {}
+def __flatten_tirex_components_to_id(obj: "Union[dict[str, Any], Any]", t: "Optional[str]" = None) -> "dict[str, Any]":
+    ret: dict[str, Any] = {}
 
     if not isinstance(obj, dict):
         return ret
@@ -557,16 +584,16 @@ def flatten_tirex_components_to_id(obj: Union[dict[str, Any], Any], t=None):
         ret[obj["tirex_submission_id"]] = obj
 
     for k, v in obj.items():
-        for i, j in flatten_tirex_components_to_id(v, t if t else k).items():
+        for i, j in __flatten_tirex_components_to_id(v, t if t else k).items():
             ret[i] = j
 
     return ret
 
 
-TIREX_ID_TO_COMPONENT = flatten_tirex_components_to_id(settings.TIREX_COMPONENTS)
+TIREX_ID_TO_COMPONENT = __flatten_tirex_components_to_id(settings.TIREX_COMPONENTS)
 
 
-def get_snippet_to_run_components(request):
+def get_snippet_to_run_components(request: "HttpRequest") -> "HttpResponse":
     component_key = request.GET.get("component")
 
     if component_key not in TIREX_ID_TO_COMPONENT:
@@ -637,14 +664,14 @@ def get_snippet_to_run_components(request):
 
 
 @add_context
-def reranking_datasets(request, context, task_id):
+def reranking_datasets(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["re_ranking_datasets"] = model.get_all_reranking_datasets_for_task(task_id)
     return JsonResponse({"status": 0, "context": context})
 
 
 @add_context
 @check_permissions
-def submissions_of_user(request, context, vm_id):
+def submissions_of_user(request: "HttpRequest", context: "Context", vm_id: str) -> "HttpResponse":
     try:
         context["submissions_of_user"] = model.submissions_of_user(vm_id)
         return JsonResponse({"status": 0, "context": context})
@@ -654,7 +681,9 @@ def submissions_of_user(request, context, vm_id):
 
 @add_context
 @check_permissions
-def import_submission(request, context, task_id, vm_id, submission_type, s_id):
+def import_submission(
+    request: "HttpRequest", context: "Context", task_id: str, vm_id: str, submission_type: str, s_id: str
+) -> "HttpResponse":
     try:
         model.import_submission(task_id, vm_id, submission_type, s_id)
         return JsonResponse({"status": 0, "context": context})
@@ -665,7 +694,9 @@ def import_submission(request, context, task_id, vm_id, submission_type, s_id):
 @add_context
 @check_permissions
 @check_resources_exist("json")
-def submissions_for_task(request, context, task_id, user_id, submission_type):
+def submissions_for_task(
+    request: "HttpRequest", context: "Context", task_id: str, user_id: str, submission_type: str
+) -> "HttpResponse":
     context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
     cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
@@ -692,7 +723,7 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def export_registrations(request, context, task_id):
+def export_registrations(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     ret = StringIO()
 
     fieldnames = [

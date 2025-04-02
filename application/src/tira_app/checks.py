@@ -33,7 +33,7 @@ def check_permissions(func):
     """
 
     @wraps(func)
-    def func_wrapper(request: HttpRequest, *args, **kwargs):
+    def func_wrapper(request: "HttpRequest", *args, **kwargs):
         if request.method == "OPTIONS":
             return HttpResponse("allowed")
 

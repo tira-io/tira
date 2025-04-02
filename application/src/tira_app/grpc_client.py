@@ -4,6 +4,7 @@ GrpcClient to make gRPC calls to the dockerized host running a VM.
 """
 import logging
 from functools import wraps
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import grpc
@@ -13,6 +14,9 @@ from google.protobuf.empty_pb2 import Empty
 
 from .model import EvaluationLog, TransactionLog
 from .proto import tira_host_pb2, tira_host_pb2_grpc
+
+if TYPE_CHECKING:
+    from google.protobuf.message import Message
 
 logger = logging.getLogger("tira")
 grpc_port = settings.HOST_GRPC_PORT
@@ -62,7 +66,7 @@ class GrpcClient:
         """A channel is opened at init time and closed on deletion. Try not to store these objects for long."""
         self.hostname = hostname
         self.channel = grpc.insecure_channel(hostname + ":" + str(grpc_port))
-        self.stub = tira_host_pb2_grpc.TiraHostServiceStub(self.channel)
+        self.stub = tira_host_pb2_grpc.TiraHostServiceStub(self.channel)  # type: ignore [no-untyped-call]
 
     def __del__(self) -> None:
         self.channel.close()
@@ -164,7 +168,7 @@ class GrpcClient:
         input_run_dataset_id: str,
         input_run_run_id: str,
         optional_parameters: str,
-        transaction: str,
+        transaction: "Message",
     ):
         """Initiates the evaluation of a prior run.
         :param vm_id: ID of the vm that can run the evaluation

@@ -7,7 +7,7 @@ import zipfile
 from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
@@ -27,6 +27,11 @@ from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
 from ..util import get_tira_id, link_to_discourse_team, reroute_host
 from ..views import add_context
+
+if TYPE_CHECKING:
+    from typing import Any, Mapping, Optional
+
+    from django.http import HttpRequest, HttpResponse
 
 include_navigation = False
 
@@ -121,7 +126,7 @@ def _host_call(func):
 
 @check_permissions
 @check_resources_exist("json")
-def vm_state(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_state(request: "HttpRequest", vm_id: str) -> HttpResponse:
     try:
         state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={"vm_state": 0})[0].vm_state
     except IntegrityError as e:
@@ -132,14 +137,14 @@ def vm_state(request: HttpRequest, vm_id: str) -> HttpResponse:
 
 @check_permissions
 @check_resources_exist("json")
-def vm_running_evaluations(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_running_evaluations(request: "HttpRequest", vm_id: str) -> HttpResponse:
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse({"status": 0, "running_evaluations": True if results else False})
 
 
 @check_permissions
 @check_resources_exist("json")
-def get_running_evaluations(request: HttpRequest, vm_id: str) -> HttpResponse:
+def get_running_evaluations(request: "HttpRequest", vm_id: str) -> HttpResponse:
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse(
         {
@@ -154,7 +159,7 @@ def get_running_evaluations(request: HttpRequest, vm_id: str) -> HttpResponse:
 
 @add_context
 @check_permissions
-def docker_software_details(request: HttpRequest, context, vm_id: str, docker_software_id: str) -> HttpResponse:
+def docker_software_details(request: "HttpRequest", context, vm_id: str, docker_software_id: str) -> HttpResponse:
     context["docker_software_details"] = model.get_docker_software(int(docker_software_id))
 
     if "mount_hf_model" in context["docker_software_details"] and context["docker_software_details"]["mount_hf_model"]:
@@ -168,7 +173,7 @@ def docker_software_details(request: HttpRequest, context, vm_id: str, docker_so
 
 
 @check_permissions
-def huggingface_model_mounts(request: HttpRequest, vm_id: str, hf_model: str) -> HttpResponse:
+def huggingface_model_mounts(request: "HttpRequest", vm_id: str, hf_model: str) -> HttpResponse:
     from ..huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
 
     context = {"hf_model_available": False, "hf_model_for_vm": vm_id}
@@ -191,7 +196,7 @@ def huggingface_model_mounts(request: HttpRequest, vm_id: str, hf_model: str) ->
 
 @add_context
 @check_permissions
-def upload_group_details(request: HttpRequest, context, task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
+def upload_group_details(request: "HttpRequest", context, task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
     try:
         context["upload_group_details"] = model.get_upload(task_id, vm_id, upload_id)
     except Exception as e:
@@ -202,7 +207,7 @@ def upload_group_details(request: HttpRequest, context, task_id: str, vm_id: str
 
 @check_conditional_permissions(restricted=True)
 @_host_call
-def vm_create(request: HttpRequest, hostname: str, vm_id: str, ova_file: str) -> HttpResponse:
+def vm_create(request: "HttpRequest", hostname: str, vm_id: str, ova_file: str) -> HttpResponse:
     uid = auth.get_user_id(request)
     host = reroute_host(hostname)
     return GrpcClient(host).vm_create(vm_id=vm_id, ova_file=ova_file, user_id=uid, hostname=host)
@@ -211,7 +216,7 @@ def vm_create(request: HttpRequest, hostname: str, vm_id: str, ova_file: str) ->
 @check_permissions
 @check_resources_exist("json")
 @_host_call
-def vm_start(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_start(request: "HttpRequest", vm_id: str) -> HttpResponse:
     vm = model.get_vm(vm_id)
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
     return GrpcClient(reroute_host(vm["host"])).vm_start(vm_id=vm_id)
@@ -220,7 +225,7 @@ def vm_start(request: HttpRequest, vm_id: str) -> HttpResponse:
 @check_permissions
 @check_resources_exist("json")
 @_host_call
-def vm_shutdown(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_shutdown(request: "HttpRequest", vm_id: str) -> HttpResponse:
     vm = model.get_vm(vm_id)
     return GrpcClient(reroute_host(vm["host"])).vm_shutdown(vm_id=vm_id)
 
@@ -228,14 +233,14 @@ def vm_shutdown(request: HttpRequest, vm_id: str) -> HttpResponse:
 @check_permissions
 @check_resources_exist("json")
 @_host_call
-def vm_stop(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_stop(request: "HttpRequest", vm_id: str) -> HttpResponse:
     vm = model.get_vm(vm_id)
     return GrpcClient(reroute_host(vm["host"])).vm_stop(vm_id=vm_id)
 
 
 @check_permissions
 @check_resources_exist("json")
-def vm_info(request: HttpRequest, vm_id: str) -> HttpResponse:
+def vm_info(request: "HttpRequest", vm_id: str) -> HttpResponse:
     vm = model.get_vm(vm_id)
     host = reroute_host(vm["host"])
     if not host:
@@ -285,7 +290,7 @@ def vm_info(request: HttpRequest, vm_id: str) -> HttpResponse:
 # ---------------------------------------------------------------------
 @check_permissions
 @check_resources_exist("json")
-def software_add(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
+def software_add(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
     if request.method == "GET":
         if not task_id or task_id is None or task_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
@@ -315,7 +320,7 @@ def software_add(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse
 
 @check_permissions
 @check_resources_exist("json")
-def software_save(request: HttpRequest, task_id: str, vm_id: str, software_id: str) -> HttpResponse:
+def software_save(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
     if request.method == "POST":
         data = json.loads(request.body)
         new_dataset = data.get("input_dataset")
@@ -348,7 +353,7 @@ def software_save(request: HttpRequest, task_id: str, vm_id: str, software_id: s
 
 @check_permissions
 @check_resources_exist("json")
-def software_delete(request: HttpRequest, task_id: str, vm_id: str, software_id: str) -> HttpResponse:
+def software_delete(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 
     if delete_ok:
@@ -366,7 +371,7 @@ def software_delete(request: HttpRequest, task_id: str, vm_id: str, software_id:
 @check_permissions
 @check_resources_exist("json")
 @_host_call
-def run_execute(request: HttpRequest, task_id: str, vm_id: str, software_id: str) -> HttpResponse:
+def run_execute(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
     if not model.dataset_exists(software["dataset"]):
@@ -482,7 +487,7 @@ def run_abort(request, vm_id):
 @csrf_exempt
 @check_permissions
 @check_resources_exist("json")
-def upload(request, task_id, vm_id, dataset_id, upload_id):
+def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, upload_id: str) -> "HttpResponse":
     if request.method == "POST":
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
@@ -503,8 +508,8 @@ def _parse_notebook_to_html(notebook_content: str) -> Optional[str]:
     from nbconvert import HTMLExporter
 
     try:
-        notebook = nbformat.reads(notebook_content, as_version=4)
-        html_exporter = HTMLExporter(template_name="classic")
+        notebook = nbformat.reads(notebook_content, as_version=4)  # type: ignore [no-untyped-call]
+        html_exporter: HTMLExporter = HTMLExporter(template_name="classic")  # type: ignore [no-untyped-call]
         (body, _) = html_exporter.from_notebook_node(notebook)
         return body
     except Exception:
@@ -533,7 +538,7 @@ def load_notebook(upload_dir: Path) -> Optional[dict[str, Optional[str]]]:
             "notebook": notebook_content,
             "script": script_content,
         }
-    except:
+    except Exception:
         pass
     return None
 
@@ -579,14 +584,16 @@ def _parse_metadata_from_upload(upload_dir: Path) -> dict[str, Any]:
 
                     if not metadata_git_repo:
                         metadata_git_repo = repo
-            except:
+            except Exception:
                 pass
 
-    except:
+    except Exception:
         pass
 
-    metadata_has_notebook = "notebook_html" in load_notebook(Path(upload_dir))
-    valid_formats = json.dumps(report_valid_formats(upload_dir))
+    notebook = load_notebook(Path(upload_dir))
+    assert notebook is not None
+    metadata_has_notebook = "notebook_html" in notebook
+    valid_formats: Optional[str] = json.dumps(report_valid_formats(upload_dir))
     if not valid_formats or len(valid_formats) <= 4:
         valid_formats = None
     return {
@@ -598,7 +605,7 @@ def _parse_metadata_from_upload(upload_dir: Path) -> dict[str, Any]:
 
 
 @csrf_exempt
-def anonymous_upload(request: HttpRequest, dataset_id: str) -> HttpResponse:
+def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
     if request.method == "POST":
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return HttpResponseServerError(
@@ -685,7 +692,7 @@ def anonymous_upload(request: HttpRequest, dataset_id: str) -> HttpResponse:
 
 @check_permissions
 @check_resources_exist("json")
-def delete_upload(request: HttpRequest, task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
+def delete_upload(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
     try:
         model.delete_upload(task_id, vm_id, upload_id)
         return JsonResponse({"status": 0, "message": "ok"})
@@ -697,7 +704,7 @@ def delete_upload(request: HttpRequest, task_id: str, vm_id: str, upload_id: str
 
 @check_permissions
 @check_resources_exist("json")
-def add_upload(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
+def add_upload(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
     if request.method == "GET":
         if not task_id or task_id is None or task_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
@@ -719,7 +726,7 @@ def add_upload(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
 @csrf_exempt
 @check_permissions
 @check_resources_exist("json")
-def docker_software_add(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
+def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
     if request.method == "POST":
         if not task_id or task_id is None or task_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
@@ -800,7 +807,7 @@ def docker_software_add(request: HttpRequest, task_id: str, vm_id: str) -> HttpR
 
 @check_permissions
 @check_resources_exist("json")
-def docker_software_save(request: HttpRequest, task_id: str, vm_id: str, docker_software_id: str) -> HttpResponse:
+def docker_software_save(request: "HttpRequest", task_id: str, vm_id: str, docker_software_id: str) -> HttpResponse:
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -819,7 +826,7 @@ def docker_software_save(request: HttpRequest, task_id: str, vm_id: str, docker_
 
 
 @check_permissions
-def add_software_submission_git_repository(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
+def add_software_submission_git_repository(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
     if request.method != "POST":
         return JsonResponse({"status": 1, "message": "GET is not implemented for edit upload"})
 
@@ -849,7 +856,7 @@ def add_software_submission_git_repository(request: HttpRequest, task_id: str, v
 
 
 @check_permissions
-def get_token(request: HttpRequest, vm_id: str) -> HttpResponse:
+def get_token(request: "HttpRequest", vm_id: str) -> HttpResponse:
     disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
     if not disraptor_user or not isinstance(disraptor_user, str):
@@ -866,7 +873,7 @@ def get_token(request: HttpRequest, vm_id: str) -> HttpResponse:
 
 
 @check_permissions
-def get_software_submission_git_repository(request: HttpRequest, task_id: str, vm_id: str) -> HttpResponse:
+def get_software_submission_git_repository(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
     try:
         if task_id not in settings.CODE_SUBMISSION_REFERENCE_REPOSITORIES or not model.load_docker_data(
             task_id, vm_id, cache, force_cache_refresh=False
@@ -882,7 +889,7 @@ def get_software_submission_git_repository(request: HttpRequest, task_id: str, v
 
 @check_permissions
 @check_resources_exist("json")
-def upload_save(request: HttpRequest, task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
+def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str) -> HttpResponse:
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -899,7 +906,7 @@ def upload_save(request: HttpRequest, task_id: str, vm_id: str, upload_id: str) 
 
 @check_permissions
 @check_resources_exist("json")
-def docker_software_delete(request: HttpRequest, task_id: str, vm_id: str, docker_software_id: str) -> HttpResponse:
+def docker_software_delete(request: "HttpRequest", task_id: str, vm_id: str, docker_software_id: str) -> HttpResponse:
     delete_ok = model.delete_docker_software(task_id, vm_id, docker_software_id)
 
     if delete_ok:
@@ -961,7 +968,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "@Comment {No bib entry specified for the dataset, please contact the organizers for clarification.}"
         ),
     }
-    markdown_references = {"run": None, "task": None, "dataset": None}
+    markdown_references: dict[str, Optional[str]] = {"run": None, "task": None, "dataset": None}
 
     if run["dataset"] == "antique-test-20230107-training":
         markdown_references["dataset"] = (
@@ -1092,14 +1099,14 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
 
     print(run)
     ret_bib = ""
-    ret_markdown = ["Please cite the approach / resources if you use them. Potential candidates are:"]
-    missing_references = []
+    ret_markdown: list[str] = ["Please cite the approach / resources if you use them. Potential candidates are:"]
+    missing_references: list[str] = []
     for t in ["run", "dataset", "task"]:
         ret_bib += bib_references[t] + "\n\n"
-        if markdown_references[t]:
-            ret_markdown += [markdown_references[t]]
+        if (ref := markdown_references[t]) is not None:
+            ret_markdown.append(ref)
         else:
-            missing_references += [t]
+            missing_references.append(t)
 
     if missing_references:
         ret_markdown += [
@@ -1116,15 +1123,22 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
 
 @check_permissions
 @check_resources_exist("json")
-def run_details(request: HttpRequest, task_id: str, vm_id: str, run_id: str) -> HttpResponse:
+def run_details(request: "HttpRequest", task_id: str, vm_id: str, run_id: str) -> HttpResponse:
     run = model.get_run(dataset_id=None, vm_id=vm_id, run_id=run_id)
-    software, docker_software, run_upload = None, None, None
+    software: Optional[dict[str, Any]] = None
+    docker_software: Optional[dict[str, Any]] = None
+    run_upload = None
     vm_id_from_run = None
 
-    repro_details = {"tira-run-export": None, "tira-run-cli": None, "tira-run-python": None, "docker": None}
+    repro_details: Mapping[str, Optional[str]] = {
+        "tira-run-export": None,
+        "tira-run-cli": None,
+        "tira-run-python": None,
+        "docker": None,
+    }
 
     if "software_id" in run and run["software_id"]:
-        software = model.get_software(software)
+        software = model.get_software(task_id, vm_id, run["software_id"])
         vm_id_from_run = software["vm"]
     elif "docker_software_id" in run and run["docker_software_id"]:
         docker_software = model.get_docker_software(run["docker_software_id"])
@@ -1167,13 +1181,13 @@ def run_details(request: HttpRequest, task_id: str, vm_id: str, run_id: str) -> 
 
 @check_permissions
 @check_resources_exist("json")
-def software_details(request: HttpRequest, task_id: str, vm_id: str, software_name: str) -> HttpResponse:
+def software_details(request: "HttpRequest", task_id: str, vm_id: str, software_name: str) -> HttpResponse:
     docker_software = model.get_docker_software_by_name(software_name, vm_id, task_id)
 
     if not docker_software:
         return JsonResponse({"status": 0, "message": f'Could not find a software with name "{software_name}"'})
 
-    repro_details = {
+    repro_details: Mapping[str, Optional[str]] = {
         "tira-run-export": None,
         "tira-run-cli": None,
         "tira-run-python": None,
@@ -1207,10 +1221,10 @@ def software_details(request: HttpRequest, task_id: str, vm_id: str, software_na
 @check_permissions
 @check_resources_exist("json")
 def run_execute_docker_software(
-    request: HttpRequest,
+    request: "HttpRequest",
     task_id: Optional[str],
-    vm_id: Optional[str],
-    dataset_id: Optional[str],
+    vm_id: "Optional[str]",
+    dataset_id: str,
     docker_software_id: Optional[str],
     docker_resources: str,
     rerank_dataset: Optional[str] = None,
@@ -1342,7 +1356,7 @@ def run_execute_docker_software(
 
 
 @check_permissions
-def stop_docker_software(request: HttpRequest, task_id: str, user_id: str, run_id: str) -> HttpResponse:
+def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run_id: str) -> HttpResponse:
     if not request.method == "GET":
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
     else:
