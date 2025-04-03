@@ -78,13 +78,12 @@ def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
 def evaluate_command(predictions: Path, truths: Path, config: str, **kwargs) -> int:
     client: "TiraClient" = RestClient()
     eval_config = client.get_dataset(config)
-    print(eval_config)
     if not truths:
         truths = Path(client.download_dataset(eval_config["task_id"], eval_config["dataset_id"], truth_dataset=True))
 
     from tira.evaluators import evaluate
 
-    print(evaluate(Path(predictions), truths, eval_config))
+    print(evaluate(Path(predictions), Path(truths), eval_config))
 
     return 0
 

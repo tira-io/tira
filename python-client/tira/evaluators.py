@@ -55,6 +55,7 @@ class TiraBaseEvaluator(ABC):
         if log:
             log_message(ret[1], ret[0])
         if ret[0] != _fmt.OK:
+
             raise ValueError(ret[1])
 
     def throw_if_conf_invalid(self, config: dict) -> None:
@@ -108,11 +109,11 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
     def throw_if_conf_invalid(self, config: dict) -> None:
         pass
 
-    def __normalize_data(self, df: Any) -> Any:
+    def normalize_data(self, df: Any) -> Any:
         import pandas as pd
 
         if isinstance(df, pd.DataFrame):
-            return self.__normalize_data([i.to_dict() for _, i in df.iterrows()])
+            return self.normalize_data([i.to_dict() for _, i in df.iterrows()])
         else:
             ret = []
             for i in df.copy():
@@ -177,8 +178,8 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
     def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
         id_to_query_doc = {}
         pairwise = False
-        predictions = self.__normalize_data(run_data)
-        truths = self.__normalize_data(truth_data)
+        predictions = self.normalize_data(run_data)
+        truths = self.normalize_data(truth_data)
         from trectools import misc
 
         for i in truths:
@@ -378,11 +379,19 @@ def load_evaluator_config(config: "Union[dict, str]", client: "Optional[TiraClie
 
         return load_evaluator_config(dataset_config["trusted_evaluator"])
 
+    config = config.copy()
+
     if "measures" not in config or not config["measures"]:
-        raise ValueError("Configuration of the evaluator is invalid: No measures are specified.")
+        if "trusted_eval" in config and config["trusted_eval"] and "measures" in config["trusted_eval"]:
+            config["measures"] = config["trusted_eval"]["measures"]
+        else:
+            raise ValueError("Configuration of the evaluator is invalid: No measures are specified.")
 
     if "run_format" not in config:
-        raise ValueError("Configuration of the evaluator is invalid: No run_format is specified.")
+        if "format" in config:
+            config["run_format"] = config["format"]
+        else:
+            raise ValueError("Configuration of the evaluator is invalid: No run_format is specified.")
 
     if "truth_format" not in config:
         raise ValueError("Configuration of the evaluator is invalid: No truth_format is specified.")
