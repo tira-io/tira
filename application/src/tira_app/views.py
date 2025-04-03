@@ -47,7 +47,7 @@ def add_context(func):
     return func_wrapper
 
 
-def add_user_vms_to_context(request, context: dict[str, Any], task_id, include_docker_details=True) -> None:
+def add_user_vms_to_context(request, context: "dict[str, Any]", task_id, include_docker_details=True) -> None:
     if context["role"] != auth.ROLE_GUEST:
         allowed_vms_for_task = model.all_allowed_task_teams(task_id)
         vm_id = auth.get_vm_id(request, context["user_id"])

@@ -298,7 +298,7 @@ def set_up_tira_environment():
     tira_model.add_run(dataset_id="dataset-of-organizer", vm_id="example_participant", run_id="run-of-organizer")
 
 
-def __resolve_path(url_pattern: str, params: Optional[dict[str, Any]] = None) -> str:
+def __resolve_path(url_pattern: str, params: "Optional[dict[str, Any]]" = None) -> str:
     """
     Replaces django template variables with their value from params
 
@@ -314,7 +314,7 @@ def __resolve_path(url_pattern: str, params: Optional[dict[str, Any]] = None) ->
 
 
 def mock_request(
-    groups: str, url_pattern: str, method="GET", body: Optional[dict] = None, params: Optional[dict] = None
+    groups: str, url_pattern: str, method="GET", body: "Optional[dict]" = None, params: "Optional[dict]" = None
 ) -> HttpRequest:
     path = __resolve_path(url_pattern, params)
     # Stuff prefixed with HTTP_ will be added to the headers and to META otherwise
@@ -364,7 +364,7 @@ def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern
     return ret.status_code
 
 
-def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[tuple[str, URLPattern]]:
+def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> "Iterable[tuple[str, URLPattern]]":
     """Iterates all URLPatterns resolved by the provided ``resolver`` and their URLs.
 
     Args:
@@ -388,8 +388,8 @@ def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[t
 
 
 def get_django_url_patterns(
-    urlpatterns: Optional[list[Union[URLResolver, URLPattern]]] = None,
-) -> Iterable[tuple[str, URLPattern]]:
+    urlpatterns: "Optional[list[Union[URLResolver, URLPattern]]]" = None,
+) -> "Iterable[tuple[str, URLPattern]]":
     """Returns an iterable of all configured django endpoints.
 
     Args:
@@ -418,7 +418,7 @@ def get_django_url_patterns(
             raise TypeError(f"Unexpected entry-type in urlpatterns for {p}")
 
 
-def assert_all_url_patterns_are_tested(tested_url_patterns: Iterable[str]):
+def assert_all_url_patterns_are_tested(tested_url_patterns: "Iterable[str]"):
     """
     Asserts that tested_url_patterns is identical or a superset to all the endpoints registered with django.
     """

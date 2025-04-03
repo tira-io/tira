@@ -210,9 +210,9 @@ class DisraptorAuthentication(Authentication):
     def get_role(
         self,
         request: "HttpRequest",
-        user_id: Optional[str] = None,
-        vm_id: Optional[str] = None,
-        task_id: Optional[str] = None,
+        user_id: "Optional[str]" = None,
+        vm_id: "Optional[str]" = None,
+        task_id: "Optional[str]" = None,
     ):
         """Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.

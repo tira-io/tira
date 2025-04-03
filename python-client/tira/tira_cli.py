@@ -132,7 +132,7 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: Optional[str] = None, **kwargs) -> int:
+def download_command(dataset: str, approach: "Optional[str]" = None, **kwargs) -> int:
     client: "TiraClient" = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
@@ -150,7 +150,7 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
 
 
 def code_submission_command(
-    path: Path, task: str, dry_run: bool, allow_network: bool, command: Optional[str], **kwargs
+    path: Path, task: str, dry_run: bool, allow_network: bool, command: "Optional[str]", **kwargs
 ) -> int:
     client: "TiraClient" = RestClient()
     client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network)

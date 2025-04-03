@@ -23,11 +23,11 @@ from tira.tira_client import TiraClient
 class TiraBaseEvaluator(ABC):
     def __init__(
         self,
-        run_format: Union[str, List[str]],
-        run_format_configuration: Optional[Dict[str, Any]],
-        truth_format: Union[str, List[str]],
-        truth_format_configuration: Optional[Dict[str, Any]],
-        measures: List[str],
+        run_format: "Union[str, List[str]]",
+        run_format_configuration: "Optional[Dict[str, Any]]",
+        truth_format: "Union[str, List[str]]",
+        truth_format_configuration: "Optional[Dict[str, Any]]",
+        measures: "List[str]",
     ):
         self._run_format = run_format
         self._run_format_configuration = run_format_configuration
@@ -35,7 +35,7 @@ class TiraBaseEvaluator(ABC):
         self._truth_format_configuration = truth_format_configuration
         self._measures = measures
 
-    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
+    def evaluate(self, run: Path, truths: Path) -> "dict[str, Any]":
         self.is_valid(run, self._run_format, self._run_format_configuration, True)
         self.is_valid(truths, self._truth_format, self._truth_format_configuration)
 
@@ -47,8 +47,8 @@ class TiraBaseEvaluator(ABC):
     def is_valid(
         self,
         directory: Path,
-        format: Union[str, List[str]],
-        configuration: Optional[Dict[str, Any]] = None,
+        format: "Union[str, List[str]]",
+        configuration: "Optional[Dict[str, Any]]" = None,
         log: bool = False,
     ):
         ret = check_format(directory, format, configuration)
@@ -73,7 +73,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if self._truth_format and "qrels.txt" != self._truth_format and "qrels.txt" not in self._truth_format:
             self._truth_format = "qrels.txt"
 
-    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
+    def evaluate(self, run: Path, truths: Path) -> "dict[str, Any]":
         self.is_valid(run, self._run_format, True)
 
         expected_queries = None
@@ -304,7 +304,7 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
         import pandas as pd
         from trectools import TrecEval, TrecQrel, TrecRun
 
-    def evaluate(self, run: Path, truths: Path) -> dict[str, Any]:
+    def evaluate(self, run: Path, truths: Path) -> "dict[str, Any]":
         if not self.groups_to_evaluate:
             return super().evaluate(run, truths)
         else:
@@ -368,7 +368,7 @@ MEASURE_TO_EVALUATORS: dict[str, str] = {
 }
 
 
-def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient] = None) -> dict:
+def load_evaluator_config(config: "Union[dict, str]", client: "Optional[TiraClient]" = None) -> dict:
     if isinstance(config, str):
         if client is None:
             client = Client()
@@ -390,7 +390,7 @@ def load_evaluator_config(config: Union[dict, str], client: Optional[TiraClient]
     return config
 
 
-def unsandboxed_evaluation_is_allowed(config: Union[dict, str], client: Optional[TiraClient] = None) -> bool:
+def unsandboxed_evaluation_is_allowed(config: "Union[dict, str]", client: "Optional[TiraClient]" = None) -> bool:
     try:
         config = load_evaluator_config(config, client)
 
@@ -400,7 +400,9 @@ def unsandboxed_evaluation_is_allowed(config: Union[dict, str], client: Optional
     return False
 
 
-def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClient] = None) -> List[TiraBaseEvaluator]:
+def get_evaluators_if_valid(
+    config: "Union[dict, str]", client: "Optional[TiraClient]" = None
+) -> List[TiraBaseEvaluator]:
     config = load_evaluator_config(config, client)
 
     evaluator_to_measures = defaultdict(list)
@@ -426,10 +428,10 @@ def get_evaluators_if_valid(config: Union[dict, str], client: Optional[TiraClien
 def evaluate(
     run: Path,
     truths: Path,
-    config: Union[dict, str],
-    output_dir: Optional[Path] = None,
-    client: Optional[TiraClient] = None,
-    monitored: Optional[bool] = False,
+    config: "Union[dict, str]",
+    output_dir: "Optional[Path]" = None,
+    client: "Optional[TiraClient]" = None,
+    monitored: "Optional[bool]" = False,
 ) -> dict:
     config = load_evaluator_config(config, client)
     evaluators = get_evaluators_if_valid(config, client)

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tira")
 
 
-def _coalesce(*args: Optional[_T]) -> Optional[_T]:
+def _coalesce(*args: "Optional[_T]") -> "Optional[_T]":
     """
     Returns the first argument that is not None. Returns None if no such value exists.
     """
@@ -304,7 +304,7 @@ class FileDatabase(object):
 
         return evaluations
 
-    def get_evaluation_measures(self, evaluation) -> dict[str, Any]:
+    def get_evaluation_measures(self, evaluation) -> "dict[str, Any]":
         return {measure.key: measure.value for measure in evaluation.measure}
 
     # ---------------------------------------------------------------------
@@ -507,20 +507,20 @@ class FileDatabase(object):
         dataset_id: str,
         vm_id: str,
         run_id: str,
-        reviewer_id: Optional[str] = None,
-        review_date: Optional[str] = None,
-        has_errors: Optional[bool] = None,
-        has_no_errors: Optional[bool] = None,
-        no_errors: Optional[bool] = None,
-        missing_output: Optional[bool] = None,
-        extraneous_output: Optional[bool] = None,
-        invalid_output: Optional[bool] = None,
-        has_error_output: Optional[bool] = None,
-        other_errors: Optional[bool] = None,
-        comment: Optional[str] = None,
-        published: Optional[bool] = None,
-        blinded: Optional[bool] = None,
-        has_warnings: Optional[bool] = False,
+        reviewer_id: "Optional[str]" = None,
+        review_date: "Optional[str]" = None,
+        has_errors: "Optional[bool]" = None,
+        has_no_errors: "Optional[bool]" = None,
+        no_errors: "Optional[bool]" = None,
+        missing_output: "Optional[bool]" = None,
+        extraneous_output: "Optional[bool]" = None,
+        invalid_output: "Optional[bool]" = None,
+        has_error_output: "Optional[bool]" = None,
+        other_errors: "Optional[bool]" = None,
+        comment: "Optional[str]" = None,
+        published: "Optional[bool]" = None,
+        blinded: "Optional[bool]" = None,
+        has_warnings: "Optional[bool]" = False,
     ) -> None:
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
@@ -544,13 +544,13 @@ class FileDatabase(object):
 
         self._save_review(dataset_id, vm_id, run_id, review)
 
-    def _update_run(self, dataset_id: str, vm_id: str, run_id: str, deleted: Optional[bool] = None) -> None:
+    def _update_run(self, dataset_id: str, vm_id: str, run_id: str, deleted: "Optional[bool]" = None) -> None:
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         run = self._load_run(dataset_id, vm_id, run_id)
 
-        def update(x: _T, y: Optional[_T]) -> _T:
+        def update(x: _T, y: "Optional[_T]") -> "_T":
             return y if y is not None else x
 
         run.deleted = update(run.deleted, deleted)
@@ -561,15 +561,15 @@ class FileDatabase(object):
         task_id: str,
         vm_id: str,
         software_id: str,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
+        command: "Optional[str]" = None,
+        working_directory: "Optional[str]" = None,
+        dataset: "Optional[str]" = None,
+        run: "Optional[str]" = None,
         deleted: bool = False,
     ):
         assert self.software is not None
 
-        def update(x: _T, y: Optional[_T]) -> _T:
+        def update(x: "_T", y: "Optional[_T]") -> "_T":
             return y if y is not None else x
 
         s = self._load_softwares(task_id, vm_id)
@@ -615,11 +615,11 @@ class FileDatabase(object):
         assert self.vms is not None
         return self.vms.get(vm_id, None)
 
-    def get_tasks(self) -> list[dict[str, Any]]:
+    def get_tasks(self) -> "list[dict[str, Any]]":
         assert self.tasks is not None
         return [self.get_task(task.taskId) for task in self.tasks.values()]
 
-    def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict[str, Any]:
+    def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> "dict[str, Any]":
         run = self._load_run(dataset_id, vm_id, run_id, return_deleted)
         return {
             "software": run.softwareId,
@@ -629,7 +629,7 @@ class FileDatabase(object):
             "downloadable": run.downloadable,
         }
 
-    def get_task(self, task_id: str) -> dict[str, Any]:
+    def get_task(self, task_id: str) -> "dict[str, Any]":
         assert self.tasks is not None and self.software_by_task is not None and self.organizers is not None
         t = self.tasks[task_id]
 
@@ -656,7 +656,7 @@ class FileDatabase(object):
             "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years,
         }
 
-    def get_dataset(self, dataset_id: str) -> dict[str, Any]:
+    def get_dataset(self, dataset_id: str) -> "dict[str, Any]":
         assert (
             self.datasets is not None
             and self.default_tasks is not None
@@ -676,12 +676,12 @@ class FileDatabase(object):
             "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0),
         }
 
-    def get_datasets(self) -> dict[str, dict[str, Any]]:
+    def get_datasets(self) -> "dict[str, dict[str, Any]]":
         """Get a dict of dataset_id: dataset_json_descriptor"""
         assert self.datasets is not None
         return {dataset_id: self.get_dataset(dataset_id) for dataset_id in self.datasets}
 
-    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list[dict[str, Any]]:
+    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> "list[dict[str, Any]]":
         """return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
@@ -714,7 +714,7 @@ class FileDatabase(object):
         returns a list of tuples (hostname, vm_id, state)
         """
 
-        def parse_vm_list(vm_list: Iterable[str]) -> Iterable[list[str]]:
+        def parse_vm_list(vm_list: "Iterable[str]") -> "Iterable[list[str]]":
             for list_entry in vm_list:
                 try:
                     tmp = list_entry.split("\t")
@@ -747,7 +747,7 @@ class FileDatabase(object):
             runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
 
-    def get_vms_with_reviews(self, dataset_id: str) -> list[dict[str, Any]]:
+    def get_vms_with_reviews(self, dataset_id: str) -> "list[dict[str, Any]]":
         vm_ids = self.get_vms_by_dataset(dataset_id)
         # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
         vm_reviews = {vm_id: self.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
@@ -841,7 +841,7 @@ class FileDatabase(object):
 
     def get_vm_evaluations_by_dataset(
         self, dataset_id: str, vm_id: str, only_public_results: bool = True
-    ) -> dict[str, dict[str, Any]]:
+    ) -> "dict[str, dict[str, Any]]":
         """Return a dict of run_id: evaluation_results for the given vm on the given dataset
         @param only_public_results: only return the measures for published datasets.
         """
@@ -850,7 +850,7 @@ class FileDatabase(object):
             for run_id, ev in self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()
         }
 
-    def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict[str, Any]:
+    def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> "dict[str, Any]":
         review = self.load_review(dataset_id, vm_id, run_id)
 
         return {
@@ -876,14 +876,14 @@ class FileDatabase(object):
         }
 
     @overload
-    def get_software(self, task_id: str, vm_id: str, software_id: None = None) -> list[dict[str, Any]]: ...
+    def get_software(self, task_id: str, vm_id: str, software_id: None = None) -> "list[dict[str, Any]]": ...
 
     @overload
-    def get_software(self, task_id: str, vm_id: str, software_id: str) -> Optional[dict[str, Any]]: ...
+    def get_software(self, task_id: str, vm_id: str, software_id: str) -> "Optional[dict[str, Any]]": ...
 
     def get_software(
-        self, task_id: str, vm_id: str, software_id: Optional[str] = None
-    ) -> Union[list[dict[str, Any]], Optional[dict[str, Any]]]:
+        self, task_id: str, vm_id: str, software_id: "Optional[str]" = None
+    ) -> "Union[list[dict[str, Any]], Optional[dict[str, Any]]]":
         """Returns the software with the given name of a vm on a task"""
         assert self.software is not None
         sw = [
@@ -968,19 +968,19 @@ class FileDatabase(object):
         dataset_id,
         vm_id,
         run_id,
-        reviewer_id: Optional[str] = None,
-        review_date: Optional[str] = None,
-        has_errors: Optional[bool] = None,
-        has_no_errors: Optional[bool] = None,
-        no_errors: Optional[bool] = None,
-        missing_output: Optional[bool] = None,
-        extraneous_output: Optional[bool] = None,
-        invalid_output: Optional[bool] = None,
-        has_error_output: Optional[bool] = None,
-        other_errors: Optional[bool] = None,
-        comment: Optional[str] = None,
-        published: Optional[bool] = None,
-        blinded: Optional[bool] = None,
+        reviewer_id: "Optional[str]" = None,
+        review_date: "Optional[str]" = None,
+        has_errors: "Optional[bool]" = None,
+        has_no_errors: "Optional[bool]" = None,
+        no_errors: "Optional[bool]" = None,
+        missing_output: "Optional[bool]" = None,
+        extraneous_output: "Optional[bool]" = None,
+        invalid_output: "Optional[bool]" = None,
+        has_error_output: "Optional[bool]" = None,
+        other_errors: "Optional[bool]" = None,
+        comment: "Optional[str]" = None,
+        published: "Optional[bool]" = None,
+        blinded: "Optional[bool]" = None,
         has_warnings: bool = False,
     ) -> bool:
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -1016,7 +1016,7 @@ class FileDatabase(object):
         so this method currently does nothing."""
         pass
 
-    def update_run(self, dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
+    def update_run(self, dataset_id, vm_id, run_id, deleted: "Optional[bool]" = None):
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """

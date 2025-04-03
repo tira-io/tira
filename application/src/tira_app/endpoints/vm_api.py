@@ -396,7 +396,7 @@ def run_execute(request: "HttpRequest", task_id: str, vm_id: str, software_id: s
 
 
 @_host_call
-def _master_vm_eval_call(vm_id: str, dataset_id: str, run_id: str, evaluator: dict[str, Any]) -> HttpResponse:
+def _master_vm_eval_call(vm_id: str, dataset_id: str, run_id: str, evaluator: "dict[str, Any]") -> HttpResponse:
     """Called when the evaluation is done via master vm.
     This method calls the grpc client"""
     host = reroute_host(evaluator["host"])
@@ -532,7 +532,7 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
 
-def _parse_notebook_to_html(notebook_content: str) -> Optional[str]:
+def _parse_notebook_to_html(notebook_content: str) -> "Optional[str]":
     import nbformat
     from nbconvert import HTMLExporter
 
@@ -546,7 +546,7 @@ def _parse_notebook_to_html(notebook_content: str) -> Optional[str]:
     return None
 
 
-def load_notebook(upload_dir: Path) -> Optional[dict[str, Optional[str]]]:
+def load_notebook(upload_dir: Path) -> "Optional[dict[str, Optional[str]]]":
     if not (upload_dir / ".tirex-tracker" / "code.zip").exists():
         return {}
 
@@ -572,7 +572,7 @@ def load_notebook(upload_dir: Path) -> Optional[dict[str, Optional[str]]]:
     return None
 
 
-def _parse_metadata_from_upload(upload_dir: Path) -> dict[str, Any]:
+def _parse_metadata_from_upload(upload_dir: Path) -> "dict[str, Any]":
     has_metadata = False
     metadata_git_repo = None
     metadata_has_notebook = False
@@ -1251,12 +1251,12 @@ def software_details(request: "HttpRequest", task_id: str, vm_id: str, software_
 @check_resources_exist("json")
 def run_execute_docker_software(
     request: "HttpRequest",
-    task_id: Optional[str],
+    task_id: "Optional[str]",
     vm_id: "Optional[str]",
     dataset_id: str,
-    docker_software_id: Optional[str],
+    docker_software_id: "Optional[str]",
     docker_resources: str,
-    rerank_dataset: Optional[str] = None,
+    rerank_dataset: "Optional[str]" = None,
 ) -> HttpResponse:
     if not task_id or task_id is None or task_id == "None":
         return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})

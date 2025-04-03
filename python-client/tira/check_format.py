@@ -70,7 +70,7 @@ class FormatBase:
     def max_size(self):
         return 25 * 1024 * 1024
 
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]] = None):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]" = None):
         pass
 
     def check_format(self, run_output: Path):
@@ -212,7 +212,7 @@ class QrelFormat(FormatBase):
 
 
 class KeyValueFormatBase(FormatBase):
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         super().apply_configuration_and_throw_if_invalid(configuration)
 
         id_field = None
@@ -251,7 +251,7 @@ class KeyValueFormatBase(FormatBase):
 class JsonlFormat(KeyValueFormatBase):
     """Checks if a given output is a valid jsonl file."""
 
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration:
             configuration = {}
 
@@ -312,7 +312,7 @@ class JsonlFormat(KeyValueFormatBase):
 
 
 class LongEvalLags(FormatBase):
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
             raise ValueError(
                 'Please pass a configuration "lags" that points out on which lags an dataset should run. E.g., {"lags": ["lag-1", "lag-2"]}.'
@@ -345,7 +345,7 @@ class GenIrSimulationFormat(JsonlFormat):
         if "userTurns" not in line:
             raise ValueError('The json line misses the required field "simulation.userTurns".')
 
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         super().apply_configuration_and_throw_if_invalid(configuration)
 
         required_fields = set()
@@ -364,7 +364,7 @@ class GenIrSimulationFormat(JsonlFormat):
 class TsvFormat(KeyValueFormatBase):
     """Checks if a given output is a valid tsv file."""
 
-    def apply_configuration_and_throw_if_invalid(self, configuration: Optional[dict[str, Any]]):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration:
             configuration = {}
 
@@ -684,8 +684,8 @@ SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 
 
 def check_format_configuration_if_valid(
-    format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None
-) -> FormatBase:
+    format: Union[str, Sequence[str]], configuration: "Optional[dict[str, Any]]" = None
+) -> "FormatBase":
     if isinstance(format, str):
         ret = FORMAT_TO_CHECK[format]()
         ret.apply_configuration_and_throw_if_invalid(configuration)
@@ -697,7 +697,9 @@ def check_format_configuration_if_valid(
         return ret
 
 
-def lines_if_valid(run_output: Path, format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None):
+def lines_if_valid(
+    run_output: Path, format: "Union[str, Sequence[str]]", configuration: "Optional[dict[str, Any]]" = None
+):
     """Load all lines from a user file if they are valid
 
     Args:
@@ -729,7 +731,9 @@ def report_valid_formats(run_output: Path):
     return valid_formats
 
 
-def check_format(run_output: Path, format: Union[str, Sequence[str]], configuration: Optional[dict[str, Any]] = None):
+def check_format(
+    run_output: Path, format: "Union[str, Sequence[str]]", configuration: "Optional[dict[str, Any]]" = None
+):
     """Check if the provided run output is in the specified format. Provides debug messages intended for users.
 
     Args:

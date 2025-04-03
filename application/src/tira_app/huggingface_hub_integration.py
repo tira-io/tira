@@ -4,7 +4,7 @@ import tira.io_utils as tira_cli_io_utils
 from huggingface_hub import HFCacheInfo, scan_cache_dir, snapshot_download
 from huggingface_hub.constants import HF_HOME
 
-HF_CACHE: Optional[HFCacheInfo] = None
+HF_CACHE: "Optional[HFCacheInfo]" = None
 
 
 def _hf_repos() -> dict[str, str]:
@@ -14,7 +14,7 @@ def _hf_repos() -> dict[str, str]:
     return {i.repo_id: str(i) for i in HF_CACHE.repos}
 
 
-def huggingface_model_mounts(models: Iterable[str]):
+def huggingface_model_mounts(models: "Iterable[str]"):
     if not models:
         return []
 

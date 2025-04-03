@@ -494,7 +494,7 @@ def get_review(request: "HttpRequest", context: "Context", dataset_id: str, vm_i
 def add_registration(request: "HttpRequest", context: "Context", task_id: str, vm_id: str) -> "HttpResponse":
     """get the registration of a user on a task. If there is none"""
     try:
-        data: dict[str, Any] = json.loads(request.body)
+        data: "dict[str, Any]" = json.loads(request.body)
         data["group"] = slugify(data["group"])
         data["initial_owner"] = context["user_id"]
         data["task_id"] = task_id

@@ -136,7 +136,7 @@ def register_run(dataset_id: str, vm_id: str, run_id: str, software_id: str) -> 
 
 
 def __run_cmd_as_documented_background_process(
-    cmds: list[list[str]], process_id: int, descriptions: str, callback: Optional[Callable[[], None]]
+    cmds: list[list[str]], process_id: int, descriptions: str, callback: "Optional[Callable[[], None]]"
 ) -> None:
     import datetime
     import tempfile
@@ -175,7 +175,7 @@ def run_cmd_as_documented_background_process(
     task_id: str,
     title: str,
     descriptions: list[str],
-    callback: Optional[Callable[[], None]] = None,
+    callback: "Optional[Callable[[], None]]" = None,
 ) -> int:
     """
     Usage: # run_cmd_forwarding(['sh', '-c', 'echo "1"; sleep 2s; echo "2"; sleep 2s; echo "3"; sleep 2s; echo "4"'])
@@ -199,7 +199,7 @@ def run_cmd_as_documented_background_process(
     return process_id
 
 
-def docker_image_details(image: str) -> dict[str, Any]:
+def docker_image_details(image: str) -> "dict[str, Any]":
     import json
     import subprocess
 

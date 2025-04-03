@@ -54,7 +54,7 @@ def reload_runs(vm_id: str) -> None:
 
 
 # get methods are the public interface.
-def get_vm(vm_id: str, create_if_none: bool = False) -> dict[str, Any]:
+def get_vm(vm_id: str, create_if_none: bool = False) -> "dict[str, Any]":
     """Returns a vm as dictionary with:
 
         {"vm_id", "user_password", "roles", "host", "admin_name",
@@ -65,17 +65,17 @@ def get_vm(vm_id: str, create_if_none: bool = False) -> dict[str, Any]:
     return model.get_vm(vm_id, create_if_none)
 
 
-def get_tasks(include_dataset_stats: bool = False) -> list[dict[str, Any]]:
+def get_tasks(include_dataset_stats: bool = False) -> "list[dict[str, Any]]":
     return model.get_tasks(include_dataset_stats)
 
 
 def get_run(
     dataset_id: "Optional[str]", vm_id: "Optional[str]", run_id: str, return_deleted: bool = False
-) -> dict[str, Any]:
+) -> "dict[str, Any]":
     return model.get_run(dataset_id, vm_id, run_id, return_deleted)
 
 
-def get_task(task_id: str, include_dataset_stats=False) -> dict[str, Any]:
+def get_task(task_id: str, include_dataset_stats=False) -> "dict[str, Any]":
     """Get a dict with the task data as follows:
     {"task_id", "task_name", "task_description", "organizer", "web", "year", "dataset_count",
     "software_count", "max_std_out_chars_on_test_data", "max_std_err_chars_on_test_data",
@@ -86,7 +86,7 @@ def get_task(task_id: str, include_dataset_stats=False) -> dict[str, Any]:
     return model.get_task(task_id, include_dataset_stats)
 
 
-def get_dataset(dataset_id: str) -> dict[str, Any]:
+def get_dataset(dataset_id: str) -> "dict[str, Any]":
     """Return a Dataset as dict with the keys:
 
     {"display_name", "evaluator_id", "dataset_id", "is_confidential", "is_deprecated", "year",
@@ -95,14 +95,14 @@ def get_dataset(dataset_id: str) -> dict[str, Any]:
     return model.get_dataset(dataset_id)
 
 
-def get_datasets() -> dict[str, dict[str, Any]]:
+def get_datasets() -> "dict[str, dict[str, Any]]":
     """Get a dict of dataset_id: dataset_json_descriptor"""
     return model.get_datasets()
 
 
 def get_datasets_by_task(
     task_id: str, include_deprecated: bool = False, return_only_names: bool = False
-) -> list[dict[str, Any]]:
+) -> "list[dict[str, Any]]":
     """return the list of datasets associated with this task_id
     @param task_id: id string of the task the dataset belongs to
     @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
@@ -243,8 +243,8 @@ def get_discourse_token_for_user(vm_id: str, disraptor_user: str) -> "Optional[s
 def get_submission_git_repo(
     vm_id: str,
     task_id: str,
-    disraptor_user: Optional[str] = None,
-    external_owner: Optional[str] = None,
+    disraptor_user: "Optional[str]" = None,
+    external_owner: "Optional[str]" = None,
     private: bool = True,
 ) -> dict[str, str]:
     user_repository_name = slugify(task_id) + "-" + slugify(vm_id)
@@ -361,7 +361,7 @@ def get_docker_software_by_name(name: str, vm_id: str, task_id: str) -> "dict[st
     return model.get_docker_software_by_name(name, vm_id, task_id)
 
 
-def __formatted_error_message_for_missing_input_run(docker_software: dict[str, Any], input_run: str) -> str:
+def __formatted_error_message_for_missing_input_run(docker_software: "dict[str, Any]", input_run: str) -> str:
     if "input_docker_software_id" in docker_software and docker_software["input_docker_software_id"]:
         return (
             f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
@@ -379,7 +379,7 @@ def __formatted_error_message_for_missing_input_run(docker_software: dict[str, A
         )
 
 
-def get_ordered_input_runs_of_software(docker_software: dict[str, Any], task_id: str, dataset_id: str, vm_id: str):
+def get_ordered_input_runs_of_software(docker_software: "dict[str, Any]", task_id: str, dataset_id: str, vm_id: str):
     input_runs, missing_input_runs = [], []
 
     if ("input_docker_software_id" in docker_software and docker_software["input_docker_software_id"]) or (
@@ -475,7 +475,7 @@ def get_evaluations_of_run(vm_id: str, run_id: str) -> list:
     return model.get_evaluations_of_run(vm_id, run_id)
 
 
-def get_evaluator(dataset_id: str, task_id: Optional[str] = None) -> dict[str, Any]:
+def get_evaluator(dataset_id: str, task_id: "Optional[str]" = None) -> "dict[str, Any]":
     """returns a dict containing the evaluator parameters:
 
     vm_id: id of the master vm running the evaluator
@@ -602,17 +602,17 @@ def get_vm_reviews_by_dataset(dataset_id: str, vm_id: str) -> dict:
     return model.get_vm_reviews_by_dataset(dataset_id, vm_id)
 
 
-def get_software(task_id: str, vm_id: str, software_id: str) -> dict[str, Any]:
+def get_software(task_id: str, vm_id: str, software_id: str) -> "dict[str, Any]":
     """Returns the software of a vm on a task in json"""
     return model.get_software(task_id, vm_id, software_id)
 
 
-def get_software_by_task(task_id: str, vm_id: str) -> list[dict[str, Any]]:
+def get_software_by_task(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
     """Returns the software of a vm on a task in json"""
     return model.get_software_by_task(task_id, vm_id)
 
 
-def add_upload(task_id, vm_id, rename_to: Optional[str] = None) -> "dict[str, Any]":
+def add_upload(task_id, vm_id, rename_to: "Optional[str]" = None) -> "dict[str, Any]":
     """Add empty new upload"""
     return model.add_upload(task_id, vm_id, rename_to)
 
@@ -663,7 +663,7 @@ def add_docker_software(
     commit: "Optional[str]" = None,
     active_branch: "Optional[str]" = None,
     try_run_metadata_uuid: "Optional[str]" = None,
-) -> dict[str, Any]:
+) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
     image, old_tag = image.split(":")
@@ -750,9 +750,9 @@ def create_task(
     require_registration: bool,
     require_groups: bool,
     restrict_groups: bool,
-    help_command: Optional[str] = None,
-    help_text: Optional[str] = None,
-    allowed_task_teams: Optional[str] = None,
+    help_command: "Optional[str]" = None,
+    help_text: "Optional[str]" = None,
+    allowed_task_teams: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -781,16 +781,16 @@ def add_dataset(
     dataset_type: str,
     dataset_name: str,
     upload_name: str,
-    irds_docker_image: Optional[str] = None,
-    irds_import_command: Optional[str] = None,
-    irds_import_truth_command: Optional[str] = None,
-    dataset_format: Optional[str] = None,
-    description: Optional[str] = None,
-    chatnoir_id: Optional[str] = None,
-    ir_datasets_id: Optional[str] = None,
-    truth_format: Optional[str] = None,
-    dataset_format_configuration: Optional[str] = None,
-    truth_format_configuration: Optional[str] = None,
+    irds_docker_image: "Optional[str]" = None,
+    irds_import_command: "Optional[str]" = None,
+    irds_import_truth_command: "Optional[str]" = None,
+    dataset_format: "Optional[str]" = None,
+    description: "Optional[str]" = None,
+    chatnoir_id: "Optional[str]" = None,
+    ir_datasets_id: "Optional[str]" = None,
+    truth_format: "Optional[str]" = None,
+    dataset_format_configuration: "Optional[str]" = None,
+    truth_format_configuration: "Optional[str]" = None,
 ) -> "tuple[dict[str, Any], list[str]]":
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -857,19 +857,19 @@ def update_review(
     dataset_id: str,
     vm_id: str,
     run_id: str,
-    reviewer_id: Optional[str] = None,
-    review_date: Optional[str] = None,
-    has_errors: Optional[bool] = None,
-    has_no_errors: Optional[bool] = None,
-    no_errors: Optional[bool] = None,
-    missing_output: Optional[bool] = None,
-    extraneous_output: Optional[bool] = None,
-    invalid_output: Optional[bool] = None,
-    has_error_output: Optional[bool] = None,
-    other_errors: Optional[bool] = None,
-    comment: Optional[str] = None,
-    published: Optional[bool] = None,
-    blinded: Optional[bool] = None,
+    reviewer_id: "Optional[str]" = None,
+    review_date: "Optional[str]" = None,
+    has_errors: "Optional[bool]" = None,
+    has_no_errors: "Optional[bool]" = None,
+    no_errors: "Optional[bool]" = None,
+    missing_output: "Optional[bool]" = None,
+    extraneous_output: "Optional[bool]" = None,
+    invalid_output: "Optional[bool]" = None,
+    has_error_output: "Optional[bool]" = None,
+    other_errors: "Optional[bool]" = None,
+    comment: "Optional[str]" = None,
+    published: "Optional[bool]" = None,
+    blinded: "Optional[bool]" = None,
     has_warnings: bool = False,
 ) -> bool:
     """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -895,7 +895,7 @@ def update_review(
     )
 
 
-def update_run(dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
+def update_run(dataset_id, vm_id, run_id, deleted: "Optional[bool]" = None):
     """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
     Required Parameters are also required in the function"""
     return model.update_run(dataset_id, vm_id, run_id, deleted)
@@ -905,10 +905,10 @@ def update_software(
     task_id,
     vm_id,
     software_id,
-    command: Optional[str] = None,
-    working_directory: Optional[str] = None,
-    dataset: Optional[str] = None,
-    run: Optional[str] = None,
+    command: "Optional[str]" = None,
+    working_directory: "Optional[str]" = None,
+    dataset: "Optional[str]" = None,
+    run: "Optional[str]" = None,
     deleted: bool = False,
 ):
     return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset, run, deleted)
@@ -925,9 +925,9 @@ def edit_task(
     require_registration: str,
     require_groups: str,
     restrict_groups: str,
-    help_command: Optional[str] = None,
-    help_text: Optional[str] = None,
-    allowed_task_teams: Optional[str] = None,
+    help_command: "Optional[str]" = None,
+    help_text: "Optional[str]" = None,
+    allowed_task_teams: "Optional[str]" = None,
     is_ir_task: bool = False,
     irds_re_ranking_image: str = "",
     irds_re_ranking_command: str = "",
@@ -976,10 +976,10 @@ def edit_dataset(
     description: "Optional[str]" = None,
     chatnoir_id: "Optional[str]" = None,
     ir_datasets_id: "Optional[str]" = None,
-    truth_format: Optional[str] = None,
-    trusted_evaluation: Optional[str] = None,
-    dataset_format_configuration: Optional[str] = None,
-    truth_format_configuration: Optional[str] = None,
+    truth_format: "Optional[str]" = None,
+    trusted_evaluation: "Optional[str]" = None,
+    dataset_format_configuration: "Optional[str]" = None,
+    truth_format_configuration: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -1111,10 +1111,10 @@ def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
 def latest_output_of_software_on_dataset(
     task_id: str,
     vm_id: "Optional[str]",
-    software_id: Optional[str],
-    docker_software_id: Optional[int],
+    software_id: "Optional[str]",
+    docker_software_id: "Optional[int]",
     dataset_id: str,
-    upload_id: Optional[int],
+    upload_id: "Optional[int]",
 ):
     run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id, upload_id)
 
