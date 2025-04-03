@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import grpc
-import grpc.grpc_server
 from django.conf import settings
 from google.protobuf.empty_pb2 import Empty
 
