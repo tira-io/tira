@@ -115,10 +115,6 @@ class HybridDatabase(object):
         """reload task data from the export format of the model"""
         dbops.reload_tasks(self.tasks_dir_path)
 
-    def reload_runs(self, vm_id: str) -> None:
-        """reload run data for a VM from the export format of the model"""
-        dbops.reload_runs(self.runs_dir_path, vm_id)
-
     # _load methods parse files on the fly when pages are called
     def load_review(self, dataset_id: str, vm_id: str, run_id: str) -> "Message":
         """This method loads a review or toggles auto reviewer if it does not exist."""

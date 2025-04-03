@@ -435,7 +435,7 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
     return JsonResponse({"status": 0, "message": transaction_id}, status=HTTPStatus.ACCEPTED)
 
 
-def run_unsandboxed_eval(vm_id, dataset_id, run_id):
+def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
 

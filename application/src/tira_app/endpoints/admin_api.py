@@ -26,7 +26,7 @@ from ..ir_datasets_loader import run_irds_command
 from .v1._datasets import download_mirrored_resource
 
 if TYPE_CHECKING:
-    from typing import Optional, Union
+    from typing import Any, Optional, Union
 
     from django.http import HttpRequest, HttpResponse
 
@@ -72,13 +72,6 @@ def admin_reload_datasets() -> str:
 def admin_reload_tasks() -> str:
     model.reload_tasks()
     return "Task data was reloaded successfully"
-
-
-@check_conditional_permissions(restricted=True)
-@_handle_get_model_exceptions
-def admin_reload_runs(vm_id: str) -> str:
-    model.reload_runs(vm_id)
-    return "Runs data was reloaded for {} on {} successfully"
 
 
 @check_permissions
@@ -498,7 +491,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
-def _evaluator_config(data: dict) -> dict:
+def _evaluator_config(data: dict) -> "Optional[Any]":
     if "trusted_measures" not in data:
         return None
 
@@ -511,7 +504,7 @@ def _evaluator_config(data: dict) -> dict:
         if json_arg in data and data[json_arg]:
             try:
                 ret[json_arg] = json.loads(data[json_arg])
-            except:
+            except Exception:
                 raise ValueError(
                     f"I expected that the argument {json_arg} is valid json. But I got '{data[json_arg]}'."
                 )
@@ -530,7 +523,7 @@ def _evaluator_config(data: dict) -> dict:
     return ret_serialized
 
 
-def _format_and_configuration(data, field):
+def _format_and_configuration(data: "dict[str, str]", field: str) -> "tuple[Optional[str], Optional[Any]]":
     if field not in data or not data.get(field):
         return None, None
 
@@ -539,7 +532,7 @@ def _format_and_configuration(data, field):
     if f"{field}_configuration" in data and data[f"{field}_configuration"]:
         try:
             ret_config = json.loads(data[f"{field}_configuration"])
-        except:
+        except Exception:
             raise ValueError(
                 f"I expected that the configuration is valid json, but I got: {data[f'{field}_configuration']}"
             )
