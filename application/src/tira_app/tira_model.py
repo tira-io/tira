@@ -48,11 +48,6 @@ def reload_tasks() -> None:
     model.reload_tasks()
 
 
-def reload_runs(vm_id: str) -> None:
-    """reload run data for a VM from the export format of the model"""
-    model.reload_runs(vm_id)
-
-
 # get methods are the public interface.
 def get_vm(vm_id: str, create_if_none: bool = False) -> "dict[str, Any]":
     """Returns a vm as dictionary with:

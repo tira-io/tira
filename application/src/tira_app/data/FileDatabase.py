@@ -111,10 +111,6 @@ class FileDatabase(object):
         self._build_software_relations()
         self._build_software_counts()
 
-    def reload_runs(self, vm_id: str) -> None:
-        """reload run data for a VM from the export format of the model"""
-        raise NotImplementedError("Not Implemented: Runs are loaded on access when using FileDatabase")
-
     def _parse_organizer_list(self) -> None:
         """Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}

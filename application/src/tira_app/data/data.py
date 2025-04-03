@@ -50,15 +50,6 @@ def reload_tasks(tasks_dir_path: "Path") -> None:
     _parse_task_list(tasks_dir_path)
 
 
-def reload_runs(runs_dir_path: "Path", vm_id: str) -> None:
-    for dataset_dir in runs_dir_path.glob("*"):
-        dataset_id = dataset_dir.stem
-        for vm_dir in dataset_dir.glob("*"):
-            if vm_dir.stem != vm_id:
-                continue
-            parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
-
-
 def _parse_organizer_list(organizers_file_path: "Path") -> None:
     """Parse the PB Database and extract all hosts.
     :return: a dict {hostId: {"name", "years"}
