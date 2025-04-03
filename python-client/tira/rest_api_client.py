@@ -11,7 +11,7 @@ from functools import lru_cache
 from glob import glob
 from pathlib import Path
 from random import randint
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import requests
@@ -40,12 +40,12 @@ class Client(TiraClient):
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
+        base_url: "Optional[str]" = None,
         api_key: str = None,
         failsave_retries: int = 5,
         failsave_max_delay: int = 15,
-        api_user_name: Optional[str] = None,
-        tira_cache_dir: Optional[str] = None,
+        api_user_name: "Optional[str]" = None,
+        tira_cache_dir: "Optional[str]" = None,
         verify: bool = True,
         allow_local_execution: bool = False,
     ):
@@ -890,7 +890,7 @@ class Client(TiraClient):
             ret["context"]["all_uploadgroups"],
         )
 
-    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
@@ -1080,9 +1080,9 @@ class Client(TiraClient):
     def execute_post_return_json(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
-        file_path: Path = None,
-        json_payload: any = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        file_path: "Path" = None,
+        json_payload: "Any" = None,
     ) -> Dict:
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
@@ -1138,7 +1138,7 @@ class Client(TiraClient):
     def json_response(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
         base_url=None,
         failsave_retries=None,
     ):

@@ -190,7 +190,7 @@ class TiraApplyFeatureTransformer(Transformer):
     """
 
     def __init__(
-        self, mapping: Mapping, id_cols: Iterable[str] = ("qid", "docno"), name: str = "apply_features"
+        self, mapping: Mapping, id_cols: "Iterable[str]" = ("qid", "docno"), name: str = "apply_features"
     ) -> None:
         self.mapping = mapping
         self.id_cols = id_cols

@@ -1,3 +1,4 @@
+import datetime as dt
 import hashlib
 import json
 import logging
@@ -5,16 +6,18 @@ import os
 import tempfile
 import traceback
 import zipfile
-from datetime import datetime as dt
 from http import HTTPStatus
+from os import PathLike
 from pathlib import Path
 from shutil import copyfile
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseNotAllowed, JsonResponse
 from slugify import slugify
 
+from .. import model as modeldb
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
@@ -22,13 +25,17 @@ from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
 from .v1._datasets import download_mirrored_resource
 
+if TYPE_CHECKING:
+    from typing import Any, Optional, Union
+
+    from django.http import HttpRequest, HttpResponse
+
 logger = logging.getLogger("tira")
-from .. import model as modeldb
 
 logger.info("ajax_routes: Logger active")
 
 
-def handle_get_model_exceptions(func):
+def _handle_get_model_exceptions(func):
     def decorate(request, *args, **kwargs):
         if request.method == "GET":
             try:
@@ -47,42 +54,28 @@ def handle_get_model_exceptions(func):
 
 
 @check_permissions
-@handle_get_model_exceptions
-def admin_reload_data():
-    model.build_model()
-    return "Model data was reloaded successfully"
-
-
-@check_permissions
-@handle_get_model_exceptions
-def admin_reload_vms():
+@_handle_get_model_exceptions
+def admin_reload_vms() -> str:
     model.reload_vms()
     return "VM data was reloaded successfully"
 
 
 @check_permissions
-@handle_get_model_exceptions
-def admin_reload_datasets():
+@_handle_get_model_exceptions
+def admin_reload_datasets() -> str:
     model.reload_datasets()
     return "Dataset data was reloaded successfully"
 
 
 @check_permissions
-@handle_get_model_exceptions
-def admin_reload_tasks():
+@_handle_get_model_exceptions
+def admin_reload_tasks() -> str:
     model.reload_tasks()
     return "Task data was reloaded successfully"
 
 
-@check_conditional_permissions(restricted=True)
-@handle_get_model_exceptions
-def admin_reload_runs(vm_id):
-    model.reload_runs(vm_id)
-    return "Runs data was reloaded for {} on {} successfully"
-
-
 @check_permissions
-def admin_create_vm(request):  # TODO implement
+def admin_create_vm(request: "HttpRequest") -> "HttpResponse":  # TODO implement
     """Hook for create_vm posts. Responds with json objects indicating the state of the create process."""
 
     if request.method == "POST":
@@ -94,12 +87,12 @@ def admin_create_vm(request):  # TODO implement
 
 
 @check_permissions
-def admin_archive_vm(request):
+def admin_archive_vm(request: "HttpRequest") -> "HttpResponse":
     return JsonResponse({"status": 1, "message": "Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
 @check_permissions
-def admin_modify_vm(request):
+def admin_modify_vm(request: "HttpRequest") -> "HttpResponse":
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -109,7 +102,7 @@ def admin_modify_vm(request):
 
 
 @check_permissions
-def admin_create_task(request, organizer_id):
+def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpResponse":
     """Create an entry in the model for the task. Use data supplied by a model.
     Return a json status message."""
 
@@ -147,8 +140,10 @@ def admin_create_task(request, organizer_id):
             allowed_task_teams=data["task_teams"],
         )
 
-        new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
-        return JsonResponse({"status": 0, "context": new_task, "message": f"Created Task with Id: {data['task_id']}"})
+        new_task_str = json.dumps(new_task, cls=DjangoJSONEncoder)
+        return JsonResponse(
+            {"status": 0, "context": new_task_str, "message": f"Created Task with Id: {data['task_id']}"}
+        )
 
     return JsonResponse(
         {"status": 1, "message": "GET is not implemented for admin_create_task"}, status=HTTPStatus.NOT_IMPLEMENTED
@@ -157,7 +152,7 @@ def admin_create_task(request, organizer_id):
 
 @check_permissions
 @check_resources_exist("json")
-def admin_edit_task(request, task_id):
+def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
     """Edit a task. Expects a POST message with all task data."""
     if request.method == "POST":
         data = json.loads(request.body)
@@ -207,36 +202,36 @@ def admin_edit_task(request, task_id):
 
 @check_permissions
 @check_resources_exist("json")
-def admin_delete_task(request, task_id):
+def admin_delete_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
     model.delete_task(task_id)
     return JsonResponse({"status": 0, "message": f"Deleted task {task_id}"})
 
 
-def file_listing(path, title):
+def _file_listing(path: PathLike, title: str) -> "dict[str, Union[str, int, dict, list]]":
     path = Path(path)
-    children = []
-    if path and Path(path).exists() and Path(path).is_dir():
+    children: list[dict[str, Union[str, int, dict, list]]] = []
+    if path and path.is_dir():
         for f in os.listdir(path):
             if len(children) > 5:
-                children += [{"title": "..."}]
+                children.append({"title": "..."})
                 break
 
-            if os.path.isdir(path / f):
-                c = file_listing(path / f, str(f))["children"]
-                children += [{"title": f, "children": c}]
+            if (path / f).is_dir():
+                c = _file_listing(path / f, str(f))["children"]
+                children.append({"title": f, "children": c})
             else:
-                md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
+                md5 = hashlib.md5((path / f).read_bytes()).hexdigest()
                 size = os.path.getsize(path / f)
-                children += [{"title": f + f" (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5}]
+                children.append({"title": f"{f} (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5})
 
-    current_item = {"title": title}
+    current_item: dict[str, Union[str, int, dict, list]] = {"title": title}
     if len(children) > 0:
         current_item["children"] = children
 
     return current_item
 
 
-def update_file_listing_for_dataset(dataset_id: str):
+def update_file_listing_for_dataset(dataset_id: str) -> None:
     dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
     dataset_type = "test" if dataset.is_confidential else "training"
     task_id = model.get_dataset(dataset_id)["task"]
@@ -244,14 +239,14 @@ def update_file_listing_for_dataset(dataset_id: str):
 
     for k, v in [("", "$inputDir"), ("-truth", "$inputDataset")]:
         path = model.model.data_path / f"{dataset_type}-datasets{k}" / task_id / dataset_id
-        listing.append(file_listing(path, v))
+        listing.append(_file_listing(path, v))
 
     dataset.file_listing = json.dumps(listing)
     dataset.save()
 
 
 @check_permissions
-def admin_add_dataset(request, task_id):
+def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
     """Create an entry in the model for the task. Use data supplied by a model.
     Return a json status message."""
     if request.method == "POST":
@@ -496,7 +491,7 @@ def admin_add_dataset(request, task_id):
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
-def _evaluator_config(data: dict) -> dict:
+def _evaluator_config(data: dict) -> "Optional[Any]":
     if "trusted_measures" not in data:
         return None
 
@@ -509,7 +504,7 @@ def _evaluator_config(data: dict) -> dict:
         if json_arg in data and data[json_arg]:
             try:
                 ret[json_arg] = json.loads(data[json_arg])
-            except:
+            except Exception:
                 raise ValueError(
                     f"I expected that the argument {json_arg} is valid json. But I got '{data[json_arg]}'."
                 )
@@ -528,7 +523,7 @@ def _evaluator_config(data: dict) -> dict:
     return ret_serialized
 
 
-def _format_and_configuration(data, field):
+def _format_and_configuration(data: "dict[str, str]", field: str) -> "tuple[Optional[str], Optional[Any]]":
     if field not in data or not data.get(field):
         return None, None
 
@@ -537,7 +532,7 @@ def _format_and_configuration(data, field):
     if f"{field}_configuration" in data and data[f"{field}_configuration"]:
         try:
             ret_config = json.loads(data[f"{field}_configuration"])
-        except:
+        except Exception:
             raise ValueError(
                 f"I expected that the configuration is valid json, but I got: {data[f'{field}_configuration']}"
             )
@@ -550,7 +545,7 @@ def _format_and_configuration(data, field):
 
 @check_permissions
 @check_resources_exist("json")
-def admin_edit_dataset(request, dataset_id):
+def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse":
     """Edit a dataset with the given dataset_id
     Send the new data of the dataset via POST. All these keys must be given and will be set:
 
@@ -654,7 +649,7 @@ def admin_edit_dataset(request, dataset_id):
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
-def call_django_command_failsave(cmd, args):
+def call_django_command_failsave(cmd: str, args: list[str]) -> "dict[str, Optional[str]]":
     import sys
     from io import StringIO
 
@@ -681,7 +676,7 @@ def call_django_command_failsave(cmd, args):
 
 
 @check_permissions
-def admin_import_ir_dataset(request, task_id):
+def admin_import_ir_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
     """Create multiple datasets for the pased ir-dataset.
     Return a json status message."""
     if request.method == "POST":
@@ -783,7 +778,7 @@ def admin_import_ir_dataset(request, task_id):
 
 @check_permissions
 @check_resources_exist("json")
-def admin_delete_dataset(request, dataset_id):
+def admin_delete_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse":
     try:
         model.delete_dataset(dataset_id)
         return JsonResponse({"status": 0, "message": f"Deleted dataset {dataset_id}"})
@@ -792,12 +787,13 @@ def admin_delete_dataset(request, dataset_id):
 
 
 @check_permissions
-def admin_add_organizer(request, organizer_id):
+def admin_add_organizer(request: "HttpRequest", organizer_id: str) -> "HttpResponse":
     if request.method == "POST":
         data = json.loads(request.body)
         add_default_git_integrations = False
 
         if data["gitUrlToNamespace"]:
+            assert isinstance(data["gitUrlToNamespace"], str) and isinstance(data["gitPrivateToken"], str)
             git_integration_is_valid, error_message = check_that_git_integration_is_valid(
                 data["gitUrlToNamespace"], data["gitPrivateToken"]
             )
@@ -812,12 +808,15 @@ def admin_add_organizer(request, organizer_id):
         )
 
         if add_default_git_integrations:
-            git_integrations = [model.model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL, "<OMMITTED>")]
+            git_integration = model.model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL, "<OMMITTED>")
+            assert git_integration is not None
             model.model.edit_organizer(
-                organizer_id, data["name"], data["years"], data["web"], git_integrations=git_integrations
+                organizer_id, data["name"], data["years"], data["web"], git_integrations=[git_integration]
             )
 
-        auth.create_organizer_group(organizer_id, auth.get_user_id(request))
+        userid = auth.get_user_id(request)
+        assert userid is not None
+        auth.create_organizer_group(organizer_id, userid)
         return JsonResponse({"status": 0, "message": f"Added Organizer {organizer_id}"})
 
     return JsonResponse({"status": 1, "message": "GET is not implemented for add organizer"})
@@ -825,7 +824,7 @@ def admin_add_organizer(request, organizer_id):
 
 @check_permissions
 @check_resources_exist("json")
-def admin_edit_organizer(request, organizer_id):
+def admin_edit_organizer(request: "HttpRequest", organizer_id: str) -> "HttpResponse":
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -846,7 +845,7 @@ def admin_edit_organizer(request, organizer_id):
 
 
 @check_conditional_permissions(restricted=True)
-def admin_create_group(request, vm_id):
+def admin_create_group(request: "HttpRequest", vm_id: str) -> "HttpResponse":
     """this is a rest endpoint to grant a user permissions on a vm"""
     if auth.get_role(request=request) != "admin":
         return HttpResponseNotAllowed("Access forbidden.", status_code=403)
@@ -864,7 +863,7 @@ def admin_create_group(request, vm_id):
 
 @check_conditional_permissions(restricted=True)
 @check_resources_exist("json")
-def admin_edit_review(request, dataset_id, vm_id, run_id):
+def admin_edit_review(request: "HttpRequest", dataset_id: str, vm_id: str, run_id: str) -> "HttpResponse":
     if request.method == "POST":
         data = json.loads(request.body)
         no_errors = data.get("no_errors", True)
@@ -885,7 +884,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
             vm_id,
             run_id,
             username,
-            str(dt.utcnow()),
+            str(dt.datetime.now(dt.timezone.utc)),
             has_errors,
             has_no_errors,
             no_errors=no_errors,
@@ -900,7 +899,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
 
 
 @check_permissions
-def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
+def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, dataset_type: str) -> "HttpResponse":
     if request.method != "POST":
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
@@ -933,9 +932,11 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
     else:
         return JsonResponse({"status": 1, "message": "Unknown dataset_id."})
 
-    target_directory = model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
+    target_directory: Path = (
+        model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
+    )
 
-    if not os.path.exists(target_directory):
+    if not target_directory.is_dir():
         return JsonResponse({"status": 1, "message": "Dataset directory 'target_directory' does not exist."})
 
     if len(os.listdir(target_directory)) > 0:

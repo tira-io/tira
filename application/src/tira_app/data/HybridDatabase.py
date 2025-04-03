@@ -6,7 +6,7 @@ import zipfile
 from datetime import datetime as dt
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, overload
 
 import randomname
 from django.conf import settings
@@ -27,6 +27,13 @@ from ..util import (
 )
 from . import data as dbops
 
+if TYPE_CHECKING:
+    from typing import _T, Any, Iterable, Literal, Mapping, Optional, Sequence, Union
+
+    from django.core.files.uploadedfile import UploadedFile
+    from django.db.models import BaseManager
+    from google.protobuf.message import Message
+
 logger = logging.getLogger("tira_db")
 
 
@@ -45,24 +52,24 @@ class HybridDatabase(object):
     get is the public IF to get data from the model
     """
 
-    tira_root = settings.TIRA_ROOT
-    tasks_dir_path = tira_root / Path("model/tasks")
-    users_file_path = tira_root / Path("model/users/users.prototext")
-    organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
-    vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
-    vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
-    ova_dir = tira_root / Path("data/virtual-machine-templates/")
-    datasets_dir_path = tira_root / Path("model/datasets")
-    softwares_dir_path = tira_root / Path("model/softwares")
-    data_path = tira_root / Path("data/datasets")
-    runs_dir_path = tira_root / Path("data/runs")
+    tira_root: Path = settings.TIRA_ROOT
+    tasks_dir_path = tira_root / "model" / "tasks"
+    users_file_path = tira_root / "model" / "users" / "users.prototext"
+    organizers_file_path = tira_root / "model" / "organizers" / "organizers.prototext"
+    vm_list_file = tira_root / "model" / "virtual-machines" / "virtual-machines.txt"
+    vm_dir_path = tira_root / "model" / "virtual-machines"
+    host_list_file = tira_root / "model" / "virtual-machine-hosts" / "virtual-machine-hosts.txt"
+    ova_dir = tira_root / "data" / "virtual-machine-templates"
+    datasets_dir_path = tira_root / "model" / "datasets"
+    softwares_dir_path = tira_root / "model" / "softwares"
+    data_path = tira_root / "data" / "datasets"
+    runs_dir_path = tira_root / "data" / "runs"
     custom_irds_datasets_path = tira_root / "state" / "custom-ir-datasets"
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def create_model(self, admin_user_name="admin", admin_password="admin"):
+    def create_model(self, admin_user_name: str = "admin", admin_password: str = "admin") -> None:
         self.users_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
         self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
@@ -84,7 +91,7 @@ class HybridDatabase(object):
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
         self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
 
-    def index_model_from_files(self):
+    def index_model_from_files(self) -> None:
         self.vm_list_file.touch(exist_ok=True)
         dbops.index(
             self.organizers_file_path,
@@ -96,24 +103,20 @@ class HybridDatabase(object):
             self.runs_dir_path,
         )
 
-    def reload_vms(self):
+    def reload_vms(self) -> None:
         """reload VM and user data from the export format of the model"""
         dbops.reload_vms(self.users_file_path, self.vm_dir_path)
 
-    def reload_datasets(self):
+    def reload_datasets(self) -> None:
         """reload dataset data from the export format of the model"""
         dbops.reload_datasets(self.datasets_dir_path)
 
-    def reload_tasks(self):
+    def reload_tasks(self) -> None:
         """reload task data from the export format of the model"""
         dbops.reload_tasks(self.tasks_dir_path)
 
-    def reload_runs(self, vm_id):
-        """reload run data for a VM from the export format of the model"""
-        dbops.reload_runs(self.runs_dir_path, vm_id)
-
     # _load methods parse files on the fly when pages are called
-    def load_review(self, dataset_id, vm_id, run_id):
+    def load_review(self, dataset_id: str, vm_id: str, run_id: str) -> "Message":
         """This method loads a review or toggles auto reviewer if it does not exist."""
 
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
@@ -124,10 +127,10 @@ class HybridDatabase(object):
             return review
 
         review = modelpb.RunReview()
-        review.ParseFromString(open(review_file, "rb").read())
+        review.ParseFromString(review_file.read_bytes())
         return review
 
-    def _load_softwares(self, task_id, vm_id):
+    def _load_softwares(self, task_id: str, vm_id: str) -> "Message":
         # Leave this
         softwares_dir = self.softwares_dir_path / task_id / vm_id
         softwares_dir.mkdir(parents=True, exist_ok=True)
@@ -135,17 +138,15 @@ class HybridDatabase(object):
         if not software_file.exists():
             software_file.touch()
 
-        return Parse(
-            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
-        )
+        return Parse(software_file.read_bytes(), modelpb.Softwares())
 
-    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+    def _load_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> "Message":
         """Load a protobuf run file with some edge-case checks."""
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
-                r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
-                open(run_dir / "run.bin", "wb").write(r.SerializeToString())
+                r = Parse((run_dir / "run.prototext").read_bytes(), modelpb.Run())
+                (run_dir / "run.bin").write_bytes(r.SerializeToString())
             else:
                 logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
                 run = modelpb.Run()
@@ -155,7 +156,7 @@ class HybridDatabase(object):
                 return run
 
         run = modelpb.Run()
-        run.ParseFromString(open(run_dir / "run.bin", "rb").read())
+        run.ParseFromString((run_dir / "run.bin").read_bytes())
         if return_deleted is False and run.deleted:
             run.softwareId = "This run was deleted"
             run.runId = run_id
@@ -169,15 +170,15 @@ class HybridDatabase(object):
 
     def _save_vm(
         self,
-        vm_id=None,
-        user_name=None,
-        initial_user_password=None,
-        ip=None,
-        host=None,
-        ssh=None,
-        rdp=None,
-        overwrite=False,
-    ):
+        vm_id: "Optional[str]" = None,
+        user_name: "Optional[str]" = None,
+        initial_user_password: "Optional[str]" = None,
+        ip: "Optional[str]" = None,
+        host: "Optional[str]" = None,
+        ssh: "Optional[str]" = None,
+        rdp: "Optional[str]" = None,
+        overwrite: bool = False,
+    ) -> bool:
         new_vm_file_path = self.vm_dir_path / f"{vm_id}.prototext"
 
         if not overwrite and new_vm_file_path.exists():
@@ -198,32 +199,32 @@ class HybridDatabase(object):
         vm.portSsh = rdp if rdp else vm.portSsh
         vm.portRdp = ssh if ssh else vm.portRdp
 
-        open(new_vm_file_path, "w").write(str(vm))
+        new_vm_file_path.write_text(str(vm))
 
         return True
 
-    def _save_review(self, dataset_id, vm_id, run_id, review):
+    def _save_review(self, dataset_id: str, vm_id: str, run_id: str, review: "Message") -> None:
         """Save the reivew to the protobuf dump. Create the file if it does not exist."""
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
-        open(review_path / "run-review.prototext", "w").write(str(review))
-        open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
+        (review_path / "run-review.prototext").write_text(str(review))
+        (review_path / "run-review.bin").write_bytes(review.SerializeToString())
 
-    def _save_softwares(self, task_id, vm_id, softwares):
+    def _save_softwares(self, task_id: str, vm_id: str, softwares: "Message") -> None:
         open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
 
-    def _save_run(self, dataset_id, vm_id, run_id, run):
+    def _save_run(self, dataset_id: str, vm_id: str, run_id: str, run: "Message") -> None:
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        open(run_dir / "run.prototext", "w").write(str(run))
-        open(run_dir / "run.bin", "wb").write(run.SerializeToString())
+        (run_dir / "run.prototext").write_text(str(run))
+        (run_dir / "run.bin").write_bytes(run.SerializeToString())
 
     #########################################
     # Public Interface Methods
     ###################################
 
     @staticmethod
-    def _vm_as_dict(vm: modeldb.VirtualMachine) -> dict[str, Any]:
+    def _vm_as_dict(vm: modeldb.VirtualMachine) -> "dict[str, Any]":
         return {
             "vm_id": vm.vm_id,
             "user_password": vm.user_password,
@@ -237,15 +238,15 @@ class HybridDatabase(object):
             "archived": vm.archived,
         }
 
-    def get_vm(self, vm_id: str, create_if_none: bool = False) -> dict[str, Any]:
+    def get_vm(self, vm_id: str, create_if_none: bool = False) -> "dict[str, Any]":
         if create_if_none:
             vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=vm_id)
         else:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
         return self._vm_as_dict(vm)
 
-    def _task_to_dict(self, task, include_dataset_stats=False):
-        def _add_dataset_stats(res, dataset_set):
+    def _task_to_dict(self, task: modeldb.Task, include_dataset_stats: bool = False) -> "dict[str, Any]":
+        def _add_dataset_stats(res: "dict[str, Any]", dataset_set: modeldb.Dataset) -> "dict[str, Any]":
             if not dataset_set:
                 res["dataset_last_created"] = ""
                 res["dataset_first_created"] = ""
@@ -306,22 +307,24 @@ class HybridDatabase(object):
 
         return result
 
-    def _tasks_to_dict(self, tasks, include_dataset_stats=False):
+    def _tasks_to_dict(
+        self, tasks: "Iterable[modeldb.Task]", include_dataset_stats: bool = False
+    ) -> "Iterable[dict[str, Any]]":
         for task in tasks:
             if not task.organizer:
                 continue
 
             yield self._task_to_dict(task, include_dataset_stats)
 
-    def get_tasks(self, include_dataset_stats: str = False) -> list[dict[str, Any]]:
+    def get_tasks(self, include_dataset_stats: bool = False) -> "list[dict[str, Any]]":
         return list(self._tasks_to_dict(modeldb.Task.objects.select_related("organizer").all(), include_dataset_stats))
 
-    def get_task(self, task_id: str, include_dataset_stats) -> dict[str, Any]:
+    def get_task(self, task_id: str, include_dataset_stats: bool) -> "dict[str, Any]":
         return self._task_to_dict(
             modeldb.Task.objects.select_related("organizer").get(task_id=task_id), include_dataset_stats
         )
 
-    def _dataset_to_dict(self, dataset):
+    def _dataset_to_dict(self, dataset: modeldb.Dataset) -> "dict[str, Any]":
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
 
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
@@ -424,7 +427,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def get_dataset(self, dataset_id: str) -> dict[str, Any]:
+    def get_dataset(self, dataset_id: str) -> "dict[str, Any]":
         try:
             return self._dataset_to_dict(
                 modeldb.Dataset.objects.select_related("default_task", "evaluator").get(dataset_id=dataset_id)
@@ -432,7 +435,7 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
-    def get_datasets(self) -> dict:
+    def get_datasets(self) -> "dict[str, dict[str, Any]]":
         """Get a dict of dataset_id: dataset_json_descriptor"""
         return {
             dataset.dataset_id: self._dataset_to_dict(dataset)
@@ -440,8 +443,8 @@ class HybridDatabase(object):
         }
 
     def get_datasets_by_task(
-        self, task_id: str, include_deprecated=False, return_only_names=False
-    ) -> list[dict[str, Any]]:
+        self, task_id: str, include_deprecated: bool = False, return_only_names: bool = False
+    ) -> "list[dict[str, Any]]":
         """return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
@@ -458,7 +461,7 @@ class HybridDatabase(object):
         else:
             return [self._dataset_to_dict(d.dataset) for d in ret]
 
-    def get_docker_software(self, docker_software_id: str) -> dict:
+    def get_docker_software(self, docker_software_id: int) -> "dict[str, Any]":
         try:
             return self._docker_software_to_dict(
                 modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
@@ -466,7 +469,7 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
-    def get_docker_software_by_name(self, name, vm_id, task_id) -> dict:
+    def get_docker_software_by_name(self, name: str, vm_id: str, task_id: str) -> "dict[str, Any]":
         try:
             ret = modeldb.DockerSoftware.objects.filter(
                 vm__vm_id=vm_id, task__task_id=task_id, display_name=name, deleted=False
@@ -478,31 +481,31 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
-    def run_is_public_and_unblinded(self, run_id):
+    def run_is_public_and_unblinded(self, run_id: str) -> bool:
         run_id = modeldb.Run.objects.get(input_run__run_id=run_id).run_id
         review = modeldb.Review.objects.get(run_id=run_id)
         return review.published and not review.blinded
 
-    def get_reranking_docker_softwares(self):
+    def get_reranking_docker_softwares(self) -> "list[dict[str, Any]]":
         return [
             self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)
         ]
 
-    def get_all_docker_software_rerankers(self):
+    def get_all_docker_software_rerankers(self) -> "list[dict[str, Any]]":
         return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranker=True)]
 
-    def get_runs_for_docker_software(self, docker_software_id):
+    def get_runs_for_docker_software(self, docker_software_id: int) -> "list[dict[str, Any]]":
         docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
 
         return [self._run_as_dict(i) for i in modeldb.Run.objects.filter(docker_software=docker_software)]
 
-    def update_input_run_id_for_run(self, run_id, input_run_id):
+    def update_input_run_id_for_run(self, run_id: str, input_run_id: str) -> None:
         print(f"Set input_run to {input_run_id} for run_id={run_id}")
         run = modeldb.Run.objects.get(run_id=run_id)
         run.input_run = modeldb.Run.objects.get(run_id=input_run_id) if input_run_id else None
         run.save()
 
-    def _organizer_to_dict(self, organizer):
+    def _organizer_to_dict(self, organizer: modeldb.Organizer) -> "dict[str, Any]":
         git_integrations = []
 
         for git_integration in organizer.git_integrations.all():
@@ -519,21 +522,21 @@ class HybridDatabase(object):
             "gitPrivateToken": git_integrations[0]["private_token"],
         }
 
-    def get_organizer(self, organizer_id: str):
+    def get_organizer(self, organizer_id: str) -> "dict[str, Any]":
         return self._organizer_to_dict(modeldb.Organizer.objects.get(organizer_id=organizer_id))
 
     @staticmethod
     def create_submission_git_repo(
-        repo_url,
-        vm_id,
-        docker_registry_user,
-        docker_registry_token,
-        discourse_api_key,
-        reference_repository_url,
-        external_owner,
-        discourse_api_user,
-        discourse_api_descr,
-    ):
+        repo_url: str,
+        vm_id: str,
+        docker_registry_user: str,
+        docker_registry_token: str,
+        discourse_api_key: str,
+        reference_repository_url: str,
+        external_owner: "Optional[str]",
+        discourse_api_user: "Optional[str]",
+        discourse_api_descr: str,
+    ) -> modeldb.SoftwareSubmissionGitRepository:
         return modeldb.SoftwareSubmissionGitRepository.objects.create(
             repository_url=repo_url,
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
@@ -546,7 +549,19 @@ class HybridDatabase(object):
             tira_client_description=discourse_api_descr,
         )
 
-    def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):
+    @overload
+    def get_submission_git_repo_or_none(
+        self, repository_url: str, vm_id: str, return_object: "Literal[False]" = False
+    ) -> dict[str, str]: ...
+
+    @overload
+    def get_submission_git_repo_or_none(
+        self, repository_url: str, vm_id: str, return_object: "Literal[True]"
+    ) -> "Optional[modeldb.SoftwareSubmissionGitRepository]": ...
+
+    def get_submission_git_repo_or_none(
+        self, repository_url: str, vm_id: str, return_object: bool = False
+    ) -> "Union[dict[str, str], Optional[modeldb.SoftwareSubmissionGitRepository]]":
         try:
             ret = modeldb.SoftwareSubmissionGitRepository.objects.get(repository_url=repository_url, vm__vm_id=vm_id)
 
@@ -563,16 +578,16 @@ class HybridDatabase(object):
         except Exception:
             return {} if not return_object else None
 
-    def get_host_list(self) -> list:
-        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
+    def get_host_list(self) -> list[str]:
+        return [line.strip() for line in self.host_list_file.read_text().splitlines()]
 
-    def get_ova_list(self) -> list:
+    def get_ova_list(self) -> list[str]:
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
-    def get_organizer_list(self) -> list:
+    def get_organizer_list(self) -> "list[dict[str, Any]]":
         return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
 
-    def get_vm_list(self):
+    def get_vm_list(self) -> list[list[str]]:
         """load the vm-info file which stores all active vms as such:
         <hostname>\t<vm_id>[\t<state>]\n
         ...
@@ -580,18 +595,18 @@ class HybridDatabase(object):
         returns a list of tuples (hostname, vm_id, state)
         """
 
-        def parse_vm_list(vm_list):
+        def parse_vm_list(vm_list: "Iterable[str]") -> "Iterable[list[str]]":
             for list_entry in vm_list:
                 try:
-                    list_entry = list_entry.split("\t")
-                    yield [list_entry[0], list_entry[1].strip(), list_entry[2].strip() if len(list_entry) > 2 else ""]
+                    tmp = list_entry.split("\t")
+                    yield [tmp[0], tmp[1].strip(), tmp[2].strip() if len(tmp) > 2 else ""]
                 except IndexError as e:
                     logger.error(e, list_entry)
 
         return list(parse_vm_list(open(self.vm_list_file, "r")))
 
     @staticmethod
-    def get_vms_by_dataset(dataset_id: str) -> list:
+    def get_vms_by_dataset(dataset_id: str) -> list[str]:
         """return a list of vm_id's that have runs on this dataset"""
         return [
             run.software.vm.vm_id
@@ -603,7 +618,7 @@ class HybridDatabase(object):
         ]
 
     @staticmethod
-    def _run_as_dict(run):
+    def _run_as_dict(run: modeldb.Run) -> "dict[str, Any]":
         is_evaluation = (
             False if not run.input_run or run.input_run.run_id == "none" or run.input_run.run_id == "None" else True
         )
@@ -644,14 +659,18 @@ class HybridDatabase(object):
             "upload_id": upload_id,
         }
 
-    def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
+    def get_run(
+        self, dataset_id: "Optional[str]", vm_id: "Optional[str]", run_id: str, return_deleted: bool = False
+    ) -> "dict[str, Any]":
         run = modeldb.Run.objects.select_related("software", "input_dataset").get(run_id=run_id)
 
         if run.deleted and not return_deleted:
             return {}
         return self._run_as_dict(run)
 
-    def get_vm_runs_by_dataset(self, dataset_id: str, vm_id: str, return_deleted: bool = False) -> list:
+    def get_vm_runs_by_dataset(
+        self, dataset_id: str, vm_id: str, return_deleted: bool = False
+    ) -> "list[dict[str, Any]]":
         return [
             self._run_as_dict(run)
             for run in modeldb.Run.objects.select_related("software", "input_dataset").filter(
@@ -660,7 +679,9 @@ class HybridDatabase(object):
             if (run.deleted or not return_deleted)
         ]
 
-    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False, is_docker=False):
+    def _get_ordered_runs_from_reviews(
+        self, reviews, vm_id: str, preloaded: bool = True, is_upload: bool = False, is_docker: bool = False
+    ) -> "Iterable[dict[str, Any]]":
         """yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
             evaluation runs (which have a run as input run) are yielded directly after the runs they use.
 
@@ -671,7 +692,7 @@ class HybridDatabase(object):
         :param is_upload: if true, get only uploaded runs
         """
 
-        def _run_dict(review_obj):
+        def _run_dict(review_obj: modeldb.Review) -> "dict[str, Any]":
             run = self._run_as_dict(review_obj.run)
             run["review"] = self._review_as_dict(review_obj)
             run["reviewed"] = (
@@ -702,8 +723,8 @@ class HybridDatabase(object):
             for review2 in r2:
                 yield _run_dict(review2)
 
-    def upload_to_dict(self, upload: modeldb.Upload, vm_id: str) -> dict[str, Any]:
-        def _runs_by_upload(up):
+    def upload_to_dict(self, upload: modeldb.Upload, vm_id: str) -> "dict[str, Any]":
+        def _runs_by_upload(up: modeldb.Upload) -> "list[dict[str, Any]]":
             reviews = (
                 modeldb.Review.objects.select_related(
                     "run", "run__upload", "run__evaluator", "run__input_run", "run__input_dataset"
@@ -727,29 +748,39 @@ class HybridDatabase(object):
             "rename_to": upload.rename_to,
         }
 
-    def get_upload_with_runs(self, task_id, vm_id):
+    def get_upload_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
         ret = []
         for upload in self.get_uploads(task_id, vm_id, return_names_only=False):
             ret += [self.upload_to_dict(upload, vm_id)]
 
         return ret
 
-    def get_upload(self, task_id, vm_id, upload_id):
+    def get_upload(self, task_id: str, vm_id: str, upload_id: str) -> "dict[str, Any]":
         return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
-    def get_discourse_token_for_user(self, vm_id):
+    def get_discourse_token_for_user(self, vm_id: str) -> "Optional[str]":
         try:
             return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
         except Exception:
             return None
 
-    def create_discourse_token_for_user(self, vm_id, discourse_api_key):
+    def create_discourse_token_for_user(self, vm_id: str, discourse_api_key: str) -> None:
         modeldb.DiscourseTokenForUser.objects.create(
             vm_id=modeldb.VirtualMachine.objects.get(vm_id=vm_id), token=discourse_api_key
         )
 
+    @overload
     @staticmethod
-    def get_uploads(task_id, vm_id, return_names_only=True):
+    def get_uploads(task_id: str, vm_id: str, return_names_only: "Literal[True]" = True) -> "list[dict[str, Any]]": ...
+
+    @overload
+    @staticmethod
+    def get_uploads(task_id: str, vm_id: str, return_names_only: "Literal[False]") -> modeldb.Upload: ...
+
+    @staticmethod
+    def get_uploads(
+        task_id: str, vm_id: str, return_names_only: bool = True
+    ) -> "Union[list[dict[str, Any]], modeldb.Upload]":
         ret = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
 
         if return_names_only:
@@ -757,7 +788,7 @@ class HybridDatabase(object):
         else:
             return ret
 
-    def _docker_software_to_dict(self, ds):
+    def _docker_software_to_dict(self, ds: modeldb.DockerSoftware) -> "dict[str, Any]":
         input_docker_software = None
         previous_stages = None
         if ds.input_docker_software:
@@ -798,7 +829,7 @@ class HybridDatabase(object):
         source_code_remotes = None
         try:
             source_code_remotes = None if not ds.source_code_remotes else json.loads(ds.source_code_remotes)
-        except:
+        except Exception:
             pass
 
         if source_code_remotes:
@@ -845,8 +876,8 @@ class HybridDatabase(object):
         }
 
     @staticmethod
-    def cloned_submissions_of_user(vm_id, task_id):
-        ret = []
+    def cloned_submissions_of_user(vm_id: str, task_id: str) -> "list[dict[str, Any]]":
+        ret: list[dict[str, Any]] = []
         for i in modeldb.SoftwareClone.objects.filter(vm__vm_id=vm_id, task__task_id=task_id).select_related(
             "docker_software", "upload"
         ):
@@ -864,8 +895,8 @@ class HybridDatabase(object):
         return ret
 
     @staticmethod
-    def submissions_of_user(vm_id):
-        ret = []
+    def submissions_of_user(vm_id: str) -> "list[dict[str, Any]]":
+        ret: list[dict[str, Any]] = []
         for i in modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, deleted=False):
             ret += [
                 {
@@ -882,7 +913,7 @@ class HybridDatabase(object):
         return ret
 
     @staticmethod
-    def import_submission(task_id, vm_id, submission_type, s_id):
+    def import_submission(task_id, vm_id: str, submission_type: str, s_id: str) -> None:
         docker_software, upload = None, None
         if submission_type == "docker":
             docker_software = modeldb.DockerSoftware.objects.filter(
@@ -898,7 +929,7 @@ class HybridDatabase(object):
             upload=upload,
         )
 
-    def get_count_of_missing_reviews(self, task_id):
+    def get_count_of_missing_reviews(self, task_id: str) -> list[dict[str, str]]:
         prepared_statement = """
         SELECT
             tira_run.input_dataset_id,
@@ -917,14 +948,14 @@ class HybridDatabase(object):
             tira_run.input_dataset_id;
         """
 
-        ret = []
-        rows = self.execute_raw_sql_statement(prepared_statement, params=[task_id])
+        ret: list[dict[str, str]] = []
+        rows = self.__execute_raw_sql_statement(prepared_statement, params=[task_id])
         for dataset_id, to_review, submissions in rows:
             ret += [{"dataset_id": dataset_id, "to_review": to_review, "submissions": submissions}]
 
         return ret
 
-    def get_count_of_team_submissions(self, task_id):
+    def get_count_of_team_submissions(self, task_id: str) -> "list[dict[str, Any]]":
         task = self.get_task(task_id, False)
         all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
         prepared_statement = """
@@ -949,8 +980,8 @@ class HybridDatabase(object):
                 tira_dockersoftware.vm_id;
             """
 
-        ret = []
-        rows = self.execute_raw_sql_statement(prepared_statement, params=[task_id])
+        ret: list[dict[str, Any]] = []
+        rows = self.__execute_raw_sql_statement(prepared_statement, params=[task_id])
         for vm, to_review, submissions, total in rows:
             if vm is not None:
                 ret += [
@@ -967,7 +998,7 @@ class HybridDatabase(object):
                 ret += [{"team": team, "reviewed": 0, "to_review": 0, "total": 0, "link": link_to_discourse_team(team)}]
         return ret
 
-    def all_runs(self):
+    def all_runs(self) -> dict:
         prepared_statement = """SELECT
                     tira_run.run_id, tira_run.task_id, tira_run.input_dataset_id,
                     tira_software.software_id, tira_software.vm_id, tira_dockersoftware.docker_software_id,
@@ -995,7 +1026,7 @@ class HybridDatabase(object):
             ORDER BY
                 tira_run.run_id ASC;
         """
-        ret = {}
+        ret: dict[Any, Any] = {}
         for (
             run_id,
             task_id,
@@ -1010,7 +1041,7 @@ class HybridDatabase(object):
             upload_title,
             published,
             blinded,
-        ) in self.execute_raw_sql_statement(prepared_statement, []):
+        ) in self.__execute_raw_sql_statement(prepared_statement, []):
             vm = None
             title = None
             if software_vm is not None:
@@ -1050,7 +1081,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def runs(self, task_id, dataset_id, vm_id, software_id):
+    def runs(self, task_id: str, dataset_id: str, vm_id: str, software_id: str) -> "list[dict[str, Any]]":
         prepared_statement = """
                 SELECT
                     tira_run.run_id, tira_dockersoftware.docker_software_id, tira_upload.id
@@ -1099,18 +1130,18 @@ class HybridDatabase(object):
         ]
         return [
             {"run_id": i[0], "software_id": i[1], "upload_id": i[2]}
-            for i in self.execute_raw_sql_statement(prepared_statement, params)
+            for i in self.__execute_raw_sql_statement(prepared_statement, params)
         ]
 
     def get_runs_for_vm(
         self,
-        vm_id,
-        docker_software_id,
-        upload_id,
-        include_unpublished=True,
-        round_floats=True,
-        show_only_unreviewed=False,
-    ):
+        vm_id: str,
+        docker_software_id: "Optional[int]",
+        upload_id: "Optional[int]",
+        include_unpublished: bool = True,
+        round_floats: bool = True,
+        show_only_unreviewed: bool = False,
+    ) -> "tuple[list[str], list[dict[str, Any]]]":
         prepared_statement = """
         SELECT
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
@@ -1147,16 +1178,17 @@ class HybridDatabase(object):
             tira_evaluation.id ASC;
         """
 
-        params = [vm_id, vm_id, vm_id]
+        params: list[Union[str, int]] = [vm_id, vm_id, vm_id]
 
         if upload_id:
             prepared_statement = prepared_statement.replace("<CLAUSE>", "tira_upload.id = %s")
             params += [upload_id]
         else:
+            assert docker_software_id is not None
             prepared_statement = prepared_statement.replace("<CLAUSE>", "tira_dockersoftware.docker_software_id = %s")
             params += [docker_software_id]
 
-        rows = self.execute_raw_sql_statement(prepared_statement, params)
+        rows = self.__execute_raw_sql_statement(prepared_statement, params)
         ret = self.__parse_submissions(rows, include_unpublished, round_floats, True, show_only_unreviewed)
         from_uploads = []
 
@@ -1177,7 +1209,7 @@ class HybridDatabase(object):
                         input_run.run_id ASC;
                     """
 
-            rows = self.execute_raw_sql_statement(prepared_statement, [vm_id, upload_id])
+            rows = self.__execute_raw_sql_statement(prepared_statement, [vm_id, upload_id])
 
             for dataset_id, run_id, display_name in rows:
                 print(run_id)
@@ -1199,8 +1231,8 @@ class HybridDatabase(object):
 
         return ret[0], (ret[1] + from_uploads)
 
-    def get_docker_softwares_with_runs(self, task_id, vm_id):
-        def _runs_by_docker_software(ds):
+    def get_docker_softwares_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+        def _runs_by_docker_software(ds: modeldb.DockerSoftware) -> "list[dict[str, Any]]":
             reviews = (
                 modeldb.Review.objects.select_related(
                     "run", "run__upload", "run__evaluator", "run__input_run", "run__input_dataset"
@@ -1219,8 +1251,22 @@ class HybridDatabase(object):
 
         return docker_softwares
 
+    @overload
     @staticmethod
-    def get_docker_softwares(task_id, vm_id, return_only_names=True, return_code_submissions=False):
+    def get_docker_softwares(
+        task_id: str, vm_id: str, return_only_names: "Literal[False]", return_code_submissions: bool = False
+    ) -> "BaseManager[modeldb.DockerSoftware]": ...
+
+    @overload
+    @staticmethod
+    def get_docker_softwares(
+        task_id: str, vm_id: str, return_only_names: "Literal[True]" = True, return_code_submissions: bool = False
+    ) -> "list[dict[str, Any]]": ...
+
+    @staticmethod
+    def get_docker_softwares(
+        task_id: str, vm_id: str, return_only_names: bool = True, return_code_submissions: bool = False
+    ):
         ret = modeldb.DockerSoftware.objects.filter(
             vm__vm_id=vm_id,
             task__task_id=task_id,
@@ -1233,7 +1279,7 @@ class HybridDatabase(object):
         else:
             return ret
 
-    def get_public_docker_softwares(self, task_id, return_only_names=True, return_details=True):
+    def get_public_docker_softwares(self, task_id: str, return_only_names: bool = True, return_details: bool = True):
         ret = modeldb.DockerSoftware.objects.filter(
             task__task_id=task_id, deleted=False, public_image_name__isnull=False
         )
@@ -1250,7 +1296,7 @@ class HybridDatabase(object):
         else:
             return ret
 
-    def delete_docker_software(self, task_id, vm_id, docker_software_id):
+    def delete_docker_software(self, task_id: str, vm_id: str, docker_software_id: str) -> bool:
         software_qs = modeldb.DockerSoftware.objects.filter(
             vm_id=vm_id, task_id=task_id, docker_software_id=docker_software_id
         )
@@ -1268,7 +1314,9 @@ class HybridDatabase(object):
 
         return False
 
-    def get_irds_docker_software_id(self, task_id, vm_id, software_id, docker_software_id):
+    def get_irds_docker_software_id(
+        self, task_id, vm_id, software_id: "Optional[str]", docker_software_id: int
+    ) -> "Optional[modeldb.DockerSoftware]":
         task = self.get_task(task_id, False)
 
         is_ir_task = task.get("is_ir_task", False)
@@ -1317,7 +1365,7 @@ class HybridDatabase(object):
 
         return ret[0] if len(ret) > 0 else None
 
-    def get_evaluations_of_run(self, vm_id, run_id):
+    def get_evaluations_of_run(self, vm_id: str, run_id: str) -> list:
         prepared_statement = """
             SELECT
                 evaluation_run.run_id
@@ -1335,9 +1383,9 @@ class HybridDatabase(object):
                 evaluation_run.input_run_id = %s and evaluation_run.evaluator_id IS NOT NULL
                 AND (tira_upload.vm_id = %s OR tira_software.vm_id = %s OR tira_dockersoftware.vm_id = %s)
             """
-        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, [run_id, vm_id, vm_id, vm_id])]
+        return [i[0] for i in self.__execute_raw_sql_statement(prepared_statement, [run_id, vm_id, vm_id, vm_id])]
 
-    def get_vms_with_reviews(self, dataset_id: str):
+    def get_vms_with_reviews(self, dataset_id: str) -> "list[dict[str, Any]]":
         """returns a list of dicts with:
         {"vm_id": vm_id,
         "runs": [{run, review}, ...],
@@ -1345,7 +1393,7 @@ class HybridDatabase(object):
         "blinded_count": blinded_count,
         "published_count": published_count}
         """
-        results = []
+        results: list[dict[str, Any]] = []
         reviews = (
             modeldb.Review.objects.select_related(
                 "run", "run__software", "run__docker_software", "run__evaluator", "run__upload", "run__input_run"
@@ -1384,7 +1432,7 @@ class HybridDatabase(object):
             )
         return results
 
-    def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
+    def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> "list[dict[str, Any]]":
         """returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs)"""
         return [
             self._run_as_dict(run)
@@ -1394,7 +1442,7 @@ class HybridDatabase(object):
             if (run.deleted or not return_deleted)
         ]
 
-    def get_evaluator(self, dataset_id: str, task_id: Optional[str] = None) -> dict[str, Any]:
+    def get_evaluator(self, dataset_id: str, task_id: "Optional[str]" = None) -> "dict[str, Any]":
         """returns a dict containing the evaluator parameters:
 
         vm_id: id of the master vm running the evaluator
@@ -1431,13 +1479,15 @@ class HybridDatabase(object):
         }
 
     @staticmethod
-    def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
+    def get_vm_evaluations_by_dataset(
+        dataset_id: str, vm_id: str, only_public_results: bool = True
+    ) -> "dict[str, dict[str, Any]]":
         """Return a dict of run_id: evaluation_results for the given vm on the given dataset
             {run_id: {measure.key: measure.value for measure in evaluation.measure}}
 
         @param only_public_results: only return the measures for published datasets.
         """
-        result = {}
+        result: dict[str, dict[str, Any]] = {}
         for run in modeldb.Run.objects.filter(
             software__vm__vm_id=vm_id, input_dataset__dataset_id=dataset_id, deleted=False
         ):
@@ -1450,7 +1500,11 @@ class HybridDatabase(object):
         return result
 
     def get_evaluations_with_keys_by_dataset(
-        self, dataset_id, include_unpublished=False, round_floats=True, show_only_unreviewed=False
+        self,
+        dataset_id: str,
+        include_unpublished: bool = False,
+        round_floats: bool = True,
+        show_only_unreviewed: bool = False,
     ):
         """
         This function returns the data to render the Leaderboards: A list of keys 'ev-keys' of the evaluation measures
@@ -1509,21 +1563,21 @@ class HybridDatabase(object):
 
         for _ in dataset_ids:
             dataset_id_statement += ["evaluation_run.input_dataset_id = %s"]
-        dataset_id_statement = " OR ".join(dataset_id_statement)
-        prepared_statement = prepared_statement.replace("<DATASET_ID_STATEMENT>", f"({dataset_id_statement})")
+        dataset_id_statement_joined = " OR ".join(dataset_id_statement)
+        prepared_statement = prepared_statement.replace("<DATASET_ID_STATEMENT>", f"({dataset_id_statement_joined})")
 
-        rows = self.execute_raw_sql_statement(prepared_statement, params=dataset_ids)
+        rows = self.__execute_raw_sql_statement(prepared_statement, params=dataset_ids)
         return self.__parse_submissions(
             rows, include_unpublished, round_floats, show_only_unreviewed, show_only_unreviewed
         )
 
     @staticmethod
-    def __link_to_code(build_environment):
-        if not build_environment:
+    def __link_to_code(build_environment_json: "Optional[str]") -> "Optional[str]":
+        if not build_environment_json:
             return None
 
         try:
-            build_environment = json.loads(json.loads(build_environment))
+            build_environment = json.loads(json.loads(build_environment_json))
         except Exception:
             return None
 
@@ -1552,12 +1606,17 @@ class HybridDatabase(object):
         return None
 
     def __parse_submissions(
-        self, rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False
-    ):
-        keys = dict()
-        input_run_to_evaluation = {}
+        self,
+        rows,
+        include_unpublished: bool,
+        round_floats: bool,
+        include_without_evaluation: bool = False,
+        show_only_unreviewed: bool = False,
+    ) -> "tuple[list[str], list[dict[str, Any]]]":
+        keys: dict[str, str] = dict()
+        input_run_to_evaluation: dict[str, dict[str, Any]] = {}
 
-        def round_if_float(fl):
+        def round_if_float(fl: "Any") -> "Any":
             if not round_floats:
                 return fl
             try:
@@ -1634,16 +1693,18 @@ class HybridDatabase(object):
                 input_run_to_evaluation[run_id]["measures"][m_key] = m_value
                 keys[m_key] = ""
 
-        keys = list(keys.keys())
-        ret = []
+        keylist = list(keys.keys())
+        ret: list[dict[str, Any]] = []
 
         for i in input_run_to_evaluation.values():
-            i["measures"] = [round_if_float(i["measures"].get(k, "-")) for k in keys]
+            i["measures"] = [round_if_float(i["measures"].get(k, "-")) for k in keylist]
             ret += [i]
 
-        return keys, ret
+        return keylist, ret
 
-    def execute_raw_sql_statement(self, prepared_statement, params):
+    def __execute_raw_sql_statement(
+        self, prepared_statement: str, params: "Optional[Union[Sequence[Any], Mapping[str, Any]]]"
+    ):
         from django.db import connection
 
         ret = []
@@ -1654,7 +1715,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def get_evaluation(self, run_id):
+    def get_evaluation(self, run_id: str) -> dict[str, str]:
         try:
             evaluation = modeldb.Evaluation.objects.filter(run__run_id=run_id).all()
             return {ev.measure_key: ev.measure_value for ev in evaluation}
@@ -1664,8 +1725,8 @@ class HybridDatabase(object):
 
         return {}
 
-    def get_software_with_runs(self, task_id, vm_id):
-        def _runs_by_software(software):
+    def get_software_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+        def _runs_by_software(software: modeldb.Software) -> "list[dict[str, Any]]":
             reviews = (
                 modeldb.Review.objects.select_related(
                     "run", "run__software", "run__evaluator", "run__input_run", "run__input_dataset"
@@ -1681,7 +1742,7 @@ class HybridDatabase(object):
         ]
 
     @staticmethod
-    def _review_as_dict(review):
+    def _review_as_dict(review: modeldb.Review) -> "dict[str, Any]":
         return {
             "reviewer": review.reviewer_id,
             "noErrors": review.no_errors,
@@ -1698,7 +1759,7 @@ class HybridDatabase(object):
             "blinded": review.blinded,
         }
 
-    def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict:
+    def get_run_review(self, dataset_id: "Optional[str]", vm_id: "Optional[str]", run_id: str) -> dict:
         review = modeldb.Review.objects.get(run__run_id=run_id)
         return self._review_as_dict(review)
 
@@ -1711,7 +1772,7 @@ class HybridDatabase(object):
         }
 
     @staticmethod
-    def _software_to_dict(software):
+    def _software_to_dict(software: "Message") -> "dict[str, Any]":
         return {
             "id": software.software_id,
             "count": software.count,
@@ -1725,26 +1786,28 @@ class HybridDatabase(object):
             "last_edit": software.last_edit_date,
         }
 
-    def get_software(self, task_id, vm_id, software_id):
+    def get_software(self, task_id: str, vm_id: str, software_id: str) -> "dict[str, Any]":
         """Returns the software with the given name of a vm on a task"""
         return self._software_to_dict(
             modeldb.Software.objects.get(vm__vm_id=vm_id, task__task_id=task_id, software_id=software_id)
         )
 
-    def get_software_by_task(self, task_id, vm_id):
+    def get_software_by_task(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
         return [
             self._software_to_dict(sw)
             for sw in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
         ]
 
-    def get_software_by_vm(self, task_id, vm_id):
+    def get_software_by_vm(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
         """Returns the software of a vm on a task in json"""
         return [
             self._software_to_dict(software)
             for software in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
         ]
 
-    def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
+    def add_vm(
+        self, vm_id: str, user_name: str, initial_user_password: str, ip: str, host: str, ssh: str, rdp: str
+    ) -> None:
         """Add a new task to the database.
         This will not overwrite existing files and instead do nothing and return false
         """
@@ -1759,7 +1822,7 @@ class HybridDatabase(object):
         else:
             raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def add_registration(self, data):
+    def add_registration(self, data: dict[str, str]) -> None:
         task = modeldb.Task.objects.select_related("organizer").get(task_id=data["task_id"])
 
         if data["group"] not in task.allowed_task_teams and task.restrict_groups:
@@ -1793,20 +1856,20 @@ class HybridDatabase(object):
             questions=data["questions"],
         )
 
-    def all_registered_teams(self):
+    def all_registered_teams(self) -> set[str]:
         return set([i["team_name"] for i in modeldb.Registration.objects.values("team_name")])
 
     def _fdb_create_task(
         self,
-        task_id,
-        task_name,
-        task_description,
-        master_vm_id,
-        organizer_id,
-        website,
-        help_command=None,
-        help_text=None,
-    ):
+        task_id: str,
+        task_name: str,
+        task_description: str,
+        master_vm_id: str,
+        organizer_id: str,
+        website: str,
+        help_command: "Optional[str]" = None,
+        help_text: "Optional[str]" = None,
+    ) -> None:
         new_task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
         task = modelpb.Tasks.Task()
         task.taskId = task_id
@@ -1817,24 +1880,24 @@ class HybridDatabase(object):
         task.web = website
         task.commandPlaceholder = help_command
         task.commandDescription = help_text
-        open(new_task_file_path, "w").write(str(task))
+        new_task_file_path.write_text(str(task))
 
     def create_task(
         self,
-        task_id,
-        task_name,
-        task_description,
-        featured,
-        master_vm_id,
-        organizer,
-        website,
-        require_registration,
-        require_groups,
-        restrict_groups,
-        help_command=None,
-        help_text=None,
-        allowed_task_teams=None,
-    ):
+        task_id: str,
+        task_name: str,
+        task_description: str,
+        featured: bool,
+        master_vm_id: str,
+        organizer: str,
+        website: str,
+        require_registration: bool,
+        require_groups: bool,
+        restrict_groups: bool,
+        help_command: "Optional[str]" = None,
+        help_text: "Optional[str]" = None,
+        allowed_task_teams: "Optional[str]" = None,
+    ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
         new_task = modeldb.Task.objects.create(
@@ -1862,16 +1925,18 @@ class HybridDatabase(object):
 
         return self._task_to_dict(new_task)
 
-    def _fdb_add_dataset_to_task(self, task_id, dataset_id, dataset_type):
+    def _fdb_add_dataset_to_task(self, task_id: str, dataset_id: str, dataset_type: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         if dataset_type == "test":
             task.testDataset.append(dataset_id)
         else:
             task.trainingDataset.append(dataset_id)
-        open(task_file_path, "w").write(str(task))
+        task_file_path.write_text(str(task))
 
-    def _fdb_add_dataset(self, task_id, dataset_id, display_name, dataset_type, evaluator_id):
+    def _fdb_add_dataset(
+        self, task_id: str, dataset_id: str, display_name: str, dataset_type: str, evaluator_id: str
+    ) -> None:
         """dataset_dir_path/task_id/dataset_id.prototext"""
         new_dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
 
@@ -1885,9 +1950,9 @@ class HybridDatabase(object):
             ds.isConfidential = False
 
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
-        open(new_dataset_file_path, "w").write(str(ds))
+        new_dataset_file_path.write_text(str(ds))
 
-    def get_new_dataset_id(self, dataset_id, task_id, dataset_type):
+    def get_new_dataset_id(self, dataset_id: str, task_id: str, dataset_type: str) -> str:
         candidates = [""] + [f"_{i}" for i in range(100)]
         for cand in candidates:
             dataset_id_candidate = f"{dataset_id}-{get_today_timestamp()}{cand}-{dataset_type}"
@@ -1904,22 +1969,22 @@ class HybridDatabase(object):
 
     def add_dataset(
         self,
-        task_id,
-        dataset_id,
-        dataset_type,
-        dataset_name,
-        upload_name,
-        irds_docker_image=None,
-        irds_import_command=None,
-        irds_import_truth_command=None,
-        dataset_format=None,
-        description=None,
-        chatnoir_id=None,
-        ir_datasets_id=None,
+        task_id: str,
+        dataset_id: str,
+        dataset_type: str,
+        dataset_name: str,
+        upload_name: str,
+        irds_docker_image: "Optional[str]" = None,
+        irds_import_command: "Optional[str]" = None,
+        irds_import_truth_command: "Optional[str]" = None,
+        dataset_format: "Optional[str]" = None,
+        description: "Optional[str]" = None,
+        chatnoir_id: "Optional[str]" = None,
+        ir_datasets_id: "Optional[str]" = None,
         truth_format=None,
         format_configuration=None,
         truth_format_configuration=None,
-    ):
+    ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
         dataset_id = self.get_new_dataset_id(dataset_id, task_id, dataset_type)
@@ -1977,7 +2042,9 @@ class HybridDatabase(object):
 
         return self._dataset_to_dict(ds), [str(nd) for nd in new_dirs]
 
-    def _fdb_add_evaluator_to_vm(self, vm_id, evaluator_id, command, working_directory, measures):
+    def _fdb_add_evaluator_to_vm(
+        self, vm_id: "Optional[str]", evaluator_id: str, command: str, working_directory: "Path", measures: str
+    ) -> None:
         """Add the evaluator the the <vm_id>.prototext file in the Filedatabase
         This file is potentially read by the host.
           If it is not read by the host anymore, remove this function and all it's calls
@@ -1992,32 +2059,32 @@ class HybridDatabase(object):
         ev.measures = str(measures)  # ",".join([x[0].strip('\r') for x in measures])
         # ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
-        open(vm_file_path, "w").write(str(vm))
+        vm_file_path.write_text(str(vm))
 
-    def _fdb_add_evaluator_to_dataset(self, task_id, dataset_id, evaluator_id):
+    def _fdb_add_evaluator_to_dataset(self, task_id: str, dataset_id: str, evaluator_id: str) -> None:
         """Add the evaluator the the dataset.prototext file in the Filedatabase
         This file is potentially read by the host.
           If it is not read by the host anymore, remove this function and all it's calls
         """
         dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
-        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
+        ds = Parse(dataset_file_path.read_bytes(), modelpb.Dataset())
         ds.evaluatorId = evaluator_id
-        open(dataset_file_path, "w").write(str(ds))
+        dataset_file_path.write_text(str(ds))
 
     def add_evaluator(
         self,
-        vm_id,
-        task_id,
-        dataset_id,
-        command,
-        working_directory,
-        measures,
-        is_git_runner,
-        git_runner_image,
-        git_runner_command,
-        git_repository_id,
+        vm_id: "Optional[str]",
+        task_id: str,
+        dataset_id: str,
+        command: str,
+        working_directory: Path,
+        measures: str,
+        is_git_runner: bool,
+        git_runner_image: "Optional[str]",
+        git_runner_command: "Optional[str]",
+        git_repository_id: "Optional[str]",
         trusted_evaluation,
-    ):
+    ) -> None:
         """Add a new Evaluator to the model (and the filedatabase as long as needed)
 
         @param vm_id: vm id as string as usual
@@ -2058,7 +2125,7 @@ class HybridDatabase(object):
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
-    def get_job_details(self, task_id, vm_id, job_id):
+    def get_job_details(self, task_id: str, vm_id: str, job_id: str) -> "Optional[dict[str, Any]]":
         ret = modeldb.BackendProcess.objects.filter(id=job_id, vm__vm_id=vm_id, task__task_id=task_id)
 
         if ret is None or len(ret) == 0:
@@ -2073,7 +2140,7 @@ class HybridDatabase(object):
                 "stdout": ret.stdout,
             }
 
-    def add_software(self, task_id: str, vm_id: str):
+    def add_software(self, task_id: str, vm_id: str) -> "dict[str, Any]":
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)
         date = now()
@@ -2109,13 +2176,13 @@ class HybridDatabase(object):
         task_id,
         vm_id,
         software_id,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
+        command: "Optional[str]" = None,
+        working_directory: "Optional[str]" = None,
+        dataset: "Optional[str]" = None,
+        run: "Optional[str]" = None,
         deleted: bool = False,
     ):
-        def update(x, y):
+        def update(x: "_T", y: "Optional[_T]") -> "_T":
             return y if y is not None else x
 
         s = self._load_softwares(task_id, vm_id)
@@ -2149,29 +2216,29 @@ class HybridDatabase(object):
 
     def update_review(
         self,
-        dataset_id,
-        vm_id,
-        run_id,
-        reviewer_id: Optional[str] = None,
-        review_date: Optional[str] = None,
-        has_errors: Optional[bool] = None,
-        has_no_errors: Optional[bool] = None,
-        no_errors: Optional[bool] = None,
-        missing_output: Optional[bool] = None,
-        extraneous_output: Optional[bool] = None,
-        invalid_output: Optional[bool] = None,
-        has_error_output: Optional[bool] = None,
-        other_errors: Optional[bool] = None,
-        comment: Optional[str] = None,
-        published: Optional[bool] = None,
-        blinded: Optional[bool] = None,
+        dataset_id: str,
+        vm_id: str,
+        run_id: str,
+        reviewer_id: "Optional[str]" = None,
+        review_date: "Optional[str]" = None,
+        has_errors: "Optional[bool]" = None,
+        has_no_errors: "Optional[bool]" = None,
+        no_errors: "Optional[bool]" = None,
+        missing_output: "Optional[bool]" = None,
+        extraneous_output: "Optional[bool]" = None,
+        invalid_output: "Optional[bool]" = None,
+        has_error_output: "Optional[bool]" = None,
+        other_errors: "Optional[bool]" = None,
+        comment: "Optional[str]" = None,
+        published: "Optional[bool]" = None,
+        blinded: "Optional[bool]" = None,
         has_warnings: bool = False,
     ) -> bool:
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
 
-        def __update(x, y):
+        def __update(x: "_T", y: "Optional[_T]") -> "_T":
             return y if y is not None else x
 
         try:
@@ -2220,7 +2287,7 @@ class HybridDatabase(object):
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
 
-    def add_run(self, dataset_id, vm_id, run_id):
+    def add_run(self, dataset_id: str, vm_id: str, run_id: str) -> str:
         """Parses the specified run and adds it to the model. Does nothing if the run does not exist in the
         FileDB.
         Runs the auto reviewer to generate an initial review.
@@ -2228,7 +2295,7 @@ class HybridDatabase(object):
         """
         return dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
 
-    def _list_files(self, startpath):
+    def _list_files(self, startpath: str) -> str:
         import os
 
         tree = ""
@@ -2246,25 +2313,25 @@ class HybridDatabase(object):
         files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*[!.zip]")])
         root_files = list(output_dir.glob("*[!.zip]"))
 
-        def count_lines(file_name):
+        def count_lines(file_name: Path) -> "Union[str, int]":
             try:
                 if file_name.suffix == ".gz":
                     return len(gzip.open(file_name, "r").readlines())
                 else:
-                    return len(open(file_name, "r").readlines())
+                    return len(file_name.read_text().splitlines())
             except Exception:
                 return "--"
 
         if root_files and not root_files[0].is_dir():
             lines = count_lines(root_files[0])
-            size = root_files[0].stat().st_size
+            size: Union[str, int] = root_files[0].stat().st_size
         else:
             lines = "--"
             size = "--"
-        open(run_dir / "size.txt", "w").write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
-        open(run_dir / "file-list.txt", "w").write(self._list_files(str(output_dir)))
+        (run_dir / "size.txt").write_text(f"0\n{size}\n{lines}\n{files}\n{dirs}")
+        (run_dir / "file-list.txt").write_text(self._list_files(str(output_dir)))
 
-    def add_upload(self, task_id: str, vm_id: str, rename_to: Optional[str] = None):
+    def add_upload(self, task_id: str, vm_id: str, rename_to: "Optional[str]" = None):
         upload = modeldb.Upload.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
@@ -2275,14 +2342,16 @@ class HybridDatabase(object):
 
         return self.upload_to_dict(upload, vm_id)
 
-    def delete_upload(self, task_id, vm_id, upload_id):
+    def delete_upload(self, task_id: str, vm_id: str, upload_id: str) -> None:
         modeldb.Upload.objects.filter(
             id=upload_id,
             vm__vm_id=vm_id,
             task__task_id=task_id,
         ).update(deleted=True)
 
-    def add_uploaded_run(self, task_id, vm_id, dataset_id, upload_id, uploaded_file):
+    def add_uploaded_run(
+        self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, uploaded_file: "UploadedFile"
+    ) -> "dict[str, Any]":
         # First add to data
         new_id = get_tira_id()
         run_dir = self.runs_dir_path / dataset_id / vm_id / new_id
@@ -2313,8 +2382,8 @@ class HybridDatabase(object):
             downloadable=True,
         )
 
-        open(run_dir / "run.bin", "wb").write(run.SerializeToString())
-        open(run_dir / "run.prototext", "w").write(str(run))
+        (run_dir / "run.bin").write_bytes(run.SerializeToString())
+        (run_dir / "run.prototext").write_text(str(run))
 
         if uploaded_file.name.endswith(".zip"):
             with open(run_dir / "output" / uploaded_file.name, "wb+") as destination:
@@ -2336,13 +2405,13 @@ class HybridDatabase(object):
 
         # Add size.txt and stdout and stderr, and file-list.txt
         self._assess_uploaded_files(run_dir, (run_dir / "output"))
-        open(run_dir / "stdout.txt", "w").write("This run was successfully uploaded.")
-        open(run_dir / "stderr.txt", "w").write("No errors.")
+        (run_dir / "stdout.txt").write_text("This run was successfully uploaded.")
+        (run_dir / "stderr.txt").write_text("No errors.")
 
         # add the review
         review = auto_reviewer(run_dir, run_dir.stem)
-        open(run_dir / "run-review.prototext", "w").write(str(review))
-        open(run_dir / "run-review.bin", "wb").write(review.SerializeToString())
+        (run_dir / "run-review.prototext").write_text(str(review))
+        (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
 
         modeldb.Review.objects.update_or_create(
             run=db_run,
@@ -2369,14 +2438,16 @@ class HybridDatabase(object):
 
         return {"run": returned_run, "last_edit_date": upload.last_edit_date}
 
-    def update_upload_metadata(self, task_id, vm_id, upload_id, display_name, description, paper_link):
+    def update_upload_metadata(
+        self, task_id: str, vm_id: str, upload_id: str, display_name: str, description: str, paper_link: str
+    ) -> None:
         modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id).update(
             display_name=display_name,
             description=description,
             paper_link=paper_link,
         )
 
-    def add_docker_software_mounts(self, docker_software, mounts):
+    def add_docker_software_mounts(self, docker_software: "dict[str, Any]", mounts):
         docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software["docker_software_id"])
         modeldb.HuggingFaceModelsOfSoftware.objects.create(
             docker_software=docker_software,
@@ -2387,21 +2458,23 @@ class HybridDatabase(object):
 
     def add_docker_software(
         self,
-        task_id,
-        vm_id,
-        user_image_name,
-        command,
-        tira_image_name,
-        input_docker_job=None,
-        input_upload=None,
-        submission_git_repo=None,
-        build_environment=None,
-        source_code_remotes=None,
-        commit=None,
-        active_branch=None,
-        try_run_metadata_uuid=None,
-    ):
-        input_docker_software, input_upload_software, try_run_metadata = None, None, None
+        task_id: str,
+        vm_id: str,
+        user_image_name: str,
+        command: str,
+        tira_image_name: str,
+        input_docker_job: "Optional[dict[int, str]]" = None,
+        input_upload: "Optional[dict[int, str]]" = None,
+        submission_git_repo: "Optional[str]" = None,
+        build_environment: "Optional[str]" = None,
+        source_code_remotes: "Optional[str]" = None,
+        commit: "Optional[str]" = None,
+        active_branch: "Optional[str]" = None,
+        try_run_metadata_uuid: "Optional[str]" = None,
+    ) -> "dict[str, Any]":
+        input_docker_software: Optional[modeldb.DockerSoftware] = None
+        input_upload_software: Optional[modeldb.Upload] = None
+        try_run_metadata: Optional[modeldb.AnonymousUploads] = None
         if input_docker_job and 0 in input_docker_job:
             input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[0])
         if input_upload is not None and 0 in input_upload:
@@ -2429,9 +2502,10 @@ class HybridDatabase(object):
         )
         for i in additional_inputs:
             inp, upl = None, None
-            if i in input_docker_job:
+            if input_docker_job and i in input_docker_job:
                 inp = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[i])
             else:
+                assert input_upload is not None
                 upl = modeldb.Upload.objects.get(id=int(input_upload[i]))
 
             modeldb.DockerSoftwareHasAdditionalInput.objects.create(
@@ -2450,8 +2524,14 @@ class HybridDatabase(object):
         return self._docker_software_to_dict(docker_software)
 
     def update_docker_software_metadata(
-        self, docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input
-    ):
+        self,
+        docker_software_id: str,
+        display_name: str,
+        description: str,
+        paper_link: str,
+        ir_re_ranker: str,
+        ir_re_ranking_input: str,
+    ) -> None:
         modeldb.DockerSoftware.objects.update_or_create(
             docker_software_id=docker_software_id,
             defaults={
@@ -2463,14 +2543,14 @@ class HybridDatabase(object):
             },
         )
 
-    def update_run(self, dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
+    def update_run(self, dataset_id: str, vm_id: str, run_id: str, deleted: "Optional[bool]" = None) -> None:
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         try:
             run = self._load_run(dataset_id, vm_id, run_id)
 
-            def update(x, y):
+            def update(x: "_T", y: "Optional[_T]") -> "_T":
                 return y if y is not None else x
 
             run.deleted = update(run.deleted, deleted)
@@ -2478,19 +2558,19 @@ class HybridDatabase(object):
 
             self._save_run(dataset_id, vm_id, run_id, run)
         except Exception as e:
-            raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", exc_info=e)
+            raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})") from e
 
     def _fdb_edit_task(
         self,
-        task_id,
-        task_name,
-        task_description,
-        master_vm_id,
-        organizer_id,
-        website,
-        help_command=None,
-        help_text=None,
-    ):
+        task_id: str,
+        task_name: str,
+        task_description: str,
+        master_vm_id: str,
+        organizer_id: str,
+        website: str,
+        help_command: "Optional[str]" = None,
+        help_text: "Optional[str]" = None,
+    ) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
         if not task_file_path.exists():
             logger.exception(
@@ -2501,7 +2581,7 @@ class HybridDatabase(object):
                 task_id, task_name, task_description, master_vm_id, organizer_id, website, help_command, help_text
             )
             return
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         task.taskId = task_id
         task.taskName = task_name
         task.taskDescription = task_description
@@ -2510,7 +2590,7 @@ class HybridDatabase(object):
         task.web = website
         task.commandPlaceholder = help_command
         task.commandDescription = help_text
-        open(task_file_path, "w").write(str(task))
+        task_file_path.write_text(str(task))
 
     def edit_task(
         self,
@@ -2524,9 +2604,9 @@ class HybridDatabase(object):
         require_registration: str,
         require_groups: str,
         restrict_groups: str,
-        help_command: Optional[str] = None,
-        help_text: Optional[str] = None,
-        allowed_task_teams: Optional[str] = None,
+        help_command: "Optional[str]" = None,
+        help_text: "Optional[str]" = None,
+        allowed_task_teams: "Optional[str]" = None,
         is_ir_task: bool = False,
         irds_re_ranking_image: str = "",
         irds_re_ranking_command: str = "",
@@ -2562,10 +2642,12 @@ class HybridDatabase(object):
         )
         return self._task_to_dict(modeldb.Task.objects.get(task_id=task_id))
 
-    def _fdb_edit_dataset(self, task_id, dataset_id, display_name, dataset_type, evaluator_id):
+    def _fdb_edit_dataset(
+        self, task_id: str, dataset_id: str, display_name: str, dataset_type: str, evaluator_id: str
+    ) -> None:
         """dataset_dir_path/task_id/dataset_id.prototext"""
         dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
-        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
+        ds = Parse(dataset_file_path.read_bytes(), modelpb.Dataset())
 
         ds.displayName = display_name
         ds.evaluatorId = evaluator_id
@@ -2574,9 +2656,11 @@ class HybridDatabase(object):
         else:
             ds.isConfidential = False
 
-        open(dataset_file_path, "w").write(str(ds))
+        dataset_file_path.write_text(str(ds))
 
-    def _fdb_edit_evaluator_to_vm(self, vm_id, evaluator_id, command, working_directory, measures):
+    def _fdb_edit_evaluator_to_vm(
+        self, vm_id: str, evaluator_id: str, command: str, working_directory: str, measures: str
+    ) -> None:
         """Edit the evaluator in the <vm_id>.prototext file in the Filedatabase
         This file is potentially read by the host.
           If it is not read by the host anymore, remove this function and all it's calls
@@ -2590,31 +2674,31 @@ class HybridDatabase(object):
                 evaluator.workingDirectory = working_directory
                 evaluator.measures = measures
 
-        open(vm_file_path, "w").write(str(vm))
+        vm_file_path.write_text(str(vm))
 
     def edit_dataset(
         self,
-        task_id,
-        dataset_id,
-        dataset_name,
-        command,
-        working_directory,
-        measures,
-        upload_name,
-        is_confidential,
-        is_git_runner,
-        git_runner_image,
-        git_runner_command,
-        git_repository_id,
-        dataset_format,
-        description,
-        chatnoir_id=None,
-        ir_datasets_id=None,
+        task_id: str,
+        dataset_id: str,
+        dataset_name: str,
+        command: str,
+        working_directory: str,
+        measures: str,
+        upload_name: str,
+        is_confidential: bool,
+        is_git_runner: bool,
+        git_runner_image: "Optional[str]",
+        git_runner_command: "Optional[str]",
+        git_repository_id: "Optional[str]",
+        dataset_format: "Optional[str]",
+        description: "Optional[str]",
+        chatnoir_id: "Optional[str]" = None,
+        ir_datasets_id: "Optional[str]" = None,
         truth_format=None,
         trusted_evaluation=None,
         dataset_format_configuration=None,
         truth_format_configuration=None,
-    ):
+    ) -> "dict[str, Any]":
         """
 
         @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
@@ -2671,7 +2755,7 @@ class HybridDatabase(object):
 
         return self._dataset_to_dict(ds)
 
-    def delete_software(self, task_id, vm_id, software_id):
+    def delete_software(self, task_id: str, vm_id: str, software_id: str) -> bool:
         """Delete a software.
         Deletion is denied when
         - there is a successful evlauation assigned.
@@ -2697,7 +2781,7 @@ class HybridDatabase(object):
 
         return found
 
-    def delete_run(self, dataset_id, vm_id, run_id):
+    def delete_run(self, dataset_id: str, vm_id: str, run_id: str) -> bool:
         """delete the run in the database.
 
         Do not delete if:
@@ -2716,21 +2800,21 @@ class HybridDatabase(object):
         modeldb.Run.objects.filter(run_id=run_id).delete()
         return True
 
-    def _fdb_delete_task(self, task_id):
+    def _fdb_delete_task(self, task_id: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
         os.remove(task_file_path)
 
-    def delete_task(self, task_id):
+    def delete_task(self, task_id: str) -> None:
         modeldb.Task.objects.filter(task_id=task_id).delete()
         self._fdb_delete_task(task_id)
 
-    def _fdb_delete_dataset(self, task_id, dataset_id):
+    def _fdb_delete_dataset(self, task_id: str, dataset_id: str) -> None:
         dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
         os.remove(dataset_file_path)
 
-    def _fdb_delete_dataset_from_task(self, task_id, dataset_id):
+    def _fdb_delete_dataset_from_task(self, task_id: str, dataset_id: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         for ind, ds in enumerate(task.testDataset):
             if ds == dataset_id:
                 del task.testDataset[ind]
@@ -2739,9 +2823,9 @@ class HybridDatabase(object):
             if ds == dataset_id:
                 del task.trainingDataset[ind]
 
-        open(task_file_path, "w").write(str(task))
+        task_file_path.write_text(str(task))
 
-    def _fdb_delete_evaluator_from_vm(self, vm_id, evaluator_id):
+    def _fdb_delete_evaluator_from_vm(self, vm_id: str, evaluator_id: str) -> None:
         vm_file_path = self.vm_dir_path / f"{vm_id}.prototext"
         vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
 
@@ -2749,9 +2833,9 @@ class HybridDatabase(object):
             if ev.evaluatorId == evaluator_id:
                 del vm.evaluators[ind]
 
-        open(vm_file_path, "w").write(str(vm))
+        vm_file_path.write_text(str(vm))
 
-    def delete_dataset(self, dataset_id):
+    def delete_dataset(self, dataset_id: str) -> None:
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(is_deprecated=True)
         # ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
         # task_id = ds.default_task.task_id
@@ -2766,7 +2850,9 @@ class HybridDatabase(object):
         # self._fdb_delete_dataset(task_id, dataset_id)
         # ds.delete()
 
-    def edit_organizer(self, organizer_id, name, years, web, git_integrations=[]):
+    def edit_organizer(
+        self, organizer_id: str, name: str, years: str, web: str, git_integrations: "list[dict[str, Any]]" = []
+    ) -> modeldb.Organizer:
         org, _ = modeldb.Organizer.objects.update_or_create(
             organizer_id=organizer_id, defaults={"name": name, "years": years, "web": web}
         )
@@ -2774,7 +2860,7 @@ class HybridDatabase(object):
 
         return org
 
-    def _git_integration_to_dict(self, git_integration):
+    def _git_integration_to_dict(self, git_integration: modeldb.GitIntegration) -> "dict[str, Any]":
         return {
             "namespace_url": git_integration.namespace_url,
             "host": git_integration.host,
@@ -2786,13 +2872,15 @@ class HybridDatabase(object):
             "user_repository_branch": git_integration.user_repository_branch,
         }
 
-    def get_git_integration(self, namespace_url, private_token, return_dict=False, create_if_not_exists=True):
+    def get_git_integration(
+        self, namespace_url: str, private_token: str, return_dict: bool = False, create_if_not_exists: bool = True
+    ) -> "Optional[dict[str, Any]]":
         if not namespace_url or not namespace_url.strip():
             return None
 
         defaults = {"private_token": private_token}
 
-        if not private_token or not private_token.strip or "<OMMITTED>".lower() in private_token.lower():
+        if not private_token or not private_token.strip() or "<OMMITTED>".lower() in private_token.lower():
             defaults = {}
 
         if create_if_not_exists:
@@ -2804,7 +2892,7 @@ class HybridDatabase(object):
 
         return self._git_integration_to_dict(git_integration) if return_dict else git_integration
 
-    def all_git_integrations(self, return_dict=False):
+    def all_git_integrations(self, return_dict: bool = False) -> "list[dict[str, Any]]":
         ret = modeldb.GitIntegration.objects.all()
 
         if return_dict:
@@ -2812,7 +2900,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def _registration_to_dict(self, registration):
+    def _registration_to_dict(self, registration: modeldb.Registration) -> "dict[str, Any]":
         return {
             "team_name": registration.team_name,
             "initial_owner": registration.initial_owner,
@@ -2856,12 +2944,12 @@ class HybridDatabase(object):
 
     @staticmethod
     def all_matching_run_ids(
-        vm_id: str,
-        input_dataset_id: str,
+        vm_id: "Optional[str]",
+        input_dataset_id: "Optional[str]",
         task_id: str,
-        software_id: Optional[str],
-        docker_software_id: Optional[int],
-        upload_id: Optional[int],
+        software_id: "Optional[str]",
+        docker_software_id: "Optional[int]",
+        upload_id: "Optional[int]",
     ) -> list[str]:
         ret: list[str] = []
 
@@ -2898,8 +2986,10 @@ class HybridDatabase(object):
 
         return [i for i in ret if i]
 
-    def get_ordered_additional_input_runs_of_software(self, docker_software):
-        ret = []
+    def get_ordered_additional_input_runs_of_software(
+        self, docker_software: "dict[str, Any]"
+    ) -> "list[tuple[Optional[int], Optional[modeldb.Upload]]]":
+        ret: list[tuple[Optional[int], Optional[modeldb.Upload]]] = []
 
         if not docker_software or "docker_software_id" not in docker_software:
             return []
@@ -2918,9 +3008,9 @@ class HybridDatabase(object):
 
         return ret
 
-    def all_registrations(self, task_id):
+    def all_registrations(self, task_id: str) -> "list[dict[str, Any]]":
         task = modeldb.Task.objects.get(task_id=task_id)
-        ret = []
+        ret: list[dict[str, Any]] = []
 
         for i in modeldb.Registration.objects.filter(registered_on_task=task):
             ret += [self._registration_to_dict(i)]

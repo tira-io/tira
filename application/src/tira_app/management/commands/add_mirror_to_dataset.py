@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandParser
 
 from tira_app.endpoints.v1._datasets import add_mirrored_resource
 
@@ -21,7 +21,7 @@ class Command(BaseCommand):
 
         add_mirrored_resource(options["dataset_id"], options["url_inputs"], options["url_truths"], options["name"])
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser):
         parser.add_argument("--dataset_id", default=None, type=str)
         parser.add_argument("--url_inputs", default=None, type=str)
         parser.add_argument("--url_truths", default=None, type=str)

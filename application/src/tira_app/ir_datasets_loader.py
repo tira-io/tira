@@ -2,13 +2,15 @@ from pathlib import Path
 
 from tira.ir_datasets_loader import IrDatasetsLoader
 
+from .tira_model import model
+from .util import run_cmd_as_documented_background_process
+
 IrDatasetsLoader = IrDatasetsLoader
 
 
-def run_irds_command(task_id, dataset_id, image, command, output_dir, truth_command, truth_output_dir):
-    from .tira_model import model
-    from .util import run_cmd_as_documented_background_process
-
+def run_irds_command(
+    task_id: str, dataset_id: str, image: str, command: str, output_dir: str, truth_command: str, truth_output_dir: str
+) -> int:
     irds_root = model.custom_irds_datasets_path / task_id / dataset_id
     command = command.replace("$outputDir", "/output-tira-tmp/")
     truth_command = truth_command.replace("$outputDir", "/output-tira-tmp/")
@@ -16,7 +18,7 @@ def run_irds_command(task_id, dataset_id, image, command, output_dir, truth_comm
     Path(truth_output_dir).mkdir(parents=True, exist_ok=True)
     Path(irds_root).mkdir(parents=True, exist_ok=True)
 
-    command = [
+    cmd = [
         [
             "sudo",
             "podman",
@@ -62,5 +64,5 @@ def run_irds_command(task_id, dataset_id, image, command, output_dir, truth_comm
     # command = [command, command]
 
     return run_cmd_as_documented_background_process(
-        cmd=command, vm_id=None, task_id=task_id, title=f"Import Dataset {dataset_id}", descriptions=descriptions
+        cmd=cmd, vm_id=None, task_id=task_id, title=f"Import Dataset {dataset_id}", descriptions=descriptions
     )

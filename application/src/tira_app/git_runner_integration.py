@@ -11,6 +11,7 @@ from datetime import datetime as dt
 from glob import glob
 from itertools import chain
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import gitlab
 import markdown
@@ -26,10 +27,15 @@ from tqdm import tqdm
 from .grpc_client import new_transaction
 from .model import EvaluationLog, TransactionLog
 
+if TYPE_CHECKING:
+    from typing import Optional
+
+    from github.Repository import Repository
+
 logger = logging.getLogger("tira")
 
 
-def normalize_file(file_content, tira_user_name, task_id):
+def __normalize_file(file_content: str, tira_user_name: str, task_id: str) -> str:
     default_datasets = {
         "webpage-classification": "webpage-classification/tiny-sample-20231023-training",
         "ir-lab-jena-leipzig-wise-2023": "workshop-on-open-web-search/retrieval-20231027-training",
@@ -186,7 +192,7 @@ class GitRunner:
             metadata["TIRA_INPUT_RUN_VM_IDS"] = json.dumps([i["vm_id"] for i in input_run])
             metadata["TIRA_INPUT_RUN_RUN_IDS"] = json.dumps([i["run_id"] for i in input_run])
 
-        open(job_dir / "job-to-execute.txt", "w").write(self.dict_to_key_value_file(metadata))
+        (job_dir / "job-to-execute.txt").write_text(self.dict_to_key_value_file(metadata))
 
     def create_user_repository(self, user_name):
         """
@@ -360,7 +366,7 @@ class GitRunner:
 
             return open(f[0]).read()
 
-    def all_user_repositories(self):
+    def all_user_repositories(self) -> set[str]:
         """
         Lists all user repositories in the organization.
 
@@ -704,14 +710,14 @@ class GitLabRunner(GitRunner):
 
     def __init__(
         self,
-        private_token,
-        host,
-        user_name,
-        user_password,
-        gitlab_repository_namespace_id,
-        image_registry_prefix,
-        user_repository_branch,
-    ):
+        private_token: str,
+        host: str,
+        user_name: str,
+        user_password: str,
+        gitlab_repository_namespace_id: str,
+        image_registry_prefix: str,
+        user_repository_branch: str,
+    ) -> None:
         self.git_token = private_token
         self.user_name = user_name
         self.host = host
@@ -801,7 +807,7 @@ class GitLabRunner(GitRunner):
                 "digest": image_metadata["config"]["digest"].split(":")[-1][:12],
             }
         except Exception as e:
-            logger.warn("Exception during loading of metadata for docker image", exc_info=e)
+            logger.warning("Exception during loading of metadata for docker image", exc_info=e)
             ret = {
                 "architecture": "Loading...",
                 "created": "Loading...",
@@ -1223,7 +1229,7 @@ class GitLabRunner(GitRunner):
                                 if len(i.split("=")) == 2
                             }
         except Exception as e:
-            logger.warn(f'Could not extract job configuration on "{branch}".', exc_info=e)
+            logger.warning(f'Could not extract job configuration on "{branch}".', exc_info=e)
             pass
 
         if (
@@ -1238,7 +1244,7 @@ class GitLabRunner(GitRunner):
 
                 software_from_db = model.get_docker_software(int(ret["TIRA_SOFTWARE_ID"].split("docker-software-")[-1]))
             except Exception as e:
-                logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
+                logger.warning(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
                 software_from_db = {}
 
         return {
@@ -1290,14 +1296,15 @@ class GitLabRunner(GitRunner):
 
 class GithubRunner(GitRunner):
 
-    def __init__(self, github_token):
+    def __init__(self, github_token: str) -> None:
         self.git_token = github_token
         self.gitHoster_client = Github(self.git_token)
 
-    def _convert_repository_id_to_repository_name(self, repository_id):
+    def _convert_repository_id_to_repository_name(self, repository_id: str) -> "Optional[str]":
         for repo in self.gitHoster_client.get_user().get_repos():
             if repo.id == repository_id:
                 return repo.name
+        return None
 
     def template_ci(self):
         """
@@ -1328,7 +1335,7 @@ class GithubRunner(GitRunner):
                 else:
                     logger.info(f"Tag: {new_tag} already exists with the same name")
 
-    def all_user_repositories(self):
+    def all_user_repositories(self) -> set[str]:
         """
         Lists all user repositories in the organization "user_name".
 
@@ -1338,7 +1345,7 @@ class GithubRunner(GitRunner):
         List of all user repositories in the organization.
         """
 
-        ret = []
+        ret: list[str] = []
         for repo in self.gitHoster_client.get_user().get_repos():
             ret.append(repo.name)
 
@@ -1416,7 +1423,7 @@ class GithubRunner(GitRunner):
         # https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
         pass
 
-    def git_user_exists(self, user_name):
+    def git_user_exists(self, user_name: str) -> bool:
         try:
             return self.gitHoster_client.get_user(user_name) is not None
         except Exception:
@@ -1424,20 +1431,20 @@ class GithubRunner(GitRunner):
 
     def get_git_runner_for_software_integration(
         self,
-        reference_repository_name,
-        user_repository_name,
-        user_repository_namespace,
-        github_user,
-        tira_user_name,
-        dockerhub_token,
-        dockerhub_user,
-        tira_client_token,
-        repository_search_prefix,
-        tira_task_id,
-        tira_code_repository_id,
-        tira_client_user,
-        private,
-    ):
+        reference_repository_name: str,
+        user_repository_name: str,
+        user_repository_namespace: str,
+        github_user: str,
+        tira_user_name: str,
+        dockerhub_token: str,
+        dockerhub_user: str,
+        tira_client_token: str,
+        repository_search_prefix: str,
+        tira_task_id: str,
+        tira_code_repository_id: str,
+        tira_client_user: str,
+        private: bool,
+    ) -> "Repository":
         user = self.gitHoster_client.get_user()
         try:
             user_repo = user.get_repo(f"{user_repository_namespace}/{user_repository_name}")
@@ -1465,20 +1472,20 @@ class GithubRunner(GitRunner):
 
     def create_software_submission_repository_for_user(
         self,
-        reference_repository_name,
-        user_repository_name,
-        user_repository_namespace,
-        github_user,
-        tira_user_name,
-        dockerhub_token,
-        dockerhub_user,
-        tira_client_token,
-        repository_search_prefix,
-        tira_task_id,
-        tira_code_repository_id,
-        tira_client_user,
-        private,
-    ):
+        reference_repository_name: str,
+        user_repository_name: str,
+        user_repository_namespace: str,
+        github_user: str,
+        tira_user_name: str,
+        dockerhub_token: str,
+        dockerhub_user: str,
+        tira_client_token: str,
+        repository_search_prefix: str,
+        tira_task_id: str,
+        tira_code_repository_id: str,
+        tira_client_user: str,
+        private: bool,
+    ) -> "Repository":
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
 
         org = self.gitHoster_client.get_organization(user_repository_namespace)
@@ -1496,13 +1503,16 @@ class GithubRunner(GitRunner):
         repo.create_secret("TIRA_CODE_REPOSITORY_ID", tira_code_repository_id)
 
         contents = reference_repo.get_contents(repository_search_prefix)
+        assert isinstance(contents, list)
         while contents:
             file_content = contents.pop(0)
             if file_content.type == "dir":
-                contents.extend(reference_repo.get_contents(file_content.path))
+                tmp = reference_repo.get_contents(file_content.path)
+                assert isinstance(tmp, list)
+                contents.extend(tmp)
             else:
                 decoded_content = file_content.decoded_content.decode()
-                decoded_content = normalize_file(decoded_content, tira_user_name, tira_task_id)
+                decoded_content = __normalize_file(decoded_content, tira_user_name, tira_task_id)
                 repo.create_file(file_content.path, "Initial Commit.", decoded_content)
 
         return repo

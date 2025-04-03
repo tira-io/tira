@@ -18,7 +18,7 @@ from tira.tira_client import TiraClient
 
 
 def dataset_as_dataframe(
-    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -37,7 +37,7 @@ def dataset_as_dataframe(
 
 
 def dataset_as_iterator(
-    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -187,7 +187,7 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
         yield parse_jsonl_line(line, load_default_text)
 
 
-def huggingface_model_mounts(models: Iterable[str]) -> dict:
+def huggingface_model_mounts(models: "Iterable[str]") -> dict:
     """Determine the mounts to make the described huggingface models available in the container. The models must
     already exist in the local huggingface cache of the host.
 
@@ -295,7 +295,7 @@ def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text
     return pd.DataFrame(ret)
 
 
-def __num(input: str) -> Union[str, int, float]:
+def __num(input: str) -> "Union[str, int, float]":
     """
     Converts the input to an int or float if possible. Returns the inputted string otherwise.
 
@@ -486,7 +486,7 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
-def load_output_of_directory(directory: Path, evaluation: bool = False) -> Union[Dict, pd.DataFrame]:
+def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
     files = glob(str(directory) + "/*")
 
     if evaluation:

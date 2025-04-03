@@ -1,6 +1,7 @@
 import json
 from hashlib import md5
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import markdown
 import requests
@@ -12,6 +13,11 @@ from rest_framework.serializers import CharField, ModelSerializer, SerializerMet
 from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
+
+if TYPE_CHECKING:
+    from typing import Any, Optional
+
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
 
 class DatasetSerializer(ModelSerializer):
@@ -104,22 +110,22 @@ class _DatasetView(ModelViewSet):
     permission_classes = [AllowAny]
 
 
-def load_mirrored_resource(md5_sum: str) -> dict[str, str]:
-    ret = None
+def load_mirrored_resource(md5_sum: str) -> "Optional[dict[str, Any]]":
+    ret: Optional[dict[str, Any]] = None
 
     try:
         obj = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
         ret = {"md5_sum": obj.md5_sum, "md5_first_kilobyte": obj.md5_first_kilobyte, "size": obj.size}
         ret["mirrors"] = {}
         ret["mirrors"] = json.loads(obj.mirrors)
-    except:
+    except Exception:
         pass
 
     return ret
 
 
-def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
-    ret = {"truths": {}, "inputs": {}}
+def mirrors_for_dataset(dataset_id: str) -> "dict[str, dict[str, Any]]":
+    ret: dict[str, dict[str, Any]] = {"truths": {}, "inputs": {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
         resource_type = i.resource_type
         subdirectory = i.subdirectory

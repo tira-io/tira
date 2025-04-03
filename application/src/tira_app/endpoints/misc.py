@@ -27,7 +27,7 @@ EVALUATOR_TO_TYPE = {
     "WowsEvalEvaluator": "Retrieval",
 }
 
-TRUSTED_EVALUATORS = {"Retrieval": [], "Classification": []}
+TRUSTED_EVALUATORS: dict[str, list[str]] = {"Retrieval": [], "Classification": []}
 
 for measure, evaluator in MEASURE_TO_EVALUATORS.items():
     if evaluator not in EVALUATOR_TO_TYPE:
@@ -39,7 +39,7 @@ try:
     SOFTWARE_COUNT = len(json.loads(public_submissions(None).content.decode("UTF-8")))
     DATASET_COUNT = modeldb.Dataset.objects.count()
     TASK_COUNT = modeldb.Task.objects.count()
-except:
+except Exception:
     SOFTWARE_COUNT = 0
     DATASET_COUNT = 0
     TASK_COUNT = 0

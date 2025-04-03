@@ -165,7 +165,7 @@ def __load_output(directory, evaluation=False, verbose=False):
 
     if evaluation:
         ret = {}
-        for i in [i for i in open(files, "r").read().split("measure") if "key:" in i and "value:" in i]:
+        for i in [i for i in Path(files).read_text().split("measure") if "key:" in i and "value:" in i]:
             key = i.split("key:")[1].split("value")[0].split('"')[1]
             value = i.split("key:")[1].split("value")[1].split('"')[1]
 

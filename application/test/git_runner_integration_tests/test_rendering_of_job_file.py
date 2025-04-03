@@ -88,13 +88,13 @@ class TestRenderingOfJobFile(TestCase):
                 args.get("tira_image_workdir", None),
             )
 
-            job_file = (
+            job_file: Path = (
                 Path(temp_dir)
                 / args.get("dataset_id", "dataset_id")
                 / args.get("vm_id", "vm_id")
                 / args.get("run_id", "run_id")
                 / "job-to-execute.txt"
             )
-            actual = open(job_file, "r").read().strip()
+            actual = job_file.read_text().strip()
 
         verify(actual, options=Options().with_namer(CliNamer(test_name)))
