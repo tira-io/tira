@@ -33,12 +33,6 @@ logger = logging.getLogger("tira")
 model = HybridDatabase()
 
 
-# reloading and reindexing
-def build_model() -> None:
-    """reconstruct the caches and the database."""
-    model.build_model()
-
-
 def reload_vms() -> None:
     """reload VM and user data from the export format of the model"""
     model.reload_vms()

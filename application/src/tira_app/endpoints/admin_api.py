@@ -55,13 +55,6 @@ def _handle_get_model_exceptions(func):
 
 @check_permissions
 @_handle_get_model_exceptions
-def admin_reload_data() -> str:
-    model.build_model()
-    return "Model data was reloaded successfully"
-
-
-@check_permissions
-@_handle_get_model_exceptions
 def admin_reload_vms() -> str:
     model.reload_vms()
     return "VM data was reloaded successfully"
