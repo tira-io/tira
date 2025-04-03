@@ -192,7 +192,7 @@ class GitRunner:
             metadata["TIRA_INPUT_RUN_VM_IDS"] = json.dumps([i["vm_id"] for i in input_run])
             metadata["TIRA_INPUT_RUN_RUN_IDS"] = json.dumps([i["run_id"] for i in input_run])
 
-        open(job_dir / "job-to-execute.txt", "w").write(self.dict_to_key_value_file(metadata))
+        (job_dir / "job-to-execute.txt").write_text(self.dict_to_key_value_file(metadata))
 
     def create_user_repository(self, user_name):
         """

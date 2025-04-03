@@ -145,8 +145,8 @@ class HybridDatabase(object):
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
-                r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
-                open(run_dir / "run.bin", "wb").write(r.SerializeToString())
+                r = Parse((run_dir / "run.prototext").read_bytes(), modelpb.Run())
+                (run_dir / "run.bin").write_bytes(r.SerializeToString())
             else:
                 logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
                 run = modelpb.Run()
@@ -156,7 +156,7 @@ class HybridDatabase(object):
                 return run
 
         run = modelpb.Run()
-        run.ParseFromString(open(run_dir / "run.bin", "rb").read())
+        run.ParseFromString((run_dir / "run.bin").read_bytes())
         if return_deleted is False and run.deleted:
             run.softwareId = "This run was deleted"
             run.runId = run_id
@@ -206,8 +206,8 @@ class HybridDatabase(object):
     def _save_review(self, dataset_id: str, vm_id: str, run_id: str, review: "Message") -> None:
         """Save the reivew to the protobuf dump. Create the file if it does not exist."""
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
-        open(review_path / "run-review.prototext", "w").write(str(review))
-        open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
+        (review_path / "run-review.prototext").write_text(str(review))
+        (review_path / "run-review.bin").write_bytes(review.SerializeToString())
 
     def _save_softwares(self, task_id: str, vm_id: str, softwares: "Message") -> None:
         open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
@@ -216,8 +216,8 @@ class HybridDatabase(object):
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        open(run_dir / "run.prototext", "w").write(str(run))
-        open(run_dir / "run.bin", "wb").write(run.SerializeToString())
+        (run_dir / "run.prototext").write_text(str(run))
+        (run_dir / "run.bin").write_bytes(run.SerializeToString())
 
     #########################################
     # Public Interface Methods
@@ -579,7 +579,7 @@ class HybridDatabase(object):
             return {} if not return_object else None
 
     def get_host_list(self) -> list[str]:
-        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
+        return [line.strip() for line in self.host_list_file.read_text().splitlines()]
 
     def get_ova_list(self) -> list[str]:
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
@@ -1880,7 +1880,7 @@ class HybridDatabase(object):
         task.web = website
         task.commandPlaceholder = help_command
         task.commandDescription = help_text
-        open(new_task_file_path, "w").write(str(task))
+        new_task_file_path.write_text(str(task))
 
     def create_task(
         self,
@@ -1927,7 +1927,7 @@ class HybridDatabase(object):
 
     def _fdb_add_dataset_to_task(self, task_id: str, dataset_id: str, dataset_type: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         if dataset_type == "test":
             task.testDataset.append(dataset_id)
         else:
@@ -2067,7 +2067,7 @@ class HybridDatabase(object):
           If it is not read by the host anymore, remove this function and all it's calls
         """
         dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
-        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
+        ds = Parse(dataset_file_path.read_bytes(), modelpb.Dataset())
         ds.evaluatorId = evaluator_id
         dataset_file_path.write_text(str(ds))
 
@@ -2318,7 +2318,7 @@ class HybridDatabase(object):
                 if file_name.suffix == ".gz":
                     return len(gzip.open(file_name, "r").readlines())
                 else:
-                    return len(open(file_name, "r").readlines())
+                    return len(file_name.read_text().splitlines())
             except Exception:
                 return "--"
 
@@ -2328,8 +2328,8 @@ class HybridDatabase(object):
         else:
             lines = "--"
             size = "--"
-        open(run_dir / "size.txt", "w").write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
-        open(run_dir / "file-list.txt", "w").write(self._list_files(str(output_dir)))
+        (run_dir / "size.txt").write_text(f"0\n{size}\n{lines}\n{files}\n{dirs}")
+        (run_dir / "file-list.txt").write_text(self._list_files(str(output_dir)))
 
     def add_upload(self, task_id: str, vm_id: str, rename_to: "Optional[str]" = None):
         upload = modeldb.Upload.objects.create(
@@ -2382,8 +2382,8 @@ class HybridDatabase(object):
             downloadable=True,
         )
 
-        open(run_dir / "run.bin", "wb").write(run.SerializeToString())
-        open(run_dir / "run.prototext", "w").write(str(run))
+        (run_dir / "run.bin").write_bytes(run.SerializeToString())
+        (run_dir / "run.prototext").write_text(str(run))
 
         if uploaded_file.name.endswith(".zip"):
             with open(run_dir / "output" / uploaded_file.name, "wb+") as destination:
@@ -2405,13 +2405,13 @@ class HybridDatabase(object):
 
         # Add size.txt and stdout and stderr, and file-list.txt
         self._assess_uploaded_files(run_dir, (run_dir / "output"))
-        open(run_dir / "stdout.txt", "w").write("This run was successfully uploaded.")
-        open(run_dir / "stderr.txt", "w").write("No errors.")
+        (run_dir / "stdout.txt").write_text("This run was successfully uploaded.")
+        (run_dir / "stderr.txt").write_text("No errors.")
 
         # add the review
         review = auto_reviewer(run_dir, run_dir.stem)
-        open(run_dir / "run-review.prototext", "w").write(str(review))
-        open(run_dir / "run-review.bin", "wb").write(review.SerializeToString())
+        (run_dir / "run-review.prototext").write_text(str(review))
+        (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
 
         modeldb.Review.objects.update_or_create(
             run=db_run,
@@ -2581,7 +2581,7 @@ class HybridDatabase(object):
                 task_id, task_name, task_description, master_vm_id, organizer_id, website, help_command, help_text
             )
             return
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         task.taskId = task_id
         task.taskName = task_name
         task.taskDescription = task_description
@@ -2590,7 +2590,7 @@ class HybridDatabase(object):
         task.web = website
         task.commandPlaceholder = help_command
         task.commandDescription = help_text
-        open(task_file_path, "w").write(str(task))
+        task_file_path.write_text(str(task))
 
     def edit_task(
         self,
@@ -2647,7 +2647,7 @@ class HybridDatabase(object):
     ) -> None:
         """dataset_dir_path/task_id/dataset_id.prototext"""
         dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_id}.prototext"
-        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
+        ds = Parse(dataset_file_path.read_bytes(), modelpb.Dataset())
 
         ds.displayName = display_name
         ds.evaluatorId = evaluator_id
@@ -2656,7 +2656,7 @@ class HybridDatabase(object):
         else:
             ds.isConfidential = False
 
-        open(dataset_file_path, "w").write(str(ds))
+        dataset_file_path.write_text(str(ds))
 
     def _fdb_edit_evaluator_to_vm(
         self, vm_id: str, evaluator_id: str, command: str, working_directory: str, measures: str
@@ -2674,7 +2674,7 @@ class HybridDatabase(object):
                 evaluator.workingDirectory = working_directory
                 evaluator.measures = measures
 
-        open(vm_file_path, "w").write(str(vm))
+        vm_file_path.write_text(str(vm))
 
     def edit_dataset(
         self,
@@ -2814,7 +2814,7 @@ class HybridDatabase(object):
 
     def _fdb_delete_dataset_from_task(self, task_id: str, dataset_id: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
-        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         for ind, ds in enumerate(task.testDataset):
             if ds == dataset_id:
                 del task.testDataset[ind]
@@ -2823,7 +2823,7 @@ class HybridDatabase(object):
             if ds == dataset_id:
                 del task.trainingDataset[ind]
 
-        open(task_file_path, "w").write(str(task))
+        task_file_path.write_text(str(task))
 
     def _fdb_delete_evaluator_from_vm(self, vm_id: str, evaluator_id: str) -> None:
         vm_file_path = self.vm_dir_path / f"{vm_id}.prototext"
@@ -2833,7 +2833,7 @@ class HybridDatabase(object):
             if ev.evaluatorId == evaluator_id:
                 del vm.evaluators[ind]
 
-        open(vm_file_path, "w").write(str(vm))
+        vm_file_path.write_text(str(vm))
 
     def delete_dataset(self, dataset_id: str) -> None:
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(is_deprecated=True)

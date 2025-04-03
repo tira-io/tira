@@ -63,7 +63,7 @@ def _parse_organizer_list(organizers_file_path: "Path") -> None:
 
 
 def _parse_vm_list(users_file_path: "Path", vm_dir_path: "Path") -> None:
-    users = Parse(open(users_file_path, "r").read(), modelpb.Users())
+    users = Parse(users_file_path.read_text(), modelpb.Users())
 
     for user in users.users:
         try:
@@ -109,7 +109,7 @@ def _parse_task_list(tasks_dir_path: "Path") -> None:
     """
     logger.info("loading tasks")
     for task_path in tasks_dir_path.glob("*"):
-        task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
+        task = Parse(task_path.read_bytes(), modelpb.Tasks.Task())
         vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=task.virtualMachineId)
         organizer, _ = modeldb.Organizer.objects.get_or_create(organizer_id=task.hostId)
         t, _ = modeldb.Task.objects.update_or_create(
@@ -156,7 +156,7 @@ def _parse_dataset_list(datasets_dir_path: "Path") -> None:
     logger.info("loading datasets")
     for dataset_file in datasets_dir_path.rglob("*.prototext"):
         logger.info("Process dataset: " + str(dataset_file))
-        dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
+        dataset = Parse(dataset_file.read_bytes(), modelpb.Dataset())
         evaluator, _ = modeldb.Evaluator.objects.get_or_create(evaluator_id=dataset.evaluatorId)
         modeldb.Dataset.objects.update_or_create(
             dataset_id=dataset.datasetId,
@@ -180,7 +180,7 @@ def _parse_software_list(softwares_dir_path: "Path") -> None:
     logger.info("loading softwares")
     for task_dir in softwares_dir_path.glob("*"):
         for user_dir in task_dir.glob("*"):
-            s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
+            s = Parse((user_dir / "softwares.prototext").read_bytes(), modelpb.Softwares())
             for software in s.softwares:
                 vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=user_dir.stem)
                 task, _ = modeldb.Task.objects.get_or_create(task_id=task_dir.stem)
@@ -283,11 +283,11 @@ def _parse_review(run_dir: "Path", run: modeldb.Run) -> None:
     # AutoReviewer action here
     if not review_file.exists():
         review = auto_reviewer(run_dir, run_dir.stem)
-        open(run_dir / "run-review.prototext", "w").write(str(review))
-        open(run_dir / "run-review.bin", "wb").write(review.SerializeToString())
+        (run_dir / "run-review.prototext").write_text(str(review))
+        (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
     else:
         review = modelpb.RunReview()
-        review.ParseFromString(open(review_file, "rb").read())
+        review.ParseFromString(review_file.read_bytes())
 
     modeldb.Review.objects.update_or_create(
         run=run,
@@ -312,13 +312,13 @@ def _parse_review(run_dir: "Path", run: modeldb.Run) -> None:
 
 def _parse_evalutions(run_dir: "Path", run: modeldb.Run) -> None:
     if (run_dir / "output/evaluation.prototext").exists() and not (run_dir / "output/evaluation.bin").exists():
-        evaluation = Parse(open(run_dir / "output/evaluation.prototext", "r").read(), modelpb.Evaluation())
-        open(run_dir / "output" / "evaluation.bin", "wb").write(evaluation.SerializeToString())
+        evaluation = Parse((run_dir / "output/evaluation.prototext").read_bytes(), modelpb.Evaluation())
+        (run_dir / "output" / "evaluation.bin").write_bytes(evaluation.SerializeToString())
 
     # parse the runs
     if (run_dir / "output/evaluation.bin").exists():
         evaluation = modelpb.Evaluation()
-        evaluation.ParseFromString(open(run_dir / "output/evaluation.bin", "rb").read())
+        evaluation.ParseFromString((run_dir / "output/evaluation.bin").read_bytes())
         for measure in evaluation.measure:
             modeldb.Evaluation.objects.update_or_create(measure_key=measure.key, run=run, measure_value=measure.value)
 
@@ -341,11 +341,11 @@ def parse_run(runs_dir_path: "Path", dataset_id: str, vm_id: str, run_id: str) -
     # Error correction: normalize the proto files that are parsed
     # Skip this run if there is no run file
     if (run_dir / "run.prototext").exists():
-        run_proto = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
-        open(run_dir / "run.bin", "wb").write(run_proto.SerializeToString())
+        run_proto = Parse((run_dir / "run.prototext").read_bytes(), modelpb.Run())
+        (run_dir / "run.bin").write_bytes(run_proto.SerializeToString())
     elif (run_dir / "run.bin").exists():
         run_proto = modelpb.Run()
-        run_proto.ParseFromString(open(run_dir / "run.bin", "rb").read())
+        run_proto.ParseFromString((run_dir / "run.bin").read_bytes())
     else:
         msg = f'Skip run {run_id}: No "run.prototext" or "run.bin" exists in {run_dir}'
         logger.exception(msg)

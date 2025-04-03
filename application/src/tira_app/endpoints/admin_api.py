@@ -220,7 +220,7 @@ def _file_listing(path: PathLike, title: str) -> "dict[str, Union[str, int, dict
                 c = _file_listing(path / f, str(f))["children"]
                 children.append({"title": f, "children": c})
             else:
-                md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
+                md5 = hashlib.md5((path / f).read_bytes()).hexdigest()
                 size = os.path.getsize(path / f)
                 children.append({"title": f"{f} (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5})
 

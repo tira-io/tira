@@ -118,7 +118,7 @@ class FileDatabase(object):
         if (dt.now() - self.updates["organizers"]).seconds < 10 and self.organizers:
             return
         organizers = modelpb.Hosts()
-        Parse(open(self.organizers_file_path, "r").read(), organizers)
+        Parse(self.organizers_file_path.read_bytes(), organizers)
 
         self.organizers = {org.hostId: org for org in organizers.hosts}
 
@@ -127,7 +127,7 @@ class FileDatabase(object):
             return
         print("parsing vms")
         users = modelpb.Users()
-        Parse(open(self.users_file_path, "r").read(), users)
+        Parse(self.users_file_path.read_bytes(), users)
         self.vms = {user.userName: user for user in users.users}
 
     def _parse_task_list(self) -> None:
@@ -143,7 +143,7 @@ class FileDatabase(object):
         tasks = {}
         logger.info("loading tasks")
         for task_path in self.tasks_dir_path.glob("*"):
-            task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
+            task = Parse(task_path.read_bytes(), modelpb.Tasks.Task())
             tasks[task.taskId] = task
 
         self.tasks = tasks
@@ -175,7 +175,7 @@ class FileDatabase(object):
         logger.info("loading softwares")
         for task_dir in self.softwares_dir_path.glob("*"):
             for user_dir in task_dir.glob("*"):
-                s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
+                s = Parse((user_dir / "softwares.prototext").read_bytes(), modelpb.Softwares())
                 software_list = [user_software for user_software in s.softwares if not user_software.deleted]
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
@@ -294,7 +294,7 @@ class FileDatabase(object):
                 continue
 
             evaluation = modelpb.Evaluation()
-            evaluation.ParseFromString(open(run_id_dir / "output/evaluation.bin", "rb").read())
+            evaluation.ParseFromString((run_id_dir / "output/evaluation.bin").read_bytes())
 
             evaluations[run_id_dir.stem] = evaluation
 
@@ -824,7 +824,7 @@ class FileDatabase(object):
 
         task = self.tasks.get(task_id)
         vm_id = task.virtualMachineId
-        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(), modelpb.VirtualMachine())
+        master_vm = Parse((self.vm_dir_path / f"{vm_id}.prototext").read_bytes(), modelpb.VirtualMachine())
         result = {"vm_id": vm_id, "host": master_vm.host}
 
         for evaluator in master_vm.evaluators:
