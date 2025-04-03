@@ -8,6 +8,7 @@ from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING
+from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
@@ -434,6 +435,34 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
     return JsonResponse({"status": 0, "message": transaction_id}, status=HTTPStatus.ACCEPTED)
 
 
+def run_unsandboxed_eval(vm_id, dataset_id, run_id):
+    from tira.evaluators import evaluate
+    from tira.io_utils import run_prototext
+
+    dataset = model.get_dataset(dataset_id)
+    task_id = dataset["task"]
+
+    if dataset_id.endswith("-test"):
+        dataset_prefix = "test-"
+    elif dataset_id.endswith("-training"):
+        dataset_prefix = "training-"
+    else:
+        raise ValueError("Unknown dataset_id.")
+
+    truth_directory = model.model.data_path / (dataset_prefix + "datasets-truth") / task_id / dataset_id
+    run_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id / "output"
+
+    eval_result = evaluate(run_directory, truth_directory, dataset, monitored=True)
+    print(eval_result)
+    eval_run_id = str(uuid4()) + "-evaluates-" + run_id
+
+    run_prototext(eval_result, eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id)
+    shutil.move(src=eval_result, dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
+    print(model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
+
+    model.add_run(dataset_id, vm_id, eval_run_id)
+
+
 @check_conditional_permissions(private_run_ok=True)
 @check_resources_exist("json")
 def run_eval(request, vm_id, dataset_id, run_id):
@@ -663,7 +692,7 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
         if len(formats) == 1:
             formats = formats[0]
 
-        status_code, message = check_format(result_dir / "extracted", formats)
+        status_code, message = check_format(result_dir / "extracted", formats, dataset.get("format_configuration"))
 
         if status_code != _fmt.OK:
             return HttpResponseServerError(json.dumps({"status": 1, "message": message}))

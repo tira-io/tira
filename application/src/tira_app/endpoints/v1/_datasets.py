@@ -28,6 +28,7 @@ class DatasetSerializer(ModelSerializer):
     description = SerializerMethodField()
     file_listing = SerializerMethodField()
     format = SerializerMethodField()
+    format_configuration = SerializerMethodField()
     evaluator = SerializerMethodField()
 
     class Meta:
@@ -46,6 +47,7 @@ class DatasetSerializer(ModelSerializer):
             "mirrors",
             "file_listing",
             "format",
+            "format_configuration",
             "evaluator",
         ]
 
@@ -71,6 +73,14 @@ class DatasetSerializer(ModelSerializer):
             return None
         try:
             return json.loads(obj.format)
+        except json.JSONDecodeError:
+            return None
+
+    def get_format_configuration(self, obj):
+        if not obj or not obj.format or not obj.format_configuration:
+            return None
+        try:
+            return json.loads(obj.format_configuration)
         except json.JSONDecodeError:
             return None
 

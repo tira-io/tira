@@ -12,11 +12,27 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tira import __version__ as tira_version
 from tira.check_format import SUPPORTED_FORMATS
+from tira.evaluators import MEASURE_TO_EVALUATORS
 
 from .. import model as modeldb
 from .v1._systems import public_submissions
 
 rest_api_version = "v1.0.0-draft"
+
+
+EVALUATOR_TO_TYPE = {
+    "TrecTools": "Retrieval",
+    "RunFileEvaluator": "Retrieval",
+    "HuggingFaceEvaluator": "Classification",
+    "WowsEvalEvaluator": "Retrieval",
+}
+
+TRUSTED_EVALUATORS = {"Retrieval": [], "Classification": []}
+
+for measure, evaluator in MEASURE_TO_EVALUATORS.items():
+    if evaluator not in EVALUATOR_TO_TYPE:
+        continue
+    TRUSTED_EVALUATORS[EVALUATOR_TO_TYPE[evaluator]].append(measure)
 
 
 try:
@@ -52,6 +68,7 @@ def info_endpoint(request: Request) -> Response:
             "datasetCount": DATASET_COUNT,
             "taskCount": TASK_COUNT,
             "supportedFormats": SUPPORTED_FORMATS,
+            "trustedEvaluators": TRUSTED_EVALUATORS,
         }
     )
 

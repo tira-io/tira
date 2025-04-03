@@ -287,7 +287,28 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         irds_import_command = None if not irds_import_command else irds_import_command
         irds_import_truth_command = data.get("irds_import_truth_command", None)
         irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
-        dataset_format = data.get("format", None)
+
+        try:
+            dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the dataset format is invalid:" + str(e.args[0])}
+            )
+
+        try:
+            truth_format, truth_format_configuration = _format_and_configuration(data, "truth_format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the truth format is invalid:" + str(e.args[0])}
+            )
+
+        try:
+            trusted_evaluation = _evaluator_config(data)
+        except Exception as e:
+            return JsonResponse({"status": 1, "message": e.args[0]})
+
         description = data.get("description", None)
         chatnoir_id = data.get("chatnoir_id", None)
         ir_datasets_id = data.get("ir_datasets_id", None)
@@ -349,6 +370,9 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     description,
                     chatnoir_id,
                     ir_datasets_id,
+                    truth_format,
+                    dataset_format_configuration,
+                    truth_format_configuration,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -364,6 +388,9 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     description,
                     chatnoir_id,
                     ir_datasets_id,
+                    truth_format,
+                    dataset_format_configuration,
+                    truth_format_configuration,
                 )
 
             model.add_evaluator(
@@ -377,6 +404,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                 git_runner_image,
                 git_runner_command,
                 git_repository_id,
+                trusted_evaluation,
             )
 
             if system_inputs or truth_data:
@@ -470,6 +498,58 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
+def _evaluator_config(data: dict) -> dict:
+    if "trusted_measures" not in data:
+        return None
+
+    from tira.evaluators import get_evaluators_if_valid
+
+    ret = {"measures": data["trusted_measures"]}
+
+    json_args = ["additional_args", "format_configuration", "truth_format_configuration"]
+    for json_arg in json_args:
+        if json_arg in data and data[json_arg]:
+            try:
+                ret[json_arg] = json.loads(data[json_arg])
+            except:
+                raise ValueError(
+                    f"I expected that the argument {json_arg} is valid json. But I got '{data[json_arg]}'."
+                )
+
+    ret_serialized = json.dumps(ret)
+    try:
+        ret["run_format"] = data.get("format", None)
+        ret["run_format_configuration"] = ret.get("format_configuration", None)
+        ret["truth_format"] = data.get("truth_format", None)
+        ret["truth_format_configuration"] = data.get("truth_format_configuration", None)
+        get_evaluators_if_valid(ret)
+    except Exception as e:
+        logger.warning(e)
+        raise ValueError(f"The configuration of the evaluator is wrong: {e.args[0]}")
+
+    return ret_serialized
+
+
+def _format_and_configuration(data, field):
+    if field not in data or not data.get(field):
+        return None, None
+
+    ret_name = data[field]
+    ret_config = None
+    if f"{field}_configuration" in data and data[f"{field}_configuration"]:
+        try:
+            ret_config = json.loads(data[f"{field}_configuration"])
+        except:
+            raise ValueError(
+                f"I expected that the configuration is valid json, but I got: {data[f'{field}_configuration']}"
+            )
+
+    from tira.check_format import check_format_configuration_if_valid
+
+    check_format_configuration_if_valid(ret_name, ret_config)
+    return ret_name, ret_config
+
+
 @check_permissions
 @check_resources_exist("json")
 def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse":
@@ -494,6 +574,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
     - git_repository_id
     """
     if request.method == "POST":
+
         data = json.loads(request.body)
 
         dataset_name = data["name"]
@@ -508,10 +589,31 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
         git_runner_image = data["git_runner_image"]
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
-        dataset_format = data["format"]
+
+        try:
+            dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the dataset format is invalid:" + str(e.args[0])}
+            )
+
+        try:
+            truth_format, truth_format_configuration = _format_and_configuration(data, "truth_format")
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(
+                {"status": 1, "message": "The configuration of the truth format is invalid:" + str(e.args[0])}
+            )
+
         description = data.get("description", "")
         chatnoir_id = data.get("chatnoir_id", None)
         ir_datasets_id = data.get("ir_datasets_id", None)
+        try:
+            trusted_evaluation = _evaluator_config(data)
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse({"status": 1, "message": e.args[0]})
 
         if not data["use_existing_repository"]:
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -538,6 +640,10 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
             description,
             chatnoir_id,
             ir_datasets_id,
+            truth_format,
+            trusted_evaluation,
+            dataset_format_configuration,
+            truth_format_configuration,
         )
 
         from django.core.cache import cache

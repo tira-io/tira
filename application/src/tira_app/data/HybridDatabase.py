@@ -340,6 +340,14 @@ class HybridDatabase(object):
             except JSONDecodeError:
                 pass
 
+        truth_format = None
+        if dataset and dataset.truth_format:
+            try:
+                truth_format = json.loads(dataset.truth_format)
+                truth_format = [i for i in truth_format if i in SUPPORTED_FORMATS]
+            except JSONDecodeError:
+                pass
+
         file_listing = None
         if dataset and dataset.file_listing:
             try:
@@ -347,7 +355,29 @@ class HybridDatabase(object):
             except json.JSONDecodeError:
                 pass
 
-        return {
+        trusted_eval = None
+        format_configuration = None
+        truth_format_configuration = None
+
+        if evaluator_id and dataset.evaluator.trusted_evaluation:
+            try:
+                trusted_eval = json.loads(dataset.evaluator.trusted_evaluation)
+            except json.JSONDecodeError:
+                pass
+
+        if evaluator_id and dataset.format_configuration:
+            try:
+                format_configuration = json.loads(dataset.format_configuration)
+            except json.JSONDecodeError:
+                pass
+
+        if evaluator_id and dataset.truth_format_configuration:
+            try:
+                truth_format_configuration = json.loads(dataset.truth_format_configuration)
+            except json.JSONDecodeError:
+                pass
+
+        ret = {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
             "dataset_id": dataset.dataset_id,
@@ -374,11 +404,32 @@ class HybridDatabase(object):
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
             "format": dataset_format,
+            "run_format": dataset_format,
+            "truth_format": truth_format,
             "description": dataset.description,
             "chatnoir_id": dataset.chatnoir_id,
             "ir_datasets_id": dataset.ir_datasets_id,
             "file_listing": file_listing,
+            "trusted_eval": trusted_eval,
+            "format_configuration": format_configuration,
+            "truth_format_configuration": truth_format_configuration,
         }
+
+        if trusted_eval:
+            from tira_app.endpoints.misc import TRUSTED_EVALUATORS
+
+            if "additional_args" in trusted_eval and trusted_eval["additional_args"]:
+                ret["additional_args"] = json.dumps(trusted_eval["additional_args"])
+
+            if any(i in TRUSTED_EVALUATORS["Retrieval"] for i in trusted_eval["measures"]):
+                ret["evaluation_type"] = "eval-5"
+            else:
+                ret["evaluation_type"] = "eval-6"
+
+            ret["trusted_measures"] = trusted_eval["measures"]
+            ret["measures"] = trusted_eval["measures"]
+
+        return ret
 
     def get_dataset(self, dataset_id: str) -> dict[str, Any]:
         try:
@@ -1932,6 +1983,9 @@ class HybridDatabase(object):
         description: "Optional[str]" = None,
         chatnoir_id: "Optional[str]" = None,
         ir_datasets_id: "Optional[str]" = None,
+        truth_format=None,
+        format_configuration=None,
+        truth_format_configuration=None,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -1957,6 +2011,11 @@ class HybridDatabase(object):
                 "description": None if not description else description,
                 "chatnoir_id": None if not chatnoir_id else chatnoir_id,
                 "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
+                "truth_format": None if not truth_format else json.dumps(truth_format),
+                "format_configuration": None if not format_configuration else json.dumps(format_configuration),
+                "truth_format_configuration": (
+                    None if not truth_format_configuration else json.dumps(truth_format_configuration)
+                ),
             },
         )
 
@@ -2026,6 +2085,7 @@ class HybridDatabase(object):
         git_runner_image: "Optional[str]",
         git_runner_command: "Optional[str]",
         git_repository_id: "Optional[str]",
+        trusted_evaluation,
     ) -> None:
         """Add a new Evaluator to the model (and the filedatabase as long as needed)
 
@@ -2052,6 +2112,7 @@ class HybridDatabase(object):
                 "git_runner_image": git_runner_image,
                 "git_runner_command": git_runner_command,
                 "git_repository_id": git_repository_id,
+                "trusted_evaluation": trusted_evaluation,
             },
         )
 
@@ -2635,6 +2696,10 @@ class HybridDatabase(object):
         description: "Optional[str]",
         chatnoir_id: "Optional[str]" = None,
         ir_datasets_id: "Optional[str]" = None,
+        truth_format=None,
+        trusted_evaluation=None,
+        dataset_format_configuration=None,
+        truth_format_configuration=None,
     ) -> "dict[str, Any]":
         """
 
@@ -2651,9 +2716,14 @@ class HybridDatabase(object):
             default_upload_name=upload_name,
             is_confidential=is_confidential,
             format=None if not dataset_format else json.dumps(dataset_format),
+            truth_format=None if not truth_format else json.dumps(truth_format),
             description=description,
             chatnoir_id=None if not chatnoir_id else chatnoir_id,
             ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
+            format_configuration=None if not dataset_format_configuration else json.dumps(dataset_format_configuration),
+            truth_format_configuration=(
+                None if not truth_format_configuration else json.dumps(truth_format_configuration)
+            ),
         )
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
@@ -2669,6 +2739,7 @@ class HybridDatabase(object):
             git_runner_image=git_runner_image,
             git_runner_command=git_runner_command,
             git_repository_id=git_repository_id,
+            trusted_evaluation=trusted_evaluation,
         )
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 
