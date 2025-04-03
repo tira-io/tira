@@ -30,6 +30,9 @@ class DatasetSerializer(ModelSerializer):
     format = SerializerMethodField()
     format_configuration = SerializerMethodField()
     evaluator = SerializerMethodField()
+    truth_format_configuration = SerializerMethodField()
+    truth_format = SerializerMethodField()
+    trusted_eval = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
@@ -49,6 +52,9 @@ class DatasetSerializer(ModelSerializer):
             "format",
             "format_configuration",
             "evaluator",
+            "truth_format_configuration",
+            "truth_format",
+            "trusted_eval",
         ]
 
     def get_mirrors(self, obj):
@@ -61,28 +67,22 @@ class DatasetSerializer(ModelSerializer):
         return obj.default_task.task_name if obj.default_task else None
 
     def get_file_listing(self, obj):
-        if not obj or not obj.file_listing:
-            return None
-        try:
-            return json.loads(obj.file_listing)
-        except json.JSONDecodeError:
-            return None
+        return obj.get_file_listing()
+
+    def get_truth_format_configuration(self, obj):
+        return obj.get_truth_format_configuration()
+
+    def get_trusted_eval(self, obj):
+        return obj.get_trusted_evaluation()
+
+    def get_truth_format(self, obj):
+        return obj.get_truth_format()
 
     def get_format(self, obj):
-        if not obj or not obj.format:
-            return None
-        try:
-            return json.loads(obj.format)
-        except json.JSONDecodeError:
-            return None
+        return obj.get_format()
 
     def get_format_configuration(self, obj):
-        if not obj or not obj.format or not obj.format_configuration:
-            return None
-        try:
-            return json.loads(obj.format_configuration)
-        except json.JSONDecodeError:
-            return None
+        return obj.get_format_configuration()
 
     def get_ir_datasets_id(self, obj):
         if obj.ir_datasets_id and obj.ir_datasets_id_2:

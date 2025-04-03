@@ -328,50 +328,12 @@ class HybridDatabase(object):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
 
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
-        dataset_format = None
-        if dataset and dataset.format:
-            try:
-                dataset_format = json.loads(dataset.format)
-                dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
-            except JSONDecodeError:
-                pass
-
-        truth_format = None
-        if dataset and dataset.truth_format:
-            try:
-                truth_format = json.loads(dataset.truth_format)
-                truth_format = [i for i in truth_format if i in SUPPORTED_FORMATS]
-            except JSONDecodeError:
-                pass
-
-        file_listing = None
-        if dataset and dataset.file_listing:
-            try:
-                file_listing = json.loads(dataset.file_listing)
-            except json.JSONDecodeError:
-                pass
-
-        trusted_eval = None
-        format_configuration = None
-        truth_format_configuration = None
-
-        if evaluator_id and dataset.evaluator.trusted_evaluation:
-            try:
-                trusted_eval = json.loads(dataset.evaluator.trusted_evaluation)
-            except json.JSONDecodeError:
-                pass
-
-        if evaluator_id and dataset.format_configuration:
-            try:
-                format_configuration = json.loads(dataset.format_configuration)
-            except json.JSONDecodeError:
-                pass
-
-        if evaluator_id and dataset.truth_format_configuration:
-            try:
-                truth_format_configuration = json.loads(dataset.truth_format_configuration)
-            except json.JSONDecodeError:
-                pass
+        dataset_format = dataset.get_format()
+        truth_format = dataset.get_truth_format()
+        file_listing = dataset.get_file_listing()
+        trusted_eval = dataset.get_trusted_evaluation()
+        format_configuration = dataset.get_format_configuration()
+        truth_format_configuration = dataset.get_truth_format_configuration()
 
         ret = {
             "display_name": dataset.display_name,
