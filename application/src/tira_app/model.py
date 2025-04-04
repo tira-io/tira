@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+
 from tira.check_format import SUPPORTED_FORMATS
 
 if TYPE_CHECKING:
@@ -163,15 +164,15 @@ class Dataset(models.Model):
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
     meta_dataset_of = models.TextField(default=None, null=True)
-    format = models.CharField(max_length=50, null=True, default=None)
-    truth_format = models.CharField(max_length=50, null=True, default=None)
+    format = models.CharField(max_length=150, null=True, default=None)
+    truth_format = models.CharField(max_length=150, null=True, default=None)
     chatnoir_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
     description = models.TextField(default="", null=True)
     file_listing = models.TextField(default=None, null=True)
-    format_configuration = models.CharField(max_length=150, null=True, default=None)
-    truth_format_configuration = models.CharField(max_length=150, null=True, default=None)
+    format_configuration = models.CharField(max_length=300, null=True, default=None)
+    truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:

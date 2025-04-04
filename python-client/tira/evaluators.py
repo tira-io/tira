@@ -65,6 +65,62 @@ class TiraBaseEvaluator(ABC):
         raise ValueError("This is not implemented")
 
 
+class TextGenerationEvaluator(TiraBaseEvaluator):
+    def throw_if_conf_invalid(self, config: dict) -> None:
+        if not self._run_format:
+            raise ValueError(f"Configuration error. I need a run format. Got: {self._run_format}")
+
+        run_format_checker = check_format_configuration_if_valid(self._run_format, self._run_format_configuration)
+
+        if not run_format_checker.has_id_and_value_field():
+            raise ValueError(f"The run format needs an field {CONF_ID_FIELD} and an field {CONF_VALUE_FIELD}")
+
+        self.run_label_column = run_format_checker.value_field
+        self.run_id_column = run_format_checker.id_field
+
+        self.truth_label_column = None
+        self.truth_id_column = None
+
+        if self._truth_format:
+            truth_format_checker = check_format_configuration_if_valid(
+                self._truth_format, self._truth_format_configuration
+            )
+            if truth_format_checker.id_field is not None:
+                self.truth_id_column = truth_format_checker.id_field
+
+    def evaluate(self, run: Path, truths: Path) -> "dict[str, Any]":
+        self.is_valid(run, self._run_format, self._run_format_configuration, True)
+
+        run_data = lines_if_valid(run, self._run_format, self._run_format_configuration)
+        truth_data = None
+
+        if self.truth_id_column:
+            self.is_valid(truths, self._truth_format, self._truth_format_configuration)
+            truth_data = lines_if_valid(truths, self._truth_format, self._truth_format_configuration)
+
+        return self._eval(run_data, truth_data)
+
+    def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
+        id_to_length = {}
+        for i in run_data:
+            if i[self.run_id_column] in id_to_length:
+                raise ValueError("The run has duplicated IDs. The Id '{i[self.run_id_column]}' is duplicated")
+            id_to_length[i[self.run_id_column]] = len(i[self.run_label_column].split())
+
+        if truth_data and self.truth_id_column:
+            for i in truth_data:
+                if i[self.truth_id_column] not in id_to_length:
+                    raise ValueError(f"No text was generated for the {self.run_id_column}={i[self.truth_id_column]}.")
+
+        ret = {
+            "Words (Min)": min(id_to_length.values()),
+            "Words (Avg)": mean(id_to_length.values()),
+            "Words (Max)": max(id_to_length.values()),
+        }
+
+        return {k: v for k, v in ret.items() if k in self._measures}
+
+
 class RunFileEvaluator(TiraBaseEvaluator):
     def throw_if_conf_invalid(self, config: dict) -> None:
         if "run.txt" != self._run_format and "run.txt" not in self._run_format:
@@ -348,6 +404,7 @@ EVALUATORS: dict[str, TiraBaseEvaluator] = {
     "RunFileEvaluator": RunFileEvaluator,
     "HuggingFaceEvaluator": HuggingFaceEvaluator,
     "WowsEvalEvaluator": WowsEvalEvaluator,
+    "TextGenerationEvaluator": TextGenerationEvaluator,
 }
 
 MEASURE_TO_EVALUATORS: dict[str, str] = {
@@ -366,6 +423,9 @@ MEASURE_TO_EVALUATORS: dict[str, str] = {
     "wows_kendall": "WowsEvalEvaluator",
     "wows_pearson": "WowsEvalEvaluator",
     "wows_spearman": "WowsEvalEvaluator",
+    "Words (Min)": "TextGenerationEvaluator",
+    "Words (Avg)": "TextGenerationEvaluator",
+    "Words (Max)": "TextGenerationEvaluator",
 }
 
 
