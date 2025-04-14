@@ -621,7 +621,7 @@ def _parse_metadata_from_upload(upload_dir: Path) -> "dict[str, Any]":
 
     notebook = load_notebook(Path(upload_dir))
     metadata_has_notebook = notebook is not None and ("notebook_html" in notebook)
-    valid_formats: Optional[str] = json.dumps(report_valid_formats(upload_dir))
+    valid_formats: Optional[str] = json.dumps(report_valid_formats(Path(upload_dir)))
     if not valid_formats or len(valid_formats) <= 4:
         valid_formats = None
     return {
