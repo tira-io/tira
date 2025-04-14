@@ -635,67 +635,68 @@ def _parse_metadata_from_upload(upload_dir: Path) -> "dict[str, Any]":
 @csrf_exempt
 def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
     if request.method == "POST":
-        if not dataset_id or dataset_id is None or dataset_id == "None":
-            return HttpResponseServerError(
-                json.dumps({"status": 1, "message": "Please specify the associated dataset."})
-            )
-
-        dataset = model.get_dataset(dataset_id)
-        if (
-            not dataset
-            or "format" not in dataset
-            or not dataset["format"]
-            or "task" not in dataset
-            or not dataset["task"]
-        ):
-            return HttpResponseServerError(
-                json.dumps(
-                    {"status": 1, "message": f"Uploads are not allowed for the dataset {html.escape(dataset_id)}."}
-                )
-            )
-
-        if dataset["is_deprecated"]:
-            return HttpResponseServerError(
-                json.dumps(
-                    {
-                        "status": 1,
-                        "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads.",
-                    }
-                )
-            )
-
-        task = model.get_task(dataset["task"], False)
-        if not task or not task["featured"]:
-            return HttpResponseServerError(
-                json.dumps(
-                    {
-                        "status": 1,
-                        "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads.",
-                    }
-                )
-            )
-
-        uploaded_file = request.FILES["file"]
-        upload_id = str(uuid.uuid4())
-
-        result_dir = temporary_directory()
-
-        with open(result_dir / "upload.zip", "wb+") as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-
-        with zipfile.ZipFile(result_dir / "upload.zip", "r") as zip_ref:
-            zip_ref.extractall(result_dir / "extracted")
-
-        formats = dataset["format"]
-        if len(formats) == 1:
-            formats = formats[0]
-
-        status_code, message = check_format(result_dir / "extracted", formats, dataset.get("format_configuration"))
-
-        if status_code != _fmt.OK:
-            return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
         try:
+            if not dataset_id or dataset_id is None or dataset_id == "None":
+                return HttpResponseServerError(
+                    json.dumps({"status": 1, "message": "Please specify the associated dataset."})
+                )
+
+            dataset = model.get_dataset(dataset_id)
+            if (
+                not dataset
+                or "format" not in dataset
+                or not dataset["format"]
+                or "task" not in dataset
+                or not dataset["task"]
+            ):
+                return HttpResponseServerError(
+                    json.dumps(
+                        {"status": 1, "message": f"Uploads are not allowed for the dataset {html.escape(dataset_id)}."}
+                    )
+                )
+
+            if dataset["is_deprecated"]:
+                return HttpResponseServerError(
+                    json.dumps(
+                        {
+                            "status": 1,
+                            "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads.",
+                        }
+                    )
+                )
+
+            task = model.get_task(dataset["task"], False)
+            if not task or not task["featured"]:
+                return HttpResponseServerError(
+                    json.dumps(
+                        {
+                            "status": 1,
+                            "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads.",
+                        }
+                    )
+                )
+
+            uploaded_file = request.FILES["file"]
+            upload_id = str(uuid.uuid4())
+
+            result_dir = temporary_directory()
+
+            with open(result_dir / "upload.zip", "wb+") as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+
+            with zipfile.ZipFile(result_dir / "upload.zip", "r") as zip_ref:
+                zip_ref.extractall(result_dir / "extracted")
+
+            formats = dataset["format"]
+            if len(formats) == 1:
+                formats = formats[0]
+
+            status_code, message = check_format(result_dir / "extracted", formats, dataset.get("format_configuration"))
+
+            if status_code != _fmt.OK:
+                return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+
             from .. import model as modeldb
 
             anon_uploads_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads"
