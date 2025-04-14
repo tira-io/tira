@@ -695,25 +695,29 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
 
         if status_code != _fmt.OK:
             return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
-        from .. import model as modeldb
+        try:
+            from .. import model as modeldb
 
-        anon_uploads_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads"
-        (anon_uploads_dir).mkdir(exist_ok=True, parents=True)
-        upload_dir = anon_uploads_dir / upload_id
-        shutil.move(result_dir / "extracted", upload_dir)
+            anon_uploads_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads"
+            (anon_uploads_dir).mkdir(exist_ok=True, parents=True)
+            upload_dir = anon_uploads_dir / upload_id
+            shutil.move(result_dir / "extracted", upload_dir)
 
-        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
-        metadata_from_upload = _parse_metadata_from_upload(upload_dir)
-        modeldb.AnonymousUploads.objects.create(
-            uuid=upload_id,
-            dataset=dataset,
-            has_metadata=metadata_from_upload["has_metadata"],
-            metadata_git_repo=metadata_from_upload["metadata_git_repo"],
-            metadata_has_notebook=metadata_from_upload["metadata_has_notebook"],
-            valid_formats=metadata_from_upload["valid_formats"],
-        )
+            dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+            metadata_from_upload = _parse_metadata_from_upload(upload_dir)
+            modeldb.AnonymousUploads.objects.create(
+                uuid=upload_id,
+                dataset=dataset,
+                has_metadata=metadata_from_upload["has_metadata"],
+                metadata_git_repo=metadata_from_upload["metadata_git_repo"],
+                metadata_has_notebook=metadata_from_upload["metadata_has_notebook"],
+                valid_formats=metadata_from_upload["valid_formats"],
+            )
 
-        return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
+            return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
+        except Exception as e:
+            logger.warning("Could not create upload", e)
+            return HttpResponseServerError(json.dumps({"status": 1, "message": "There was an error: {e}"}))
     else:
         return HttpResponseServerError(json.dumps({"status": 1, "message": "GET is not allowed here."}))
 
