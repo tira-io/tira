@@ -284,9 +284,10 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         try:
             dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
         except Exception as e:
+            logger.exception(e)
             logger.info(e)
             return JsonResponse(
-                {"status": 1, "message": "The configuration of the dataset format is invalid:" + str(e.args[0])}
+                {"status": 1, "message": "The configuration of the input dataset format is invalid:" + str(e.args[0])}
             )
 
         try:
@@ -294,7 +295,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         except Exception as e:
             logger.info(e)
             return JsonResponse(
-                {"status": 1, "message": "The configuration of the truth format is invalid:" + str(e.args[0])}
+                {"status": 1, "message": "The configuration of the truth dataset format is invalid:" + str(e.args[0])}
             )
 
         try:
@@ -513,11 +514,16 @@ def _evaluator_config(data: dict) -> "Optional[Any]":
     try:
         ret["run_format"] = data.get("format", None)
         ret["run_format_configuration"] = ret.get("format_configuration", None)
+        if isinstance(ret["run_format_configuration"], str):
+            ret["run_format_configuration"] = json.loads(ret["run_format_configuration"])
         ret["truth_format"] = data.get("truth_format", None)
         ret["truth_format_configuration"] = data.get("truth_format_configuration", None)
+        if isinstance(ret["truth_format_configuration"], str):
+            ret["truth_format_configuration"] = json.loads(ret["truth_format_configuration"])
         get_evaluators_if_valid(ret)
     except Exception as e:
         logger.warning(e)
+        logger.exception(e)
         raise ValueError(f"The configuration of the evaluator is wrong: {e.args[0]}")
 
     return ret_serialized
