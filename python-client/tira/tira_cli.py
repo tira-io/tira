@@ -117,6 +117,9 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
     )
     parser.add_argument("--task", required=True, default=None, help="The task to which the code should be submitted.")
+    parser.add_argument(
+        "--dataset", required=False, default=None, help="The dataset on which the code should be tested before upload."
+    )
 
     parser.set_defaults(executable=code_submission_command)
 
@@ -179,10 +182,16 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
 
 
 def code_submission_command(
-    path: Path, task: str, dry_run: bool, allow_network: bool, command: "Optional[str]", **kwargs
+    path: Path,
+    task: str,
+    dry_run: bool,
+    allow_network: bool,
+    command: "Optional[str]",
+    dataset: "Optional[str]",
+    **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network)
+    client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network, dataset_id=dataset)
 
     return 0
 

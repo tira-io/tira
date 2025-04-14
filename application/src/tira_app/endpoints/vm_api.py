@@ -717,8 +717,9 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
 
             return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
         except Exception as e:
-            logger.warning("Could not create upload", e)
-            return HttpResponseServerError(json.dumps({"status": 1, "message": "There was an error: {e}"}))
+            logger.exception(e)
+            logger.warning(f"Could not create upload: {e}")
+            return HttpResponseServerError(json.dumps({"status": 1, "message": f"There was an error: {e}. {repr(e)}"}))
     else:
         return HttpResponseServerError(json.dumps({"status": 1, "message": "GET is not allowed here."}))
 
