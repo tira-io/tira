@@ -38,6 +38,22 @@ class TestHfEvaluator(unittest.TestCase):
         for k, v in expected.items():
             self.assertAlmostEqual(v, actual[k], delta=0.0001)
 
+    def test_evaluate_jsonl_03(self):
+        config = {
+            "run_format": ["*.jsonl"],
+            "run_format_configuration": {"id_field": "id", "value_field": "id"},
+            "truth_format": ["*.jsonl"],
+            "truth_format_configuration": {"id_field": "id", "value_field": "id"},
+            "measures": ["accuracy"],
+        }
+
+        expected = {"accuracy": 1}
+        actual = evaluate(JSONL_OUTPUT_VALID, JSONL_OUTPUT_VALID, config)
+
+        self.assertEqual(expected.keys(), actual.keys())
+        for k, v in expected.items():
+            self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
     def test_evaluate_jsonl_error_message_01(self):
         config = {
             "run_format": "*.jsonl",

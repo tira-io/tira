@@ -804,7 +804,11 @@ def check_format_configuration_if_valid(
         ret = []
         for i in format:
             ret.append(check_format_configuration_if_valid(i, configuration))
-        return ret
+
+        if len(ret) == 1:
+            return ret[0]
+        else:
+            return ret
 
 
 def lines_if_valid(
