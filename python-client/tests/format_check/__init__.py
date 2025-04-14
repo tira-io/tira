@@ -14,6 +14,7 @@ RUN_OUTPUT_WITH_TOO_FEW_QUERIES = RESOURCES / "ranking-output-invalid-too-few-qu
 RUN_OUTPUT_WITH_DUPLICATE_DOCUMENTS = RESOURCES / "ranking-output-invalid-duplicate-documents"
 RUN_OUTPUT_WITH_TOO_FEW_COLUMNS = RESOURCES / "ranking-output-invalid-too-few-columns"
 EMPTY_OUTPUT = RESOURCES / "input-run-01" / "1"
+IR_DOCUMENT_OUTPUT = RESOURCES / "valid-document-processor"
 TEXT_ALIGNMENT_CORPUS_VALID_1 = RESOURCES / "text-alignment" / "1"
 TEXT_ALIGNMENT_CORPUS_VALID_2 = RESOURCES / "text-alignment" / "2"
 TEXT_ALIGNMENT_CORPUS_INVALID = RESOURCES / "text-alignment" / "invalid"

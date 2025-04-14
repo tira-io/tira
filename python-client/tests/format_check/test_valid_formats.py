@@ -1,9 +1,12 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 from tira.check_format import report_valid_formats
 
 from . import (
     EMPTY_OUTPUT,
+    IR_DOCUMENT_OUTPUT,
     IR_METADATA_INVALID,
     IR_METADATA_MULTIPLE_VALID,
     IR_METADATA_SINGLE_VALID,
@@ -25,7 +28,7 @@ class TestValidFormats(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_query_output(self):
-        expected = {}
+        expected = {"query-processor": True}
         actual = report_valid_formats(IR_QUERY_OUTPUT)
         self.assertEqual(expected, actual)
 
@@ -35,9 +38,24 @@ class TestValidFormats(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_run_output(self):
-        expected = {}
+        expected = {"run.txt": True}
         actual = report_valid_formats(VALID_RUN_OUTPUT)
         self.assertEqual(expected, actual)
+
+    def test_document_output(self):
+        expected = {"document-processor": True}
+        actual = report_valid_formats(IR_DOCUMENT_OUTPUT)
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_index_output(self):
+        expected = {"terrier-index": True}
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "index").mkdir(parents=True, exist_ok=True)
+            (Path(d) / "index" / "data.properties").write_text("")
+            (Path(d) / "index" / "data.meta.idx").write_text("")
+
+            actual = report_valid_formats(Path(d))
+            self.assertEqual(expected, actual)
 
     def test_ir_metadata_multiple_valid(self):
         expected = {

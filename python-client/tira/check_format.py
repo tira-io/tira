@@ -51,7 +51,6 @@ CONFIGURATION_FIELDS = {
 
 
 class FormatBase:
-    
     def yield_next_entry(self, f: Path):
         try:
             f_size = f.stat().st_size
@@ -64,17 +63,17 @@ class FormatBase:
         if str(f).endswith(".gz"):
             with gzip.open(f, "rt") as o:
                 for line in o:
-                    yield line.rstrip('\n')
+                    yield line.rstrip("\n")
         else:
             with open(f, "r") as o:
                 for line in o:
-                    yield line.rstrip('\n')
+                    yield line.rstrip("\n")
 
     def all_lines(self, f: Path):
         return list(self.yield_next_entry(f))
 
     def max_size(self):
-        return 25 * 1024 * 1024
+        return 75 * 1024 * 1024
 
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]" = None):
         pass
@@ -123,6 +122,25 @@ class RunFormat(FormatBase):
 
         return [_fmt.OK, "The run.txt file has the correct format."]
 
+    def parse_single_line(self, line):
+        cols = re.split("\\s+", line)
+        if len(cols) != 6:
+            raise ValueError(
+                f'Invalid line in the run file, expected 6 columns, but found a line "{line}" with {len(cols)} columns.'
+            )
+        qid, q0, docno, rank, score, system = cols
+        try:
+            rank = int(rank)
+        except ValueError:
+            raise ValueError(f"Could not parse the rank. Got {rank}. Line: {line}")
+
+        try:
+            score = float(score)
+        except ValueError:
+            raise ValueError(f"Could not parse the rank. Got {rank}. Line: {line}")
+
+        return {"qid": qid, "q0": q0, "docno": docno, "rank": rank, "score": score, "system": system}
+
     def yield_next_entry(self, run_output):
         if (run_output / "run.txt").exists():
             file_path = run_output / "run.txt"
@@ -130,32 +148,9 @@ class RunFormat(FormatBase):
             file_path = run_output / "run.txt.gz"
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
-        
+
         for line in super().yield_next_entry(file_path):
-            yield line.strip()
-
-
-        ret_parsed = []
-        for i in ret:
-            cols = re.split("\\s+", i)
-            if len(cols) != 6:
-                raise ValueError(
-                    f'Invalid line in the run file, expected 6 columns, but found a line "{i}" with {len(cols)} columns.'
-                )
-            qid, q0, docno, rank, score, system = cols
-            try:
-                rank = int(rank)
-            except ValueError:
-                raise ValueError(f"Could not parse the rank. Got {rank}. Line: {i}")
-
-            try:
-                score = float(score)
-            except ValueError:
-                raise ValueError(f"Could not parse the rank. Got {rank}. Line: {i}")
-
-            ret_parsed.append({"qid": qid, "q0": q0, "docno": docno, "rank": rank, "score": score, "system": system})
-
-        return ret_parsed
+            yield self.parse_single_line(line.strip())
 
 
 class QrelFormat(FormatBase):
@@ -306,7 +301,7 @@ class JsonlFormat(KeyValueFormatBase):
             raise ValueError(
                 "No unique *.jsonl file was found, only the files " + str(os.listdir(run_output)) + " were available."
             )
-        
+
         for line in super().yield_next_entry(matches[0]):
             line = line.strip()
             try:
@@ -402,7 +397,7 @@ class TsvFormat(KeyValueFormatBase):
 
         f = run_output / matches[0]
         columns = None
-        
+
         for line in super().yield_next_entry(f):
             l_parsed = line.strip().split("\t")
             if columns is None:
@@ -624,60 +619,114 @@ class TextAlignmentCorpusFormat(FormatBase):
 
                 yield entry
 
+
 class QueryProcessorFormat(JsonlFormat):
     """Checks if a given output is a valid query processor output in JSONL format."""
-    
+
     def __init__(self, qid_name="qid"):
-        super().__init__(required_fields=(), minimum_lines=1)
+        super().__init__()
         self.qid_name = qid_name
-    
+
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        self.minimum_lines = 1
+
     def fail_if_json_line_is_not_valid(self, line):
-        super().fail_if_json_line_is_not_valid(line)
-        
         if "qid" not in line and "query_id" not in line:
             raise ValueError('At least one of "qid" or "query_id" fields is required.')
-        
+
         if "qid" in line and "query_id" in line and line["qid"] != line["query_id"]:
             raise ValueError('If both "qid" and "query_id" fields are present, they must be equal.')
 
-        if not isinstance(line["segmentation"], list):
-            raise ValueError('The "segmentation" field must be a list.')
-        
-        if len(line["segmentation"]) == 0:
-            raise ValueError('The "segmentation" field cannot be empty.')
-        
-    
     def yield_next_entry(self, run_output):
         seen_query_ids = set()
 
         for line in super().yield_next_entry(run_output):
             # Create a new dictionary to avoid modifying the original
             normalized_line = dict(line)
-            
+
             if "qid" in line:
                 query_id_value = line["qid"]
             elif "query_id" in line:
                 query_id_value = line["query_id"]
-            
+
             if query_id_value in seen_query_ids:
                 raise ValueError(f"Query ID {query_id_value} is not unique.")
             seen_query_ids.add(query_id_value)
 
-            normalized_line[self.qid_name] = query_id_value
-            
             # Remove redundant ID fields if they differ from the normalized name
             if "qid" in normalized_line and "qid" != self.qid_name:
                 del normalized_line["qid"]
             if "query_id" in normalized_line and "query_id" != self.qid_name:
                 del normalized_line["query_id"]
-                
+
+            normalized_line[self.qid_name] = query_id_value
+
             yield normalized_line
+
 
 class DocumentProcessorFormat(JsonlFormat):
     """Checks if a given output is a valid document processor output in JSONL format."""
 
-    def __init__(self):
-        super().__init__(required_fields=("docno", "key"), minimum_lines=1)
+    def __init__(self, docno_name="docno"):
+        super().__init__()
+        self.docno_name = docno_name
+
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        self.minimum_lines = 1
+        self.doc_ids = ["docno", "docid", "doc_id"]
+
+    def extract_docno_or_fail(self, line):
+        ret = None
+        for doc_id in self.doc_ids:
+            if doc_id in line and line[doc_id]:
+                if ret is None or ret == line[doc_id]:
+                    ret = line[doc_id]
+                else:
+                    raise ValueError(f"Inconsistent fields for the document identifier: {line}.")
+
+        if ret is None:
+            raise ValueError(f"At least one of {self.doc_ids} fields is required.")
+        return ret
+
+    def fail_if_json_line_is_not_valid(self, line):
+        self.extract_docno_or_fail(line)
+
+    def yield_next_entry(self, run_output):
+        seen_query_ids = set()
+
+        for line in super().yield_next_entry(run_output):
+            # Create a new dictionary to avoid modifying the original
+            normalized_line = dict(line)
+            id_value = self.extract_docno_or_fail(normalized_line)
+            for doc_id in self.doc_ids:
+                if doc_id in normalized_line:
+                    del normalized_line[doc_id]
+            normalized_line[self.docno_name] = id_value
+            yield normalized_line
+
+
+class TerrierIndex(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_format(self, run_output: Path):
+        if not run_output.is_dir():
+            return [_fmt.ERROR, "The directory is no valid terrier index, it misses an index directory."]
+
+        if not (run_output / "index").is_dir():
+            return [_fmt.ERROR, "The directory is no valid terrier index, it misses an index directory."]
+
+        if not (run_output / "index" / "data.properties").is_file():
+            return [_fmt.ERROR, "The directory is no valid terrier index, it misses an index/data.properties file."]
+
+        if not (run_output / "index" / "data.meta.idx").is_file():
+            return [_fmt.ERROR, "The directory is no valid terrier index, it misses an index/data.meta.idx file."]
+
+        return [_fmt.OK, "The directory seems to be a valid pyterrier index."]
+
+    def yield_next_entry(self, f):
+        pass
+
 
 class IrMetadataFormat(FormatBase):
     """Checks if a given output contains valid ir_metadata."""
@@ -725,19 +774,20 @@ class IrMetadataFormat(FormatBase):
 
 
 FORMAT_TO_CHECK = {
-    "run.txt": lambda: RunFormat(),
-    "*.jsonl": lambda: JsonlFormat(),
-    "*.tsv": lambda: TsvFormat(),
-    "text-alignment-corpus": lambda: TextAlignmentCorpusFormat(),
-    "text-alignment-features": lambda: TextAlignmentFeaturesFormat(),
-    "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
-    "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
-    "GenIR-Simulation": lambda: GenIrSimulationFormat(),
+    "run.txt": RunFormat,
+    "*.jsonl": JsonlFormat,
+    "*.tsv": TsvFormat,
+    "text-alignment-corpus": TextAlignmentCorpusFormat,
+    "text-alignment-features": TextAlignmentFeaturesFormat,
+    "style-change-detection-corpus": PanStyleChangeDetectionCorpusFormat,
+    "style-change-detection-predictions": PanStyleChangeDetectionPredictionFormat,
+    "GenIR-Simulation": GenIrSimulationFormat,
     "query-processor": QueryProcessorFormat,
     "document-processor": DocumentProcessorFormat,
     "ir_metadata": IrMetadataFormat,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "terrier-index": TerrierIndex,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
@@ -788,6 +838,11 @@ def report_valid_formats(run_output: Path):
     valid_formats = {}
     if _fmt.OK == check_format(run_output, "ir_metadata")[0]:
         valid_formats["ir_metadata"] = sorted([i["name"] for i in lines_if_valid(run_output, "ir_metadata")])
+
+    for f in ["run.txt", "query-processor", "document-processor", "terrier-index"]:
+        if _fmt.OK == check_format(run_output, f)[0]:
+            valid_formats[f] = True
+
     return valid_formats
 
 
