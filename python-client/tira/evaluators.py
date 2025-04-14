@@ -327,8 +327,10 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
             download_config = DownloadConfig(local_files_only=True)
 
         df = pd.merge(pd.DataFrame(run_data), pd.DataFrame(truth_data), left_index=True, right_index=True)
-        run_data = df.iloc[:, 0].tolist()
-        truth_data = df.iloc[:, 1].tolist()
+
+        run_data = df["prediction"].tolist()
+        truth_data = df["truth"].tolist()
+
         ret = {}
         for m in self._measures:
             ret[m] = evaluate.load(m, download_config=download_config).compute(
@@ -481,9 +483,13 @@ def get_evaluators_if_valid(
 
     ret = []
     for evaluator, measures in evaluator_to_measures.items():
+        format_config = config.get("run_format_configuration")
+        if not format_config and "format_configuration" in config:
+            format_config = config.get("format_configuration")
+
         impl = EVALUATORS[evaluator](
             config["run_format"],
-            config.get("run_format_configuration"),
+            format_config,
             config["truth_format"],
             config.get("truth_format_configuration"),
             measures,

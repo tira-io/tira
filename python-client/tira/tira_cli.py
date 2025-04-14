@@ -75,11 +75,18 @@ def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=evaluate_command)
 
 
-def evaluate_command(predictions: Path, truths: Path, config: str, **kwargs) -> int:
+def evaluate_command(predictions: Path, truths: Path, dataset: str, **kwargs) -> int:
     client: "TiraClient" = RestClient()
-    eval_config = client.get_dataset(config)
+    eval_config = client.get_dataset(dataset)
     if not truths:
-        truths = Path(client.download_dataset(eval_config["task_id"], eval_config["dataset_id"], truth_dataset=True))
+        if "task_id" in eval_config:
+            task_id = eval_config["task_id"]
+        elif "default_task" in eval_config:
+            task_id = eval_config["default_task"]
+        else:
+            raise ValueError("Task configuration is invalid")
+
+        truths = Path(client.download_dataset(task_id, eval_config["dataset_id"], truth_dataset=True))
 
     from tira.evaluators import evaluate
 
@@ -149,12 +156,12 @@ def setup_eval_command(parser: argparse.ArgumentParser) -> None:
 
     parser.add_argument(
         "--truths",
-        required=True,
+        required=False,
         default=None,
         help="Optional: the path that contains the truths (use the dataset from the dataset otherwise).",
     )
 
-    parser.add_argument("--config", required=True, help="The dataset for which the predictions are made.")
+    parser.add_argument("--dataset", required=False, help="The dataset for which the predictions are made.")
     parser.set_defaults(executable=evaluate_command)
 
 
