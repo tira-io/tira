@@ -51,7 +51,8 @@ CONFIGURATION_FIELDS = {
 
 
 class FormatBase:
-    def all_lines(self, f: Path):
+    
+    def yield_next_entry(self, f: Path):
         try:
             f_size = f.stat().st_size
         except:
@@ -62,10 +63,15 @@ class FormatBase:
 
         if str(f).endswith(".gz"):
             with gzip.open(f, "rt") as o:
-                return o.readlines()
+                for line in o:
+                    yield line.rstrip('\n')
         else:
             with open(f, "r") as o:
-                return o.readlines()
+                for line in o:
+                    yield line.rstrip('\n')
+
+    def all_lines(self, f: Path):
+        return list(self.yield_next_entry(f))
 
     def max_size(self):
         return 25 * 1024 * 1024
@@ -117,13 +123,17 @@ class RunFormat(FormatBase):
 
         return [_fmt.OK, "The run.txt file has the correct format."]
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         if (run_output / "run.txt").exists():
-            ret = [i.strip() for i in super().all_lines(run_output / "run.txt")]
+            file_path = run_output / "run.txt"
         elif (run_output / "run.txt.gz").exists():
-            ret = [i.strip() for i in super().all_lines(run_output / "run.txt.gz")]
+            file_path = run_output / "run.txt.gz"
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
+        
+        for line in super().yield_next_entry(file_path):
+            yield line.strip()
+
 
         ret_parsed = []
         for i in ret:
@@ -284,7 +294,7 @@ class JsonlFormat(KeyValueFormatBase):
             if not line or self.value_field not in line:
                 raise ValueError(f'The json line misses the required field "{self.value_field}": "{json.dumps(line)}".')
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         if (str(run_output).endswith(".jsonl") or str(run_output).endswith(".jsonl.gz")) and run_output.is_file():
             matches = [run_output]
         else:
@@ -296,19 +306,15 @@ class JsonlFormat(KeyValueFormatBase):
             raise ValueError(
                 "No unique *.jsonl file was found, only the files " + str(os.listdir(run_output)) + " were available."
             )
-
-        ret_raw = [i.strip() for i in super().all_lines(matches[0])]
-        ret = []
-        for i in ret_raw:
+        
+        for line in super().yield_next_entry(matches[0]):
+            line = line.strip()
             try:
-                ret.append(json.loads(i))
-            except:
-                raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
-
-        for i in ret:
-            self.fail_if_json_line_is_not_valid(i)
-
-        return ret
+                parsed_line = json.loads(line)
+                self.fail_if_json_line_is_not_valid(parsed_line)
+                yield parsed_line
+            except json.JSONDecodeError:
+                raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
 
 class LongEvalLags(FormatBase):
@@ -387,7 +393,7 @@ class TsvFormat(KeyValueFormatBase):
 
         return [_fmt.OK, "The tsv file has the correct format."]
 
-    def all_lines(self, run_output):
+    def yield_next_entry(self, run_output):
         matches = [i for i in os.listdir(run_output) if i.endswith(".tsv")]
         if len(matches) != 1:
             msg = "No unique *.tsv file was found, only the files "
@@ -395,17 +401,15 @@ class TsvFormat(KeyValueFormatBase):
             raise ValueError(msg)
 
         f = run_output / matches[0]
-        with open(f, "r") as tsv_file:
-            columns = None
-            ret = []
-            for l in tsv_file:
-                l_parsed = l.strip().split("\t")
-                if columns is None:
-                    columns = len(l_parsed)
-                if len(l_parsed) != columns:
-                    raise ValueError("The *.tsv file is invalid: The number of columns varies.")
-                ret += [l_parsed]
-            return ret
+        columns = None
+        
+        for line in super().yield_next_entry(f):
+            l_parsed = line.strip().split("\t")
+            if columns is None:
+                columns = len(l_parsed)
+            if len(l_parsed) != columns:
+                raise ValueError("The *.tsv file is invalid: The number of columns varies.")
+            yield l_parsed
 
 
 class TextAlignmentFeaturesFormat(FormatBase):
@@ -620,6 +624,60 @@ class TextAlignmentCorpusFormat(FormatBase):
 
                 yield entry
 
+class QueryProcessorFormat(JsonlFormat):
+    """Checks if a given output is a valid query processor output in JSONL format."""
+    
+    def __init__(self, qid_name="qid"):
+        super().__init__(required_fields=(), minimum_lines=1)
+        self.qid_name = qid_name
+    
+    def fail_if_json_line_is_not_valid(self, line):
+        super().fail_if_json_line_is_not_valid(line)
+        
+        if "qid" not in line and "query_id" not in line:
+            raise ValueError('At least one of "qid" or "query_id" fields is required.')
+        
+        if "qid" in line and "query_id" in line and line["qid"] != line["query_id"]:
+            raise ValueError('If both "qid" and "query_id" fields are present, they must be equal.')
+
+        if not isinstance(line["segmentation"], list):
+            raise ValueError('The "segmentation" field must be a list.')
+        
+        if len(line["segmentation"]) == 0:
+            raise ValueError('The "segmentation" field cannot be empty.')
+        
+    
+    def yield_next_entry(self, run_output):
+        seen_query_ids = set()
+
+        for line in super().yield_next_entry(run_output):
+            # Create a new dictionary to avoid modifying the original
+            normalized_line = dict(line)
+            
+            if "qid" in line:
+                query_id_value = line["qid"]
+            elif "query_id" in line:
+                query_id_value = line["query_id"]
+            
+            if query_id_value in seen_query_ids:
+                raise ValueError(f"Query ID {query_id_value} is not unique.")
+            seen_query_ids.add(query_id_value)
+
+            normalized_line[self.qid_name] = query_id_value
+            
+            # Remove redundant ID fields if they differ from the normalized name
+            if "qid" in normalized_line and "qid" != self.qid_name:
+                del normalized_line["qid"]
+            if "query_id" in normalized_line and "query_id" != self.qid_name:
+                del normalized_line["query_id"]
+                
+            yield normalized_line
+
+class DocumentProcessorFormat(JsonlFormat):
+    """Checks if a given output is a valid document processor output in JSONL format."""
+
+    def __init__(self):
+        super().__init__(required_fields=("docno", "key"), minimum_lines=1)
 
 class IrMetadataFormat(FormatBase):
     """Checks if a given output contains valid ir_metadata."""
@@ -675,7 +733,9 @@ FORMAT_TO_CHECK = {
     "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
     "style-change-detection-predictions": lambda: PanStyleChangeDetectionPredictionFormat(),
     "GenIR-Simulation": lambda: GenIrSimulationFormat(),
-    "ir_metadata": lambda: IrMetadataFormat(),
+    "query-processor": QueryProcessorFormat,
+    "document-processor": DocumentProcessorFormat,
+    "ir_metadata": IrMetadataFormat,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
 }
