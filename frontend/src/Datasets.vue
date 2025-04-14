@@ -3,9 +3,9 @@
     
     <h3 class="text-h3 py-5">Datasets</h3>
     <div class="py-5"></div>
-    <v-skeleton-loader type="card" v-if="datasets === undefined"/>
+    <v-skeleton-loader type="card" v-if="loading"/>
 
-    <div v-if="datasets !== undefined">
+    <div v-if="!loading">
       <div class="d-flex">
         <v-responsive min-width="220px" id="task-search">
           <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="query" />
@@ -47,6 +47,9 @@
           <p v-for="[k, v] of Object.entries(mirrored_resources(item.mirrors))">
             <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
           </p>
+          <p v-for="[k, v] of Object.entries(tira_resources(item))">
+            <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
+          </p>
         </template>
       </v-data-table>
     </div>
@@ -63,6 +66,7 @@
     components: { Loading, TiraBreadcrumb, DirectoryInspector },
     data() {
       return {
+        loading: true,
         userinfo: inject('userinfo') as UserInfo,
         query: undefined as string|undefined,
         datasets: [] as DatasetInfo[],
@@ -92,13 +96,26 @@
         }
 
         return ret
+      },
+      tira_resources(item: any) {
+        let ret : Record<string, string> = {}
+        if (item.dataset_id && !item.is_confidential && item.mirrors && Object.getOwnPropertyNames(this.mirrored_resources(item.mirrors)).length == 0) {
+          ret['Inputs'] = "https://www.tira.io/data-download/" + (item.dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-/' + item.dataset_id + '.zip'
+          ret['Truths'] = "https://www.tira.io/data-download/" + (item.dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + item.dataset_id + '.zip'
+        }
+        
+        return ret
       }
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined
+      this.loading = true
       get_from_archive('/v1/datasets/all')
         .then(
-            (result) => { this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)}
+            (result) => { 
+              this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)
+              this.loading = false
+            }
         )
         .catch(reportError("Problem While Loading the Overview of the Datasets.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },

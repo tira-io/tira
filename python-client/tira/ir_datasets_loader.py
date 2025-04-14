@@ -50,7 +50,7 @@ class IrDatasetsLoader(object):
         skip_documents=False,
         skip_qrels=False,
         skip_duplicate_ids=True,
-        allowlist_path_ids: Optional[Path] = None,
+        allowlist_path_ids: "Optional[Path]" = None,
     ) -> None:
         """Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
@@ -263,8 +263,8 @@ class IrDatasetsLoader(object):
         return o
 
     def construct_rerank_row(
-        self, docs: dict, queries: dict, rerank_line: dict[str, Any], include_original
-    ) -> Optional[str]:
+        self, docs: dict, queries: dict, rerank_line: "dict[str, Any]", include_original
+    ) -> "Optional[str]":
         query = queries[str(rerank_line["qid"])]
         doc = docs.get(str(rerank_line["docno"]), None)
 
@@ -287,7 +287,7 @@ class IrDatasetsLoader(object):
 
         return json.dumps(ret)
 
-    def write_lines_to_file(self, lines: Iterable[str], path: Path) -> None:
+    def write_lines_to_file(self, lines: "Iterable[str]", path: "Path") -> None:
         if path.exists():
             raise RuntimeError(f"File already exists: {path}")
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -302,7 +302,7 @@ class IrDatasetsLoader(object):
             with path.open("wt") as file:
                 file.writelines("%s\n" % line for line in lines if line)
 
-    def write_lines_to_xml_file(self, ir_datasets_id: str, lines: Iterable[str], path: Path) -> None:
+    def write_lines_to_xml_file(self, ir_datasets_id: str, lines: "Iterable[str]", path: "Path") -> None:
         if path.exists():
             raise RuntimeError(f"File already exists: {path}")
         path.parent.mkdir(parents=True, exist_ok=True)

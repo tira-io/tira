@@ -1,6 +1,7 @@
 import json
 from hashlib import md5
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import markdown
 import requests
@@ -13,6 +14,11 @@ from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
 
+if TYPE_CHECKING:
+    from typing import Any, Optional
+
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
+
 
 class DatasetSerializer(ModelSerializer):
     id = CharField(source="dataset_id")
@@ -22,7 +28,11 @@ class DatasetSerializer(ModelSerializer):
     description = SerializerMethodField()
     file_listing = SerializerMethodField()
     format = SerializerMethodField()
+    format_configuration = SerializerMethodField()
     evaluator = SerializerMethodField()
+    truth_format_configuration = SerializerMethodField()
+    truth_format = SerializerMethodField()
+    trusted_eval = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
@@ -40,7 +50,11 @@ class DatasetSerializer(ModelSerializer):
             "mirrors",
             "file_listing",
             "format",
+            "format_configuration",
             "evaluator",
+            "truth_format_configuration",
+            "truth_format",
+            "trusted_eval",
         ]
 
     def get_mirrors(self, obj):
@@ -53,20 +67,22 @@ class DatasetSerializer(ModelSerializer):
         return obj.default_task.task_name if obj.default_task else None
 
     def get_file_listing(self, obj):
-        if not obj or not obj.file_listing:
-            return None
-        try:
-            return json.loads(obj.file_listing)
-        except json.JSONDecodeError:
-            return None
+        return obj.get_file_listing()
+
+    def get_truth_format_configuration(self, obj):
+        return obj.get_truth_format_configuration()
+
+    def get_trusted_eval(self, obj):
+        return obj.get_trusted_evaluation()
+
+    def get_truth_format(self, obj):
+        return obj.get_truth_format()
 
     def get_format(self, obj):
-        if not obj or not obj.format:
-            return None
-        try:
-            return json.loads(obj.format)
-        except json.JSONDecodeError:
-            return None
+        return obj.get_format()
+
+    def get_format_configuration(self, obj):
+        return obj.get_format_configuration()
 
     def get_ir_datasets_id(self, obj):
         if obj.ir_datasets_id and obj.ir_datasets_id_2:
@@ -94,22 +110,22 @@ class _DatasetView(ModelViewSet):
     permission_classes = [AllowAny]
 
 
-def load_mirrored_resource(md5_sum: str) -> dict[str, str]:
-    ret = None
+def load_mirrored_resource(md5_sum: str) -> "Optional[dict[str, Any]]":
+    ret: Optional[dict[str, Any]] = None
 
     try:
         obj = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
         ret = {"md5_sum": obj.md5_sum, "md5_first_kilobyte": obj.md5_first_kilobyte, "size": obj.size}
         ret["mirrors"] = {}
         ret["mirrors"] = json.loads(obj.mirrors)
-    except:
+    except Exception:
         pass
 
     return ret
 
 
-def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
-    ret = {"truths": {}, "inputs": {}}
+def mirrors_for_dataset(dataset_id: str) -> "dict[str, dict[str, Any]]":
+    ret: dict[str, dict[str, Any]] = {"truths": {}, "inputs": {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
         resource_type = i.resource_type
         subdirectory = i.subdirectory

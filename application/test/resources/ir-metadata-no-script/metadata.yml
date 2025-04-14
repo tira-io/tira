@@ -1,0 +1,17 @@
+implementation:
+  source:
+    archive:
+      path: /home/maik/workspace/chatnoir-ir-datasets-indexer/.metadata/longeval-sci-2024-11/.tirex-tracker/code.zip
+      script path: chatnoir_ir_datasets_indexer/document_offsets.py
+    branch: main
+    commit: 86555193e9bc890c6614559c63f899ada9969b9d
+    hash: 2c7d8dc1553d2627c219510ef79081dfafddad97
+    is repo: 1
+    lang: null
+    repository: null
+    tags: []
+    unchecked files: 1
+    uncommitted changes: 0
+    unpushed changes: 1
+    upstream branch: null
+    repository: git@github.com:chatnoir-eu/chatnoir-ir-datasets-indexer.git

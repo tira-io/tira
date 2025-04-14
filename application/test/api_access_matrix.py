@@ -1939,30 +1939,6 @@ API_ACCESS_MATRIX = [
     ),
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
-        url_pattern="tira-admin/reload-data",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-        hide_stdout=True,
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload-runs/<str:vm_id>",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-        hide_stdout=True,
-    ),
-    route_to_test(
         url_pattern="tira-admin/archive-vm",
         params={},
         group_to_expected_status_code={
@@ -2095,6 +2071,17 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern="v1/anonymous/view/<str:submission_uuid>/jupyter-notebook.html",
         params={"submission_uuid": "12345"},
+        group_to_expected_status_code={
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER_WRONG_TASK: 500,
+            ORGANIZER: 500,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/anonymous/view/<str:submission_uuid>/metadata/<str:metadata>",
+        params={"submission_uuid": "12345", "metadata": "12345"},
         group_to_expected_status_code={
             GUEST: 500,
             PARTICIPANT: 500,

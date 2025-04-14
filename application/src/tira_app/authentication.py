@@ -2,13 +2,16 @@ import json
 import logging
 import os
 from functools import wraps
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed
 from slugify import slugify
 
 from . import tira_model as model
+
+if TYPE_CHECKING:
+    from typing import Any, Iterable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ class Authentication(object):
     ROLE_FORBIDDEN = "forbidden"
     ROLE_GUEST = "guest"  # not logged in -> user-header is not set
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         """Init base class based on parameter on creation"""
         super().__init_subclass__()
         cls.subclasses[cls._AUTH_SOURCE] = cls
@@ -41,7 +44,7 @@ class Authentication(object):
         """
         return super(Authentication, cls).__new__(cls.subclasses[authentication_source])
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         pass
 
     @staticmethod
@@ -50,11 +53,11 @@ class Authentication(object):
 
     def get_role(
         self,
-        request: HttpRequest,
-        user_id: Optional[str] = None,
-        vm_id: Optional[str] = None,
-        task_id: Optional[str] = None,
-    ):
+        request: "HttpRequest",
+        user_id: "Optional[str]" = None,
+        vm_id: "Optional[str]" = None,
+        task_id: "Optional[str]" = None,
+    ) -> str:
         """Determine the role of the user on the requested page (determined by the given directives).
 
         @param request: djangos request object associated to the http request
@@ -68,44 +71,38 @@ class Authentication(object):
         """
         return self.ROLE_GUEST
 
-    def get_auth_source(self):
+    def get_auth_source(self) -> str:
         return self._AUTH_SOURCE
 
-    def get_user_id(self, request: HttpRequest):
+    def get_user_id(self, request: "HttpRequest") -> "Optional[str]":
         return None
 
-    def get_vm_id(self, request: HttpRequest, user_id):
+    def get_vm_id(self, request: "HttpRequest", user_id: str) -> str:
         return "None"
-
-    def login(self, request: HttpRequest, **kwargs):
-        pass
-
-    def logout(self, request: HttpRequest, **kwargs):
-        pass
 
     def create_group(self, vm_id):
         return {"status": 0, "message": f"create_group is not implemented for {self._AUTH_SOURCE}"}
 
-    def get_organizer_ids(self, request: HttpRequest, user_id=None):
+    def get_organizer_ids(self, request: "HttpRequest", user_id=None):
         pass
 
-    def get_vm_ids(self, request: HttpRequest, user_id=None):
+    def get_vm_ids(self, request: "HttpRequest", user_id=None):
         pass
 
     def user_is_organizer_for_endpoint(
         self,
-        request,
-        path,
-        task_id,
-        organizer_id_from_params,
-        dataset_id_from_params,
-        run_id_from_params,
-        vm_id_from_params,
-        role,
-    ):
+        request: "HttpRequest",
+        path: str,
+        task_id: str,
+        organizer_id_from_params: str,
+        dataset_id_from_params: str,
+        run_id_from_params: str,
+        vm_id_from_params: str,
+        role: str,
+    ) -> bool:
         return False
 
-    def is_admin_for_task(self, request):
+    def is_admin_for_task(self, request: "HttpRequest") -> bool:
         """
         Returns true if the user is an admin for the task specified in the request (false if the request url does not
         point to a task or if the user is only admin for some other task).
@@ -151,7 +148,7 @@ def check_disraptor_token(func):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Disraptor authentication that delegates all authentication to discourse/disraptor.
         @param kwargs:
             unused, only for consistency to the LegacyAuthentication
@@ -159,7 +156,7 @@ class DisraptorAuthentication(Authentication):
         super(DisraptorAuthentication, self).__init__(**kwargs)
         self.discourse_client = model.discourse_api_client()
 
-    def _get_user_id(self, request: HttpRequest) -> Optional[str]:
+    def _get_user_id(self, request: "HttpRequest") -> "Optional[str]":
         """Return the content of the X-Disraptor-User header set in the http request"""
         user_id = request.headers.get("X-Disraptor-User", None)
         if user_id is not None:
@@ -167,11 +164,11 @@ class DisraptorAuthentication(Authentication):
             _ = model.get_vm(vm_id, create_if_none=True)
         return user_id
 
-    def _is_in_group(self, request: HttpRequest, group_name="tira_reviewer") -> bool:
+    def _is_in_group(self, request: "HttpRequest", group_name: str = "tira_reviewer") -> bool:
         """return True if the user is in the given disraptor group"""
         return group_name in request.headers.get("X-Disraptor-Groups", "").split(",")
 
-    def _parse_tira_groups(self, groups: list[str]) -> dict[str, str]:
+    def _parse_tira_groups(self, groups: list[str]) -> "Iterable[dict[str, Optional[str]]]":
         """find all groups with 'tira_' prefix and return key and value of the group.
         Note: Groupnames should be in the format '[tira_]key[_value]'
         """
@@ -188,7 +185,7 @@ class DisraptorAuthentication(Authentication):
                     value = None
                 yield {"key": key, "value": value}
 
-    def _get_user_groups(self, request: HttpRequest, group_type: str = "vm") -> list:
+    def _get_user_groups(self, request: "HttpRequest", group_type: str = "vm") -> list:
         """read groups from the disraptor groups header.
         @param group_type: {"vm", "org"}, indicate the class of groups.
         """
@@ -200,6 +197,7 @@ class DisraptorAuthentication(Authentication):
 
             # Some discourse vm groups are created manually, so we have to ensure that they also have a vm
             for vm_id in ret:
+                assert vm_id is not None
                 _ = model.get_vm(vm_id, create_if_none=True)
 
             return ret + [user_id]
@@ -211,10 +209,10 @@ class DisraptorAuthentication(Authentication):
     @check_disraptor_token
     def get_role(
         self,
-        request: HttpRequest,
-        user_id: Optional[str] = None,
-        vm_id: Optional[str] = None,
-        task_id: Optional[str] = None,
+        request: "HttpRequest",
+        user_id: "Optional[str]" = None,
+        vm_id: "Optional[str]" = None,
+        task_id: "Optional[str]" = None,
     ):
         """Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
@@ -243,12 +241,12 @@ class DisraptorAuthentication(Authentication):
         return self.ROLE_GUEST
 
     @check_disraptor_token
-    def get_user_id(self, request: HttpRequest):
+    def get_user_id(self, request: "HttpRequest") -> "Optional[str]":
         """public wrapper of _get_user_id that checks conditions"""
         return self._get_user_id(request)
 
     @check_disraptor_token
-    def get_vm_id(self, request: HttpRequest, user_id=None):
+    def get_vm_id(self, request: "HttpRequest", user_id=None):
         """return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
         If there is no vm-group, return "no-vm-assigned"
         """
@@ -256,7 +254,7 @@ class DisraptorAuthentication(Authentication):
         return self.get_vm_ids(request, user_id)[0]
 
     @check_disraptor_token
-    def get_organizer_ids(self, request: HttpRequest, user_id=None):
+    def get_organizer_ids(self, request: "HttpRequest", user_id=None):
         """return the organizer ids of all organizer teams that the user is found in ("tira-org-<vm_id>").
         If there is no vm-group, return the empty list
         """
@@ -264,7 +262,7 @@ class DisraptorAuthentication(Authentication):
         return self._get_user_groups(request, group_type="org")
 
     @check_disraptor_token
-    def get_vm_ids(self, request: HttpRequest, user_id=None):
+    def get_vm_ids(self, request: "HttpRequest", user_id=None):
         """returns a list of all vm_ids of the all vm_groups ("tira-vm-<vm_id>") found.
         If there is no vm-group, a list with "no-vm-assigned" is returned
         """
@@ -286,7 +284,7 @@ class DisraptorAuthentication(Authentication):
         Please do not hesitate to design your team's page accorging to your needs."""
         return self.discourse_client.create_group(f"tira_vm_{team_name}", group_bio, 2)
 
-    def notify_organizers_of_new_participants(self, data, task_id):
+    def notify_organizers_of_new_participants(self, data: "dict[str, Any]", task_id: str) -> None:
         task = model.get_task(task_id)
         message = (
             """Dear Organizers """
@@ -325,7 +323,7 @@ Best regards"""
 
         return {"message": message, "invite_link": invite_link}
 
-    def create_organizer_group(self, organizer_name, user_name):
+    def create_organizer_group(self, organizer_name: str, user_name: str) -> None:
         group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}.
         <br><br>
 
@@ -334,7 +332,7 @@ Best regards"""
         group_id = self.discourse_client.create_group(f"tira_org_{organizer_name}", group_bio, 0)
         self.discourse_client.add_user_as_owner_to_group(group_id, user_name)
 
-    def create_docker_group(self, team_name, user_name):
+    def create_docker_group(self, team_name: str, user_name: str) -> "dict[str, str]":
         group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
 
         Please do not hesitate to design your team's page accorging to your needs."""
@@ -351,15 +349,15 @@ Best regards"""
 
     def user_is_organizer_for_endpoint(
         self,
-        request,
-        path,
-        task_id,
-        organizer_id_from_params,
-        dataset_id_from_params,
-        run_id_from_params,
-        vm_id_from_params,
-        role,
-    ):
+        request: "HttpRequest",
+        path: str,
+        task_id: str,
+        organizer_id_from_params: str,
+        dataset_id_from_params: str,
+        run_id_from_params: str,
+        vm_id_from_params: str,
+        role: str,
+    ) -> bool:
         if request is None or path is None:
             return False
         if not path.startswith("/"):
@@ -425,44 +423,44 @@ Best regards"""
             path == "/api/organizer-list"
             or (task and "organizer_id" in task and task["organizer_id"] in organizer_ids)
             or (
-                organizer_id_from_params
+                organizer_id_from_params is not None
                 and organizer_id_from_params in organizer_ids
                 and path in set(f"/tira-admin/{i}/create-task" for i in organizer_ids)
             )
             or (
-                organizer_id_from_params
+                organizer_id_from_params is not None
                 and organizer_id_from_params in organizer_ids
                 and path in set(f"/tira-admin/edit-organizer/{i}" for i in organizer_ids)
             )
             or (
-                organizer_id_from_run_id
+                organizer_id_from_run_id is not None
                 and organizer_id_from_run_id in organizer_ids
                 and path.startswith(f"/task/{organizer_id_from_run_id}/vm/")
             )
             or (
-                organizer_id_from_run_id
+                organizer_id_from_run_id is not None
                 and organizer_id_from_run_id in organizer_ids
                 and organizer_id_from_dataset_id
                 and path == f"/api/review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}"
             )
             or (
-                organizer_id_from_run_id
+                organizer_id_from_run_id is not None
                 and organizer_id_from_run_id in organizer_ids
                 and organizer_id_from_dataset_id
                 and path == f"/tira-admin/edit-review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}"
             )
             or (
-                organizer_id_from_dataset_id
+                organizer_id_from_dataset_id is not None
                 and organizer_id_from_dataset_id in organizer_ids
                 and path == f"/tira-admin/edit-dataset/{dataset_id_from_params}"
             )
             or (
-                organizer_id_from_dataset_id
+                organizer_id_from_dataset_id is not None
                 and organizer_id_from_dataset_id in organizer_ids
                 and path == f"/tira-admin/delete-dataset/{dataset_id_from_params}"
             )
             or (
-                organizer_id_from_dataset_id
+                organizer_id_from_dataset_id is not None
                 and organizer_id_from_dataset_id in organizer_ids
                 and path.startswith("/data-download/")
                 and path.endswith(f"/{dataset_id_from_params}.zip")
@@ -470,7 +468,7 @@ Best regards"""
         )
 
 
-auth = Authentication(authentication_source="disraptor")
+auth: "DisraptorAuthentication" = Authentication(authentication_source="disraptor")  # type: ignore [assignment]
 
 
 """

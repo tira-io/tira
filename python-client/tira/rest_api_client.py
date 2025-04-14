@@ -11,7 +11,7 @@ from functools import lru_cache
 from glob import glob
 from pathlib import Path
 from random import randint
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import requests
@@ -21,11 +21,7 @@ from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import (
-    PyTerrierAnceIntegration,
-    PyTerrierIntegration,
-    PyTerrierSpladeIntegration,
-)
+from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -44,12 +40,12 @@ class Client(TiraClient):
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
+        base_url: "Optional[str]" = None,
         api_key: str = None,
         failsave_retries: int = 5,
         failsave_max_delay: int = 15,
-        api_user_name: Optional[str] = None,
-        tira_cache_dir: Optional[str] = None,
+        api_user_name: "Optional[str]" = None,
+        tira_cache_dir: "Optional[str]" = None,
         verify: bool = True,
         allow_local_execution: bool = False,
     ):
@@ -894,7 +890,7 @@ class Client(TiraClient):
             ret["context"]["all_uploadgroups"],
         )
 
-    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
@@ -918,29 +914,23 @@ class Client(TiraClient):
         if len(accepted_formats) == 0:
             accepted_formats = ["run.txt"]  # default format
 
+        format_configuration = upload_to_tira.get("format_configuration")
+
         for format in accepted_formats:
-            status_code, msg = check_format(file_path, str(format))
+            status_code, msg = check_format(file_path, str(format), format_configuration)
 
             if status_code != _fmt.OK:
                 error_msg += "\n" + msg
             else:
-                error_msg = ""
-                break
+                error_msg += ""
 
         if error_msg:
             print(error_msg.strip())
             raise ValueError(error_msg.strip())
+        from tira.io_utils import zip_dir
 
-        zip_file = temporary_directory()
-        zip_file = zip_file / "tira-upload.zip"
+        zip_file = zip_dir(file_path)
 
-        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
-        for root, _, files in os.walk(file_path):
-            for name in files:
-                filePath = os.path.join(root, name)
-                zf.write(filePath, arcname=name)
-
-        zf.close()
         headers = {"Accept": "application/json"}
         files = {"file": open(zip_file, "rb")}
 
@@ -1090,9 +1080,9 @@ class Client(TiraClient):
     def execute_post_return_json(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
-        file_path: Path = None,
-        json_payload: any = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        file_path: "Path" = None,
+        json_payload: "Any" = None,
     ) -> Dict:
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
@@ -1148,7 +1138,7 @@ class Client(TiraClient):
     def json_response(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
         base_url=None,
         failsave_retries=None,
     ):

@@ -66,15 +66,24 @@ def setup_login_command(parser: argparse.ArgumentParser) -> None:
 def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
-        "--directory", required=True, default=None, help="The directory with the predictions to evaluate."
+        "--predictions", required=True, default=None, help="The directory with the predictions to evaluate."
     )
-    parser.add_argument("--dataset", required=True, help="The dataset for which the predictions are made.")
+    parser.add_argument(
+        "--truths", required=False, default=None, help="The optional truths (use truths from the config if available)."
+    )
+    parser.add_argument("--config", required=True, help="The dataset for which the predictions are made.")
     parser.set_defaults(executable=evaluate_command)
 
 
-def evaluate_command(directory: Path, dataset: str, **kwargs) -> int:
+def evaluate_command(predictions: Path, truths: Path, config: str, **kwargs) -> int:
     client: "TiraClient" = RestClient()
-    client.evaluate(Path(directory), dataset)
+    eval_config = client.get_dataset(config)
+    if not truths:
+        truths = Path(client.download_dataset(eval_config["task_id"], eval_config["dataset_id"], truth_dataset=True))
+
+    from tira.evaluators import evaluate
+
+    print(evaluate(Path(predictions), Path(truths), eval_config))
 
     return 0
 
@@ -119,7 +128,31 @@ def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
 
 def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
+    parser.add_argument(
+        "--directory", required=True, default=None, help="The directory with the predictions to upload."
+    )
+    parser.add_argument("--dataset", required=True, help="The dataset for to which the predictions should be uploaded.")
     parser.set_defaults(executable=upload_command)
+
+
+def setup_eval_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--predictions",
+        required=True,
+        default=None,
+        help="The path that contains the predictions.",
+    )
+
+    parser.add_argument(
+        "--truths",
+        required=True,
+        default=None,
+        help="Optional: the path that contains the truths (use the dataset from the dataset otherwise).",
+    )
+
+    parser.add_argument("--config", required=True, help="The dataset for which the predictions are made.")
+    parser.set_defaults(executable=evaluate_command)
 
 
 """
@@ -128,7 +161,7 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: Optional[str] = None, **kwargs) -> int:
+def download_command(dataset: str, approach: "Optional[str]" = None, **kwargs) -> int:
     client: "TiraClient" = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
@@ -146,7 +179,7 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
 
 
 def code_submission_command(
-    path: Path, task: str, dry_run: bool, allow_network: bool, command: Optional[str], **kwargs
+    path: Path, task: str, dry_run: bool, allow_network: bool, command: "Optional[str]", **kwargs
 ) -> int:
     client: "TiraClient" = RestClient()
     client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network)
@@ -169,8 +202,11 @@ def verify_installation_command(**kwards) -> int:
     return 0 if status == _fmt.OK else 1
 
 
-def upload_command() -> None:
-    pass
+def upload_command(dataset: str, directory: Path, **kwargs) -> None:
+    client: "TiraClient" = RestClient()
+    resp = client.upload_run_anonymous(directory, dataset)
+
+    return 0 if resp and "uuid" in resp and resp["uuid"] else 1
 
 
 """
@@ -187,6 +223,7 @@ def parse_args():
     subparsers = parser.add_subparsers(dest="command", required=True)
     setup_download_command(subparsers.add_parser("download", help="Download runs or datasets from TIRA.io"))
     setup_upload_command(subparsers.add_parser("upload", help="Upload runs or datasets to TIRA.io"))
+    setup_eval_command(subparsers.add_parser("evaluate", help="Evaluate runs locally."))
     setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
     setup_verify_installation(
         subparsers.add_parser("verify-installation", help="Verify that your local TIRA client is correctly installed.")
@@ -194,7 +231,6 @@ def parse_args():
     setup_code_submission_command(
         subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
     )
-    setup_evaluation_command(subparsers.add_parser("evaluate", help="Evaluate some predictions on your local machine."))
 
     return parser.parse_args()
 

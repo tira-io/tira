@@ -1,13 +1,21 @@
+from typing import TYPE_CHECKING
+
 from django.urls import path
 from rest_framework.decorators import api_view
-from rest_framework.request import Request
 from rest_framework.response import Response
 
 from ... import model as modeldb
 
+if TYPE_CHECKING:
+    from typing import Any
+
+    from rest_framework.request import Request
+
+# TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
+
 
 @api_view(["GET"])
-def topics(request: Request, dataset_id: str) -> Response:
+def topics(request: "Request", dataset_id: str) -> "Response":
     """Get topics for the specified dataset id.
 
     Args:
@@ -22,7 +30,7 @@ def topics(request: Request, dataset_id: str) -> Response:
 
     try:
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
-    except:
+    except Exception:
         return Response()
 
     if not dataset.ir_datasets_id:
@@ -37,7 +45,7 @@ def topics(request: Request, dataset_id: str) -> Response:
 
 
 @api_view(["GET"])
-def topic(request: Request, dataset_id: str, qid: str) -> Response:
+def topic(request: "Request", dataset_id: str, qid: str) -> "Response":
     """Get topic for the specified dataset id.
 
     Args:
@@ -48,7 +56,7 @@ def topic(request: Request, dataset_id: str, qid: str) -> Response:
     Returns:
         Response: The topics.
     """
-    ret = []
+    ret: dict[str, Any] = {}
     import ir_datasets
 
     try:
@@ -56,7 +64,7 @@ def topic(request: Request, dataset_id: str, qid: str) -> Response:
 
         if not dataset.ir_datasets_id:
             raise ValueError(f'No ir dataset id specified for TIRA dataset "{dataset_id}".')
-    except:
+    except Exception:
         return Response()
 
     ir_dataset = ir_datasets.load(dataset.ir_datasets_id)
@@ -67,7 +75,7 @@ def topic(request: Request, dataset_id: str, qid: str) -> Response:
             try:
                 ret["description"] = q.description
                 ret["narrative"] = q.narrative
-            except:
+            except Exception:
                 pass
             return Response(ret)
 
@@ -75,7 +83,7 @@ def topic(request: Request, dataset_id: str, qid: str) -> Response:
 
 
 @api_view(["GET"])
-def run_by_uuid(request: Request, run_uuid: str) -> Response:
+def run_by_uuid(request: "Request", run_uuid: str) -> "Response":
     """Get meta data for the specified run.
 
     Args:

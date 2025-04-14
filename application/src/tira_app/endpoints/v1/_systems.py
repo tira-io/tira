@@ -1,4 +1,5 @@
 import json
+from typing import TYPE_CHECKING
 
 from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.urls import path
@@ -6,8 +7,11 @@ from django.urls import path
 from ...model import DockerSoftware
 from ...tira_model import model
 
+if TYPE_CHECKING:
+    from typing import Any
 
-def public_submissions(request: HttpRequest) -> JsonResponse:
+
+def public_submissions(request: "HttpRequest") -> JsonResponse:
     all_runs = model.all_runs()
     ret = []
 
@@ -29,7 +33,7 @@ def public_submissions(request: HttpRequest) -> JsonResponse:
     return JsonResponse(ret, safe=False)
 
 
-def serialize_docker_software(ds):
+def serialize_docker_software(ds: "DockerSoftware") -> "dict[str, Any]":
     input_docker_software = []
 
     if ds and ds.input_docker_software:
@@ -58,8 +62,8 @@ def serialize_docker_software(ds):
     }
 
 
-def software_details(request: HttpRequest, user_id: str, software: str) -> JsonResponse:
-    ret = []
+def software_details(request: "HttpRequest", user_id: str, software: str) -> JsonResponse:
+    ret: list[dict[str, Any]] = []
     for i in DockerSoftware.objects.filter(vm_id=user_id, display_name=software):
         if not i.public_image_name or i.deleted:
             continue
