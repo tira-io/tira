@@ -17,7 +17,7 @@ RUN yarn build-light
 ########################
 # Production Container #
 ########################
-FROM alpine:latest
+FROM alpine:3.19
 RUN apk add --update --no-cache lighttpd
 
 COPY --from=build /project/static/ /var/www/localhost/htdocs
