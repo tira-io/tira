@@ -29,7 +29,7 @@ ENV TIRA_REST_BASE_URL="https://127.0.0.1:8080"
 COPY <<EOF lighttpd.conf
 server.document-root = "/var/www/localhost/htdocs"
 server.port = 80
-server.error-handler-404   = "/index.html"
+server.error-handler   = "/index.html"
 EOF
 
 # The startup script replaces the values of the configuration variables "grpc_endpoint" and "rest_endpoint" (see
