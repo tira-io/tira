@@ -5,12 +5,14 @@ from tira.rest_api_client import Client
 
 ALL_DATASETS = {}
 tira = Client()
-TASKS = ["wows-eval"]
+TASKS = ["wows-eval", "advertisement-in-retrieval-augmented-generation-2025"]
 for task in TASKS:
     ALL_DATASETS.update(tira.datasets(task))
 
 import tempfile
 from pathlib import Path
+
+from parameterized import parameterized
 
 
 def datasets_with_format(dataset_type):
@@ -50,11 +52,35 @@ MINIMAL_WOWS_PAIRWISE = {
 {"id": "a88a0a31-4795-4c59-830b-848de52a7fd6", "query": "who sings monk theme song", "query_id": 1051399, "relevant_doc_id": "69813", "unknown_doc_id": "4426187", "qrel_unknown_doc": 3, "relevant_doc_id": "69813"}""",
 }
 
+MINIMAL_AD_CLASSIFICATION = {
+    "run": """{"id": "xyz1", "label": 1}
+{"id": "xyz2", "label": 0}
+{"id": "xyz3", "label": 0}""",
+    "truth": """{"id": "xyz1", "label": 1}
+{"id": "xyz2", "label": 0}
+{"id": "xyz3", "label": 1}""",
+}
+
+MINIMAL_AD_GENERATION = {
+    "run": """{"id": "xyz1", "response": "1", "tag": "a", "topic": "a", "references": [], "advertisement": []}
+{"id": "xyz2", "response": "1", "tag": "a", "topic": "a", "references": [], "advertisement": []}
+{"id": "xyz3", "response": "1", "tag": "a", "topic": "a", "references": [], "advertisement": []}""",
+    "truth": """{"id": "xyz1", "response": "1"}
+{"id": "xyz2", "response": "1"}
+{"id": "xyz3", "response": "1"}""",
+}
+
 DATASET_TO_MINIMAL_EXAMPLE = {
     "pairwise-20250309-test": MINIMAL_WOWS_PAIRWISE,
     "pairwise-smoke-test-20250210-training": MINIMAL_WOWS_PAIRWISE,
     "pointwise-20250309-test": MINIMAL_WOWS_POINTWISE,
     "pointwise-smoke-test-20250128-training": MINIMAL_WOWS_POINTWISE,
+    "native-ads-2024-spot-check-20250414-training": MINIMAL_AD_CLASSIFICATION,
+    "native-ads-2024-train-20250319-training": MINIMAL_AD_CLASSIFICATION,
+    "native-ads-2024-validation-20250319-training": MINIMAL_AD_CLASSIFICATION,
+    "webis-generated-native-ads-2024-20250120_0-training": MINIMAL_AD_CLASSIFICATION,
+    "ads-in-rag-generation-spot-check-20250414-training": MINIMAL_AD_GENERATION,
+    "touche-25-ads-in-rag-generation-20250404_0-training": MINIMAL_AD_GENERATION,
 }
 
 
@@ -69,18 +95,18 @@ class TestIntegration(unittest.TestCase):
         actual = datasets_with_format("truth").keys()
         self.assertEqual(expected, actual)
 
-    def test_truth_datasets_are_valid(self):
+    @parameterized.expand(datasets_with_format("truth").items())
+    def test_truth_datasets_are_valid(self, k, v):
         TYPE = "truth"
-        for k, v in datasets_with_format(TYPE).items():
-            with tempfile.TemporaryDirectory() as d:
-                (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
-                actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
-                self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
+            actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
+            self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
 
-    def test_run_datasets_are_valid(self):
+    @parameterized.expand(datasets_with_format("run").items())
+    def test_run_datasets_are_valid(self, k, v):
         TYPE = "run"
-        for k, v in datasets_with_format(TYPE).items():
-            with tempfile.TemporaryDirectory() as d:
-                (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
-                actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
-                self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
+            actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
+            self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
