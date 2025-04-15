@@ -17,8 +17,8 @@ RUN yarn build-light
 ########################
 # Production Container #
 ########################
-FROM alpine:3.19
-RUN apk add --update --no-cache lighttpd
+FROM ghcr.io/tira-io/tira-frontend:0.0.137-ui15
+RUN rm -Rf /var/www/localhost/htdocs
 
 COPY --from=build /project/static/ /var/www/localhost/htdocs
 
