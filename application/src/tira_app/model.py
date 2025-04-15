@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-
 from tira.check_format import SUPPORTED_FORMATS
 
 if TYPE_CHECKING:
@@ -395,6 +394,20 @@ class Run(models.Model):
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
+    valid_formats = models.TextField(default=None, null=True)
+
+    def get_path_in_file_system(self):
+        vm_id = None
+        if self.software:
+            vm_id = self.software.vm.vm_id
+        elif self.docker_software:
+            vm_id = self.docker_software.vm.vm_id
+        elif self.upload:
+            vm_id = self.upload.vm.vm_id
+        else:
+            raise ValueError("fooo")
+
+        return Path(settings.TIRA_ROOT) / "data" / self.input_dataset.dataset_id / vm_id / self.run_id / "output"
 
 
 class Registration(models.Model):
