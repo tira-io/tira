@@ -148,6 +148,7 @@
                     <h2>Configure the Evaluation with the <a href="https://github.com/tira-io/tira/blob/main/python-client/tira/evaluators.py" target="_blank">TIRA python client</a></h2>
                     <v-radio label="Use retrieval measures" value="eval-5"/>
                     <v-radio label="Use classification measures" value="eval-6"/>
+                    <v-radio label="Use text generation measures" value="eval-7"/>
                   </span>
 
                   <span v-if="(sandboxed + '').toLowerCase() == 'true'">
@@ -181,6 +182,12 @@
                   <v-autocomplete v-model="trusted_measures" clearable chips label="Classification Measures" :items="serverinfo.trustedEvaluators.Classification" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one classification measure.']" required></v-autocomplete>
 
                   <v-text-field v-model="additional_args" label="Custom arguments in JSON format for the Huggingface Evaluator (e.g.: {&quot;average&quot;: &quot;micro&quot;})"/>
+                </span>
+
+                <span v-if="evaluation_type === 'eval-7'">
+                  The evaluator loads the run and the truth data. From both, it extracts one field as an ID to join the run with the truth data and then compares a label field in the run with a label field in the truth data to with some text generation measures.
+
+                  <v-autocomplete v-model="trusted_measures" clearable chips label="Text Generation Measures" :items="serverinfo.trustedEvaluators.TextGeneration" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one text generation measure.']" required></v-autocomplete>
                 </span>
               </v-form>
           </v-card-text>
@@ -225,7 +232,7 @@
           return this.newDataset() ? 'Add New Dataset' : 'Edit Dataset ' + this.dataset_id_from_props;
         },
         use_dockerized_evaluator() {
-          return (this.sandboxed + '').toLowerCase() == 'true' && this.evaluation_type !== 'eval-1' && this.evaluation_type !== 'eval-5' && this.evaluation_type !== 'eval-6';
+          return (this.sandboxed + '').toLowerCase() == 'true' && this.evaluation_type !== 'eval-1' && this.evaluation_type !== 'eval-5' && this.evaluation_type !== 'eval-6' && this.evaluation_type !== 'eval-7';
         }
       },
       watch: {
@@ -250,7 +257,7 @@
           }
         },
         evaluation_type(new_value, old_value) {
-          if (new_value != old_value && (new_value == 'eval-5' || new_value == 'eval-6') && (old_value == 'eval-5' || old_value == 'eval-6')) {
+          if (new_value != old_value && (new_value == 'eval-5' || new_value == 'eval-6' ||new_value == 'eval-7') && (old_value == 'eval-5' || old_value == 'eval-6' || old_value == 'eval-7')) {
             this.trusted_measures = undefined
           }
 
@@ -268,7 +275,7 @@
           else if (new_value != old_value && new_value == 'eval-3') {
             this.git_runner_image = "webis/ir_measures_evaluator:1.0.5"
             this.git_runner_command = '/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures "P@10" "nDCG@10" "MRR"'
-          } else if (new_value != old_value && (new_value == 'eval-5' || new_value == 'eval-6')) {
+          } else if (new_value != old_value && (new_value == 'eval-5' || new_value == 'eval-6' || new_value == 'eval-7')) {
             this.trusted_measures = undefined
             this.git_runner_image = "ubuntu:18.04"
             this.git_runner_command = "echo 'this is no real evaluator'"
@@ -302,7 +309,7 @@
                   this.truth_format_configuration = ''
                 }
 
-                if (this.evaluation_type == "eval-5" || this.evaluation_type == "eval-6") {
+                if (this.evaluation_type == "eval-5" || this.evaluation_type == "eval-6" || this.evaluation_type == "eval-7") {
                   this.sandboxed = 'false'
                 } else {
                   this.sandboxed = 'true'

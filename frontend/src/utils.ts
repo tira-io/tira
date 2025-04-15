@@ -59,7 +59,7 @@ export interface ServerInfo {
     datasetCount: number;
     taskCount: number;
     supportedFormats: string[];
-    trustedEvaluators: { Retrieval: string[], Classification: string[] }
+    trustedEvaluators: { Retrieval: string[], Classification: string[], TextGeneration: string[] }
 }
 
 export interface WellKnownAPI {

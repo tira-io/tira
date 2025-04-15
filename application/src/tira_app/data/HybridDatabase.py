@@ -381,6 +381,8 @@ class HybridDatabase(object):
 
             if any(i in TRUSTED_EVALUATORS["Retrieval"] for i in trusted_eval["measures"]):
                 ret["evaluation_type"] = "eval-5"
+            elif any(i in TRUSTED_EVALUATORS["TextGeneration"] for i in trusted_eval["measures"]):
+                ret["evaluation_type"] = "eval-7"
             else:
                 ret["evaluation_type"] = "eval-6"
 

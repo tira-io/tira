@@ -25,9 +25,10 @@ EVALUATOR_TO_TYPE = {
     "RunFileEvaluator": "Retrieval",
     "HuggingFaceEvaluator": "Classification",
     "WowsEvalEvaluator": "Retrieval",
+    "TextGenerationEvaluator": "TextGeneration",
 }
 
-TRUSTED_EVALUATORS: dict[str, list[str]] = {"Retrieval": [], "Classification": []}
+TRUSTED_EVALUATORS: dict[str, list[str]] = {"Retrieval": [], "Classification": [], "TextGeneration": []}
 
 for measure, evaluator in MEASURE_TO_EVALUATORS.items():
     if evaluator not in EVALUATOR_TO_TYPE:
