@@ -1012,14 +1012,17 @@ class HybridDatabase(object):
                 assert docker_vm is None and upload_vm is None
                 vm = software_vm
                 title = software_id
+                identifier = software_id
                 t = "VM"
             if docker_vm is not None and software_vm is None and upload_vm is None:
                 vm = docker_vm
                 title = docker_title
+                identifier = docker_id
                 t = "Docker"
             if upload_vm is not None and software_vm is None and docker_id is None:
                 vm = upload_vm
                 title = upload_title
+                identifier = upload_id
                 t = "Upload"
 
             if vm is None:
@@ -1041,8 +1044,41 @@ class HybridDatabase(object):
                 "blinded": blinded,
                 "task": task_id,
                 "dataset": dataset_id,
+                "software-id": identifier,
             }
 
+        return ret
+
+    def all_run_formats(self):
+        prepared_statement = """
+            SELECT
+                tira_run.run_id, tira_run.software_id, tira_run.upload_id,
+                tira_run.docker_software_id, tira_run.input_dataset_id, tira_run.valid_formats
+            FROM
+                tira_run
+            LEFT JOIN
+                tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
+            WHERE
+                valid_formats is not NULL and tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
+            """
+        ret = {"Docker": {}, "Upload": {}, "VM": {}}
+
+        rows = self.__execute_raw_sql_statement(prepared_statement, params=[])
+        for run_id, software_id, upload_id, docker_software_id, input_dataset_id, valid_formats in rows:
+            if software_id:
+                field = "VM"
+                identifier = software_id
+            elif upload_id:
+                field = "Upload"
+                identifier = upload_id
+            elif docker_software_id:
+                field = "Docker"
+                identifier = docker_software_id
+
+            if identifier not in ret[field]:
+                ret[field][identifier] = {}
+
+            ret[field][identifier][input_dataset_id] = json.loads(valid_formats)
         return ret
 
     def runs(self, task_id: str, dataset_id: str, vm_id: str, software_id: str) -> "list[dict[str, Any]]":

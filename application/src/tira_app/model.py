@@ -407,7 +407,9 @@ class Run(models.Model):
         else:
             raise ValueError("fooo")
 
-        return Path(settings.TIRA_ROOT) / "data" / self.input_dataset.dataset_id / vm_id / self.run_id / "output"
+        return (
+            Path(settings.TIRA_ROOT) / "data" / "runs" / self.input_dataset.dataset_id / vm_id / self.run_id / "output"
+        )
 
 
 class Registration(models.Model):

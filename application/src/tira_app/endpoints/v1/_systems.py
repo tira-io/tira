@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 def public_submissions(request: "HttpRequest") -> JsonResponse:
     all_runs = model.all_runs()
+    all_run_formats = model.all_run_formats()
     ret = []
 
     for vm in all_runs:
@@ -21,14 +22,20 @@ def public_submissions(request: "HttpRequest") -> JsonResponse:
             public = False
             run_type = []
             tasks = set()
+            valid_executions = None
             for run in all_runs[vm][title].values():
                 run_type += [run["type"]]
                 blinded = run["blinded"] and blinded
                 public = run["published"] or public
                 tasks.add(str(run["task"]))
+                if run["software-id"] in all_run_formats[run["type"]]:
+                    valid_executions = all_run_formats[run["type"]][run["software-id"]]
 
             if public:
-                ret += [{"team": vm, "name": title, "type": run_type[0], "tasks": sorted([i for i in tasks])}]
+                tmp = {"team": vm, "name": title, "type": run_type[0], "tasks": sorted([i for i in tasks])}
+                if valid_executions:
+                    tmp["verified_outputs"] = valid_executions
+                ret += [tmp]
 
     return JsonResponse(ret, safe=False)
 
