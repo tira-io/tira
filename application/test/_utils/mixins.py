@@ -21,12 +21,12 @@ class StrAssertMixins(ABC):
     """
 
     @abstractmethod
-    def _formatMessage(self, msg: Optional[str], standardMsg: str) -> str: ...
+    def _formatMessage(self, msg: "Optional[str]", standardMsg: str) -> str: ...
 
     @abstractmethod
-    def fail(self, msg: Optional[str] = None) -> None: ...
+    def fail(self, msg: "Optional[str]" = None) -> None: ...
 
-    def assertStartsWith(self, string: str, prefix: str, msg: Optional[str] = None) -> None:
+    def assertStartsWith(self, string: str, prefix: str, msg: "Optional[str]" = None) -> None:
         if not string.startswith(prefix):
             standardMsg = "not %s.startswith(%s)" % _common_shorten_repr(string, prefix)
             msg = self._formatMessage(msg, standardMsg)

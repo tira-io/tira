@@ -18,6 +18,7 @@ RUN yarn build-light
 # Production Container #
 ########################
 FROM alpine:latest
+
 RUN apk add --update --no-cache lighttpd
 
 COPY --from=build /project/static/ /var/www/localhost/htdocs
@@ -30,6 +31,7 @@ COPY <<EOF lighttpd.conf
 server.document-root = "/var/www/localhost/htdocs"
 server.port = 80
 server.error-handler-404   = "/index.html"
+index-file.names = ( "index.html" )
 EOF
 
 # The startup script replaces the values of the configuration variables "grpc_endpoint" and "rest_endpoint" (see

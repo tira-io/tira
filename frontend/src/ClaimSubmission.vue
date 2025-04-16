@@ -34,10 +34,15 @@
           </span>
           for task <a :href="'/task-overview/' + dataset.default_task">{{ dataset.default_task }}</a> <span v-if="download_link !== undefined">(<a :href="download_link" target="_blank">Download</a></span>).
         </p>
+        <p v-if="has_metadata && metadata_git_repo !== undefined && jupyter_notebook_link === undefined">
+          Metadata on the run in the <a target='_blank' href="https://github.com/irgroup/ir_metadata">ir_metadata</a> format is available, including <a :href="metadata_git_repo" target='_blank' >the git repository</a> that produced this run.
+        </p>
         <p v-if="has_metadata && metadata_git_repo !== undefined && jupyter_notebook_link !== undefined">
           Metadata on the run in the <a target='_blank' href="https://github.com/irgroup/ir_metadata">ir_metadata</a> format is available, including <a :href="metadata_git_repo" target='_blank' >the git repository</a> and the <a :href="jupyter_notebook_link" target='_blank' >jupyter notebook</a> that produced this run.
         </p>
-
+        <p v-if="has_metadata && submissionToClaim && submissionToClaim.available_metadata">
+          <ir-metadata-browser :items="submissionToClaim.available_metadata" :uuid="submissionToClaim.uuid"/>
+        </p>
         <div class="py-2"></div>
 
         <p v-if="userinfo.role === 'guest'">
@@ -79,12 +84,12 @@
 import { inject } from 'vue'
   
 import { get, post, vm_id, inject_response, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo, type UploadGroupInfo } from './utils';
-import { Loading, TiraBreadcrumb } from './components'
+import { Loading, TiraBreadcrumb, IrMetadataBrowser } from './components'
 import RunPage from './tirex/RunPage.vue'
 
 export default {
   name: "claim-submission",
-  components: { Loading, TiraBreadcrumb, RunPage },
+  components: { Loading, TiraBreadcrumb, RunPage, IrMetadataBrowser },
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,

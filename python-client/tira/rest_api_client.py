@@ -11,7 +11,7 @@ from functools import lru_cache
 from glob import glob
 from pathlib import Path
 from random import randint
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import requests
@@ -40,17 +40,18 @@ class Client(TiraClient):
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
+        base_url: "Optional[str]" = None,
         api_key: str = None,
         failsave_retries: int = 5,
         failsave_max_delay: int = 15,
-        api_user_name: Optional[str] = None,
-        tira_cache_dir: Optional[str] = None,
+        api_user_name: "Optional[str]" = None,
+        tira_cache_dir: "Optional[str]" = None,
         verify: bool = True,
         allow_local_execution: bool = False,
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.verify = verify
+        self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
@@ -66,6 +67,7 @@ class Client(TiraClient):
         self.failsave_retries = 1
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
+        self.failsave_retries = failsave_retries
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.trectools = TrecToolsIntegration(self)
@@ -74,9 +76,6 @@ class Client(TiraClient):
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
-
-        self.failsave_retries = failsave_retries
-        self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
         try:
@@ -134,7 +133,7 @@ class Client(TiraClient):
             raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def datasets(self, task):
-        return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():
@@ -221,6 +220,10 @@ class Client(TiraClient):
         build_environment,
         previous_stages=[],
         mount_hf_model=[],
+        source_code_remotes=None,
+        source_code_commit=None,
+        source_code_active_branch=None,
+        try_run_metadata_uuid=None,
     ):
         headers = {
             "Api-Key": self.api_key,
@@ -244,6 +247,18 @@ class Client(TiraClient):
         if mount_hf_model and len(mount_hf_model) > 0:
             content["mount_hf_model"] = mount_hf_model
 
+        if source_code_remotes:
+            content["source_code_remotes"] = json.dumps(source_code_remotes)
+
+        if source_code_commit:
+            content["source_code_commit"] = source_code_commit
+
+        if source_code_active_branch:
+            content["source_code_active_branch"] = source_code_active_branch
+
+        if try_run_metadata_uuid:
+            content["try_run_metadata_uuid"] = try_run_metadata_uuid
+
         ret = requests.post(url, headers=headers, json=content)
         response_code = ret.status_code
         ret = ret.content.decode("utf8")
@@ -265,6 +280,7 @@ class Client(TiraClient):
             f"Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your"
             " software."
         )
+        return ret["context"]
 
     def submissions(self, task, dataset):
         response = self.json_response(f"/api/submissions/{task}/{dataset}")["context"]
@@ -415,7 +431,7 @@ class Client(TiraClient):
             return mounted_output_in_sandbox
 
         task, team, software = approach.split("/")
-        if "/" in dataset:
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
         run_execution = self.get_run_execution_or_none(approach, dataset)
@@ -563,21 +579,24 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
-    def download_dataset(self, task, dataset, truth_dataset=False):
+    def download_dataset(self, task, dataset, truth_dataset=False, allow_local_dataset=False):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
         if "TIRA_INPUT_DATASET" in os.environ:
             return os.environ["TIRA_INPUT_DATASET"]
-        if "/" in dataset:
+        if allow_local_dataset and Path(dataset).exists():
+            return dataset
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
-        meta_data = self.get_dataset(f"{task}/{dataset}")
+        meta_data = self.get_dataset(f"{task}/{dataset}" if task else dataset)
         data_type = "training" if dataset.endswith("-training") else "test"
         suffix = "inputs" if not truth_dataset else "truths"
         url = None
         expected_md5 = None
         subdirectory = None
+        rename_to = None
         if (
             not meta_data
             or "mirrors" not in meta_data
@@ -588,9 +607,10 @@ class Client(TiraClient):
         else:
             url = list(meta_data["mirrors"][suffix].values())[0]
 
-            if "dataset_extraction" in meta_data and suffix in meta_data["dataset_extraction"]:
-                expected_md5 = meta_data["dataset_extraction"][suffix]["md5sum"]
-                subdirectory = meta_data["dataset_extraction"][suffix]["subdirectory"]
+            if suffix in meta_data["mirrors"] and f"{suffix}-md5_sum" in meta_data["mirrors"]:
+                expected_md5 = meta_data["mirrors"][f"{suffix}-md5_sum"]
+                subdirectory = meta_data["mirrors"].get(f"{suffix}-subdirectory", None)
+                rename_to = meta_data["mirrors"].get(f"{suffix}-rename_to", None)
 
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
@@ -600,8 +620,8 @@ class Client(TiraClient):
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
 
-        if expected_md5 and subdirectory:
-            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory)
+        if expected_md5:
+            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory, rename_to)
         else:
             self.download_and_extract_zip(url, target_dir)
 
@@ -611,6 +631,8 @@ class Client(TiraClient):
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}"
+        if "/" in dataset:
+            dataset = dataset.split("/")[-1]
 
         if os.path.isdir(target_dir + f"/{run_id}"):
             return target_dir + f"/{run_id}/output"
@@ -678,42 +700,71 @@ class Client(TiraClient):
 
         return ret
 
-    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory):
+    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory, rename_to=None):
         if expected_md5 is None or not expected_md5:
             raise ValueError("foo")
 
         if not (Path(self.tira_cache_dir) / ".archived" / expected_md5).exists():
-            raise ValueError("foo")
+            r = requests.get(url, stream=True)
+            total = int(r.headers.get("content-length", 0))
+            status_code = r.status_code
+            if status_code < 200 or status_code >= 300:
+                raise ValueError(f"Got non 200 status code {status_code} for {url}.")
+            response_content = io.BytesIO()
+            with tqdm(
+                desc="Download",
+                total=total,
+                unit="iB",
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as bar:
+                for data in r.iter_content(chunk_size=1024):
+                    size = response_content.write(data)
+                    bar.update(size)
 
-        z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
+            actual_md5 = hashlib.md5(response_content.getbuffer()).hexdigest()
+            if actual_md5 != expected_md5:
+                raise ValueError(
+                    f'MD5 is unexpected: I expected "{expected_md5}" but got "{actual_md5}" for URL "{url}".'
+                )
 
-        members_to_extract = []
-        for i in z.namelist():
-            if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
-                members_to_extract.append(i)
+            print("Download finished. Persist...")
+            with open(Path(self.tira_cache_dir) / ".archived" / expected_md5, "wb") as file_out:
+                file_out.write(response_content.getbuffer())
 
-        if len(members_to_extract) == 0:
-            raise ValueError("I found no files in te zip.")
+        if rename_to and not subdirectory:
+            Path(target_dir).mkdir(exist_ok=True, parents=True)
+            shutil.copy(src=Path(self.tira_cache_dir) / ".archived" / expected_md5, dst=Path(target_dir) / rename_to)
+        else:
+            z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            for i in members_to_extract:
-                z._extract_member(i, Path(tmpdirname), pwd=None)
+            members_to_extract = []
+            for i in z.namelist():
+                if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
+                    members_to_extract.append(i)
 
-            src_dir = Path(tmpdirname)
-            if subdirectory:
-                src_dir = src_dir / subdirectory
-            Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
-            shutil.move(src=src_dir, dst=target_dir)
+            if len(members_to_extract) == 0:
+                raise ValueError("I found no files in te zip.")
+
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                for i in members_to_extract:
+                    z._extract_member(i, Path(tmpdirname), pwd=None)
+
+                src_dir = Path(tmpdirname)
+                if subdirectory:
+                    src_dir = src_dir / subdirectory
+                Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
+                shutil.move(src=src_dir, dst=target_dir)
 
         return
 
     def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)["urls"][0]
-        if url.split("://")[1].startswith("files.webis.de"):
+        if "://" in url and url.split("://")[1].startswith("files.webis.de"):
             print(f"Download from the Incubator: {url}")
             print("\tThis is only used for last spot checks before archival to Zenodo.")
 
-        if url.split("://")[1].startswith("zenodo.org"):
+        if "://" in url and url.split("://")[1].startswith("zenodo.org"):
             print(f"Download from Zenodo: {url}")
 
         for _ in range(self.failsave_retries):
@@ -839,7 +890,7 @@ class Client(TiraClient):
             ret["context"]["all_uploadgroups"],
         )
 
-    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
@@ -863,29 +914,23 @@ class Client(TiraClient):
         if len(accepted_formats) == 0:
             accepted_formats = ["run.txt"]  # default format
 
+        format_configuration = upload_to_tira.get("format_configuration")
+
         for format in accepted_formats:
-            status_code, msg = check_format(file_path, str(format))
+            status_code, msg = check_format(file_path, str(format), format_configuration)
 
             if status_code != _fmt.OK:
                 error_msg += "\n" + msg
             else:
-                error_msg = ""
-                break
+                error_msg += ""
 
         if error_msg:
             print(error_msg.strip())
             raise ValueError(error_msg.strip())
+        from tira.io_utils import zip_dir
 
-        zip_file = temporary_directory()
-        zip_file = zip_file / "tira-upload.zip"
+        zip_file = zip_dir(file_path)
 
-        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
-        for root, _, files in os.walk(file_path):
-            for name in files:
-                filePath = os.path.join(root, name)
-                zf.write(filePath, arcname=name)
-
-        zf.close()
         headers = {"Accept": "application/json"}
         files = {"file": open(zip_file, "rb")}
 
@@ -909,6 +954,7 @@ class Client(TiraClient):
 
         resp = resp.json()
         print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
+        return resp
 
     def create_group(self, vm_id):
         if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:
@@ -1034,9 +1080,9 @@ class Client(TiraClient):
     def execute_post_return_json(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
-        file_path: Path = None,
-        json_payload: any = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        file_path: "Path" = None,
+        json_payload: "Any" = None,
     ) -> Dict:
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
@@ -1092,7 +1138,7 @@ class Client(TiraClient):
     def json_response(
         self,
         endpoint: str,
-        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
         base_url=None,
         failsave_retries=None,
     ):

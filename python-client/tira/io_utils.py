@@ -1,12 +1,116 @@
 import gzip
+import io
 import json
 import logging
 import os
+import uuid
+import zipfile
+from contextlib import redirect_stderr, redirect_stdout
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Union
+from subprocess import check_output
+from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import pandas as pd
+
+from tira.check_format import _fmt, log_message
+from tira.tira_client import TiraClient
+
+
+def dataset_as_dataframe(
+    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Returns:
+        pd.DataFrame: The entries in the dataset parsed into a pandas DataFrame.
+    """
+    import pandas as pd
+
+    ret = [i for i in dataset_as_iterator(dataset_id_or_path, dataset_format, tira_client)]
+    return pd.DataFrame(ret)
+
+
+def dataset_as_iterator(
+    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Yields:
+        ANY: the entries in the dataset parsed in the specified format.
+    """
+    if Path(dataset_id_or_path).exists():
+        dataset = Path(dataset_id_or_path)
+    else:
+        if tira_client is None:
+            from tira.rest_api_client import Client
+
+            tira_client = Client()
+
+        dataset = Path(tira_client.download_dataset(dataset=dataset_id_or_path, task=None, allow_local_dataset=True))
+    from tira.check_format import lines_if_valid
+
+    for i in lines_if_valid(dataset, dataset_format):
+        yield i
+
+
+def verify_docker_installation():
+    try:
+        from tira.local_execution_integration import LocalExecutionIntegration
+
+        local_execution = LocalExecutionIntegration()
+        assert local_execution.docker_is_installed_failsave()
+        return _fmt.OK, "Docker/Podman is installed."
+    except:
+        return _fmt.ERROR, "Docker/Podman is not installed. You can not run dockerized TIRA submissions."
+
+
+def tira_home_exists():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Path(Client().tira_cache_dir).exists()
+        return _fmt.OK, "TIRA home is writable."
+    except:
+        return _fmt.ERROR, "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable."
+
+
+def api_key_is_valid():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Client().api_key_is_valid()
+        return _fmt.OK, "You are authenticated against www.tira.io."
+    except:
+        return _fmt.WARN, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+
+
+def verify_tirex_tracker():
+    return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+
+
+def verify_tira_installation():
+    ret = _fmt.OK
+
+    for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
+        status, msg = i()
+        log_message(msg, status)
+        if status == _fmt.ERROR:
+            ret = _fmt.ERROR
+        if status == _fmt.WARN and ret != _fmt.ERROR:
+            ret = _fmt.WARN
+
+    return ret
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
@@ -45,6 +149,22 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
     return obj
 
 
+def zip_dir(file_path):
+    from tira.third_party_integrations import temporary_directory
+
+    zip_file = temporary_directory()
+    zip_file = zip_file / "tira-upload.zip"
+
+    zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
+    for root, _, files in os.walk(file_path):
+        for name in files:
+            filePath = os.path.join(root, name)
+            zf.write(filePath, arcname=Path(filePath).relative_to(file_path))
+
+    zf.close()
+    return zip_file
+
+
 def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
     """
     .. todo:: add documentation
@@ -67,7 +187,7 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
         yield parse_jsonl_line(line, load_default_text)
 
 
-def huggingface_model_mounts(models: Iterable[str]) -> dict:
+def huggingface_model_mounts(models: "Iterable[str]") -> dict:
     """Determine the mounts to make the described huggingface models available in the container. The models must
     already exist in the local huggingface cache of the host.
 
@@ -175,7 +295,7 @@ def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text
     return pd.DataFrame(ret)
 
 
-def __num(input: str) -> Union[str, int, float]:
+def __num(input: str) -> "Union[str, int, float]":
     """
     Converts the input to an int or float if possible. Returns the inputted string otherwise.
 
@@ -213,8 +333,68 @@ def run_cmd(cmd: List[str], ignore_failure=False):
         raise ValueError(f"Command {cmd} did exit with return code {exit_code}.")
 
 
+def create_tira_size_txt(run_dir):
+    ret = check_output(
+        ["bash", "-c", '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1']
+    )
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f -exec cat {} + | wc -l'])
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f | wc -l'])
+    ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type d | wc -l'])
+    return ret
+
+
+class MonitoredExecution:
+    def run(self, method):
+        from tira.third_party_integrations import temporary_directory
+
+        ret = temporary_directory()
+        output_dir = ret / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        exception_text = ""
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            try:
+                method(output_dir)
+            except Exception as e:
+                exception_text = "\n\n" + str(repr(e))
+
+        (ret / "stdout.txt").write_text(stdout.getvalue() + exception_text)
+        (ret / "stderr.txt").write_text(stderr.getvalue() + exception_text)
+
+        return ret
+
+
+def run_prototext(output_dir, run_id, input_run_id, software_id, dataset_id, task_id):
+    with open(output_dir / "run.prototext", "w") as f:
+        f.write(
+            '''softwareId: "'''
+            + str(software_id)
+            + '''"
+runId: "'''
+            + run_id
+            + '''"
+inputDataset: "'''
+            + dataset_id
+            + '''"
+inputRun: "'''
+            + input_run_id
+            + '''"
+downloadable: false
+deleted: false
+taskId: "'''
+            + task_id
+            + '''"
+accessToken: "'''
+            + str(uuid.uuid4())
+            + '''"'''
+        )
+
+
 def parse_prototext_key_values(file_name):
-    for i in [i for i in open(file_name, "r").read().split("measure {")]:
+    lines = open(file_name, "r").read()
+    lines = lines.replace("measure{", "measure {")
+    for i in [i for i in lines.split("measure {")]:
         ret = {}
         for line in i.split("\n"):
             if len(line.split(":")) < 2:
@@ -306,7 +486,7 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
-def load_output_of_directory(directory: Path, evaluation: bool = False) -> Union[Dict, pd.DataFrame]:
+def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
     files = glob(str(directory) + "/*")
 
     if evaluation:

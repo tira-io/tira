@@ -166,7 +166,7 @@ def _setup_logging(log_filename: str, loglevel: int = logging.INFO):
     )
 
 
-def _load_predict_from_imported_module(module_name: str, absolute_path: str = None) -> Union[Callable, None]:
+def _load_predict_from_imported_module(module_name: str, absolute_path: str = None) -> "Union[Callable, None]":
     if module_name in sys.modules:
         logging.warning(f"{module_name!r} already in sys.modules")
         module = importlib.import_module(module_name)

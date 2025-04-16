@@ -12,7 +12,7 @@ from .authentication import auth
 logger = logging.getLogger("tira")
 
 
-def redirect_to_login() -> HttpResponseRedirect:
+def _redirect_to_login() -> HttpResponseRedirect:
     """
     Returns a redirection response that redirects the user to the login page ("/login"). Note that this URL does not
     "exist" (what even is existance) but is redirected by the reverse proxy to the authentication page.
@@ -33,7 +33,7 @@ def check_permissions(func):
     """
 
     @wraps(func)
-    def func_wrapper(request: HttpRequest, *args, **kwargs):
+    def func_wrapper(request: "HttpRequest", *args, **kwargs):
         if request.method == "OPTIONS":
             return HttpResponse("allowed")
 
@@ -87,7 +87,7 @@ def check_permissions(func):
 
         if (
             request.path_info.startswith("data-download/") or request.path_info.startswith("/data-download/")
-        ) and dataset_is_public(dataset_id):
+        ) and _dataset_is_public(dataset_id):
             return func(request, *args, **kwargs)
 
         if "run_id_1" in kwargs or "run_id_2" in kwargs:
@@ -127,7 +127,7 @@ def check_permissions(func):
 
         if vm_id:
             if not model.vm_exists(vm_id):  # If the resource does not exist
-                return redirect_to_login()
+                return _redirect_to_login()
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
             if run_id and dataset_id:  # this prevents participants from viewing hidden runs
                 if not model.run_exists(vm_id, dataset_id, run_id):
@@ -147,7 +147,7 @@ def check_permissions(func):
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
         elif role == auth.ROLE_GUEST:
-            return redirect_to_login()
+            return _redirect_to_login()
 
         if "docker_software_id" in kwargs and vm_id:
             docker_software = model.get_docker_software(int(kwargs["docker_software_id"]))
@@ -165,7 +165,10 @@ def check_permissions(func):
 
 
 def check_conditional_permissions(
-    restricted=False, public_data_ok=False, private_run_ok=False, not_registered_ok=False
+    restricted: bool = False,
+    public_data_ok: bool = False,
+    private_run_ok: bool = False,
+    not_registered_ok: bool = False,
 ):
     """A decorator that checks if the requesting user has the needed permissions to call the decorated function.
     This decorator redirects or blocks requests if the requesting user does not have permission.
@@ -217,7 +220,7 @@ def check_conditional_permissions(
 
             if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
-                    return redirect_to_login()
+                    return _redirect_to_login()
                 role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
                 if run_id and dataset_id:
                     role = auth.ROLE_USER
@@ -237,7 +240,7 @@ def check_conditional_permissions(
                 else:
                     role = role_on_vm
 
-                if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
+                if public_data_ok and _run_is_public(run_id, vm_id, dataset_id):
                     return func(request, *args, **kwargs)
 
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
@@ -249,10 +252,10 @@ def check_conditional_permissions(
             # restricted
             if not restricted and role == auth.ROLE_PARTICIPANT:
                 return func(request, *args, **kwargs)
-            if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
+            if public_data_ok and _run_is_public(run_id, vm_id, dataset_id):
                 return func(request, *args, **kwargs)
             elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
-                return redirect_to_login()
+                return _redirect_to_login()
 
             return HttpResponseNotAllowed("Access forbidden.")
 
@@ -261,7 +264,7 @@ def check_conditional_permissions(
     return decorator
 
 
-def run_is_public(run_id, vm_id, dataset_id):
+def _run_is_public(run_id, vm_id, dataset_id):
     if (
         not run_id
         or not vm_id
@@ -274,10 +277,10 @@ def run_is_public(run_id, vm_id, dataset_id):
     if not (i and "blinded" in i and "published" in i and not i["blinded"] and i["published"]):
         return False
 
-    return dataset_is_public(dataset_id)
+    return _dataset_is_public(dataset_id)
 
 
-def dataset_is_public(dataset_id: str) -> bool:
+def _dataset_is_public(dataset_id: str) -> bool:
     if not dataset_id or (dataset_id not in settings.PUBLIC_TRAINING_DATA and not dataset_id.endswith("-training")):
         return False
 
@@ -285,7 +288,7 @@ def dataset_is_public(dataset_id: str) -> bool:
     return ("is_confidential" in i) and not i["is_confidential"] and ("is_deprecated" in i) and not i["is_deprecated"]
 
 
-def check_resources_exist(reply_as="json"):
+def check_resources_exist(reply_as: str = "json"):
     """A decorator that checks if the resources given as parameters actually exist."""
 
     def decorator(func):
@@ -297,7 +300,7 @@ def check_resources_exist(reply_as="json"):
                     response = JsonResponse({"status": 1, "message": message})
                     return response
                 if request_vm_instead:
-                    return redirect_to_login()
+                    return _redirect_to_login()
                 return Http404(message)
 
             if "vm_id" in kwargs:

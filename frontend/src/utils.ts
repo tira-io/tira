@@ -32,6 +32,7 @@ export interface ClaimSubmissionInfo {
     has_metadata: boolean | undefined;
     metadata_git_repo: string | undefined;
     metadata_has_notebook: string | undefined;
+    available_metadata: string[] | undefined;
 }
 
 export interface UserContext {
@@ -49,6 +50,7 @@ export interface SystemInfo {
     name: string;
     team: string;
     tasks: string;
+    verified_outputs: Record<string, Record<string, any>> | undefined;
 }
 
 export interface ServerInfo {
@@ -58,6 +60,7 @@ export interface ServerInfo {
     datasetCount: number;
     taskCount: number;
     supportedFormats: string[];
+    trustedEvaluators: { Retrieval: string[], Classification: string[], TextGeneration: string[] }
 }
 
 export interface WellKnownAPI {

@@ -1,5 +1,6 @@
 import json
 import shutil
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
@@ -11,7 +12,7 @@ from ...views import zip_run, zip_runs
 def md5(filename):
     import hashlib
 
-    return hashlib.md5(open(filename, "rb").read()).hexdigest()
+    return hashlib.md5(Path(filename).read_bytes()).hexdigest()
 
 
 class Command(BaseCommand):

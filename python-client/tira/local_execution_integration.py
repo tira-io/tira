@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -11,6 +12,8 @@ from pathlib import Path
 
 import docker
 import pandas as pd
+
+from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 
 class LocalExecutionIntegration:
@@ -74,6 +77,16 @@ class LocalExecutionIntegration:
                 f" --entrypoint sh {image} -c '{command}'"
             ),
         }
+
+    def build_docker_image(self, path, tag, dockerfile):
+        image_build_code = subprocess.call(["docker", "build", "-f", str(dockerfile), "-t", str(tag), str(path)])
+
+        if image_build_code != 0:
+            raise ValueError(
+                f"Building the docker image failed with error code {image_build_code}. See above for details."
+            )
+
+        print("\n\n Image build successfully.\n\n")
 
     def ensure_image_available_locally(self, image, client=None):
         try:
@@ -152,6 +165,9 @@ class LocalExecutionIntegration:
             pass
 
         return ret + ["/var/run/docker.sock"]
+
+    def docker_is_installed_failsave(self):
+        return self.__docker_client() is not None
 
     def __docker_client(self):
         try:
@@ -286,13 +302,84 @@ class LocalExecutionIntegration:
             command=command,
             input_dir=dataset_directory,
             output_dir=output_dir,
+            input_run=(
+                None
+                if len(docker_software_id_to_output) != 1
+                else list(docker_software_id_to_output.values())[0]["output_dir"]
+            ),
             docker_software_id_to_output={k: v["output_dir"] for k, v in docker_software_id_to_output.items()},
         )
+
+        if (output_dir / ".tracking-results.yml").exists():
+            shutil.move(output_dir / ".tracking-results.yml", output_dir.parent / ".tracking-results.yml")
 
         with open(log_file, "a") as f:
             f.write(json.dumps(ret) + "\n")
 
         return ret
+
+    def tirex_tracker_available_in_docker_image(self, image: str, client: "Optional[DockerClient]" = None) -> bool:
+        if client is None:
+            client = self.__docker_client()
+
+        volumes = tirex_tracker_mounts_or_none()
+        if not volumes:
+            return False
+
+        try:
+            help_response = client.containers.run(
+                image,
+                entrypoint="sh",
+                command="-c './tracked --help'",
+                volumes=volumes,
+                detach=False,
+                remove=True,
+                network_disabled=True,
+            ).decode("UTF-8")
+        except docker.errors.ContainerError:
+            return False
+
+        return "Measures runtime, energy, and many other" in help_response
+
+    def evaluate(self, eval_dir: Path, output_dir: Path, allow_network: bool, evaluate: dict, client=None):
+        if not client:
+            client = self.__docker_client()
+
+        evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
+
+        if type(evaluate) is dict and evaluate["evaluator_id"]:
+            evaluation_volumes[str(evaluate["truth_directory"])] = {"bind": "/tira-data/input_truth", "mode": "ro"}
+            evaluation_volumes[str(output_dir)] = {"bind": "/tira-data/input-run", "mode": "ro"}
+
+            evaluate, image, command = (
+                None,
+                evaluate["evaluator_git_runner_image"],
+                evaluate["evaluator_git_runner_command"],
+            )
+        elif type(evaluate) is not str:
+            raise ValueError("ToDo Implement this case. I.e., set evaluate variable")
+
+        if image is None or command is None:
+            evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
+
+        command = self.__normalize_command(command, True)
+        logging.debug(
+            f"Evaluate software with: docker run --rm -ti -v {output_dir}:/tira-data/input -v"
+            f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
+        )
+
+        container = client.containers.run(
+            image,
+            entrypoint="sh",
+            command=f'-c "{command}; sleep .1"',
+            volumes=evaluation_volumes,
+            detach=True,
+            remove=True,
+            network_disabled=not allow_network,
+        )
+
+        for line in container.attach(stdout=True, stream=True, logs=True):
+            print(line.decode("utf-8"), flush=True)
 
     def run(
         self,
@@ -409,10 +496,17 @@ class LocalExecutionIntegration:
         if gpu_count != 0:
             device_requests = [docker.types.DeviceRequest(count=gpu_count, capabilities=[["gpu"]])]
 
+        entrypoint = "sh"
+        entrypoint_flags = "-c"
+        if self.tirex_tracker_available_in_docker_image(image, client):
+            volumes.update(tirex_tracker_mounts_or_none())
+            entrypoint = "/tracked"
+            entrypoint_flags = "-o /tira-data/output/.tracking-results.yml -f irmetadata"
+
         container = client.containers.run(
             image,
-            entrypoint="sh",
-            command=f'-c "{command}; sleep .1"',
+            entrypoint=entrypoint,
+            command=f'{entrypoint_flags} "{command}; sleep .1"',
             environment=environment,
             volumes=volumes,
             detach=True,
@@ -425,41 +519,7 @@ class LocalExecutionIntegration:
             print(line.decode("utf-8"))
 
         if evaluate:
-            evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
-
-            if type(evaluate) is dict and evaluate["evaluator_id"]:
-                evaluation_volumes[str(evaluate["truth_directory"])] = {"bind": "/tira-data/input_truth", "mode": "ro"}
-                evaluation_volumes[str(output_dir)] = {"bind": "/tira-data/input-run", "mode": "ro"}
-
-                evaluate, image, command = (
-                    None,
-                    evaluate["evaluator_git_runner_image"],
-                    evaluate["evaluator_git_runner_command"],
-                )
-            elif type(evaluate) is not str:
-                raise ValueError("ToDo Implement this case. I.e., set evaluate variable")
-
-            if image is None or command is None:
-                evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
-
-            command = self.__normalize_command(command, True)
-            logging.debug(
-                f"Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v"
-                f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
-            )
-
-            container = client.containers.run(
-                image,
-                entrypoint="sh",
-                command=f'-c "{command}; sleep .1"',
-                volumes=evaluation_volumes,
-                detach=True,
-                remove=True,
-                network_disabled=not allow_network,
-            )
-
-            for line in container.attach(stdout=True, stream=True, logs=True):
-                print(line.decode("utf-8"), flush=True)
+            self.evaluate(eval_dir, output_dir, allow_network, client)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'

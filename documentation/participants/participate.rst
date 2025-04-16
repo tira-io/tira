@@ -29,9 +29,55 @@ see a ``SUBMIT`` button.
 Click on ``SUBMIT``. As you can see now, TIRA has three choices for submission (click on each respective tab to find
 out more):
 
+.. _Requirements:
+
+Requirements to your Software
+-----------------------------
+
+TIRA aims to enable double-blind evaluation of ideas and approaches in diverse domains. Therefore, we aim to make minimal requirements to the software that implements your ideas and approaches. We need that software is POSIX compatible and shipped in a Docker image and reads its inputs from a dynamic input directory (via the ``$inputDataset`` variable) and writes the results to a dynamic output directory (via the ``$outputDir`` variable).
+
+On a high level, your software is compatible if it can be invoked like this:
+
+.. code-block::
+
+   your-software --input-directory $inputDataset --output-directory $outputDir
+
+.. note:: Please note that TIRA makes environment variables available so that you do not need to pass the input and output directory via the command line, your software has access to the following environment variables:
+
+   - ``inputDataset``: Points to the POSIX path containing the input dataset. The format and structure of the contents of this directory depend on your task.
+   - ``outputDir``:  Points to the POSIX path containing where your software should store its predictions. The expected format structure how your software should store its predictions depends on your task.
+
+.. _PrepareSubmission:
+
+Prepare your Submission
+-----------------------
+
 .. tab-set::
 
-    .. tab-item:: Upload
+    .. tab-item:: Code Submission
+        :sync: code-submission
+
+        Code submissions are the recommended form of submitting to TIRA. Code submissions are compatible with CI/CD systems like `Github Actions <https://github.com/features/actions>`_ and build a docker image from a git repository while collecting important experimental metadata to improve transparency and reproducibility.
+
+        The requirements for code submissions are:
+
+        (1) Your approach is in a git repository.
+        (2) Your git repository is complete, i.e., contains all code and a Dockerfile to bundle the code.
+        (3) Your git repository is clean.
+            E.g., ``git status`` reports "nothing to commit, working tree clean".
+
+        When those requirements are fulfilled, code submissions perform the following steps:
+
+        (1) Build the docker image from the git repository while `tracking  important experimental meta data <https://github.com/tira-io/tirex-tracker>`_ (e.g., on git, code, etc.).
+        (2) Run the docker image on a small spot check dataset to ensure it produces valid outputs.
+        (3) Upload the docker image together with the meta data to TIRA.
+
+    .. tab-item:: Docker Submission
+        :sync: docker-submission
+
+        .. todo:: TODO
+
+    .. tab-item:: Run Upload
         :sync: upload-submission
 
         The upload submission is the simplest form of submitting and requires you to run the evaluation yourself and
@@ -41,22 +87,7 @@ out more):
             (e.g., to avoid that future models profit from the author's analysis of the dataset).
         (2) The result is not verifiable -- the organizer can not ensure that your model actually produced the runfile.
 
-    .. tab-item:: Docker Submission
-        :sync: docker-submission
-
-        .. todo:: TODO
-
-    .. tab-item:: Code Submission
-        :sync: code-submission
-
-        The code submission is the simplest (recommended) form of submitting.
-        
-        .. todo:: TODO
-
-.. hint:: If you want to use the simplest type of submission, we recommend a **Code Submission**. Note however, that the
-    Code Submission requires some access to your GitHub Account to perform all the setup steps for you. Submissions via
-    uploads are generally discouraged since they can not be verified. Such that we *highly recommend*, you either go for
-    a **Code Submission** or a **Docker Submission**.
+.. hint:: If you want to use the simplest type of submission, we recommend a **Code Submission** as this works with Github Actions or other CI/CD automations.
 
 
 .. _SubmitSubmission:
@@ -72,22 +103,48 @@ your leaderboard position.
 
     .. tab-set::
 
-        .. tab-item:: Upload
-            :sync: upload-submission
+        .. tab-item:: Code Submission
+            :sync: code-submission
 
-            .. todo:: TODO
+            (1) Please install the TIRA client via ``pip3 install tira``.
+
+            (2) Please authenticate your tira client using your API key. You get your API key after registration on TIRA on your submit page.
+
+            (3) Ensure that your TIRA installation is valid by running ``tira-cli verify-installation``. A valid output should look like:
+
+            .. figure:: images/tira-verify-installation.png
+                :width: 700
+                :align: center
+
+            (4) Now you are ready to upload your code submission to TIRA. Assuming that you want to upload to your code in a directory ``approach-xyz`` to the task ``wows-eval``, the command ``tira-cli code-submission --path some-directory/ --task wows-eval`` would do the code submission. A valid output should look like:
+
+            .. figure:: images/tira-code-submission.png
+                :width: 900
+                :align: center
+            
 
         .. tab-item:: Docker Submission
             :sync: docker-submission
 
             .. todo:: TODO
 
-        .. tab-item:: Code Submission
-            :sync: code-submission
+        .. tab-item:: Run Upload
+            :sync: upload-submission
 
             .. todo:: TODO
 
-.. todo:: For development: The "Country" field should probably be a dropdown
 
-.. todo:: The upload of artifacts should not be inside the file-upload-submission since it indicates that it would not
-    apply to docker- or code submissions, which it does.
+
+.. _ExecuteSubmission:
+
+Execute Your Submission
+-----------------------
+
+Now that you have uploaded your code or docker submission, you can execute it within TIRA (this is not needed for run uploads). Navigate to your task page and select your submission. Then, select the resources and dataset on which your submission should, and click "RUN":
+
+
+.. figure:: images/tira-execute-sandboxed.png
+   :width: 700
+   :align: center
+
+After your software was executed, you can directly see the outputs and evaluation scores for public training datasets. For private or test datasets, the organizers will manually review the output of your system and will contact you and in case there are errors.

@@ -1,9 +1,15 @@
+import json
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from tira.check_format import SUPPORTED_FORMATS
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("tira")
 # Transition is powering_on (3), powering_off (4), sandboxing (5), unsandboxing (6), executing (7)
@@ -133,6 +139,7 @@ class Evaluator(models.Model):
     git_runner_image = models.CharField(max_length=500, null=True, default=None)
     git_runner_command = models.CharField(max_length=500, null=True, default=None)
     git_repository_id = models.CharField(max_length=200, null=True, default=None)
+    trusted_evaluation = models.TextField(default=None, null=True)
 
 
 class VirtualMachineHasEvaluator(models.Model):
@@ -156,12 +163,59 @@ class Dataset(models.Model):
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
     meta_dataset_of = models.TextField(default=None, null=True)
-    format = models.CharField(max_length=50, null=True, default=None)
+    format = models.CharField(max_length=150, null=True, default=None)
+    truth_format = models.CharField(max_length=150, null=True, default=None)
     chatnoir_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
     description = models.TextField(default="", null=True)
     file_listing = models.TextField(default=None, null=True)
+    format_configuration = models.CharField(max_length=300, null=True, default=None)
+    truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
+
+    def get_format(self) -> "Optional[List[str]]":
+        if self and self.format:
+            try:
+                dataset_format = json.loads(self.format)
+                return [i for i in dataset_format if i in SUPPORTED_FORMATS]
+            except json.JSONDecodeError:
+                pass
+
+    def get_truth_format(self) -> "Optional[List[str]]":
+        if self and self.truth_format:
+            try:
+                truth_format = json.loads(self.truth_format)
+                return [i for i in truth_format if i in SUPPORTED_FORMATS]
+            except json.SONDecodeError:
+                pass
+
+    def get_file_listing(self) -> "Optional[List[str]]":
+        if self and self.file_listing:
+            try:
+                return json.loads(self.file_listing)
+            except json.JSONDecodeError:
+                pass
+
+    def get_trusted_evaluation(self) -> "Optional[Dict[str, Any]]":
+        if self and self.evaluator and self.evaluator.trusted_evaluation:
+            try:
+                return json.loads(self.evaluator.trusted_evaluation)
+            except json.JSONDecodeError:
+                pass
+
+    def get_format_configuration(self) -> "Optional[Dict[str, Any]]":
+        if self and self.format_configuration:
+            try:
+                return json.loads(self.format_configuration)
+            except json.JSONDecodeError:
+                pass
+
+    def get_truth_format_configuration(self) -> "Optional[Dict[str, Any]]":
+        if self and self.truth_format_configuration:
+            try:
+                return json.loads(self.truth_format_configuration)
+            except json.JSONDecodeError:
+                pass
 
 
 class TaskHasDataset(models.Model):
@@ -230,9 +284,21 @@ class AnonymousUploads(models.Model):
     has_metadata = models.BooleanField(default=False)
     metadata_git_repo = models.CharField(max_length=500, default=None, null=True)
     metadata_has_notebook = models.BooleanField(default=False)
+    valid_formats = models.TextField(default=None, null=True)
 
     def get_path_in_file_system(self):
         return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
+
+    def ir_metadata_record(self, metadata_record):
+        from tira.check_format import lines_if_valid
+
+        try:
+            return {
+                i["name"]: i["content"]
+                for i in lines_if_valid(self.get_path_in_file_system() / metadata_record, "ir_metadata")
+            }
+        except:
+            return {}
 
 
 class DockerSoftware(models.Model):
@@ -253,6 +319,10 @@ class DockerSoftware(models.Model):
     ir_re_ranking_input = models.BooleanField(default=False)
     public_image_name = models.TextField(default=None, null=True)
     public_image_size = models.BigIntegerField(default=None, null=True)
+    source_code_remotes = models.TextField(default=None, null=True)
+    source_code_commit = models.TextField(default=None, null=True)
+    source_code_active_branch = models.TextField(default=None, null=True)
+    try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
 
 
 class DockerSoftwareHasAdditionalInput(models.Model):
@@ -324,6 +394,22 @@ class Run(models.Model):
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
+    valid_formats = models.TextField(default=None, null=True)
+
+    def get_path_in_file_system(self):
+        vm_id = None
+        if self.software:
+            vm_id = self.software.vm.vm_id
+        elif self.docker_software:
+            vm_id = self.docker_software.vm.vm_id
+        elif self.upload:
+            vm_id = self.upload.vm.vm_id
+        else:
+            raise ValueError("fooo")
+
+        return (
+            Path(settings.TIRA_ROOT) / "data" / "runs" / self.input_dataset.dataset_id / vm_id / self.run_id / "output"
+        )
 
 
 class Registration(models.Model):

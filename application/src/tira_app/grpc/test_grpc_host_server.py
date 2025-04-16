@@ -30,7 +30,7 @@ class DummyVirtualMachine(object):
         self.host = host
         self.transaction_id = None
 
-    def _sleep_ok(self, time, transaction_id):
+    def _sleep_ok(self, time: float, transaction_id: str) -> bool:
         sleep(time)
         if self.transaction_id == transaction_id:
             return True
@@ -67,7 +67,8 @@ class DummyVirtualMachine(object):
 
         return response
 
-    def auto_transaction(msg):
+    @staticmethod
+    def auto_transaction(msg: str):
         """automatically terminate transactions if a method completes"""
 
         def attribute_decorator(func):
@@ -119,7 +120,7 @@ class DummyVirtualMachine(object):
         test_host_client.complete_transaction(self.transaction_id, "vm deleted")
 
     @auto_transaction("Transaction completed by vm-start.")
-    def start(self, transaction_id):
+    def start(self, transaction_id: str):
         test_host_client = TestGrpcHostClient(transaction_id)
 
         self.state = 3
@@ -136,7 +137,7 @@ class DummyVirtualMachine(object):
         self.rdp_port_status = True
 
     @auto_transaction("Transaction completed by vm-stop.")
-    def stop(self, transaction_id):
+    def stop(self, transaction_id: str):
         test_host_client = TestGrpcHostClient(transaction_id)
 
         self.state = 4
@@ -151,11 +152,11 @@ class DummyVirtualMachine(object):
         test_host_client.set_state(self.vm_id, 2, self.transaction_id)
 
     @auto_transaction("Transaction completed by vm-shutdown.")
-    def shutdown(self, transaction_id):
+    def shutdown(self, transaction_id: str):
         self.stop(transaction_id, complete_transaction=False)
 
     @auto_transaction("Transaction completed by vm-sandbox.")
-    def sandbox(self, transaction_id):
+    def sandbox(self, transaction_id: str):
         test_host_client = TestGrpcHostClient(transaction_id)
 
         self.state = 5
@@ -168,7 +169,7 @@ class DummyVirtualMachine(object):
         test_host_client.set_state(self.vm_id, 7, self.transaction_id)
 
     @auto_transaction("Transaction completed by vm-unsandbox.")
-    def unsandbox(self, transaction_id):
+    def unsandbox(self, transaction_id: str):
         test_host_client = TestGrpcHostClient(transaction_id)
 
         self.state = 6
@@ -182,7 +183,7 @@ class DummyVirtualMachine(object):
         test_host_client.set_state(self.vm_id, 2, self.transaction_id)
 
     @auto_transaction("Transaction completed by run-execute.")
-    def run_execute(self, transaction_id):
+    def run_execute(self, transaction_id: str):
         if self.state == 1:
             self.shutdown(transaction_id, complete_transaction=False)
 
@@ -196,7 +197,7 @@ class DummyVirtualMachine(object):
         self.start(transaction_id, complete_transaction=False)
 
     @auto_transaction("Transaction completed by run-eval.")
-    def run_eval(self, transaction_id, input_vm_id, input_dataset_id, input_run_id):
+    def run_eval(self, transaction_id: str, input_vm_id: str, input_dataset_id: str, input_run_id: str):
         test_host_client = TestGrpcHostClient(transaction_id)
 
         # sleep and wait for evaluation
@@ -467,7 +468,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         )
 
 
-def serve(port):
+def serve(port: int) -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     tira_host_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
     listen_addr = f"[::]:{port}"
@@ -478,4 +479,4 @@ def serve(port):
 
 
 if __name__ == "__main__":
-    serve("50051")
+    serve(50051)

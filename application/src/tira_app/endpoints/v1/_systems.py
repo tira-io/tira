@@ -1,4 +1,5 @@
 import json
+from typing import TYPE_CHECKING
 
 from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.urls import path
@@ -6,9 +7,13 @@ from django.urls import path
 from ...model import DockerSoftware
 from ...tira_model import model
 
+if TYPE_CHECKING:
+    from typing import Any
 
-def public_submissions(request: HttpRequest) -> JsonResponse:
+
+def public_submissions(request: "HttpRequest") -> JsonResponse:
     all_runs = model.all_runs()
+    all_run_formats = model.all_run_formats()
     ret = []
 
     for vm in all_runs:
@@ -17,19 +22,25 @@ def public_submissions(request: HttpRequest) -> JsonResponse:
             public = False
             run_type = []
             tasks = set()
+            valid_executions = None
             for run in all_runs[vm][title].values():
                 run_type += [run["type"]]
                 blinded = run["blinded"] and blinded
                 public = run["published"] or public
                 tasks.add(str(run["task"]))
+                if run["software-id"] in all_run_formats[run["type"]]:
+                    valid_executions = all_run_formats[run["type"]][run["software-id"]]
 
             if public:
-                ret += [{"team": vm, "name": title, "type": run_type[0], "tasks": sorted([i for i in tasks])}]
+                tmp = {"team": vm, "name": title, "type": run_type[0], "tasks": sorted([i for i in tasks])}
+                if valid_executions:
+                    tmp["verified_outputs"] = valid_executions
+                ret += [tmp]
 
     return JsonResponse(ret, safe=False)
 
 
-def serialize_docker_software(ds):
+def serialize_docker_software(ds: "DockerSoftware") -> "dict[str, Any]":
     input_docker_software = []
 
     if ds and ds.input_docker_software:
@@ -58,8 +69,8 @@ def serialize_docker_software(ds):
     }
 
 
-def software_details(request: HttpRequest, user_id: str, software: str) -> JsonResponse:
-    ret = []
+def software_details(request: "HttpRequest", user_id: str, software: str) -> JsonResponse:
+    ret: list[dict[str, Any]] = []
     for i in DockerSoftware.objects.filter(vm_id=user_id, display_name=software):
         if not i.public_image_name or i.deleted:
             continue
