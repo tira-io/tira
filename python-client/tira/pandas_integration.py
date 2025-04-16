@@ -105,7 +105,11 @@ class PandasIntegration:
         return task, dataset
 
     def transform_queries(
-        self, approach: str, dataset: str, file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz")
+        self,
+        approach: str,
+        dataset: str,
+        file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz"),
+        matching_files=None,
     ):
         """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use
         as a PyTerrier query transformation.
@@ -126,7 +130,8 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        matching_files = self.__matching_files(approach, dataset, file_selection)
+        if not matching_files:
+            matching_files = self.__matching_files(approach, dataset, file_selection)
 
         if len(matching_files) == 0:
             raise ValueError(
@@ -141,7 +146,7 @@ class PandasIntegration:
 
         return ret
 
-    def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz")):
+    def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), matching_files=None):
         """Load and transform the document processing outputs specified by the approach on the dataset for direct
         re-use as a PyTerrier document transformation.
 
@@ -161,7 +166,9 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        matching_files = self.__matching_files(approach, dataset, file_selection)
+        if not matching_files:
+            matching_files = self.__matching_files(approach, dataset, file_selection)
+
         if len(matching_files) == 0:
             raise ValueError(
                 "Could not find a matching document output. Used file_selection: "

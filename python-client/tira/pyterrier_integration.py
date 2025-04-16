@@ -166,10 +166,12 @@ class PyTerrierIntegration:
         ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
         return TiraSourceTransformer(ret)
 
-    def transform_queries(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix=""):
+    def transform_queries(
+        self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix="", matching_files=None
+    ):
         from pyterrier.apply import generic
 
-        ret = self.pd.transform_queries(approach, dataset, file_selection)
+        ret = self.pd.transform_queries(approach, dataset, file_selection, matching_files)
         cols = [i for i in ret.columns if i not in ["qid"]]
         ret = {str(i["qid"]): i for _, i in ret.iterrows()}
 
@@ -181,10 +183,12 @@ class PyTerrierIntegration:
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix=""):
+    def transform_documents(
+        self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix="", matching_files=None
+    ):
         from pyterrier.apply import generic
 
-        ret = self.pd.transform_documents(approach, dataset, file_selection)
+        ret = self.pd.transform_documents(approach, dataset, file_selection, matching_files)
         cols = [i for i in ret.columns if i not in ["docno"]]
         ret = {str(i["docno"]): i for _, i in ret.iterrows()}
 
@@ -321,12 +325,46 @@ class PyTerrierSpladeIntegration:
         return pt.IndexFactory.of(os.path.abspath(ret))
 
 
+def pt_document_transformer(path):
+    import pyterrier as pt
+
+    if not pt.started():
+        pt.init()
+    from .rest_api_client import Client
+
+    return PyTerrierIntegration(Client()).transform_documents(
+        None, None, None, "", matching_files=[Path(path) / "output" / "documents.jsonl.gz"]
+    )
+
+
+def pt_query_transformer(path):
+    import pyterrier as pt
+
+    if not pt.started():
+        pt.init()
+    from .rest_api_client import Client
+
+    return PyTerrierIntegration(Client()).transform_queries(
+        None, None, None, "", matching_files=[Path(path) / "output" / "queries.jsonl"]
+    )
+
+
+def pt_index_transformer(path):
+    import pyterrier as pt
+
+    if not pt.started():
+        pt.init()
+
+    return pt.IndexRef.of(str((Path(path) / "output" / "index").resolve().absolute()))
+
+
 def pt_transformer(path):
     import pyterrier as pt
 
     if not pt.started():
         pt.init()
     # TODO hacked for the moment, in reality, we must delegate to the classes above.
+
     return pt.transformer.get_transformer(pt.io.read_results(path + "/output/run.txt"))
 
 
@@ -359,11 +397,38 @@ def pt_artifact_entrypoint(url):
         raise ValueError(
             f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. I found the dataset {irds_id} but have no team and/or approach."
         )
+    team, approach = url.split("/")[1:]
+
+    all_systems = tira.archived_json_response("/v1/systems/all")
+    pt_format = None
+    output_format_to_pt_format = {
+        "run.txt": "pt_transformer",
+        "query-processor": "pt_query_transformer",
+        "terrier-index": "pt_index_transformer",
+        "document-processor": "pt_document_transformer",
+    }
+
+    for system in all_systems:
+        if team == system["team"] and approach == system["name"]:
+            if "verified_outputs" not in system:
+                raise ValueError("Fooo")
+
+            if dataset_id not in system["verified_outputs"]:
+                raise ValueError("Fooo")
+
+            for k in system["verified_outputs"][dataset_id]:
+                pt_format = output_format_to_pt_format[k]
+
+    if pt_format is None:
+        raise ValueError(
+            f"No submission '{approach}' by team '{team}' is publicly available in TIRA. Please see all public submissions at "
+            + TIREX_ARTIFACT_DEBUG_URL
+        )
 
     ret = tira.get_run_output(url, dataset_id)
-
     ret = Path(ret).parent
+
     if not (ret / "pt_meta.json").is_file():
         with open(ret / "pt_meta.json", "w") as f:
-            f.write(json.dumps({"type": "tira", "format": "pt_transformer"}))
+            f.write(json.dumps({"type": "tira", "format": pt_format}))
     return str(ret.absolute())
