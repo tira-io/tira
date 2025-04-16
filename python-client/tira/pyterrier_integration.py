@@ -2,7 +2,7 @@ import os
 import uuid
 from pathlib import Path
 
-from tira.tirex import IRDS_TO_TIREX_DATASET
+from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_ARTIFACT_DEBUG_URL
 
 
 class PyTerrierIntegration:
@@ -332,15 +332,21 @@ def pt_transformer(path):
 
 def pt_artifact_entrypoint(url):
     url = url.netloc + url.path
-    dataset_id = None, None
+    dataset_id = None
+
+    if len(url) < 5:
+        raise ValueError(f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. But got '{url}'.")
 
     for irds_id, tira_dataset_id in IRDS_TO_TIREX_DATASET.items():
         if url.startswith(irds_id):
             dataset_id = tira_dataset_id
             url = url.replace(irds_id, "ir-benchmarks")
             break
-    if not dataset_id:
-        raise ValueError("Very rough implementation...")
+
+    if dataset_id is None:
+        raise ValueError(
+            f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. But could not find a ir-dataset. I got '{url}'. Please see {TIREX_ARTIFACT_DEBUG_URL} for an overview of all available dataset ids."
+        )
 
     import json
     from pathlib import Path
@@ -348,6 +354,12 @@ def pt_artifact_entrypoint(url):
     from tira.rest_api_client import Client
 
     tira = Client()
+
+    if len(url.split("/")) != 3:
+        raise ValueError(
+            f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. I found the dataset {irds_id} but have no team and/or approach."
+        )
+
     ret = tira.get_run_output(url, dataset_id)
 
     ret = Path(ret).parent
