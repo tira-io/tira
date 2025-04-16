@@ -7,6 +7,7 @@
 // Components
 import App from './App.vue'
 import IrComponents from './IrComponents.vue'
+import PyTerrierArtifacts from './PyTerrierArtifacts.vue'
 import Home from './Home.vue'
 import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
@@ -51,7 +52,7 @@ export default function register_app() {
     { path: '/task-overview/:task_id?/:dataset_id?', component: TaskOverview },
     { path: '/task/:task_id?/:dataset_id?', component: TaskOverview },
     { path: '/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'submission', component: RunUpload },
-    { path: '/tirex/components/:component_types?/:focus_types?/:search_query?', name: 'tirex', component: IrComponents },
+    { path: '/tirex/pyterrier-artifacts-beta', name: 'pyterrier-artifacts-beta', component: PyTerrierArtifacts },
     { path: '/tirex/:pathMatch(.*)*', component: Tirex },
 
     // Fallback: everything matches to home.

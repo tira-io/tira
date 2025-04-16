@@ -50,6 +50,7 @@ export interface SystemInfo {
     name: string;
     team: string;
     tasks: string;
+    verified_outputs: Record<string, Record<string, any>> | undefined;
 }
 
 export interface ServerInfo {
