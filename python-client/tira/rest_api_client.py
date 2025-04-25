@@ -143,6 +143,13 @@ class Client(TiraClient):
 
         return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
 
+    def dataset_exists_in_tira(self, dataset):
+        ds_identifier = self._TiraClient__extract_dataset_identifier(dataset)
+        datasets = self.archived_json_response("/v1/datasets/all")
+
+        ret = self._TiraClient__matching_dataset(datasets, ds_identifier)
+        return ret is not None
+
     def get_dataset(self, dataset) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
@@ -153,11 +160,9 @@ class Client(TiraClient):
         """
 
         dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
-        datasets = self.archived_json_response("/v1/datasets/all")
-
-        ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
-        if ret is not None:
-            return ret
+        if self.dataset_exists_in_tira(dataset):
+            datasets = self.archived_json_response("/v1/datasets/all")
+            return self._TiraClient__matching_dataset(datasets, dataset_identifier)
 
         # retry with force_reload.
         datasets = self.archived_json_response("/v1/datasets/all", force_reload=True)

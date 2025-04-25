@@ -79,31 +79,6 @@ class PandasIntegration:
 
         return pd.concat(df_ret)
 
-    def __matching_files(self, approach, dataset, file_selection):
-        from glob import glob
-
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-
-        ret = set()
-
-        if type(file_selection) is str:
-            file_selection = [file_selection]
-
-        for glob_entry in file_selection:
-            glob_entry = self.tira_client.get_run_output(approach, (translate_irds_id_to_tirex(dataset))) + glob_entry
-            for i in glob(glob_entry):
-                ret.add(i)
-
-        return sorted(list(ret))
-
-    def __extract_task_and_dataset_id(self, task, dataset):
-        if dataset is None and task and len(task.split("/")) == 2:
-            task, dataset = task.split("/")
-        elif dataset is None:
-            task, dataset = None, task
-
-        return task, dataset
-
     def transform_queries(
         self, approach: str, dataset: str, file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz")
     ):
@@ -176,19 +151,7 @@ class PandasIntegration:
             del ret["doc_id"]
         return ret
 
-    def __matching_dataset_files(self, task, dataset, truth_dataset, file_selection):
-        from glob import glob
-
-        ret = []
-        local_dir = self.tira_client.download_dataset(task, dataset, truth_dataset)
-
-        for glob_entry in file_selection:
-            for i in glob(local_dir + glob_entry):
-                ret += [i]
-
-        return ret
-
-    def inputs(self, task, dataset=None, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
+    def inputs(self, task, dataset=None, formats=("*.jsonl")):
         """Load the inputs to systems for a task from tira.
 
         Args:
@@ -207,19 +170,11 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        task, dataset = self.__extract_task_and_dataset_id(task, dataset)
-        matching_files = self.__matching_dataset_files(task, dataset, False, file_selection)
+        dataset_items = self.tira_client.iter_dataset(task, dataset, False, formats)
 
-        if len(matching_files) == 0:
-            raise ValueError(
-                "Could not find a dataset output. Used file_selection: "
-                + str(file_selection)
-                + ". Please specify the file_selection to resolve this."
-            )
+        return pd.DataFrame(dataset_items)
 
-        return pd.read_json(matching_files[0], lines=True, dtype=dtype)
-
-    def truths(self, task, dataset=None, file_selection=("/*.jsonl", "/*.jsonl.gz"), dtype=PANDAS_DTYPES):
+    def truths(self, task, dataset=None, formats=("*.jsonl")):
         """Load the truths, i.e., ground truth labels, for a task from tira.
 
         Args:
@@ -238,14 +193,6 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        task, dataset = self.__extract_task_and_dataset_id(task, dataset)
-        matching_files = self.__matching_dataset_files(task, dataset, True, file_selection)
+        dataset_items = self.tira_client.iter_dataset(task, dataset, True, formats)
 
-        if len(matching_files) == 0:
-            raise ValueError(
-                "Could not find a dataset output. Used file_selection: "
-                + str(file_selection)
-                + ". Please specify the file_selection to resolve this."
-            )
-
-        return pd.read_json(matching_files[0], lines=True, dtype=dtype)
+        return pd.DataFrame(dataset_items)

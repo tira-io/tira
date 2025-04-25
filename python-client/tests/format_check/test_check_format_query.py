@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from approvaltests import verify_as_json
+
 from tira.check_format import QueryProcessorFormat, check_format, lines_if_valid
 
 from . import _ERROR, _OK, EMPTY_OUTPUT, IR_QUERY_OUTPUT
@@ -14,6 +16,11 @@ class TestQueryProcessorFormat(unittest.TestCase):
         expected = [_OK, "The jsonl file has the correct format."]
         actual = check_format(IR_QUERY_OUTPUT, "query-processor")
         self.assertEqual(expected, actual)
+
+    def test_lines_for_valid_query_processor_format(self):
+        """Test that a valid query processor output directory passes validation."""
+        actual = lines_if_valid(IR_QUERY_OUTPUT, "query-processor")
+        verify_as_json(actual)
 
     def test_error_message_on_empty_output(self):
         """Test error message when no jsonl file is found."""

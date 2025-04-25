@@ -8,7 +8,7 @@ from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
-from tira.check_format import _fmt, check_format, log_message
+from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
 if TYPE_CHECKING:
     import io
@@ -220,6 +220,26 @@ class TiraClient(ABC):
 
             print_message("The evaluator was successfull.", _fmt.OK)
             print("\n\nResult:\n\t" + preds)
+
+    def __extract_task_and_dataset_id(self, task, dataset):
+        if dataset is None and task and len(task.split("/")) == 2:
+            task, dataset = task.split("/")
+        elif dataset is None:
+            task, dataset = None, task
+
+        return task, dataset
+
+    def iter_dataset(self, task, dataset, truth_dataset, format):
+        local_dir = task
+        task, dataset = self.__extract_task_and_dataset_id(task, dataset)
+
+        if not self.dataset_exists_in_tira(dataset) and Path(local_dir).exists():
+            dataset_dir = local_dir
+        else:
+            dataset_dir = self.download_dataset(task, dataset, truth_dataset)
+
+        for i in lines_if_valid(Path(dataset_dir), format):
+            yield i
 
     def submit_code(
         self,

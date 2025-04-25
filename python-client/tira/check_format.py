@@ -649,6 +649,8 @@ class QueryProcessorFormat(JsonlFormat):
             elif "query_id" in line:
                 query_id_value = line["query_id"]
 
+            query_id_value = str(query_id_value)
+
             if query_id_value in seen_query_ids:
                 raise ValueError(f"Query ID {query_id_value} is not unique.")
             seen_query_ids.add(query_id_value)
