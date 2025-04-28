@@ -494,15 +494,30 @@ class MultiAuthorWritingStyleAnalysis(FormatBase):
                 f"There are no files matching the multi-author-style file pattern of '{self.prefix}-*{suffix}' in the directory {run_output}."
             )
 
+        tasks = set(["easy", "medium", "hard"])
+
         for f in matches:
+            task = [i for i in tasks if i in f]
+            if len(task) != 1:
+                raise ValueError("fooo")
+
             with open(f, "r") as fh:
+                f = Path(f).relative_to(run_output)
                 problem = fh.read()
                 if suffix == ".json":
-                    ret = {"file": f}
+                    ret = {
+                        "file": f,
+                        "task": task[0],
+                    }
                     ret.update(json.loads(problem))
                     yield ret
                 else:
-                    yield {"file": f, "problem": problem, "paragraphs": problem.split("\n")}
+                    yield {
+                        "file": str(f),
+                        "task": task[0],
+                        "problem": problem,
+                        "paragraphs": problem.split("\n"),
+                    }
 
     def check_format(self, run_output: Path):
         try:
@@ -891,7 +906,7 @@ class IrMetadataFormat(FormatBase):
                         ret.append(f"The required field {k_display} still contains the default value {v['default']}.")
                     elif not isinstance(val, v["type"]):
                         ret.append(
-                            f"The required field {k_display} has the wrong type {type(val)}. I expected {v["type"]}."
+                            f"The required field {k_display} has the wrong type {type(val)}. I expected {v['type']}."
                         )
                 else:
                     ret.extend(self.report_missing_fields(val, v, k_display))
