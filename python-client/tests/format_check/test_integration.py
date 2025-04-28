@@ -75,12 +75,12 @@ DATASET_TO_MINIMAL_EXAMPLE = {
     "pairwise-smoke-test-20250210-training": MINIMAL_WOWS_PAIRWISE,
     "pointwise-20250309-test": MINIMAL_WOWS_POINTWISE,
     "pointwise-smoke-test-20250128-training": MINIMAL_WOWS_POINTWISE,
-    "native-ads-2024-spot-check-20250414-training": MINIMAL_AD_CLASSIFICATION,
-    "native-ads-2024-train-20250319-training": MINIMAL_AD_CLASSIFICATION,
-    "native-ads-2024-validation-20250319-training": MINIMAL_AD_CLASSIFICATION,
-    "webis-generated-native-ads-2024-20250120_0-training": MINIMAL_AD_CLASSIFICATION,
-    "ads-in-rag-generation-spot-check-20250414-training": MINIMAL_AD_GENERATION,
-    "touche-25-ads-in-rag-generation-20250404_0-training": MINIMAL_AD_GENERATION,
+    "ads-in-rag-task-1-generation-spot-check-20250423_1-training": MINIMAL_AD_GENERATION,
+    "ads-in-rag-task-1-generation-test-20250428-test": MINIMAL_AD_GENERATION,
+    "ads-in-rag-task-1-generation-training-20250423-training": MINIMAL_AD_GENERATION,
+    "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
+    "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
+    "ads-in-rag-task-2-classification-training-20250423-training": MINIMAL_AD_CLASSIFICATION,
 }
 
 

@@ -799,7 +799,7 @@ class IrMetadataFormat(FormatBase):
 
     def apply_configuration_and_throw_if_invalid(self, configuration):
         self.required_fields = None
-        if CONF_REQUIRED_FIELDS in configuration:
+        if configuration and CONF_REQUIRED_FIELDS in configuration:
             self.required_fields = configuration[CONF_REQUIRED_FIELDS]
 
     def check_format(self, run_output: Path):
