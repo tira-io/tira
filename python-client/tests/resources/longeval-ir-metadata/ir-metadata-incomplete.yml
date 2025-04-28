@@ -8,7 +8,7 @@
 #   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
 #     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
 #
-# See https://www.ir-metadata.org for more details on how  on fields that you can incorporate
+# See https://www.ir-metadata.org for more details.
 
 tag: ENTER_VALUE_HERE
 
