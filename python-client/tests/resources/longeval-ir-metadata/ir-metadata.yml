@@ -17,14 +17,15 @@ actor:
   team: ows
 
 # Please provide a short description of your system.
-description: |
-  A keyquerey approach that reformulates the original query so that documents known to be relevant from the bast are ranked among the top-positions.
+research goal:
+  description: |
+    A keyquerey approach that reformulates the original query so that documents known to be relevant from the bast are ranked among the top-positions.
 
-  We wanted to use historical data to reformulate future queries, using a keyquery approach.
-  The main idea is that, if we saw a query in the past, we use the past relevance data to get better results for future data.
-  This can only be applied to overlapping queries.
-  For non-overlapping queries, we use the results of the ows_ltr_all run without modification.
-  We use all available data, i.e., the official LongEval 2024 training data (sampled from January 2023) but also all data from LongEval 2023 (i.e. the training, heldout within-time, short term and long term splits, sampled in 2022).
+    We wanted to use historical data to reformulate future queries, using a keyquery approach.
+    The main idea is that, if we saw a query in the past, we use the past relevance data to get better results for future data.
+    This can only be applied to overlapping queries.
+    For non-overlapping queries, we use the results of the ows_ltr_all run without modification.
+    We use all available data, i.e., the official LongEval 2024 training data (sampled from January 2023) but also all data from LongEval 2023 (i.e. the training, heldout within-time, short term and long term splits, sampled in 2022).
 
 platform:
   software:

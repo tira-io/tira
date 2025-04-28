@@ -17,12 +17,13 @@ actor:
   team: ENTER_VALUE_HERE
 
 # Please provide a short description of your system.
-description: |
-  ENTER_VALUE_HERE
-  ...
-  This is a multi line string
-  ...
-  ENTER_VALUE_HERE
+research goal:
+  description: |
+    ENTER_VALUE_HERE
+    ...
+    This is a multi line string
+    ...
+    ENTER_VALUE_HERE
 
 platform:
   software:

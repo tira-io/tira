@@ -361,7 +361,7 @@ class LongEvalLags(FormatBase):
             required_fields = {
                 "tag": {"type": str, "default": "ENTER_VALUE_HERE"},
                 "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
-                "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                "research goal": {"description": {"type": str, "default": "ENTER_VALUE_HERE"}},
                 "platform": {"software": {"libraries": {"type": list, "default": "ENTER_VALUE_HERE"}}},
                 "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
                 "data": {"training data": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
@@ -466,6 +466,50 @@ class TsvFormat(KeyValueFormatBase):
             if len(l_parsed) != columns:
                 raise ValueError("The *.tsv file is invalid: The number of columns varies.")
             yield l_parsed
+
+
+class MultiAuthorWritingStyleAnalysis(FormatBase):
+    def __init__(self, prefix):
+        self.prefix = prefix
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        if not configuration:
+            configuration = {}
+
+        if CONF_MINIMUM_LINES not in configuration:
+            configuration[CONF_MINIMUM_LINES] = 3
+
+        self.minimum_lines = configuration[CONF_MINIMUM_LINES]
+
+    def yield_next_entry(self, run_output):
+        suffix = ".json" if self.prefix != "problem" else ".txt"
+        matches = (
+            glob(f"{run_output}/{self.prefix}-*{suffix}")
+            + glob(f"{run_output}/**/{self.prefix}-*{suffix}")
+            + glob(f"{run_output}/**/**/{self.prefix}-*{suffix}")
+        )
+
+        if len(matches) < self.minimum_lines:
+            raise ValueError(
+                f"There are no files matching the multi-author-style file pattern of '{self.prefix}-*{suffix}' in the directory {run_output}."
+            )
+
+        for f in matches:
+            with open(f, "r") as fh:
+                problem = fh.read()
+                if suffix == ".json":
+                    ret = {"file": f}
+                    ret.update(json.loads(problem))
+                    yield ret
+                else:
+                    yield {"file": f, "problem": problem, "paragraphs": problem.split("\n")}
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = self.all_lines(run_output)
+            return [_fmt.OK, f"Valid Multi-Author-Writing-Style directory with {len(lines)} entries."]
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
 
 
 class TextAlignmentFeaturesFormat(FormatBase):
@@ -898,6 +942,9 @@ FORMAT_TO_CHECK = {
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
     "terrier-index": TerrierIndex,
+    "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
+    "multi-author-writing-style-analysis-solutions": lambda: MultiAuthorWritingStyleAnalysis("solution-problem"),
+    "multi-author-writing-style-analysis-truths": lambda: MultiAuthorWritingStyleAnalysis("truth-problem"),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
