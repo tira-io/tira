@@ -40,6 +40,12 @@ implementation:
     # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
     repository: ENTER_VALUE_HERE
 
+data:
+  # Please describe which training data your system used, e.g., longeval-sci, longeval-web, MS MARCO, etc.
+  training data:
+    - name: longeval-sci
+    - name: ENTER_VALUE_HERE
+
 method:
   # Boolean value indicating if it is a automatic (true) or manual (false) run
   automatic: ENTER_VALUE_HERE
@@ -52,9 +58,6 @@ method:
   retrieval:
     - # Which ranking approach do you use? E.g., bm25
       name: ENTER_VALUE_HERE
-
-      # System Combination / Fusion (Does the system combine different retrieval models? If so, how are they combined?)
-      fusion: ENTER_VALUE_HERE
 
       ##################################################
       # Yes/No Questions

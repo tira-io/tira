@@ -66,7 +66,7 @@ class TestLongEvalFormat(unittest.TestCase):
     def test_valid_single_long_eval_lags_with_wrong_ir_metadata(self):
         actual = persist_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("ir-metadata.yml is invalid", actual[1])
+        self.assertIn("is not valid", actual[1])
         self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
         self.assertIn(
             "The required field method.indexing.stopwords still contains the default value ENTER_VALUE_HERE.", actual[1]
@@ -75,7 +75,7 @@ class TestLongEvalFormat(unittest.TestCase):
     def test_valid_multiple_long_eval_lag_with_wrong_ir_metadata(self):
         actual = persist_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("ir-metadata.yml is invalid", actual[1])
+        self.assertIn("is not valid", actual[1])
         self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
         self.assertIn(
             "The required field method.indexing.stopwords still contains the default value ENTER_VALUE_HERE.", actual[1]

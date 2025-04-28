@@ -364,6 +364,7 @@ class LongEvalLags(FormatBase):
                 "description": {"type": str, "default": "ENTER_VALUE_HERE"},
                 "platform": {"software": {"libraries": {"type": list, "default": "ENTER_VALUE_HERE"}}},
                 "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "data": {"training data": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
                 "method": {
                     "automatic": {"type": bool, "default": "ENTER_VALUE_HERE"},
                     "indexing": {
@@ -373,7 +374,6 @@ class LongEvalLags(FormatBase):
                     },
                     "retrieval": {
                         "name": {"type": str, "default": "ENTER_VALUE_HERE"},
-                        "fusion": {"type": str, "default": "ENTER_VALUE_HERE"},
                         "lexical": {"type": bool, "default": "ENTER_VALUE_HERE"},
                         "deep_neural_model": {"type": bool, "default": "ENTER_VALUE_HERE"},
                         "sparse_neural_model": {"type": bool, "default": "ENTER_VALUE_HERE"},
