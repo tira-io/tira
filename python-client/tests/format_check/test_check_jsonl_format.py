@@ -58,12 +58,12 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
         self.assertTrue("contains a line that could not be parsed" in actual[1])
 
     def test_invalid_on_query_output_directory(self):
-        actual = check_format(IR_QUERY_OUTPUT, "*.jsonl")
+        actual = check_format(IR_QUERY_OUTPUT, "*.jsonl", {"required_fields": ["id"]})
         self.assertEqual(actual[0], _ERROR)
         self.assertTrue('The json line misses the required field "id"' in actual[1])
 
     def test_invalid_on_query_output_file(self):
-        actual = check_format(IR_QUERY_OUTPUT / "queries.jsonl", "*.jsonl")
+        actual = check_format(IR_QUERY_OUTPUT / "queries.jsonl", "*.jsonl", {"required_fields": ["id"]})
         self.assertEqual(actual[0], _ERROR)
         self.assertTrue('The json line misses the required field "id"' in actual[1])
 

@@ -1,0 +1,76 @@
+# We use the ir-metadata standard to describe and process runs.
+# The fields below are mandatory, you can add additional metadata if you like.
+# There are two libraries that automate and simplify tracking of experimental metadata that you can use optionally:
+#
+#   - The metadata module of [repro_eval](https://www.ir-metadata.org/software/):
+#     Tracks the platform and implementation of your experiments.
+#
+#   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
+#     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
+#
+# See https://www.ir-metadata.org for more details on how  on fields that you can incorporate
+
+tag: ENTER_VALUE_HERE
+
+actor:
+  # The name of the team
+  team: ENTER_VALUE_HERE
+
+# Please provide a short description of your system.
+description: |
+  ENTER_VALUE_HERE
+  ...
+  This is a multi line string
+  ...
+  ENTER_VALUE_HERE
+
+platform:
+  software:
+    # Which software and tools did you use for training, tunning and running your system?
+    # You can maintain the software that you used manually.
+    # Alternatively, you can use repro_eval or the tirex_tracker to track this.
+    libraries:
+      - ENTER_VALUE_HERE
+      - ENTER_VALUE_HERE
+
+implementation:
+  source:
+    # Please provide a reference to your code if possible.
+    # If you can not share your code, you can delete the implementation section.
+    # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
+    repository: ENTER_VALUE_HERE
+
+method:
+  # Boolean value indicating if it is a automatic (true) or manual (false) run
+  automatic: ENTER_VALUE_HERE
+
+  indexing:
+    tokenizer: ENTER_VALUE_HERE
+    stemmer: ENTER_VALUE_HERE
+    stopwords: ENTER_VALUE_HERE
+
+  retrieval:
+    - # Which ranking approach do you use? E.g., bm25
+      name: ENTER_VALUE_HERE
+
+      # System Combination / Fusion (Does the system combine different retrieval models? If so, how are they combined?)
+      fusion: ENTER_VALUE_HERE
+
+      ##################################################
+      # Yes/No Questions
+      ##################################################
+
+      # Did you use any statistical ranking model? (yes/no)
+      statistical: ENTER_VALUE_HERE
+
+      # Did you use any deep neural network model? (yes/no)
+      deep_neural_model: ENTER_VALUE_HERE
+
+      # Did you use a sparse neural model? (yes/no):
+      sparse_neural_model: ENTER_VALUE_HERE
+
+      # Did you use a dense neural model? (yes/no):
+      dense_neural_model: ENTER_VALUE_HERE
+
+      # Did you use more than a single retrieval model? (yes/no):
+      single_stage_retrieval: ENTER_VALUE_HERE

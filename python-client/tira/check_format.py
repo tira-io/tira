@@ -19,7 +19,7 @@ class FormatMsgType(Enum):
 _fmt = FormatMsgType
 
 
-def log_message(message: str, level: _fmt):
+def fmt_message(message: str, level: _fmt):
     """
     Prints a formatted log message with a symbol indicating the status.
 
@@ -34,7 +34,18 @@ def log_message(message: str, level: _fmt):
     }
 
     symbol = symbols[level]
-    print(f"{symbol} {message}")
+    return f"{symbol} {message}"
+
+
+def log_message(message: str, level: _fmt):
+    """
+    Prints a formatted log message with a symbol indicating the status.
+
+    Parameters:
+    - message (str): The log message to display.
+    - level (_fmt): The level of the message; can be _fmt.OK, _fmt.WARN, _fmt.ERROR.
+    """
+    return fmt_message(message, level)
 
 
 CONF_REQUIRED_FIELDS = "required_fields"
@@ -261,7 +272,7 @@ class JsonlFormat(KeyValueFormatBase):
             configuration = {}
 
         if CONF_REQUIRED_FIELDS not in configuration:
-            configuration[CONF_REQUIRED_FIELDS] = ("id",)
+            configuration[CONF_REQUIRED_FIELDS] = set()
 
         if CONF_MINIMUM_LINES not in configuration:
             configuration[CONF_MINIMUM_LINES] = 3
@@ -320,18 +331,68 @@ class LongEvalLags(FormatBase):
             )
 
         self.lags = configuration["lags"]
+        if isinstance(self.lags, str):
+            self.lags = [self.lags]
         format = "run.txt"
         if "format" in configuration:
             format = configuration["format"]
         self.format = format
 
     def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
         for lag in self.lags:
             status, msg = check_format(run_output / lag, self.format)
             if status != _fmt.OK:
-                return [_fmt.ERROR, f"The Lag {lag} is invalid: {msg}"]
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(
+                    f"I expected a run file in the subdirectory {lag}. Error: {msg}", _fmt.ERROR
+                )
+            else:
+                ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
 
-        return [_fmt.OK, f"All lags {self.lags} are valid."]
+        if not (run_output / "ir-metadata.yml").exists():
+            ret_code = _fmt.ERROR
+            ret_msg += "\n\t" + fmt_message(
+                f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
+            )
+        else:
+            required_fields = {
+                "tag": {"type": str, "default": "ENTER_VALUE_HERE"},
+                "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                "platform": {"software": {"libraries": {"type": list, "default": "ENTER_VALUE_HERE"}}},
+                "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "method": {
+                    "automatic": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    "indexing": {
+                        "tokenizer": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "stemmer": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "stopwords": {"type": str, "default": "ENTER_VALUE_HERE"},
+                    },
+                    "retrieval": {
+                        "name": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "fusion": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "lexical": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "deep_neural_model": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "sparse_neural_model": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "single_stage_retrieval": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    },
+                },
+            }
+            metadata_validation = check_format(
+                run_output / "ir-metadata.yml", "ir_metadata", {"required_fields": required_fields}
+            )
+            if metadata_validation[0] != _fmt.OK:
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(
+                    f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + metadata_validation[1], _fmt.ERROR
+                )
+            else:
+                ret_msg += "\n\t" + fmt_message(f"The file ir-metadata.yml is valid.", _fmt.OK)
+
+        return [ret_code, ret_msg]
 
 
 class GenIrSimulationFormat(JsonlFormat):
@@ -736,9 +797,23 @@ class IrMetadataFormat(FormatBase):
     def __init__(self, positive_fields=("platform", "implementation", "resources")):
         self.positive_fields = positive_fields
 
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        self.required_fields = None
+        if CONF_REQUIRED_FIELDS in configuration:
+            self.required_fields = configuration[CONF_REQUIRED_FIELDS]
+
     def check_format(self, run_output: Path):
         try:
             lines = list(self.yield_lines(run_output))
+
+            if self.required_fields:
+                for line in lines:
+                    errors = self.report_missing_fields(line["content"], self.required_fields)
+                    msg = ""
+                    if len(errors) > 0:
+                        for error in errors:
+                            msg += f"\n\t\t- {error}"
+                        return [_fmt.ERROR, msg]
 
             if len(lines) < 1:
                 return [_fmt.ERROR, "At least one valid ir_metadata file was expected, but there was none."]
@@ -749,6 +824,35 @@ class IrMetadataFormat(FormatBase):
 
     def all_lines(self, run_output):
         return [i for i in self.yield_lines(run_output)]
+
+    def report_missing_fields(self, yml_dict, required_fields, prefix=None):
+        ret = []
+        for k, v in required_fields.items():
+            k_display = ("" if prefix is None else prefix + ".") + k
+            try:
+                if not yml_dict or k not in yml_dict:
+                    ret.append(f"The required field {k_display} is missing.")
+
+                    continue
+            except Exception as e:
+                ret.append(f"The required field {k_display} is missing.")
+                continue
+
+            check_type = "type" in v and "default" in v
+            values = [yml_dict[k]] if not isinstance(yml_dict[k], list) or check_type else yml_dict[k]
+
+            for val in values:
+                if check_type:
+                    if val == v["default"] or (isinstance(val, str) and v["default"] in val):
+                        ret.append(f"The required field {k_display} still contains the default value {v['default']}.")
+                    elif not isinstance(val, v["type"]):
+                        ret.append(
+                            f"The required field {k_display} has the wrong type {type(val)}. I expected {v["type"]}."
+                        )
+                else:
+                    ret.extend(self.report_missing_fields(val, v, k_display))
+
+        return ret
 
     def yield_lines(self, run_output: Path):
         import yaml
@@ -765,10 +869,14 @@ class IrMetadataFormat(FormatBase):
             with open(candidate) as stream:
                 try:
                     content = yaml.safe_load(stream)
-                    at_least_one_positive_field = any(i in content for i in self.positive_fields)
+                    if not content:
+                        raise ValueError("The ir_metadata file is empty.")
 
-                    if not at_least_one_positive_field:
-                        continue
+                    if not self.required_fields:
+                        at_least_one_positive_field = any(i in content for i in self.positive_fields)
+
+                        if not at_least_one_positive_field:
+                            continue
 
                     yield {"name": candidate.split("/")[-1], "content": content}
                 except yaml.YAMLError:
@@ -878,4 +986,5 @@ def check_format(
         raise ValueError(f"Format {format} is not supported. Supported formats are {SUPPORTED_FORMATS}.")
 
     checker = check_format_configuration_if_valid(format, configuration)
+
     return checker.check_format(run_output)

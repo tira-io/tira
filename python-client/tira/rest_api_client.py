@@ -17,7 +17,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from tira.check_format import _fmt, check_format
+from tira.check_format import _fmt, check_format, fmt_message
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
@@ -50,6 +50,7 @@ class Client(TiraClient):
         allow_local_execution: bool = False,
     ):
         self.base_url = base_url or "https://www.tira.io"
+        self.logged: "set[str]" = set()
         self.verify = verify
         self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
@@ -86,7 +87,9 @@ class Client(TiraClient):
                 ret["api_user_name"] = "no-api-key-user"
             return ret
         except Exception:
-            logging.info(f"No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.")
+            if "load_settings" not in self.logged:
+                logging.info(f"No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.")
+                self.logged.add("load_settings")
             return {"api_key": "no-api-key", "api_user_name": "no-api-key-user"}
 
     def update_settings(self, k, v):
@@ -905,7 +908,7 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
 
-    def upload_run_anonymous(self, file_path: Path, dataset_id: str):
+    def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False):
         upload_to_tira = self.get_dataset(dataset_id)
 
         if isinstance(file_path, str):
@@ -922,17 +925,30 @@ class Client(TiraClient):
         format_configuration = upload_to_tira.get("format_configuration")
 
         for format in accepted_formats:
-            status_code, msg = check_format(file_path, str(format), format_configuration)
+            status_code, msg = check_format(file_path, format, format_configuration)
 
+            print(msg.strip())
             if status_code != _fmt.OK:
                 error_msg += "\n" + msg
             else:
                 error_msg += ""
 
         if error_msg:
-            print(error_msg.strip())
-            raise ValueError(error_msg.strip())
+            print(
+                "\nResult:\n\t"
+                + fmt_message(
+                    f"Could not upload to TIRA as the directory {file_path} is not a valid submission.", _fmt.ERROR
+                )
+            )
+            return False
         from tira.io_utils import zip_dir
+
+        if dry_run:
+            print(
+                "\nResult:\n\t"
+                + fmt_message(f"The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
+            )
+            return
 
         zip_file = zip_dir(file_path)
 

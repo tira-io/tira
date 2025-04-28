@@ -142,6 +142,13 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
         "--directory", required=True, default=None, help="The directory with the predictions to upload."
     )
     parser.add_argument("--dataset", required=True, help="The dataset for to which the predictions should be uploaded.")
+    parser.add_argument(
+        "--dry-run",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Make a dry-run, i.e., to verify that your output is valid without uploading to TIRA.",
+    )
     parser.set_defaults(executable=upload_command)
 
 
@@ -218,9 +225,9 @@ def verify_installation_command(**kwards) -> int:
     return 0 if status == _fmt.OK else 1
 
 
-def upload_command(dataset: str, directory: Path, **kwargs) -> None:
+def upload_command(dataset: str, directory: Path, dry_run: bool, **kwargs) -> None:
     client: "TiraClient" = RestClient()
-    resp = client.upload_run_anonymous(directory, dataset)
+    resp = client.upload_run_anonymous(directory, dataset, dry_run)
 
     return 0 if resp and "uuid" in resp and resp["uuid"] else 1
 

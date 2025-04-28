@@ -1,0 +1,78 @@
+# We use the ir-metadata standard to describe and process runs.
+# The fields below are mandatory, you can add additional metadata if you like.
+# There are two libraries that automate and simplify tracking of experimental metadata that you can use optionally:
+#
+#   - The metadata module of [repro_eval](https://www.ir-metadata.org/software/):
+#     Tracks the platform and implementation of your experiments.
+#
+#   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
+#     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
+#
+# See https://www.ir-metadata.org for more details on how  on fields that you can incorporate
+
+tag: ows_bm25_bo1_keyqueries
+
+actor:
+  # The name of the team
+  team: ows
+
+# Please provide a short description of your system.
+description: |
+  A keyquerey approach that reformulates the original query so that documents known to be relevant from the bast are ranked among the top-positions.
+
+  We wanted to use historical data to reformulate future queries, using a keyquery approach.
+  The main idea is that, if we saw a query in the past, we use the past relevance data to get better results for future data.
+  This can only be applied to overlapping queries.
+  For non-overlapping queries, we use the results of the ows_ltr_all run without modification.
+  We use all available data, i.e., the official LongEval 2024 training data (sampled from January 2023) but also all data from LongEval 2023 (i.e. the training, heldout within-time, short term and long term splits, sampled in 2022).
+
+platform:
+  software:
+    # Which software and tools did you use for training, tunning and running your system?
+    # You can maintain the software that you used manually.
+    # Alternatively, you can use repro_eval or the tirex_tracker to track this.
+    libraries:
+      - PyTerrier 0.10.0
+      - Tira 0.0.129
+
+implementation:
+  source:
+    # Please provide a reference to your code if possible.
+    # If you can not share your code, you can delete the implementation section.
+    # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
+    repository: https://github.com/OpenWebSearch/LONGEVAL-24
+
+method:
+  # Boolean value indicating if it is a automatic (true) or manual (false) run
+  automatic: true
+
+  indexing:
+    tokenizer: Default from PyTerrier
+    stemmer: Default from PyTerrier
+    stopwords: Default from PyTerrier
+
+  retrieval:
+    - # Which ranking approach do you use? E.g., bm25
+      name: Key Queries
+
+      # System Combination / Fusion (Does the system combine different retrieval models? If so, how are they combined?)
+      fusion: No. We only use results of the run ows_ltr_all in case we have no past overlapping query
+
+      ##################################################
+      # Yes/No Questions
+      ##################################################
+
+      # Did you use any statistical ranking model? (yes/no)
+      lexical: yes
+
+      # Did you use any deep neural network model? (yes/no)
+      deep_neural_model: no
+
+      # Did you use a sparse neural model? (yes/no):
+      sparse_neural_model: no
+
+      # Did you use a dense neural model? (yes/no):
+      dense_neural_model: no
+
+      # Did you use more than a single retrieval model? (yes/no):
+      single_stage_retrieval: no
