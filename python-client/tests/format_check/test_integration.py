@@ -53,12 +53,12 @@ MINIMAL_WOWS_PAIRWISE = {
 }
 
 MINIMAL_AD_CLASSIFICATION = {
-    "run": """{"id": "xyz1", "label": 1}
-{"id": "xyz2", "label": 0}
-{"id": "xyz3", "label": 0}""",
-    "truth": """{"id": "xyz1", "label": 1}
-{"id": "xyz2", "label": 0}
-{"id": "xyz3", "label": 1}""",
+    "run": """{"id": "xyz1", "label": 1, "tag": 1}
+{"id": "xyz2", "label": 0, "tag": 1}
+{"id": "xyz3", "label": 0, "tag": 1}""",
+    "truth": """{"id": "xyz1", "label": 1, "tag": 1}
+{"id": "xyz2", "label": 0, "tag": 1}
+{"id": "xyz3", "label": 1, "tag": 1}""",
 }
 
 MINIMAL_AD_GENERATION = {

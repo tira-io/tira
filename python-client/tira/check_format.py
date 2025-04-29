@@ -275,7 +275,7 @@ class JsonlFormat(KeyValueFormatBase):
             configuration[CONF_REQUIRED_FIELDS] = set()
 
         if CONF_MINIMUM_LINES not in configuration:
-            configuration[CONF_MINIMUM_LINES] = 3
+            configuration[CONF_MINIMUM_LINES] = 2
 
         super().apply_configuration_and_throw_if_invalid(configuration)
 

@@ -10,12 +10,12 @@ APPROVED_EVAL_DATASETS = {
     "pairwise-smoke-test-20250210-training": {},
     "pointwise-20250309-test": {},
     "pointwise-smoke-test-20250128-training": {},
-    "native-ads-2024-spot-check-20250414-training": {},
-    "native-ads-2024-train-20250319-training": {},
-    "native-ads-2024-validation-20250319-training": {},
-    "webis-generated-native-ads-2024-20250120_0-training": {},
-    "ads-in-rag-generation-spot-check-20250414-training": {},
-    "touche-25-ads-in-rag-generation-20250404_0-training": {},
+    "ads-in-rag-task-1-generation-spot-check-20250423_1-training": {},
+    "ads-in-rag-task-1-generation-test-20250428-test": {},
+    "ads-in-rag-task-1-generation-training-20250423-training": {},
+    "ads-in-rag-task-2-classification-spot-check-20250423-training": {},
+    "ads-in-rag-task-2-classification-test-20250428-test": {},
+    "ads-in-rag-task-2-classification-training-20250423-training": {},
 }
 
 from parameterized import parameterized
@@ -33,6 +33,10 @@ class TestIntegration(unittest.TestCase):
     def test_datasets_with_evaluators_are_avalaible(self):
         expected = APPROVED_EVAL_DATASETS.keys()
         actual = datasets_with_evaluator().keys()
+
+        for k in expected:
+            self.assertIn(k, actual)
+
         self.assertEqual(expected, actual)
 
     @parameterized.expand(datasets_with_evaluator().items())
