@@ -1,0 +1,48 @@
+[
+    {
+        "originalQuery": "Health and Computer Terminals",
+        "qid": "350",
+        "segmentation": [
+            "health and",
+            "computer terminals"
+        ],
+        "segmentationApproach": "wt-snp-baseline"
+    },
+    {
+        "originalQuery": "Falkland petroleum exploration",
+        "qid": "351",
+        "segmentation": [
+            "falkland",
+            "petroleum exploration"
+        ],
+        "segmentationApproach": "wt-snp-baseline"
+    },
+    {
+        "originalQuery": "British Chunnel impact",
+        "qid": "352",
+        "segmentation": [
+            "british",
+            "chunnel",
+            "impact"
+        ],
+        "segmentationApproach": "wt-snp-baseline"
+    },
+    {
+        "originalQuery": "Antarctica exploration",
+        "qid": "353",
+        "segmentation": [
+            "antarctica",
+            "exploration"
+        ],
+        "segmentationApproach": "wt-snp-baseline"
+    },
+    {
+        "originalQuery": "journalist risks",
+        "qid": "354",
+        "segmentation": [
+            "journalist",
+            "risks"
+        ],
+        "segmentationApproach": "wt-snp-baseline"
+    }
+]
