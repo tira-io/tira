@@ -77,6 +77,7 @@ jobs:
         run: |
           sudo apt-get install -y openjdk-11-jdk
           pip3 install .[test,dev]
+          python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded(is_offline=False)'
       - name: Running Tests
         working-directory: ${{github.workspace}}/python-client
         run: |

@@ -8,7 +8,10 @@ from tira.io_utils import all_lines_to_pandas
 
 
 def ensure_pyterrier_is_loaded(
-    boot_packages=(("com.github.terrierteam", "terrier-prf", "-SNAPSHOT"),), packages=(), patch_ir_datasets=True
+    boot_packages=(("com.github.terrierteam", "terrier-prf", "-SNAPSHOT"),),
+    packages=(),
+    patch_ir_datasets=True,
+    is_offline=True,
 ):
     import pyterrier as pt
 
@@ -38,7 +41,7 @@ def ensure_pyterrier_is_loaded(
         logging.info(f"Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True")
         pt.terrier.set_version(pt_version)
         pt.terrier.set_helper_version(pt_helper_version)
-        pt.java.mavenresolver.offline()
+        pt.java.mavenresolver.offline(is_offline)
         for org_name, package_name, version in list(packages) + list(boot_packages):
             pt.java.add_package(org_name, package_name, version)
         pt.java.init()
