@@ -229,6 +229,13 @@ class TiraClient(ABC):
 
         return task, dataset
 
+    def iter_run_output(self, approach, dataset, format):
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+
+        output_dir = self.get_run_output(approach, translate_irds_id_to_tirex(dataset))
+        for i in lines_if_valid(Path(output_dir), format):
+            yield i
+
     def iter_dataset(self, task, dataset, truth_dataset, format):
         local_dir = task
         task, dataset = self.__extract_task_and_dataset_id(task, dataset)

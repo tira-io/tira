@@ -166,10 +166,10 @@ class PyTerrierIntegration:
         ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
         return TiraSourceTransformer(ret)
 
-    def transform_queries(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix=""):
+    def transform_queries(self, approach, dataset, format: str = "query-processor", prefix: str = ""):
         from pyterrier.apply import generic
 
-        ret = self.pd.transform_queries(approach, dataset, file_selection)
+        ret = self.pd.transform_queries(approach, dataset, format)
         cols = [i for i in ret.columns if i not in ["qid"]]
         ret = {str(i["qid"]): i for _, i in ret.iterrows()}
 
@@ -181,10 +181,10 @@ class PyTerrierIntegration:
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), prefix=""):
+    def transform_documents(self, approach, dataset, format: str = "document-processor", prefix: str = ""):
         from pyterrier.apply import generic
 
-        ret = self.pd.transform_documents(approach, dataset, file_selection)
+        ret = self.pd.transform_documents(approach, dataset, format)
         cols = [i for i in ret.columns if i not in ["docno"]]
         ret = {str(i["docno"]): i for _, i in ret.iterrows()}
 
@@ -226,16 +226,16 @@ class PyTerrierIntegration:
         return TiraApplyFeatureTransformer(mapping, (id_col,), name)
 
     def doc_features(
-        self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), feature_selection=None, map_features=None
+        self, approach, dataset, format: str = "document-processor", feature_selection=None, map_features=None
     ):
-        run = self.pd.transform_documents(approach, dataset, file_selection)
+        run = self.pd.transform_documents(approach, dataset, format)
 
         return self._features_transformer(run, "docno", "doc_features", feature_selection, map_features)
 
     def query_features(
-        self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz"), feature_selection=None, map_features=None
+        self, approach, dataset, format: str = "query-processor", feature_selection=None, map_features=None
     ):
-        run = self.pd.transform_queries(approach, dataset, file_selection)
+        run = self.pd.transform_queries(approach, dataset, format)
 
         return self._features_transformer(run, "qid", "query_features", feature_selection, map_features)
 

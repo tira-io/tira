@@ -8,7 +8,7 @@ from tira.io_utils import all_lines_to_pandas
 
 
 def ensure_pyterrier_is_loaded(
-    boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT",), packages=(), patch_ir_datasets=True
+    boot_packages=(("com.github.terrierteam", "terrier-prf", "-SNAPSHOT"),), packages=(), patch_ir_datasets=True
 ):
     import pyterrier as pt
 
@@ -31,18 +31,17 @@ def ensure_pyterrier_is_loaded(
 
         original_ir_datasets.load = original_ir_datasets_load
 
-    pt_version = os.environ.get("PYTERRIER_VERSION", "5.7")
-    pt_helper_version = os.environ.get("PYTERRIER_HELPER_VERSION", "0.0.7")
+    pt_version = os.environ.get("PYTERRIER_VERSION", "5.11")
+    pt_helper_version = os.environ.get("PYTERRIER_HELPER_VERSION", "0.0.8")
 
-    if not pt.started():
+    if not pt.java.started():
         logging.info(f"Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True")
-        pt.init(
-            version=pt_version,
-            helper_version=pt_helper_version,
-            no_download=True,
-            boot_packages=list(boot_packages),
-            packages=list(packages),
-        )
+        pt.terrier.set_version(pt_version)
+        pt.terrier.set_helper_version(pt_helper_version)
+        pt.java.mavenresolver.offline()
+        for org_name, package_name, version in list(packages) + list(boot_packages):
+            pt.java.add_package(org_name, package_name, version)
+        pt.java.init()
 
 
 def get_preconfigured_chatnoir_client(

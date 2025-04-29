@@ -91,9 +91,7 @@ class TestQueryProcessingLoader(unittest.TestCase):
         tira = Client()
 
         q = tira.pt.transform_queries(
-            "ir-benchmarks/fschlatt/query-health-classification",
-            pt.get_dataset("irds:clueweb09/en/trec-web-2009"),
-            "/q*.jsonl",
+            "ir-benchmarks/fschlatt/query-health-classification", pt.get_dataset("irds:clueweb09/en/trec-web-2009")
         )
         self.assertEqual(len(q(pd.DataFrame([{"qid": "26"}]))), 1)
         self.assertEqual(q(pd.DataFrame([{"qid": "26"}])).iloc[0].to_dict()["mean_health_score"], 168.416)

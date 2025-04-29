@@ -79,17 +79,14 @@ class PandasIntegration:
 
         return pd.concat(df_ret)
 
-    def transform_queries(
-        self, approach: str, dataset: str, file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz")
-    ):
+    def transform_queries(self, approach: str, dataset: str, format: str = "query-processor"):
         """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use
         as a PyTerrier query transformation.
 
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
-                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            format (str, optional):  The format in which the queries are loaded.
 
         Raises:
             ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the
@@ -101,30 +98,18 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        matching_files = self.__matching_files(approach, dataset, file_selection)
+        items = self.tira_client.iter_run_output(approach, dataset, format)
 
-        if len(matching_files) == 0:
-            raise ValueError(
-                f"Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to"
-                " resolve this."
-            )
+        return pd.DataFrame(items)
 
-        ret = pd.read_json(matching_files[0], lines=True, dtype={"qid": str, "query": str, "query_id": str})
-        if "qid" not in ret and "query_id" in ret:
-            ret["qid"] = ret["query_id"]
-            del ret["query_id"]
-
-        return ret
-
-    def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz")):
+    def transform_documents(self, approach, dataset, format="document-processor"):
         """Load and transform the document processing outputs specified by the approach on the dataset for direct
         re-use as a PyTerrier document transformation.
 
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
-                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            format (str, optional): The format in which the documents are available.
 
         Raises:
             ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the
@@ -136,20 +121,9 @@ class PandasIntegration:
         """
         import pandas as pd
 
-        matching_files = self.__matching_files(approach, dataset, file_selection)
-        if len(matching_files) == 0:
-            raise ValueError(
-                "Could not find a matching document output. Used file_selection: "
-                + str(file_selection)
-                + ". Please specify the file_selection to resolve this."
-            )
+        items = self.tira_client.iter_run_output(approach, dataset, format)
 
-        ret = pd.read_json(matching_files[0], lines=True, dtype={"docno": str, "doc_id": str})
-
-        if "doc_id" in ret.columns and "docno" not in ret.columns:
-            ret["docno"] = ret["doc_id"]
-            del ret["doc_id"]
-        return ret
+        return pd.DataFrame(items)
 
     def inputs(self, task, dataset=None, formats=("*.jsonl")):
         """Load the inputs to systems for a task from tira.
