@@ -10,6 +10,7 @@
 #
 # See https://www.ir-metadata.org for more details.
 
+# The name (i.e., tag) of your system
 tag: ENTER_VALUE_HERE
 
 actor:

@@ -16,6 +16,17 @@ def query_segmentation(queries):
     return {i["qid"]: i["segmentation"] for _, i in ret.iterrows()}
 
 
+def query_segmentation_from_local_directory(queries):
+    queries = pd.DataFrame([{"qid": str(i)} for i in queries])
+    tira = Client()
+    query_segmentation = tira.pt.transform_queries(
+        "tests/resources/query-processing-outputs/query-segmentation/queries.jsonl", None
+    )
+
+    ret = query_segmentation(queries)
+    return {i["qid"]: i["segmentation"] for _, i in ret.iterrows()}
+
+
 class TestQueryProcessingLoader(unittest.TestCase):
     def test_for_loading_query_segmentations_for_multiple_queries(self):
         expected = {"350": ["health and", "computer terminals"], "353": ["antarctica", "exploration"]}
@@ -25,6 +36,23 @@ class TestQueryProcessingLoader(unittest.TestCase):
         self.assertEqual(len(actual), 2)
         self.assertEqual(actual["350"], expected["350"])
         self.assertEqual(actual["353"], expected["353"])
+
+    def test_for_loading_query_segmentations_for_multiple_queries_from_dir(self):
+        expected = {"350": ["health and", "computer terminals"], "353": ["antarctica", "exploration"]}
+
+        actual = query_segmentation_from_local_directory([350, 353])
+
+        self.assertEqual(len(actual), 2)
+        self.assertEqual(actual["350"], expected["350"])
+        self.assertEqual(actual["353"], expected["353"])
+
+    def test_for_loading_query_segmentations_for_single_query_from_dir(self):
+        expected = {"351": ["falkland", "petroleum exploration"]}
+
+        actual = query_segmentation_from_local_directory([351])
+
+        self.assertEqual(len(actual), 1)
+        self.assertEqual(actual["351"], expected["351"])
 
     def test_for_loading_query_segmentations_for_single_query(self):
         expected = {"351": ["falkland", "petroleum exploration"]}

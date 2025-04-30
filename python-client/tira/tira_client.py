@@ -232,7 +232,10 @@ class TiraClient(ABC):
     def iter_run_output(self, approach, dataset, format):
         from tira.ir_datasets_util import translate_irds_id_to_tirex
 
-        output_dir = self.get_run_output(approach, translate_irds_id_to_tirex(dataset))
+        if dataset is None and os.path.exists(approach):
+            output_dir = approach
+        else:
+            output_dir = self.get_run_output(approach, translate_irds_id_to_tirex(dataset))
         for i in lines_if_valid(Path(output_dir), format):
             yield i
 
@@ -268,6 +271,7 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
+        from tira.third_party_integrations import temporary_directory
 
         all_messages = []
 
@@ -367,52 +371,56 @@ class TiraClient(ABC):
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            self.local_execution.run(
-                image=docker_tag,
-                command=command,
-                input_dir=dataset_path,
-                output_dir=tmp_dir,
-                allow_network=allow_network,
+        tmp_dir = temporary_directory()
+        self.local_execution.run(
+            image=docker_tag,
+            command=command,
+            input_dir=dataset_path,
+            output_dir=tmp_dir,
+            allow_network=allow_network,
+        )
+
+        format_configuration = (
+            None if "format_configuration" not in dataset_handle else dataset_handle["format_configuration"]
+        )
+        result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0], format_configuration)
+        if result != _fmt.OK:
+            print(msg)
+            raise ValueError(msg)
+        print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
+        shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
+
+        if not dry_run:
+            print("Upload Code Submission image...")
+            metadata_uuid = self.upload_run_anonymous(tmp_dir, dataset_id)["uuid"]
+
+            print_message(f"The meta data is uploaded to TIRA.", _fmt.OK)
+
+            print("Push Docker image to TIRA...")
+            from tira.tira_run import push_image
+
+            pushed_image = push_image(self, docker_tag, task_id, user_id)
+
+            print_message(f"The Docker image is pushed to TIRA.", _fmt.OK)
+            print("Configure code submission in TIRA...")
+            upload = self.add_docker_software(
+                pushed_image,
+                command,
+                user_id,
+                task_id,
+                None,
+                dict(os.environ),
+                source_code_remotes=remotes,
+                source_code_commit=commit,
+                source_code_active_branch=active_branch,
+                try_run_metadata_uuid=metadata_uuid,
             )
-            result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0])
-            if result != _fmt.OK:
-                print(msg)
-                raise ValueError(msg)
-            print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
-            shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
-
-            if not dry_run:
-                print("Upload Code Submission image...")
-                metadata_uuid = self.upload_run_anonymous(tmp_dir, dataset_id)["uuid"]
-
-                print_message(f"The meta data is uploaded to TIRA.", _fmt.OK)
-
-                print("Push Docker image to TIRA...")
-                from tira.tira_run import push_image
-
-                pushed_image = push_image(self, docker_tag, task_id, user_id)
-
-                print_message(f"The Docker image is pushed to TIRA.", _fmt.OK)
-                print("Configure code submission in TIRA...")
-                upload = self.add_docker_software(
-                    pushed_image,
-                    command,
-                    user_id,
-                    task_id,
-                    None,
-                    dict(os.environ),
-                    source_code_remotes=remotes,
-                    source_code_commit=commit,
-                    source_code_active_branch=active_branch,
-                    try_run_metadata_uuid=metadata_uuid,
-                )
-                print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
-                print("\nResult:")
-                log_message(
-                    f"Your code submission is available in TIRA as {upload['display_name']}.",
-                    _fmt.OK,
-                )
+            print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
+            print("\nResult:")
+            log_message(
+                f"Your code submission is available in TIRA as {upload['display_name']}.",
+                _fmt.OK,
+            )
 
         return {
             "code": zipped_code,
