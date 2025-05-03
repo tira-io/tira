@@ -356,6 +356,7 @@ class TiraClient(ABC):
 
         if repo.is_dirty(untracked_files=True):
             if not dry_run:
+                log_message(f"The git repository {repo.working_tree_dir} is not clean.\n\tPlease ensure that the repository is clean, i.g., git status reports that everything is committed and pushed.\n\n\tPlease pass --dry-run if you want to test without uploading", _fmt.ERROR)
                 raise ValueError("The git repository is not clean.")
         else:
             print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)

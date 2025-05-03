@@ -50,8 +50,8 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
     if tmp and "status" in tmp and 0 == tmp["status"] and "context" in tmp and "user_vms_for_task" in tmp["context"]:
         if len(tmp["context"]["user_vms_for_task"]) != 1:
             log_message(
-                f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to'
-                " specify the vm.",
+                f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}).\n\tPlease use the following command to authenticate yourself:\n\ttira-cli login --token YOUR-AUTH-TOKEN\n\ttira-cli verify-installation\n\n\n\tPlease pass --dry-run if you want to test without uploading use option --tira-vm-id to'
+                " specify the vm.\n\t(if you have multiple virtual machines, please pass --tira-vm-id or set the TIRA_VM_ID ENVIRONMENT)",
                 _fmt.ERROR,
             )
             return None
@@ -59,7 +59,7 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
             return tmp["context"]["user_vms_for_task"][0]
     else:
         log_message(
-            "The option --tira-vm-id (or environment variable TIRA_VM_ID) is required to upload submissions to TIRA.",
+            "You are not authenticated.\n\tPlease use the following command to authenticate yourself:\n\ttira-cli login --token YOUR-AUTH-TOKEN\n\ttira-cli verify-installation\n\n\n\tPlease pass --dry-run if you want to test without uploading",
             _fmt.ERROR,
         )
         return
