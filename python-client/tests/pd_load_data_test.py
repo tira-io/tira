@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 
 from tira.rest_api_client import Client
@@ -141,3 +143,27 @@ class TestLocalExecutionIntegrationTest(unittest.TestCase):
         self.assertEqual(833860, last_line["query_id"])
         self.assertEqual("2830558", last_line["unknown_doc_id"])
         self.assertEqual(0, last_line["qrel_unknown_doc"])
+
+    def test_pd_load_inputs_local_from_sandbox(self):
+        try:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                os.environ["TIRA_INPUT_DATASET"] = (
+                    "tests/resources/local_cached_zip/extracted_datasets/task-does-not-exist/dataset-does-not-exist-20241201-training/input-data/"
+                )
+                tira = Client(tira_cache_dir=tmp_dir, base_url="fooo", archive_base_url="fooo")
+                actual = tira.pd.inputs("DOES_NOT_EXIST")
+                self.assertEqual(13, len(actual))
+                first_line = actual.iloc[0].to_dict()
+                last_line = actual.iloc[12].to_dict()
+
+                self.assertEqual("5a8865b0-19d7-4b33-bbe3-2f64ad54557f", first_line["id"])
+                self.assertTrue("query_id" not in first_line)
+                self.assertTrue("unknown_doc_id" not in first_line)
+                self.assertTrue("qrel_unknown_doc" not in first_line)
+
+                self.assertEqual("449f69fa-df0e-4c9e-aead-61983ce9eaa8", last_line["id"])
+                self.assertTrue("query_id" not in last_line)
+                self.assertTrue("unknown_doc_id" not in last_line)
+                self.assertTrue("qrel_unknown_doc" not in last_line)
+        finally:
+            del os.environ["TIRA_INPUT_DATASET"]

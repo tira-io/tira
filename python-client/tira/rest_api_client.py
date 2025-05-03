@@ -48,8 +48,10 @@ class Client(TiraClient):
         tira_cache_dir: "Optional[str]" = None,
         verify: bool = True,
         allow_local_execution: bool = False,
+        archive_base_url: str = "https://tira.io",
     ):
         self.base_url = base_url or "https://www.tira.io"
+        self.archive_base_url = archive_base_url
         self.logged: "set[str]" = set()
         self.verify = verify
         self.failsave_max_delay = failsave_max_delay
@@ -147,6 +149,8 @@ class Client(TiraClient):
         return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
 
     def dataset_exists_in_tira(self, dataset):
+        if "TIRA_INPUT_DATASET" in os.environ:
+            return True
         ds_identifier = self._TiraClient__extract_dataset_identifier(dataset)
         datasets = self.archived_json_response("/v1/datasets/all")
 
@@ -1147,7 +1151,7 @@ class Client(TiraClient):
             return json.load(open(out, "r"))
 
         out.parent.mkdir(exist_ok=True, parents=True)
-        base_url = "https://tira.io" if not force_reload else self.base_url
+        base_url = self.archive_base_url if not force_reload else self.base_url
         response = self.json_response(endpoint, base_url=base_url, failsave_retries=1)
 
         with open(out, "w") as f:
