@@ -199,6 +199,26 @@ As soon as you have `added a dataset <#add-a-new-dataset>`_ and `configured the 
 
 ------
 
+
+
+Verify all Active Accounts
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Participants of active shared tasks in TIRA use access tokens that might expire if teams participate over multiple years. You can ensure that all the access tokens (for the TIRA UI for uploading runs and/or metadata and for the Docker registry to upload docker images) are valid via the following command (executed within the tira backend pod in kubernetes)
+
+.. code:: bash
+
+   ./manage.py verify_active_accounts
+
+Next, delete the invalid tokens, they will get re-created when the page is visited again.
+
+
+.. code:: bash
+
+   ./manage dbshell
+   SELECT * FROM tira_discoursetokenforuser WHERE vm_id_id = 'VM-ID';
+
+
 .. note:: This is the previous version
 
 Modifying virtual machines

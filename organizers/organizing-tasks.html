@@ -477,7 +477,19 @@ Test in TIRA.io</label><div class="sd-tab-content docutils">
 <p>The simplest option to test that your evaluator works in TIRA.io is to upload the predictions so that the evaluator will run.</p>
 </div>
 </div>
+</section>
 <hr class="docutils" />
+<section id="verify-all-active-accounts">
+<h2>Verify all Active Accounts<a class="headerlink" href="#verify-all-active-accounts" title="Link to this heading">¶</a></h2>
+<p>Participants of active shared tasks in TIRA use access tokens that might expire if teams participate over multiple years. You can ensure that all the access tokens (for the TIRA UI for uploading runs and/or metadata and for the Docker registry to upload docker images) are valid via the following command (executed within the tira backend pod in kubernetes)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./manage.py<span class="w"> </span>verify_active_accounts
+</pre></div>
+</div>
+<p>Next, delete the invalid tokens, they will get re-created when the page is visited again.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./manage<span class="w"> </span>dbshell
+SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>tira_discoursetokenforuser<span class="w"> </span>WHERE<span class="w"> </span><span class="nv">vm_id_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;VM-ID&#39;</span><span class="p">;</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This is the previous version</p>
@@ -708,6 +720,7 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
 <li><a class="reference internal" href="#add-an-evaluator">Add an Evaluator</a></li>
 <li><a class="reference internal" href="#add-a-new-dataset">Add a new Dataset</a></li>
 <li><a class="reference internal" href="#test-your-evaluator">Test your Evaluator</a></li>
+<li><a class="reference internal" href="#verify-all-active-accounts">Verify all Active Accounts</a></li>
 <li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a><ul>
 <li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a></li>
 </ul>
