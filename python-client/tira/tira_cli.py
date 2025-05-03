@@ -88,9 +88,20 @@ def evaluate_command(predictions: Path, truths: Path, dataset: str, **kwargs) ->
 
         truths = Path(client.download_dataset(task_id, eval_config["dataset_id"], truth_dataset=True))
 
-    from tira.evaluators import evaluate
+    from tira.evaluators import evaluate, load_evaluator_config
 
-    print(evaluate(Path(predictions), Path(truths), eval_config))
+    use_unsandboxed_evaluator = False
+
+    try:
+        load_evaluator_config(eval_config, client)
+        use_unsandboxed_evaluator = True
+    except:
+        pass
+
+    if use_unsandboxed_evaluator:
+        print(evaluate(Path(predictions), Path(truths), eval_config))
+    else:
+        client.evaluate(Path(predictions), dataset)
 
     return 0
 

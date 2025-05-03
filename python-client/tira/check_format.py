@@ -45,7 +45,7 @@ def log_message(message: str, level: _fmt):
     - message (str): The log message to display.
     - level (_fmt): The level of the message; can be _fmt.OK, _fmt.WARN, _fmt.ERROR.
     """
-    return fmt_message(message, level)
+    print(fmt_message(message, level))
 
 
 CONF_REQUIRED_FIELDS = "required_fields"

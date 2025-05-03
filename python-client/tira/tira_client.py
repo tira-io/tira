@@ -177,18 +177,17 @@ class TiraClient(ABC):
 
         result, msg = check_format(directory, dataset_handle["format"][0])
         if result != _fmt.OK:
-            print_message(msg, result)
+            log_message(msg, result)
             raise ValueError(msg)
         print_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
 
-        print(dataset_handle)
         dataset_path = self.download_dataset(dataset_handle["default_task"], dataset_id, truth_dataset=True)
 
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         if not self.local_execution.docker_is_installed_failsave():
             msg = "Docker is not installed, I can not run the dockerized evaluator..."
-            print_message(msg, _fmt.ERROR)
+            log_message(msg, _fmt.ERROR)
             raise ValueError(msg)
 
         print_message("Docker is installed. I can run the dockerized evaluator.", _fmt.OK)
@@ -218,7 +217,7 @@ class TiraClient(ABC):
                 print(msg)
                 raise ValueError(msg)
 
-            print_message("The evaluator was successfull.", _fmt.OK)
+            log_message("The evaluator was successfull.", _fmt.OK)
             print("\n\nResult:\n\t" + preds)
 
     def __extract_task_and_dataset_id(self, task, dataset):
