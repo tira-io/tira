@@ -43,14 +43,17 @@
         <template v-slot:item.1>
           <v-card title="Specify what you want to upload" flat>
             <v-radio-group v-model="upload_configuration">
-              <v-radio label="I want to upload runs" value="upload-config-1" />
-              <v-radio label="I want to upload a model from Hugging Face" value="upload-config-2" />
+              <v-radio label="I want to upload runs via the command line" value="upload-config-2" />
+              <v-radio label="I want to upload runs via the UI" value="upload-config-1" />
             </v-radio-group>
           </v-card>
         </template>
 
         <template v-slot:item.2>
           <v-card flat>
+            <div v-if="upload_configuration === 'upload-config-2'">
+              <upload-submission-via-cli :token="token" :datasets="datasets"/>
+            </div>
             <div v-if="upload_configuration === 'upload-config-1'">
               In TIRA, approaches are often evaluated on multiple datasets. Please ensure that you correctly group runs
               created by the same approach. <span v-if="userUploadGroups.length == 0">You have no upload groups
@@ -100,44 +103,10 @@
                 </div>
               </div>
             </div>
-
-            <div v-if="upload_configuration === 'upload-config-2'">
-              Please specify the model that will be downloaded via huggingface-cli
-              <v-text-field v-model="hugging_face_model" label="Hugging Face Model " />
-              <div v-if="hugging_face_model">
-                The following command will be used to download your model:
-
-                <code-snippet title="TIRA will download and mount the model via"
-                  :code="'huggingface-cli download ' + hugging_face_model" expand_message="" />
-                You can later mount the downloaded model into your software submission. Please click next to
-                upload/import this Hugging Face model to TIRA.
-              </div>
-            </div>
           </v-card>
         </template>
 
-        <template v-slot:item.3>
-          <v-card flat>
-
-            <div v-if="hf_model_available === 'loading'">
-              Download the model ...
-            </div>
-            <loading :loading="hf_model_available === 'loading'" />
-
-            <span v-if="hf_model_available && hf_model_available !== 'loading'">
-              The Huggingface model {{ hugging_face_model }} is already available in TIRA.
-            </span>
-            <span v-if="!hf_model_available">
-              The Huggingface model {{ hugging_face_model }} is not yet available in TIRA and the automatic upload is
-              disabled for this task. Please <a :href="contact_organizer">contact</a> the organizer <a
-                :href="link_organizer"> {{ organizer }}</a> to manually upload the model (this is usually finished
-              within 24 hours).
-            </span>
-          </v-card>
-        </template>
-
-
-        <v-stepper-actions @click:prev="stepperModel = Math.max(1, stepperModel - 1)" @click:next="nextStep"
+        <v-stepper-actions @click:prev="stepperModel = Math.max(1, stepperModel - 1)" @click:next="stepperModel = Math.max(1, stepperModel +1)"
           :disabled='disableUploadStepper'></v-stepper-actions>
 
       </v-stepper>
@@ -163,19 +132,6 @@
         </div>
 
       </div>
-      <v-btn v-if="description !== 'no-description' && upload_type_next_upload == 'upload-via-ui'" color="primary"
-        :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
-        @click="fileUpload(us.id)">Upload Run</v-btn>
-
-
-      <div v-if="upload_type_next_upload == 'upload-via-script'">
-        <code-snippet title="(1) Make sure that your TIRA client is up to date and authenticated"
-          :code="tira_setup_code"
-          expand_message="(1) Make sure that your TIRA client is up to date and authenticated" />
-
-        <code-snippet title="Batch upload runs via python" :code="batch_upload_code(us.display_name)"
-          expand_message="" />
-      </div>
 
       <h2>Your Existing Submissions for Approach {{ us.display_name }}</h2>
       <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task"
@@ -187,11 +143,14 @@
       <v-form class="my-5"  v-if="description !== 'no-description' && upload_for_approach">
         <h2>Upload new Submissions for Approach {{ us.display_name }}</h2>
         <v-radio-group v-model="upload_type_next_upload">
+          <v-radio :label="'I want to upload runs for approach ' + us.display_name + ' via the command line'"
+            value="upload-via-script"/>
           <v-radio :label="'I want to upload a new run for approach ' + us.display_name + ' via the web UI'"
             value="upload-via-ui" />
-          <v-radio :label="'I want to batch upload runs for approach ' + us.display_name + ' via a script'"
-            value="upload-via-script" />
         </v-radio-group>
+        <div v-if="upload_type_next_upload == 'upload-via-script'">
+          <upload-submission-via-cli :token="token" :datasets="datasets" :approach="us.display_name"/>
+        </div>
         <div v-if="upload_type_next_upload == 'upload-via-ui'">
           <v-file-input v-model="fileHandle" :rules="[v => !!v || 'File is required']" label="Click to add run file" />
           <v-autocomplete label="Input Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
@@ -200,6 +159,12 @@
           <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
             v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
         </div>
+        <v-btn v-if="description !== 'no-description' && upload_type_next_upload == 'upload-via-ui'" color="primary"
+        :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
+
+        class="my-5" prepend-icon="mdi-plus" size="large" block
+
+        @click="fileUpload(us.id)">Upload Run</v-btn>
       </v-form>
     </v-window-item>
   </v-window>
@@ -213,11 +178,12 @@ import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractSoftwareId
 import { Loading, LoginToSubmit, RunList } from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 import ImportSubmission from "./ImportSubmission.vue";
-import CodeSnippet from "../components/CodeSnippet.vue"
+import CodeSnippet from "../components/CodeSnippet.vue";
+import UploadSubmissionViaCli from "./UploadSubmissionViaCli.vue"
 
 export default {
   name: "upload-submission",
-  components: { EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList, ImportSubmission, CodeSnippet },
+  components: { EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList, ImportSubmission, CodeSnippet, UploadSubmissionViaCli },
   props: ['organizer', 'organizer_id'],
   emits: ['refresh_running_submissions'],
   data() {
@@ -275,9 +241,7 @@ export default {
     },
     link_organizer() { return get_link_to_organizer(this.organizer_id); },
     contact_organizer() { return get_contact_link_to_organizer(this.organizer_id); },
-    tira_setup_code() {
-      return 'pip3 uninstall -y tira\npip3 install tira\ntira-cli login --token ' + this.token
-    },
+    
     disableUploadStepper() {
       if (this.stepperModel == '1' && !this.upload_configuration) {
         return 'next';
@@ -320,18 +284,6 @@ export default {
         '    # assume run to upload is located in a file dataset_id/run\n' +
         '    run_file = Path(dataset_id) / \'run\'\n' +
         '    tira.upload_run(approach=approach, dataset_id=dataset_id, file_path=run_file);\n'
-    },
-    nextStep() {
-      if (this.stepperModel == 1) {
-        this.stepperModel = 2;
-      }
-      else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
-        this.hf_model_available = 'loading'
-        get(this.rest_url + '/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
-          .then(inject_response(this))
-          .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
-        this.stepperModel = 3;
-      }
     },
     deleteUpload(id_to_delete) {
       get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)

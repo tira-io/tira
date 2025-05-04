@@ -24,6 +24,9 @@
       <v-window-item value="upload-submission">
         <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
+      <v-window-item value="upload-models">
+        <upload-models :organizer="organizer" :organizer_id="organizer_id"/>
+      </v-window-item>
     </v-window>
     </div>
 </template>
@@ -34,13 +37,14 @@ import { inject } from 'vue'
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import CodeSubmission from "@/submission-components/CodeSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
+import UploadModels from "@/submission-components/UploadModels";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'
 
 import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError } from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, TiraBreadcrumb, CodeSubmission, DockerSubmission, RunningProcesses},
+  components: {UploadSubmission, UploadModels, TiraBreadcrumb, CodeSubmission, DockerSubmission, RunningProcesses},
   data() {
     return {
         tab: extractSubmissionTypeFromCurrentUrl(),
@@ -52,7 +56,8 @@ export default {
         all_tabs: [
           {'id': 'code-submission', 'title': 'Code Submissions', 'icon': 'mdi-code-json'},
           {'id': 'docker-submission', 'title': 'Docker Submissions', 'icon': 'mdi-docker'},
-          {'id': 'upload-submission', 'title': 'Run Uploads', 'icon': 'mdi-folder-upload-outline'}
+          {'id': 'upload-submission', 'title': 'Run Uploads', 'icon': 'mdi-folder-upload-outline'},
+          {'id': 'upload-models', 'title': 'Upload Models', 'icon': 'mdi-folder-upload-outline'}
         ]
     }
   },
