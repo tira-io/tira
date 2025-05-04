@@ -197,7 +197,8 @@ export default {
           this.poll_in_progress = false
 
           if (this.running_software.length > 0) {
-            this.pollSoftwareInterval = setTimeout(this.pollRunningSoftware, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+            console.log("ToDo: Re-Enable automatic polling...")
+            //this.pollSoftwareInterval = setTimeout(this.pollRunningSoftware, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
           } else if ('' + this.pollSoftwareInterval !== 'null') {
             clearTimeout(this.pollSoftwareInterval)
           }

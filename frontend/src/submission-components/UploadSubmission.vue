@@ -159,6 +159,11 @@
           <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
             v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
         </div>
+
+        <v-row>
+          <v-col cols="12"><v-alert v-if="error_message" title="Uploading the run failed. Maybe a short hiccup?" type="error" closable :text="error_message"/></v-col>
+        </v-row>
+
         <v-btn v-if="description !== 'no-description' && upload_type_next_upload == 'upload-via-ui'" color="primary"
         :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
 
@@ -207,6 +212,7 @@ export default {
       fileHandle: null,
       description: 'no-description',
       rename_to: '',
+      error_message: '',
       editUploadMetadataToggle: false,
       hf_model_available: 'loading',
       all_uploadgroups: [{ "id": null, "display_name": 'loading...' }],
@@ -273,18 +279,6 @@ export default {
       this.description = editedDetails.description
       handleModifiedSubmission(editedDetails, this.all_uploadgroups)
     },
-    batch_upload_code(display_name) {
-      return 'from tira.rest_api_client import Client\n' +
-        'from pathlib import Path\n' +
-        'from tqdm import tqdm\n\n' +
-        'tira = Client()\n' +
-        'approach = \'' + this.task_id + '/' + this.user_id_for_task + '/' + display_name + '\'\n' +
-        'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n\n' +
-        'for dataset_id in tqdm(dataset_ids):\n' +
-        '    # assume run to upload is located in a file dataset_id/run\n' +
-        '    run_file = Path(dataset_id) / \'run\'\n' +
-        '    tira.upload_run(approach=approach, dataset_id=dataset_id, file_path=run_file);\n'
-    },
     deleteUpload(id_to_delete) {
       get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
         .then(message => {
@@ -297,11 +291,22 @@ export default {
     async fileUpload(id_to_upload) {  // async
       this.uploading = true
       let formData = new FormData();
-      formData.append("file", this.fileHandle[0]);
-      post_file(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/${id_to_upload}`, formData)
+      this.error_message = ''
+      formData.append("file", this.fileHandle);
+      let endpoint = this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/${id_to_upload}`
+      post_file(endpoint, formData, this.userinfo, true)
         .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
-        .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
-        .then(() => { this.clean_formular() })
+        .catch(e => {
+          this.error_message = e["message"];
+          reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: ")(e)
+        })
+        .then(() => {
+          this.uploading = false;
+          if (!this.error_message) {
+            this.clean_formular()
+            this.upload_for_approach = false
+          }
+        })
     },
     clean_formular() {
       this.uploading = false

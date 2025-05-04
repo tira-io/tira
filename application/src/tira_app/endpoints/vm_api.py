@@ -521,12 +521,41 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
-        uploaded_file = request.FILES["file"]
-        new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
-        if model.git_pipeline_is_enabled_for_task(task_id, cache):
-            run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+        if not request.FILES or not "file" in request.FILES.keys():
+            return JsonResponse({"status": 1, "message": "Please pass a payload. No file in the post"})
 
+        uploaded_file = request.FILES["file"]
+
+        from shutil import rmtree
+
+        from tira.evaluators import unsandboxed_evaluation_is_allowed
+
+        from ..model import Dataset, Run
+        from .v1._anonymous import check_format_for_dataset
+
+        dataset = Dataset.objects.get(dataset_id=dataset_id)
+
+        new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
+
+        run_dir = Path(new_run["run_dir"])
+        del new_run["run_dir"]
+        status_code, message = check_format_for_dataset(run_dir / "output", dataset)
+        if status_code != _fmt.OK:
+            rmtree(run_dir)
+            Run.objects.get(run_id=new_run["run"]["run_id"]).delete()
+            return JsonResponse({"status": 1, "message": message})
+
+        dataset_dict = model.model._dataset_to_dict(dataset)
+
+        if not unsandboxed_evaluation_is_allowed(dataset_dict):
+            raise ValueError("fooo")
+
+        if unsandboxed_evaluation_is_allowed(dataset_dict):
+            run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+        elif model.git_pipeline_is_enabled_for_task(task_id, cache):
+            run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
             return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
+
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})

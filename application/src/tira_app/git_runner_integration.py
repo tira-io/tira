@@ -194,7 +194,7 @@ class GitRunner:
 
         (job_dir / "job-to-execute.txt").write_text(self.dict_to_key_value_file(metadata))
 
-    def create_user_repository(self, user_name):
+    def create_user_repository(self, user_name, force_recreate=False):
         """
         Create the repository for user with the name "user_name" in the organization.
         An organization has task repositories (execute and evaluate submissions)
@@ -209,7 +209,7 @@ class GitRunner:
         """
         repo = "tira-user-" + user_name
         existing_repo = self.existing_repository(repo)
-        if existing_repo:
+        if existing_repo and not force_recreate:
             return existing_repo.id
 
         project = self._create_task_repository_on_gitHoster(repo)
@@ -233,9 +233,15 @@ class GitRunner:
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             repo = Repo.init(tmp_dir)
-            write_to_file(str(tmp_dir) + "/README.md", project_readme)
 
             repo.create_remote("origin", self.repo_url(git_repository_id))
+            try:
+                repo.remote().pull(self.user_repository_branch)
+                print("pulled")
+            except:
+                pass
+            write_to_file(str(tmp_dir) + "/README.md", project_readme)
+
             self.ensure_branch_is_main(repo)
             repo.index.add(["README.md"])
             repo.index.commit("Initial commit")

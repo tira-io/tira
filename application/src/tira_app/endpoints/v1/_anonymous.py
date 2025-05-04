@@ -109,6 +109,17 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     return FileResponse(ret, as_attachment=True, filename=f"{submission_uuid}.zip")
 
 
+def check_format_for_dataset(directory, dataset):
+    format = json.loads(dataset.format)
+    format_configuration = None
+    if dataset and dataset.format_configuration:
+        try:
+            format_configuration = json.loads(dataset.format_configuration)
+        except:
+            pass
+    return check_format(directory, format, format_configuration)
+
+
 @api_view(["POST", "GET"])
 @check_permissions
 def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Response:
@@ -132,15 +143,8 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     body = request.body.decode("utf-8")
     body = json.loads(body)
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
-    format = json.loads(upload.dataset.format)
-    format_configuration = None
-    if upload.dataset and upload.dataset.format_configuration:
-        try:
-            format_configuration = json.loads(upload.dataset.format_configuration)
-        except:
-            pass
-    status_code, message = check_format(result_dir, format, format_configuration)
 
+    status_code, message = check_format_for_dataset(result_dir, upload.dataset)
     if status_code != _fmt.OK:
         return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 

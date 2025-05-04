@@ -219,6 +219,20 @@ Next, delete the invalid tokens, they will get re-created when the page is visit
    SELECT * FROM tira_discoursetokenforuser WHERE vm_id_id = 'VM-ID';
 
 
+
+Ensure CephFS is mounted
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- hosts: gammaweb01, gammaweb02, gammaweb03
+Add the following line to /etc/fstab:
+
+ceph.dw.webis.de:/tira		/mnt/ceph/tira	ceph	name=tira,recover_session=clean,_netdev,shared	0 0
+
+Mount it via:
+
+sudo mount /mnt/ceph/tira
+
+
 .. note:: This is the previous version
 
 Modifying virtual machines

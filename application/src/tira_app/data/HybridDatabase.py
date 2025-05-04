@@ -2436,7 +2436,7 @@ class HybridDatabase(object):
         returned_run = self._run_as_dict(db_run)
         returned_run["review"] = self.get_run_review(dataset_id, vm_id, run.runId)
 
-        return {"run": returned_run, "last_edit_date": upload.last_edit_date}
+        return {"run": returned_run, "last_edit_date": upload.last_edit_date, "run_dir": run_dir}
 
     def update_upload_metadata(
         self, task_id: str, vm_id: str, upload_id: str, display_name: str, description: str, paper_link: str
