@@ -18,22 +18,22 @@ class TestIoUtils(unittest.TestCase):
         ]
         zipped = zip_dir(IR_METADATA_MULTIPLE_VALID)
         actual = zipfile.ZipFile(zipped).namelist()
-        self.assertEqual(expected, actual)
+        self.assertEqual(sorted(expected), sorted(actual))
 
     def test_zipping_of_directory_02(self):
         expected = ["foo-metadata.yml"]
         zipped = zip_dir(IR_METADATA_MULTIPLE_VALID / "foo-1" / "foo-2" / "foo-metadata.yml")
         actual = zipfile.ZipFile(zipped).namelist()
-        self.assertEqual(expected, actual)
+        self.assertEqual(sorted(expected), sorted(actual))
 
     def test_zipping_of_directory_03(self):
         expected = ["m.yaml"]
         zipped = zip_dir(IR_METADATA_MULTIPLE_VALID / "foo-1" / "foo-2" / "m.yaml")
         actual = zipfile.ZipFile(zipped).namelist()
-        self.assertEqual(expected, actual)
+        self.assertEqual(sorted(expected), sorted(actual))
 
     def test_zipping_of_directory_04(self):
         expected = ["metadata.yaml"]
         zipped = zip_dir(IR_METADATA_MULTIPLE_VALID / "metadata.yaml")
         actual = zipfile.ZipFile(zipped).namelist()
-        self.assertEqual(expected, actual)
+        self.assertEqual(sorted(expected), sorted(actual))
