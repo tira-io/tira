@@ -490,6 +490,16 @@ Test in TIRA.io</label><div class="sd-tab-content docutils">
 SELECT<span class="w"> </span>*<span class="w"> </span>FROM<span class="w"> </span>tira_discoursetokenforuser<span class="w"> </span>WHERE<span class="w"> </span><span class="nv">vm_id_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;VM-ID&#39;</span><span class="p">;</span>
 </pre></div>
 </div>
+</section>
+<section id="ensure-cephfs-is-mounted">
+<h2>Ensure CephFS is mounted<a class="headerlink" href="#ensure-cephfs-is-mounted" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>hosts: gammaweb01, gammaweb02, gammaweb03</p></li>
+</ul>
+<p>Add the following line to /etc/fstab:</p>
+<p>ceph.dw.webis.de:/tira          /mnt/ceph/tira  ceph    name=tira,recover_session=clean,_netdev,shared  0 0</p>
+<p>Mount it via:</p>
+<p>sudo mount /mnt/ceph/tira</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This is the previous version</p>
@@ -721,6 +731,7 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
 <li><a class="reference internal" href="#add-a-new-dataset">Add a new Dataset</a></li>
 <li><a class="reference internal" href="#test-your-evaluator">Test your Evaluator</a></li>
 <li><a class="reference internal" href="#verify-all-active-accounts">Verify all Active Accounts</a></li>
+<li><a class="reference internal" href="#ensure-cephfs-is-mounted">Ensure CephFS is mounted</a></li>
 <li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a><ul>
 <li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a></li>
 </ul>
