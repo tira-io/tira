@@ -149,7 +149,9 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
     return obj
 
 
-def zip_dir(file_path):
+def zip_dir(file_path, allow_list=None):
+    if os.path.isfile(file_path):
+        return zip_dir(Path(file_path).parent, set([Path(file_path).name]))
     from tira.third_party_integrations import temporary_directory
 
     zip_file = temporary_directory()
@@ -158,6 +160,8 @@ def zip_dir(file_path):
     zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
     for root, _, files in os.walk(file_path):
         for name in files:
+            if allow_list is not None and name not in allow_list:
+                continue
             filePath = os.path.join(root, name)
             zf.write(filePath, arcname=Path(filePath).relative_to(file_path))
 

@@ -9,7 +9,7 @@ from tira import __version__
 from tira.check_format import fmt_message
 from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
-from tira.tira_run import guess_system_name, guess_vm_id_of_user
+from tira.tira_run import guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient
@@ -246,7 +246,7 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
     vm_id = None
     default_task = None
     if client.api_key_is_valid():
-        system = guess_system_name(directory, system)
+        system = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
         vm_id = guess_vm_id_of_user(default_task, client)
@@ -270,7 +270,9 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
         return 0
     else:
         print("\nI upload the metadata for the submission...")
-        resp = client.claim_ownership(resp["uuid"], vm_id, system, "todo: Add a description", default_task)
+        resp = client.claim_ownership(
+            resp["uuid"], vm_id, system["tag"], system.get("description", "todo: Add a description"), default_task
+        )
         if "status" not in resp or "0" != resp["status"]:
             raise ValueError("There was an error with the upload, please try again...")
         print(

@@ -65,9 +65,9 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
         return
 
 
-def guess_system_name(directory, system):
+def guess_system_details(directory, system):
     if system:
-        return system
+        return {"tag": system}
     ret = set()
 
     from tira.check_format import lines_if_valid
@@ -86,12 +86,13 @@ def guess_system_name(directory, system):
             and l["content"]["tag"]
             and isinstance(l["content"]["tag"], str)
         ):
-            ret.add(l["content"]["tag"])
+            ret = {"tag": l["content"]["tag"]}
+            if "research goal" in l["content"] and "description" in l["content"]["research goal"]:
+                ret["description"] = l["content"]["research goal"]["description"]
 
-    if len(ret) == 1:
-        return list(ret)[0]
-    else:
-        return None
+            return ret
+
+    return None
 
 
 def parse_args():

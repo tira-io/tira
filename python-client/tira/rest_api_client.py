@@ -169,7 +169,7 @@ class Client(TiraClient):
         upload_group = None
 
         try:
-            upload_group = self.get_upload_group_id(task_id, team, system)
+            upload_group = self.get_upload_group_id(task_id, team, system, failsave=True)
         except:
             pass
 
@@ -910,7 +910,7 @@ class Client(TiraClient):
         ret = json.loads(ret)
         assert ret["status"] == 0
 
-    def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str) -> int:
+    def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str, failsave: bool = False) -> int:
         """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name.
         Raises an error if no matching upload_group was found."""
         url = f"/api/submissions-for-task/{task_id}/{vm_id}/upload"
@@ -923,14 +923,15 @@ class Client(TiraClient):
             if display_name is not None and upload_group["display_name"] == display_name:
                 return upload_group["id"]
 
-        logging.error(
-            f"Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:",
-            ret["context"]["all_uploadgroups"],
-        )
-        raise ValueError(
-            "Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:",
-            ret["context"]["all_uploadgroups"],
-        )
+        if not failsave:
+            logging.error(
+                f"Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:",
+                ret["context"]["all_uploadgroups"],
+            )
+            raise ValueError(
+                "Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:",
+                ret["context"]["all_uploadgroups"],
+            )
 
     def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
