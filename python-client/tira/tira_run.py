@@ -65,6 +65,35 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
         return
 
 
+def guess_system_name(directory, system):
+    if system:
+        return system
+    ret = set()
+
+    from tira.check_format import lines_if_valid
+
+    lines = []
+    try:
+        lines = lines_if_valid(Path(directory), "ir_metadata")
+    except ValueError:
+        pass
+
+    for l in lines:
+        if (
+            l
+            and "content" in l
+            and "tag" in l["content"]
+            and l["content"]["tag"]
+            and isinstance(l["content"]["tag"], str)
+        ):
+            ret.add(l["content"]["tag"])
+
+    if len(ret) == 1:
+        return list(ret)[0]
+    else:
+        return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(prog="tira-run")
     parser.add_argument("--input-directory", required=False, default=str(os.path.abspath(".")))

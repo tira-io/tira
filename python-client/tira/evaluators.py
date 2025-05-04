@@ -123,42 +123,58 @@ class TextGenerationEvaluator(TiraBaseEvaluator):
 
 class RunFileEvaluator(TiraBaseEvaluator):
     def throw_if_conf_invalid(self, config: dict) -> None:
-        if "run.txt" != self._run_format and "run.txt" not in self._run_format:
-            raise ValueError("I can only use the RunFileEvaluator for run.txt format")
+
+        if ("run.txt" != self._run_format and "run.txt" not in self._run_format) and (
+            "LongEvalLags" != self._run_format and "LongEvalLags" not in self._run_format
+        ):
+            raise ValueError("I can only use the RunFileEvaluator for run.txt/LongEvalLags format")
+
+        self.lags = [""]
+        if "LongEvalLags" == self._run_format or "LongEvalLags" in self._run_format:
+            self.lags = config["lags"]
 
         self._run_format = "run.txt"
         if self._truth_format and "qrels.txt" != self._truth_format and "qrels.txt" not in self._truth_format:
             self._truth_format = "qrels.txt"
 
-    def evaluate(self, run: Path, truths: Path) -> "dict[str, Any]":
-        self.is_valid(run, self._run_format, True)
+    def evaluate(self, run_orig: Path, truths: Path) -> "dict[str, Any]":
+        ret = {}
 
-        expected_queries = None
-        if self._truth_format is not None:
+        for lag in self.lags:
+            run = run_orig
+            if lag:
+                run = Path(run_orig) / lag
+            self.is_valid(Path(run), self._run_format, True)
 
-            self.is_valid(truths, self._truth_format)
-            expected_queries = lines_if_valid(truths, self._truth_format)
-            expected_queries = set([i["qid"] for i in expected_queries])
+            expected_queries = None
+            if self._truth_format is not None:
 
-        run_data = lines_if_valid(run, self._run_format)
-        counts = defaultdict(set)
+                self.is_valid(truths, self._truth_format)
+                expected_queries = lines_if_valid(truths, self._truth_format)
+                expected_queries = set([i["qid"] for i in expected_queries])
 
-        for i in run_data:
-            if expected_queries and i["qid"] not in expected_queries:
-                continue
-            counts[i["qid"]].add(i["docno"])
+            run_data = lines_if_valid(run, self._run_format)
+            counts = defaultdict(set)
 
-        lengths = [len(i) for i in counts.values()]
-        num_queries = len(counts.keys())
+            for i in run_data:
+                if expected_queries and i["qid"] not in expected_queries:
+                    continue
+                counts[i["qid"]].add(i["docno"])
 
-        ret = {
-            "Docs Per Query (Avg)": sum(lengths) / num_queries,
-            "Docs Per Query (Min)": min(lengths),
-            "Docs Per Query (Max)": max(lengths),
-            "NumQueries": num_queries,
-        }
+            lengths = [len(i) for i in counts.values()]
+            num_queries = len(counts.keys())
+            prefix = "" if not lag else f"{lag} "
 
-        return {k: ret[k] for k in self._measures}
+            ret.update(
+                {
+                    f"{prefix}Docs Per Query (Avg)": sum(lengths) / num_queries,
+                    f"{prefix}Docs Per Query (Min)": min(lengths),
+                    f"{prefix}Docs Per Query (Max)": max(lengths),
+                    f"{prefix}NumQueries": num_queries,
+                }
+            )
+
+        return {k: ret[k] for k in ret if any([i in k for i in self._measures])}
 
 
 class WowsEvalEvaluator(TiraBaseEvaluator):

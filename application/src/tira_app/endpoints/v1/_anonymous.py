@@ -247,7 +247,8 @@ def render_metadata_of_submission(request: "Request", submission_uuid: str, meta
                     if prefix:
                         name += " (" + prefix.strip() + ")"
                     tmp[name] = v
-        ret["resources"] = tmp
+
+            ret["resources"] = tmp
 
         return Response({"metadata": ret, "raw_metadata": raw_metadata, "status": "0"})
     else:

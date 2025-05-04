@@ -1,8 +1,11 @@
+import tempfile
 import unittest
 from os import listdir
 from pathlib import Path
+from shutil import copy
 
 from tests.format_check import EMPTY_OUTPUT, VALID_QREL_PATH, VALID_RUN_OUTPUT
+from tests.format_check.test_check_format_for_long_eval import persist_run_to_file
 from tira.evaluators import evaluate as _eval
 from tira.io_utils import parse_prototext_key_values
 
@@ -74,6 +77,64 @@ class TestIrEvaluators(unittest.TestCase):
         self.assertEqual(expected.keys(), actual.keys())
         for k, v in expected.items():
             self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
+    def test_evaluate_docs_per_query_for_long_eval(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            lags = ["2023-01"]
+            copy(EMPTY_OUTPUT.parent.parent / "longeval-ir-metadata/ir-metadata.yml", Path(tmp_dir) / "ir-metadata.yml")
+            for lag in lags:
+                persist_run_to_file(Path(tmp_dir) / lag)
+
+            expected = {
+                "2023-01 Docs Per Query (Avg)": 3.3333333,
+                "2023-01 Docs Per Query (Min)": 1,
+                "2023-01 Docs Per Query (Max)": 7,
+                "2023-01 NumQueries": 3,
+            }
+            actual = _eval(
+                tmp_dir,
+                EMPTY_OUTPUT,
+                {
+                    "run_format": "LongEvalLags",
+                    "lags": lags,
+                    "truth_format": None,
+                    "measures": ["Docs Per Query (Avg)", "Docs Per Query (Min)", "Docs Per Query (Max)", "NumQueries"],
+                },
+            )
+
+            self.assertEqual(expected.keys(), actual.keys())
+            for k, v in expected.items():
+                self.assertAlmostEqual(v, actual[k], delta=0.0001)
+
+    def test_evaluate_docs_per_query_for_long_eval_02(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            lags = ["2023-01", "2023-02", "2023-05"]
+            copy(EMPTY_OUTPUT.parent.parent / "longeval-ir-metadata/ir-metadata.yml", Path(tmp_dir) / "ir-metadata.yml")
+            for lag in lags:
+                persist_run_to_file(Path(tmp_dir) / lag)
+
+            expected = {
+                "2023-01 Docs Per Query (Avg)": 3.3333333,
+                "2023-01 Docs Per Query (Max)": 7,
+                "2023-02 Docs Per Query (Avg)": 3.3333333,
+                "2023-02 Docs Per Query (Max)": 7,
+                "2023-05 Docs Per Query (Avg)": 3.3333333,
+                "2023-05 Docs Per Query (Max)": 7,
+            }
+            actual = _eval(
+                tmp_dir,
+                EMPTY_OUTPUT,
+                {
+                    "run_format": "LongEvalLags",
+                    "lags": lags,
+                    "truth_format": None,
+                    "measures": ["Docs Per Query (Avg)", "Docs Per Query (Max)"],
+                },
+            )
+
+            self.assertEqual(expected.keys(), actual.keys())
+            for k, v in expected.items():
+                self.assertAlmostEqual(v, actual[k], delta=0.0001)
 
     def test_evaluate_docs_per_query_with_qrels(self):
         expected = {

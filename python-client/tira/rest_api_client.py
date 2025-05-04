@@ -157,6 +157,36 @@ class Client(TiraClient):
         ret = self._TiraClient__matching_dataset(datasets, ds_identifier)
         return ret is not None
 
+    def claim_ownership(self, uuid, team, system, description, task_id):
+        headers = {
+            "Api-Key": self.api_key,
+            "Api-Username": self.api_user_name,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        self.fail_if_api_key_is_invalid()
+
+        upload_group = None
+
+        try:
+            upload_group = self.get_upload_group_id(task_id, team, system)
+        except:
+            pass
+
+        url = f"{self.base_url}/v1/anonymous/claim/{team}/{uuid}"
+        if upload_group:
+            content = {"upload_group": upload_group}
+        else:
+            content = {
+                "display_name": system,
+                "description": description,
+                "paper_link": "",
+            }
+
+        ret = requests.post(url, headers=headers, json=content)
+        ret = ret.content.decode("utf8")
+        return json.loads(ret)
+
     def get_dataset(self, dataset) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
@@ -912,7 +942,8 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
 
-    def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False):
+    def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
+        print(f"I will upload the submission in directory '{file_path}' to TIRA.")
         upload_to_tira = self.get_dataset(dataset_id)
 
         if isinstance(file_path, str):
@@ -931,10 +962,10 @@ class Client(TiraClient):
         for format in accepted_formats:
             status_code, msg = check_format(file_path, format, format_configuration)
 
-            print(msg.strip())
             if status_code != _fmt.OK:
                 error_msg += "\n" + msg
             else:
+                print("\t" + fmt_message(msg.strip(), status_code))
                 error_msg += ""
 
         if error_msg:
@@ -978,7 +1009,16 @@ class Client(TiraClient):
             raise ValueError(message)
 
         resp = resp.json()
-        print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
+        if verbose:
+            print(
+                "\t"
+                + fmt_message(
+                    f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}',
+                    _fmt.OK,
+                )
+            )
+        else:
+            print("\t" + fmt_message(f"The data is uploaded.", _fmt.OK))
         return resp
 
     def create_group(self, vm_id):
