@@ -970,6 +970,8 @@ class Client(TiraClient):
                 error_msg += ""
 
         if error_msg:
+            print(error_msg)
+
             print(
                 "\nResult:\n\t"
                 + fmt_message(

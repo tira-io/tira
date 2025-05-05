@@ -395,6 +395,72 @@ class LongEvalLags(FormatBase):
         return [ret_code, ret_msg]
 
 
+class PowerAndIdeologyFormat(FormatBase):
+    def __init__(self, prefix_pattern, suffix_pattern, languages=None, tasks=None):
+        if not languages:
+            languages = [
+                "at",
+                "ba",
+                "be",
+                "bg",
+                "cz",
+                "dk",
+                "ee",
+                "es-ct",
+                "es-ga",
+                "es-pv",
+                "es",
+                "fi",
+                "fr",
+                "gb",
+                "gr",
+                "hr",
+                "hu",
+                "is",
+                "it",
+                "lv",
+                "nl",
+                "no",
+                "pl",
+                "pt",
+                "rs",
+                "se",
+                "si",
+                "tr",
+                "ua",
+            ]
+        if not tasks:
+            tasks = ["orientation", "power", "populism"]
+
+        self.languages = languages
+        self.tasks = tasks
+        self.prefix_pattern = prefix_pattern
+        self.suffix_pattern = suffix_pattern
+
+    def yield_next_entry(self, f: Path):
+        for language in self.languages:
+            for task in self.tasks:
+                matching_files = glob(
+                    str(f) + "/" + self.prefix_pattern + task + "-" + language + self.suffix_pattern + ".tsv"
+                )
+                for file in matching_files:
+                    with open(file, "rt") as f:
+                        for l in f:
+                            if len(l.split("\t")) != 2:
+                                raise ValueError(f"Invalid tsv line in {f}. Got '" + l + "'.")
+                            l = l.split("\t")
+                            yield {"id": l[0], "language": language, task: "task", "label": l[1]}
+
+    def check_format(self, run_output: Path):
+        lines = list(self.all_lines(run_output))
+        if len(lines) < 3:
+            return [
+                _fmt.ERROR,
+                f"I did not find any files in the power and ideology pattern.\n\n\tThe pattern is:\n\t{self.prefix_pattern}TASK-LANGUAGE{self.suffix_pattern}.tsv",
+            ]
+        return [_fmt.OK, f"I found {len(lines)} entries in the ideology and power task"]
+
+
 class GenIrSimulationFormat(JsonlFormat):
     def fail_if_json_line_is_not_valid(self, line):
         if "simulation" not in line:
@@ -960,6 +1026,8 @@ FORMAT_TO_CHECK = {
     "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
     "multi-author-writing-style-analysis-solutions": lambda: MultiAuthorWritingStyleAnalysis("solution-problem"),
     "multi-author-writing-style-analysis-truths": lambda: MultiAuthorWritingStyleAnalysis("truth-problem"),
+    "power-and-identification-truths": lambda: PowerAndIdeologyFormat("", "-*-labels"),
+    "power-and-identification-predictions": lambda: PowerAndIdeologyFormat("*", "*-predictions"),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))

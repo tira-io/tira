@@ -263,7 +263,7 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
 
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
     if not resp or "uuid" not in resp or not resp["uuid"]:
-        raise ValueError("Upload failed...")
+        return 1
 
     if not system or not vm_id:
         # only anonymous submissions
@@ -274,7 +274,8 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
             resp["uuid"], vm_id, system["tag"], system.get("description", "todo: Add a description"), default_task
         )
         if "status" not in resp or "0" != resp["status"]:
-            raise ValueError("There was an error with the upload, please try again...")
+            print(fmt_message(f"There was an error with the upload: {resp}.\n\nPlease try again...", _fmt.ERROR))
+            return 1
         print(
             "\t"
             + fmt_message(
