@@ -547,9 +547,6 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         dataset_dict = model.model._dataset_to_dict(dataset)
 
-        if not unsandboxed_evaluation_is_allowed(dataset_dict):
-            raise ValueError("fooo")
-
         if unsandboxed_evaluation_is_allowed(dataset_dict):
             run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
         elif model.git_pipeline_is_enabled_for_task(task_id, cache):
