@@ -37,14 +37,20 @@ def clean_job_output(ret):
         return clean_job_suffix(ret.split('$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m')[1])
     elif '$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m' in ret:
         return clean_job_suffix(ret.split('$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m')[1])
+    elif '$ /tracker/tirex-tracker.sh "${TIRA_COMMAND_TO_EXECUTE}' in ret:
+        return clean_job_suffix(ret.split('$ /tracker/tirex-tracker.sh "${TIRA_COMMAND_TO_EXECUTE}')[1])
     else:
         raise ValueError('The format of the output seems to be changed...\n\n' + ret)
 
 def clean_job_command(ret):
     ret = ''.join(filter(lambda x: x in string.printable, ret.strip()))
     
+    if '$ echo "${TIRA_COMMAND_TO_EXECUTE}"' in ret and '[32;1m$ export inputDataset=' in ret:
+        return clean_job_suffix(ret.split('$ echo "${TIRA_COMMAND_TO_EXECUTE}"')[1]).split('[32;1m$ export inputDataset=')[0].replace('[0;m', '').strip()
     if '$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m' in ret and '[32;1m$ eval "${TIRA_COMMAND_TO_EXECUTE}"' in ret:
         return ret.split('$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m')[1].split('[32;1m$ eval "${TIRA_COMMAND_TO_EXECUTE}"')[0].strip()
+    if '$ /tracker/tirex-tracker.sh "${TIRA_COMMAND_TO_EXECUTE}' in ret and '[32;1m$ eval "${TIRA_COMMAND_TO_EXECUTE}"' in ret:
+        return clean_job_suffix(ret.split('$ /tracker/tirex-tracker.sh "${TIRA_COMMAND_TO_EXECUTE}')[1])
     if '$ echo "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m' in ret and '[32;1m$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"' in ret:
         return ret.split('$ echo "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m')[1].split('[32;1m$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"')[0].strip()
 

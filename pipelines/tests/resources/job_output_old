@@ -1,0 +1,817 @@
+[0KRunning with gitlab-runner 17.1.0 (fe451d5a)[0;m
+[0K  on webis-kubernetes-runner-tira-user-software-gpu RZDYKyCJ, system ID: r_kc0pGaXcoaAd[0;m
+[0K  feature flags: FF_USE_ADVANCED_POD_SPEC_CONFIGURATION:true[0;m
+[0K[36;1mResolving secrets[0;m[0;m
+section_start:1746388247:prepare_executor
+[0K[0K[36;1mPreparing the "kubernetes" executor[0;m[0;m
+[0K"CPURequest" overwritten with "1"[0;m
+[0K"MemoryRequest" overwritten with "10Gi"[0;m
+[0K"CPULimit" overwritten with "1"[0;m
+[0K"MemoryLimit" overwritten with "10Gi"[0;m
+[0KUsing Kubernetes namespace: kibi9872[0;m
+[0KUsing Kubernetes executor with image registry.webis.de/code-research/tira/tira-user-touche-ads-baselines/clef25-adv:latest-tira-docker-software-id-kinetic-nectarine ...[0;m
+[0KUsing attach strategy to execute scripts...[0;m
+section_end:1746388247:prepare_executor
+[0Ksection_start:1746388247:prepare_script
+[0K[0K[36;1mPreparing environment[0;m[0;m
+[0KUsing FF_USE_POD_ACTIVE_DEADLINE_SECONDS, the Pod activeDeadlineSeconds will be set to the job timeout: 24h0m0s...[0;m
+[0;33mWARNING: Advanced Pod Spec configuration enabled, merging the provided PodSpec to the generated one. This is a beta feature and is subject to change. Feedback is collected in this issue: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29659 ...[0;m
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Waiting for pod kibi9872/runner-rzdykycj-project-4118-concurrent-1-zlap8n8y to be running, status is Pending
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Running on runner-rzdykycj-project-4118-concurrent-1-zlap8n8y via gitlab-runner-tira-user-software-gpu-64b76577cd-7gdtd...
+
+section_end:1746388433:prepare_script
+[0Ksection_start:1746388433:get_sources
+[0K[0K[36;1mGetting source from Git repository[0;m[0;m
+[32;1mFetching changes with git depth set to 20...[0;m
+Initialized empty Git repository in /builds/code-research/tira/advertisement-in-retrieval-augmented-generation-2025/.git/
+[32;1mCreated fresh repository.[0;m
+[32;1mChecking out e02d9ba3 as detached HEAD (ref is eval---ads-in-rag-task-2-classification-test-20250428-test---touche-ads-baselines---2025-05-04-21-50-22---started-2025-05-04-21-50-22)...[0;m
+
+[32;1mSkipping Git submodules setup[0;m
+
+section_end:1746388436:get_sources
+[0Ksection_start:1746388436:download_artifacts
+[0K[0K[36;1mDownloading artifacts[0;m[0;m
+[32;1mDownloading artifacts for prepare-tira-environment (102153)...[0;m
+Downloading artifacts from coordinator... ok      [0;m  host[0;m=git.webis.de id[0;m=102153 responseStatus[0;m=200 OK token[0;m=glcbt-64
+
+section_end:1746388437:download_artifacts
+[0Ksection_start:1746388437:step_script
+[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m[0;m
+[32;1m$ env|grep 'TIRA' > task.env[0;m
+[32;1m$ test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}[0;m
+[32;1m$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+/predict.py
+[32;1m$ export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_INPUT_DATASET="${inputDataset}" && export TIRA_OUTPUT_DIR_ORIG="${TIRA_OUTPUT_DIR}" && export TIRA_OUTPUT_DIR="${outputDir}" && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")[0;m
+[32;1m$ echo "${TIRA_HF_MOUNT_TO_EXECUTE}"[0;m
+
+[32;1m$ eval "${TIRA_HF_MOUNT_TO_EXECUTE}"[0;m
+[32;1m$ echo "${TIRA_WORKDIR_TO_EXECUTE}"[0;m
+echo "did not change the working directory"
+[32;1m$ eval "${TIRA_WORKDIR_TO_EXECUTE}"[0;m
+did not change the working directory
+[32;1m$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+/predict.py
+[32;1m$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+
+Map:   0%|          | 0/96147 [00:00<?, ? examples/s]
+Map:   0%|          | 207/96147 [00:00<00:46, 2043.50 examples/s]
+
+Map:   0%|          | 416/96147 [00:00<00:46, 2060.97 examples/s]
+Map:   1%|          | 727/96147 [00:00<00:46, 2060.28 examples/s]
+Map:   1%|          | 938/96147 [00:00<00:45, 2077.25 examples/s]
+
+Map:   1%|▏         | 1215/96147 [00:00<01:14, 1270.87 examples/s]
+Map:   1%|▏         | 1436/96147 [00:00<01:04, 1462.05 examples/s]
+Map:   2%|▏         | 1648/96147 [00:01<00:58, 1610.57 examples/s]
+Map:   2%|▏         | 1878/96147 [00:01<00:53, 1778.04 examples/s]
+
+Map:   2%|▏         | 2115/96147 [00:01<01:15, 1245.52 examples/s]
+Map:   2%|▏         | 2349/96147 [00:01<01:04, 1454.91 examples/s]
+
+Map:   3%|▎         | 2573/96147 [00:01<00:57, 1623.44 examples/s]
+Map:   3%|▎         | 2791/96147 [00:01<00:53, 1752.55 examples/s]
+Map:   3%|▎         | 3000/96147 [00:02<01:16, 1213.74 examples/s]
+
+Map:   3%|▎         | 3223/96147 [00:02<01:06, 1407.27 examples/s]
+Map:   4%|▎         | 3448/96147 [00:02<00:58, 1586.33 examples/s]
+Map:   4%|▍         | 3683/96147 [00:02<00:52, 1763.88 examples/s]
+Map:   4%|▍         | 3915/96147 [00:02<00:48, 1901.57 examples/s]
+
+Map:   4%|▍         | 4225/96147 [00:02<01:08, 1345.26 examples/s]
+Map:   5%|▍         | 4453/96147 [00:02<01:00, 1517.74 examples/s]
+Map:   5%|▍         | 4682/96147 [00:02<00:54, 1678.13 examples/s]
+Map:   5%|▌         | 4917/96147 [00:03<00:49, 1830.95 examples/s]
+
+Map:   5%|▌         | 5222/96147 [00:03<01:08, 1320.88 examples/s]
+Map:   6%|▌         | 5434/96147 [00:03<01:01, 1463.77 examples/s]
+
+Map:   6%|▌         | 5638/96147 [00:03<00:57, 1580.41 examples/s]
+Map:   6%|▌         | 5844/96147 [00:03<00:53, 1685.70 examples/s]
+Map:   6%|▋         | 6112/96147 [00:04<01:15, 1197.81 examples/s]
+
+Map:   7%|▋         | 6328/96147 [00:04<01:05, 1367.86 examples/s]
+Map:   7%|▋         | 6557/96147 [00:04<00:57, 1553.64 examples/s]
+Map:   7%|▋         | 6788/96147 [00:04<00:51, 1720.54 examples/s]
+
+Map:   7%|▋         | 7000/96147 [00:04<01:14, 1203.73 examples/s]
+Map:   8%|▊         | 7225/96147 [00:04<01:03, 1397.61 examples/s]
+Map:   8%|▊         | 7455/96147 [00:04<00:55, 1586.16 examples/s]
+Map:   8%|▊         | 7676/96147 [00:04<00:51, 1727.93 examples/s]
+Map:   8%|▊         | 7904/96147 [00:05<00:47, 1860.85 examples/s]
+
+Map:   9%|▊         | 8226/96147 [00:05<01:07, 1308.99 examples/s]
+Map:   9%|▉         | 8460/96147 [00:05<00:58, 1493.69 examples/s]
+
+Map:   9%|▉         | 8687/96147 [00:05<00:52, 1651.40 examples/s]
+Map:   9%|▉         | 8911/96147 [00:05<00:48, 1783.29 examples/s]
+Map:  10%|▉         | 9217/96147 [00:06<01:07, 1291.77 examples/s]
+
+Map:  10%|▉         | 9438/96147 [00:06<00:59, 1453.19 examples/s]
+Map:  10%|█         | 9655/96147 [00:06<00:54, 1595.25 examples/s]
+Map:  10%|█         | 9882/96147 [00:06<00:49, 1730.71 examples/s]
+
+Map:  11%|█         | 10115/96147 [00:06<01:09, 1233.32 examples/s]
+Map:  11%|█         | 10343/96147 [00:06<01:00, 1424.71 examples/s]
+Map:  11%|█         | 10565/96147 [00:06<00:53, 1588.49 examples/s]
+Map:  11%|█         | 10785/96147 [00:07<00:49, 1712.73 examples/s]
+
+Map:  11%|█▏        | 11000/96147 [00:07<01:14, 1139.09 examples/s]
+Map:  12%|█▏        | 11223/96147 [00:07<01:03, 1333.93 examples/s]
+Map:  12%|█▏        | 11454/96147 [00:07<00:55, 1531.67 examples/s]
+
+Map:  12%|█▏        | 11670/96147 [00:07<00:50, 1671.76 examples/s]
+Map:  12%|█▏        | 11878/96147 [00:07<00:47, 1767.66 examples/s]
+Map:  13%|█▎        | 12108/96147 [00:08<01:08, 1219.41 examples/s]
+
+Map:  13%|█▎        | 12329/96147 [00:08<00:59, 1407.20 examples/s]
+Map:  13%|█▎        | 12554/96147 [00:08<00:52, 1586.39 examples/s]
+Map:  13%|█▎        | 12762/96147 [00:08<00:49, 1700.11 examples/s]
+Map:  14%|█▎        | 12988/96147 [00:08<00:45, 1837.02 examples/s]
+
+Map:  14%|█▍        | 13222/96147 [00:08<01:06, 1248.05 examples/s]
+Map:  14%|█▍        | 13446/96147 [00:08<00:57, 1437.23 examples/s]
+Map:  14%|█▍        | 13669/96147 [00:09<00:51, 1606.43 examples/s]
+
+Map:  14%|█▍        | 13893/96147 [00:09<00:46, 1754.49 examples/s]
+Map:  15%|█▍        | 14112/96147 [00:09<01:07, 1210.09 examples/s]
+Map:  15%|█▍        | 14333/96147 [00:09<00:58, 1397.77 examples/s]
+
+Map:  15%|█▌        | 14557/96147 [00:09<00:51, 1574.12 examples/s]
+Map:  15%|█▌        | 14775/96147 [00:09<00:47, 1713.93 examples/s]
+Map:  16%|█▌        | 14995/96147 [00:09<00:44, 1830.45 examples/s]
+
+Map:  16%|█▌        | 15211/96147 [00:10<01:05, 1229.21 examples/s]
+Map:  16%|█▌        | 15438/96147 [00:10<00:56, 1429.56 examples/s]
+Map:  16%|█▋        | 15677/96147 [00:10<00:49, 1636.64 examples/s]
+Map:  17%|█▋        | 15920/96147 [00:10<00:44, 1823.03 examples/s]
+
+Map:  17%|█▋        | 16237/96147 [00:10<00:59, 1332.83 examples/s]
+Map:  17%|█▋        | 16468/96147 [00:10<00:52, 1508.86 examples/s]
+Map:  17%|█▋        | 16705/96147 [00:10<00:47, 1684.69 examples/s]
+Map:  18%|█▊        | 16934/96147 [00:11<00:43, 1820.59 examples/s]
+
+Map:  18%|█▊        | 17222/96147 [00:11<01:00, 1303.06 examples/s]
+Map:  18%|█▊        | 17452/96147 [00:11<00:53, 1480.53 examples/s]
+
+Map:  18%|█▊        | 17676/96147 [00:11<00:48, 1633.61 examples/s]
+Map:  19%|█▊        | 17908/96147 [00:11<00:43, 1785.52 examples/s]
+Map:  19%|█▉        | 18218/96147 [00:12<01:00, 1298.15 examples/s]
+
+Map:  19%|█▉        | 18440/96147 [00:12<00:53, 1459.89 examples/s]
+Map:  19%|█▉        | 18654/96147 [00:12<00:48, 1595.18 examples/s]
+Map:  20%|█▉        | 18868/96147 [00:12<00:45, 1715.20 examples/s]
+
+Map:  20%|█▉        | 19105/96147 [00:12<01:03, 1215.80 examples/s]
+Map:  20%|██        | 19320/96147 [00:12<00:55, 1385.34 examples/s]
+Map:  20%|██        | 19536/96147 [00:12<00:49, 1543.86 examples/s]
+Map:  21%|██        | 19754/96147 [00:13<00:45, 1687.72 examples/s]
+
+Map:  21%|██        | 19976/96147 [00:13<00:41, 1816.23 examples/s]
+Map:  21%|██        | 20214/96147 [00:13<01:01, 1229.70 examples/s]
+Map:  21%|██▏       | 20437/96147 [00:13<00:53, 1417.17 examples/s]
+
+Map:  21%|██▏       | 20649/96147 [00:13<00:48, 1564.65 examples/s]
+Map:  22%|██▏       | 20866/96147 [00:13<00:44, 1703.77 examples/s]
+
+Map:  22%|██▏       | 21106/96147 [00:14<01:26, 862.62 examples/s] 
+Map:  22%|██▏       | 21307/96147 [00:14<01:13, 1023.10 examples/s]
+Map:  22%|██▏       | 21501/96147 [00:14<01:03, 1176.16 examples/s]
+
+Map:  23%|██▎       | 21708/96147 [00:14<00:55, 1347.39 examples/s]
+Map:  23%|██▎       | 21923/96147 [00:14<00:48, 1518.15 examples/s]
+
+Map:  23%|██▎       | 22208/96147 [00:15<01:10, 1044.95 examples/s]
+Map:  23%|██▎       | 22429/96147 [00:15<00:59, 1231.00 examples/s]
+Map:  24%|██▎       | 22655/96147 [00:15<00:51, 1422.29 examples/s]
+Map:  24%|██▍       | 22882/96147 [00:15<00:46, 1588.51 examples/s]
+
+Map:  24%|██▍       | 23114/96147 [00:15<01:02, 1170.14 examples/s]
+Map:  24%|██▍       | 23349/96147 [00:15<00:52, 1381.09 examples/s]
+Map:  25%|██▍       | 23582/96147 [00:15<00:46, 1572.77 examples/s]
+Map:  25%|██▍       | 23803/96147 [00:16<00:42, 1715.58 examples/s]
+
+Map:  25%|██▌       | 24112/96147 [00:16<00:56, 1272.29 examples/s]
+Map:  25%|██▌       | 24328/96147 [00:16<00:50, 1428.36 examples/s]
+Map:  26%|██▌       | 24539/96147 [00:16<00:45, 1564.47 examples/s]
+
+Map:  26%|██▌       | 24737/96147 [00:16<00:43, 1655.56 examples/s]
+Map:  26%|██▌       | 24957/96147 [00:16<00:39, 1785.37 examples/s]
+
+Map:  26%|██▌       | 25212/96147 [00:17<00:56, 1248.68 examples/s]
+Map:  26%|██▋       | 25431/96147 [00:17<00:49, 1423.44 examples/s]
+Map:  27%|██▋       | 25640/96147 [00:17<00:45, 1562.24 examples/s]
+Map:  27%|██▋       | 25858/96147 [00:17<00:41, 1703.08 examples/s]
+
+Map:  27%|██▋       | 26106/96147 [00:17<00:57, 1219.67 examples/s]
+Map:  27%|██▋       | 26322/96147 [00:17<00:50, 1392.75 examples/s]
+Map:  28%|██▊       | 26528/96147 [00:17<00:45, 1531.33 examples/s]
+Map:  28%|██▊       | 26739/96147 [00:18<00:41, 1662.76 examples/s]
+
+Map:  28%|██▊       | 26940/96147 [00:18<00:39, 1745.55 examples/s]
+Map:  28%|██▊       | 27221/96147 [00:18<00:55, 1247.71 examples/s]
+Map:  29%|██▊       | 27440/96147 [00:18<00:48, 1422.18 examples/s]
+
+Map:  29%|██▉       | 27649/96147 [00:18<00:43, 1561.41 examples/s]
+Map:  29%|██▉       | 27866/96147 [00:18<00:40, 1699.58 examples/s]
+
+Map:  29%|██▉       | 28109/96147 [00:19<00:55, 1218.39 examples/s]
+Map:  29%|██▉       | 28318/96147 [00:19<00:49, 1379.64 examples/s]
+Map:  30%|██▉       | 28532/96147 [00:19<00:43, 1536.89 examples/s]
+Map:  30%|██▉       | 28764/96147 [00:19<00:39, 1717.32 examples/s]
+Map:  30%|███       | 28998/96147 [00:19<00:35, 1870.25 examples/s]
+
+Map:  30%|███       | 29220/96147 [00:19<00:53, 1259.72 examples/s]
+Map:  31%|███       | 29449/96147 [00:19<00:45, 1458.84 examples/s]
+Map:  31%|███       | 29680/96147 [00:20<00:40, 1641.86 examples/s]
+
+Map:  31%|███       | 29904/96147 [00:20<00:37, 1779.93 examples/s]
+Map:  31%|███▏      | 30113/96147 [00:20<00:53, 1226.14 examples/s]
+Map:  32%|███▏      | 30339/96147 [00:20<00:46, 1423.48 examples/s]
+
+Map:  32%|███▏      | 30567/96147 [00:20<00:40, 1605.49 examples/s]
+Map:  32%|███▏      | 30803/96147 [00:20<00:36, 1781.09 examples/s]
+Map:  32%|███▏      | 31115/96147 [00:21<00:50, 1292.38 examples/s]
+
+Map:  33%|███▎      | 31344/96147 [00:21<00:44, 1471.16 examples/s]
+Map:  33%|███▎      | 31570/96147 [00:21<00:39, 1630.94 examples/s]
+Map:  33%|███▎      | 31801/96147 [00:21<00:36, 1782.56 examples/s]
+
+Map:  33%|███▎      | 32116/96147 [00:21<00:48, 1308.34 examples/s]
+Map:  34%|███▎      | 32352/96147 [00:21<00:42, 1493.97 examples/s]
+Map:  34%|███▍      | 32591/96147 [00:21<00:38, 1671.40 examples/s]
+Map:  34%|███▍      | 32823/96147 [00:22<00:34, 1815.62 examples/s]
+
+Map:  34%|███▍      | 33113/96147 [00:22<00:48, 1309.78 examples/s]
+Map:  35%|███▍      | 33351/96147 [00:22<00:41, 1500.14 examples/s]
+Map:  35%|███▍      | 33589/96147 [00:22<00:37, 1677.98 examples/s]
+
+Map:  35%|███▌      | 33827/96147 [00:22<00:33, 1834.88 examples/s]
+Map:  35%|███▌      | 34116/96147 [00:23<00:46, 1325.28 examples/s]
+
+Map:  36%|███▌      | 34351/96147 [00:23<00:40, 1509.17 examples/s]
+Map:  36%|███▌      | 34578/96147 [00:23<00:37, 1663.39 examples/s]
+Map:  36%|███▌      | 34790/96147 [00:23<00:34, 1763.86 examples/s]
+
+Map:  36%|███▋      | 35000/96147 [00:23<00:52, 1163.75 examples/s]
+Map:  37%|███▋      | 35209/96147 [00:23<00:45, 1329.57 examples/s]
+Map:  37%|███▋      | 35430/96147 [00:23<00:40, 1509.20 examples/s]
+Map:  37%|███▋      | 35659/96147 [00:23<00:35, 1684.19 examples/s]
+Map:  37%|███▋      | 35886/96147 [00:24<00:32, 1826.54 examples/s]
+
+Map:  38%|███▊      | 36114/96147 [00:24<00:47, 1255.79 examples/s]
+Map:  38%|███▊      | 36342/96147 [00:24<00:41, 1452.29 examples/s]
+Map:  38%|███▊      | 36572/96147 [00:24<00:36, 1633.17 examples/s]
+
+Map:  38%|███▊      | 36788/96147 [00:24<00:33, 1754.12 examples/s]
+Map:  38%|███▊      | 37000/96147 [00:25<00:48, 1232.06 examples/s]
+Map:  39%|███▊      | 37239/96147 [00:25<00:40, 1453.85 examples/s]
+
+Map:  39%|███▉      | 37450/96147 [00:25<00:36, 1592.77 examples/s]
+Map:  39%|███▉      | 37661/96147 [00:25<00:34, 1712.38 examples/s]
+Map:  39%|███▉      | 37890/96147 [00:25<00:31, 1856.38 examples/s]
+
+Map:  40%|███▉      | 38108/96147 [00:25<00:47, 1228.35 examples/s]
+Map:  40%|███▉      | 38325/96147 [00:25<00:41, 1407.99 examples/s]
+Map:  40%|████      | 38538/96147 [00:25<00:36, 1562.19 examples/s]
+Map:  40%|████      | 38752/96147 [00:26<00:33, 1695.51 examples/s]
+Map:  41%|████      | 38961/96147 [00:26<00:31, 1793.27 examples/s]
+
+Map:  41%|████      | 39212/96147 [00:26<00:46, 1230.37 examples/s]
+Map:  41%|████      | 39441/96147 [00:26<00:39, 1430.43 examples/s]
+
+Map:  41%|████▏     | 39664/96147 [00:26<00:35, 1598.96 examples/s]
+Map:  41%|████▏     | 39884/96147 [00:26<00:32, 1735.82 examples/s]
+Map:  42%|████▏     | 40104/96147 [00:27<00:46, 1213.41 examples/s]
+
+Map:  42%|████▏     | 40313/96147 [00:27<00:40, 1378.62 examples/s]
+Map:  42%|████▏     | 40548/96147 [00:27<00:35, 1584.21 examples/s]
+Map:  42%|████▏     | 40771/96147 [00:27<00:31, 1731.32 examples/s]
+Map:  43%|████▎     | 40989/96147 [00:27<00:29, 1841.96 examples/s]
+
+Map:  43%|████▎     | 41221/96147 [00:27<00:43, 1251.29 examples/s]
+Map:  43%|████▎     | 41457/96147 [00:27<00:37, 1463.77 examples/s]
+Map:  43%|████▎     | 41688/96147 [00:28<00:33, 1644.90 examples/s]
+Map:  44%|████▎     | 41916/96147 [00:28<00:30, 1791.61 examples/s]
+
+Map:  44%|████▍     | 42224/96147 [00:28<00:41, 1294.74 examples/s]
+Map:  44%|████▍     | 42451/96147 [00:28<00:36, 1468.92 examples/s]
+
+Map:  44%|████▍     | 42672/96147 [00:28<00:33, 1619.71 examples/s]
+Map:  45%|████▍     | 42899/96147 [00:28<00:30, 1766.32 examples/s]
+
+Map:  45%|████▍     | 43112/96147 [00:29<00:51, 1035.45 examples/s]
+Map:  45%|████▌     | 43329/96147 [00:29<00:43, 1219.61 examples/s]
+Map:  45%|████▌     | 43548/96147 [00:29<00:37, 1400.90 examples/s]
+Map:  46%|████▌     | 43782/96147 [00:29<00:32, 1599.09 examples/s]
+
+Map:  46%|████▌     | 44000/96147 [00:30<01:01, 844.59 examples/s] 
+Map:  46%|████▌     | 44231/96147 [00:30<00:49, 1047.72 examples/s]
+
+Map:  46%|████▌     | 44457/96147 [00:30<00:41, 1247.99 examples/s]
+Map:  46%|████▋     | 44673/96147 [00:30<00:36, 1421.41 examples/s]
+Map:  47%|████▋     | 44907/96147 [00:30<00:31, 1617.67 examples/s]
+
+Map:  47%|████▋     | 45209/96147 [00:30<00:42, 1210.95 examples/s]
+Map:  47%|████▋     | 45436/96147 [00:30<00:36, 1392.21 examples/s]
+Map:  48%|████▊     | 45670/96147 [00:30<00:31, 1578.85 examples/s]
+Map:  48%|████▊     | 45892/96147 [00:31<00:29, 1715.84 examples/s]
+
+Map:  48%|████▊     | 46116/96147 [00:31<00:41, 1218.72 examples/s]
+Map:  48%|████▊     | 46342/96147 [00:31<00:35, 1410.20 examples/s]
+Map:  48%|████▊     | 46580/96147 [00:31<00:30, 1609.76 examples/s]
+
+Map:  49%|████▊     | 46796/96147 [00:31<00:28, 1733.50 examples/s]
+Map:  49%|████▉     | 47103/96147 [00:32<00:39, 1244.17 examples/s]
+
+Map:  49%|████▉     | 47313/96147 [00:32<00:35, 1393.50 examples/s]
+Map:  49%|████▉     | 47531/96147 [00:32<00:31, 1549.72 examples/s]
+Map:  50%|████▉     | 47758/96147 [00:32<00:28, 1707.54 examples/s]
+Map:  50%|████▉     | 47976/96147 [00:32<00:26, 1819.04 examples/s]
+
+Map:  50%|█████     | 48218/96147 [00:32<00:38, 1257.48 examples/s]
+Map:  50%|█████     | 48418/96147 [00:32<00:34, 1395.93 examples/s]
+Map:  51%|█████     | 48648/96147 [00:33<00:29, 1585.75 examples/s]
+Map:  51%|█████     | 48865/96147 [00:33<00:27, 1719.63 examples/s]
+
+Map:  51%|█████     | 49114/96147 [00:33<00:38, 1225.48 examples/s]
+Map:  51%|█████▏    | 49338/96147 [00:33<00:33, 1412.57 examples/s]
+Map:  52%|█████▏    | 49559/96147 [00:33<00:29, 1577.80 examples/s]
+
+Map:  52%|█████▏    | 49770/96147 [00:33<00:27, 1697.59 examples/s]
+Map:  52%|█████▏    | 49999/96147 [00:33<00:25, 1840.42 examples/s]
+Map:  52%|█████▏    | 50227/96147 [00:34<00:36, 1255.80 examples/s]
+
+Map:  52%|█████▏    | 50456/96147 [00:34<00:31, 1454.52 examples/s]
+Map:  53%|█████▎    | 50673/96147 [00:34<00:28, 1607.49 examples/s]
+Map:  53%|█████▎    | 50897/96147 [00:34<00:25, 1754.15 examples/s]
+
+Map:  53%|█████▎    | 51104/96147 [00:34<00:37, 1189.26 examples/s]
+Map:  53%|█████▎    | 51326/96147 [00:34<00:32, 1382.91 examples/s]
+Map:  54%|█████▎    | 51553/96147 [00:34<00:28, 1570.48 examples/s]
+Map:  54%|█████▍    | 51785/96147 [00:35<00:25, 1741.88 examples/s]
+
+Map:  54%|█████▍    | 52000/96147 [00:35<00:36, 1198.12 examples/s]
+Map:  54%|█████▍    | 52235/96147 [00:35<00:31, 1412.99 examples/s]
+Map:  55%|█████▍    | 52454/96147 [00:35<00:27, 1575.01 examples/s]
+
+Map:  55%|█████▍    | 52685/96147 [00:35<00:24, 1744.20 examples/s]
+Map:  55%|█████▌    | 52915/96147 [00:35<00:22, 1881.14 examples/s]
+Map:  55%|█████▌    | 53215/96147 [00:36<00:33, 1296.34 examples/s]
+
+Map:  56%|█████▌    | 53417/96147 [00:36<00:29, 1426.54 examples/s]
+Map:  56%|█████▌    | 53623/96147 [00:36<00:27, 1556.85 examples/s]
+Map:  56%|█████▌    | 53851/96147 [00:36<00:24, 1720.89 examples/s]
+
+Map:  56%|█████▋    | 54106/96147 [00:36<00:34, 1217.98 examples/s]
+Map:  57%|█████▋    | 54325/96147 [00:36<00:30, 1392.77 examples/s]
+Map:  57%|█████▋    | 54542/96147 [00:36<00:26, 1551.05 examples/s]
+Map:  57%|█████▋    | 54759/96147 [00:37<00:24, 1688.50 examples/s]
+
+Map:  57%|█████▋    | 54981/96147 [00:37<00:22, 1815.40 examples/s]
+Map:  57%|█████▋    | 55228/96147 [00:37<00:32, 1256.40 examples/s]
+Map:  58%|█████▊    | 55452/96147 [00:37<00:28, 1441.43 examples/s]
+
+Map:  58%|█████▊    | 55667/96147 [00:37<00:25, 1591.67 examples/s]
+Map:  58%|█████▊    | 55864/96147 [00:37<00:23, 1678.74 examples/s]
+Map:  58%|█████▊    | 56110/96147 [00:38<00:34, 1176.02 examples/s]
+
+Map:  59%|█████▊    | 56331/96147 [00:38<00:29, 1364.37 examples/s]
+Map:  59%|█████▉    | 56545/96147 [00:38<00:25, 1524.51 examples/s]
+Map:  59%|█████▉    | 56766/96147 [00:38<00:23, 1678.94 examples/s]
+Map:  59%|█████▉    | 56991/96147 [00:38<00:21, 1816.17 examples/s]
+
+Map:  60%|█████▉    | 57212/96147 [00:38<00:32, 1210.80 examples/s]
+Map:  60%|█████▉    | 57438/96147 [00:38<00:27, 1408.49 examples/s]
+Map:  60%|█████▉    | 57663/96147 [00:39<00:24, 1586.37 examples/s]
+
+Map:  60%|██████    | 57886/96147 [00:39<00:22, 1734.54 examples/s]
+Map:  60%|██████    | 58112/96147 [00:39<00:31, 1191.11 examples/s]
+Map:  61%|██████    | 58331/96147 [00:39<00:27, 1375.39 examples/s]
+
+Map:  61%|██████    | 58554/96147 [00:39<00:24, 1552.18 examples/s]
+Map:  61%|██████    | 58773/96147 [00:39<00:22, 1696.23 examples/s]
+Map:  61%|██████▏   | 58979/96147 [00:39<00:20, 1782.32 examples/s]
+
+Map:  62%|██████▏   | 59218/96147 [00:40<00:29, 1231.94 examples/s]
+Map:  62%|██████▏   | 59426/96147 [00:40<00:26, 1392.45 examples/s]
+Map:  62%|██████▏   | 59640/96147 [00:40<00:23, 1551.69 examples/s]
+Map:  62%|██████▏   | 59852/96147 [00:40<00:21, 1683.21 examples/s]
+
+Map:  63%|██████▎   | 60102/96147 [00:40<00:30, 1175.25 examples/s]
+Map:  63%|██████▎   | 60300/96147 [00:40<00:27, 1320.44 examples/s]
+Map:  63%|██████▎   | 60522/96147 [00:41<00:23, 1505.28 examples/s]
+
+Map:  63%|██████▎   | 60739/96147 [00:41<00:21, 1653.84 examples/s]
+Map:  63%|██████▎   | 60954/96147 [00:41<00:19, 1771.90 examples/s]
+Map:  64%|██████▎   | 61219/96147 [00:41<00:27, 1248.15 examples/s]
+
+Map:  64%|██████▍   | 61425/96147 [00:41<00:24, 1398.93 examples/s]
+Map:  64%|██████▍   | 61642/96147 [00:41<00:22, 1560.34 examples/s]
+Map:  64%|██████▍   | 61855/96147 [00:41<00:20, 1690.21 examples/s]
+
+Map:  65%|██████▍   | 62109/96147 [00:42<00:28, 1204.73 examples/s]
+Map:  65%|██████▍   | 62330/96147 [00:42<00:24, 1387.94 examples/s]
+Map:  65%|██████▌   | 62560/96147 [00:42<00:21, 1574.71 examples/s]
+Map:  65%|██████▌   | 62773/96147 [00:42<00:19, 1699.47 examples/s]
+Map:  66%|██████▌   | 62988/96147 [00:42<00:18, 1807.15 examples/s]
+
+Map:  66%|██████▌   | 63216/96147 [00:42<00:26, 1226.33 examples/s]
+Map:  66%|██████▌   | 63442/96147 [00:43<00:23, 1421.95 examples/s]
+
+Map:  66%|██████▌   | 63697/96147 [00:43<00:30, 1075.87 examples/s]
+Map:  66%|██████▋   | 63914/96147 [00:43<00:25, 1255.22 examples/s]
+
+Map:  67%|██████▋   | 64110/96147 [00:43<00:32, 991.59 examples/s] 
+Map:  67%|██████▋   | 64330/96147 [00:43<00:26, 1187.12 examples/s]
+Map:  67%|██████▋   | 64549/96147 [00:44<00:22, 1375.07 examples/s]
+Map:  67%|██████▋   | 64759/96147 [00:44<00:20, 1525.84 examples/s]
+
+Map:  68%|██████▊   | 64979/96147 [00:44<00:18, 1681.03 examples/s]
+Map:  68%|██████▊   | 65224/96147 [00:44<00:25, 1192.78 examples/s]
+Map:  68%|██████▊   | 65440/96147 [00:44<00:22, 1370.22 examples/s]
+
+Map:  68%|██████▊   | 65653/96147 [00:44<00:19, 1527.78 examples/s]
+Map:  69%|██████▊   | 65865/96147 [00:44<00:18, 1661.25 examples/s]
+
+Map:  69%|██████▉   | 66109/96147 [00:45<00:25, 1192.18 examples/s]
+Map:  69%|██████▉   | 66311/96147 [00:45<00:22, 1343.47 examples/s]
+Map:  69%|██████▉   | 66540/96147 [00:45<00:19, 1539.52 examples/s]
+Map:  69%|██████▉   | 66746/96147 [00:45<00:17, 1657.31 examples/s]
+Map:  70%|██████▉   | 66955/96147 [00:45<00:16, 1763.48 examples/s]
+
+Map:  70%|██████▉   | 67215/96147 [00:45<00:23, 1212.42 examples/s]
+Map:  70%|███████   | 67454/96147 [00:46<00:20, 1429.42 examples/s]
+Map:  70%|███████   | 67687/96147 [00:46<00:17, 1615.67 examples/s]
+
+Map:  71%|███████   | 67914/96147 [00:46<00:15, 1765.06 examples/s]
+Map:  71%|███████   | 68227/96147 [00:46<00:21, 1272.35 examples/s]
+
+Map:  71%|███████   | 68453/96147 [00:46<00:19, 1445.71 examples/s]
+Map:  71%|███████▏  | 68685/96147 [00:46<00:16, 1621.17 examples/s]
+Map:  72%|███████▏  | 68915/96147 [00:46<00:15, 1770.51 examples/s]
+
+Map:  72%|███████▏  | 69208/96147 [00:47<00:21, 1263.33 examples/s]
+Map:  72%|███████▏  | 69420/96147 [00:47<00:18, 1412.99 examples/s]
+Map:  72%|███████▏  | 69641/96147 [00:47<00:16, 1571.36 examples/s]
+Map:  73%|███████▎  | 69867/96147 [00:47<00:15, 1723.61 examples/s]
+
+Map:  73%|███████▎  | 70107/96147 [00:47<00:21, 1210.88 examples/s]
+Map:  73%|███████▎  | 70332/96147 [00:47<00:18, 1398.57 examples/s]
+Map:  73%|███████▎  | 70559/96147 [00:48<00:16, 1575.81 examples/s]
+
+Map:  74%|███████▎  | 70788/96147 [00:48<00:14, 1734.62 examples/s]
+Map:  74%|███████▍  | 70999/96147 [00:48<00:13, 1823.75 examples/s]
+Map:  74%|███████▍  | 71213/96147 [00:48<00:20, 1232.07 examples/s]
+
+Map:  74%|███████▍  | 71434/96147 [00:48<00:17, 1419.27 examples/s]
+Map:  75%|███████▍  | 71633/96147 [00:48<00:15, 1541.20 examples/s]
+Map:  75%|███████▍  | 71858/96147 [00:48<00:14, 1705.79 examples/s]
+
+Map:  75%|███████▍  | 72106/96147 [00:49<00:20, 1199.78 examples/s]
+Map:  75%|███████▌  | 72337/96147 [00:49<00:16, 1403.49 examples/s]
+Map:  75%|███████▌  | 72562/96147 [00:49<00:14, 1579.41 examples/s]
+Map:  76%|███████▌  | 72785/96147 [00:49<00:13, 1717.44 examples/s]
+
+Map:  76%|███████▌  | 73000/96147 [00:49<00:19, 1213.07 examples/s]
+Map:  76%|███████▌  | 73232/96147 [00:49<00:16, 1421.95 examples/s]
+Map:  76%|███████▋  | 73457/96147 [00:50<00:14, 1597.36 examples/s]
+Map:  77%|███████▋  | 73688/96147 [00:50<00:12, 1756.84 examples/s]
+
+Map:  77%|███████▋  | 73923/96147 [00:50<00:11, 1902.24 examples/s]
+Map:  77%|███████▋  | 74232/96147 [00:50<00:16, 1343.56 examples/s]
+
+Map:  77%|███████▋  | 74464/96147 [00:50<00:14, 1522.23 examples/s]
+Map:  78%|███████▊  | 74691/96147 [00:50<00:12, 1676.37 examples/s]
+Map:  78%|███████▊  | 74922/96147 [00:50<00:11, 1820.78 examples/s]
+
+Map:  78%|███████▊  | 75218/96147 [00:51<00:16, 1307.54 examples/s]
+Map:  78%|███████▊  | 75435/96147 [00:51<00:14, 1461.74 examples/s]
+Map:  79%|███████▊  | 75656/96147 [00:51<00:12, 1613.14 examples/s]
+Map:  79%|███████▉  | 75882/96147 [00:51<00:11, 1753.86 examples/s]
+
+Map:  79%|███████▉  | 76103/96147 [00:51<00:16, 1228.96 examples/s]
+Map:  79%|███████▉  | 76329/96147 [00:51<00:13, 1419.39 examples/s]
+Map:  80%|███████▉  | 76554/96147 [00:52<00:12, 1592.96 examples/s]
+Map:  80%|███████▉  | 76783/96147 [00:52<00:11, 1752.05 examples/s]
+
+Map:  80%|████████  | 77000/96147 [00:52<00:15, 1218.87 examples/s]
+Map:  80%|████████  | 77220/96147 [00:52<00:13, 1403.00 examples/s]
+Map:  81%|████████  | 77443/96147 [00:52<00:11, 1576.89 examples/s]
+
+Map:  81%|████████  | 77659/96147 [00:52<00:10, 1711.11 examples/s]
+Map:  81%|████████  | 77882/96147 [00:52<00:09, 1839.21 examples/s]
+Map:  81%|████████  | 78107/96147 [00:53<00:14, 1253.41 examples/s]
+
+Map:  81%|████████▏ | 78326/96147 [00:53<00:12, 1434.56 examples/s]
+Map:  82%|████████▏ | 78534/96147 [00:53<00:11, 1573.86 examples/s]
+Map:  82%|████████▏ | 78743/96147 [00:53<00:10, 1694.84 examples/s]
+Map:  82%|████████▏ | 78948/96147 [00:53<00:09, 1782.52 examples/s]
+
+Map:  82%|████████▏ | 79221/96147 [00:53<00:13, 1232.59 examples/s]
+Map:  83%|████████▎ | 79444/96147 [00:54<00:11, 1417.63 examples/s]
+Map:  83%|████████▎ | 79675/96147 [00:54<00:10, 1604.20 examples/s]
+
+Map:  83%|████████▎ | 79906/96147 [00:54<00:09, 1763.80 examples/s]
+Map:  83%|████████▎ | 80113/96147 [00:54<00:13, 1210.54 examples/s]
+Map:  84%|████████▎ | 80350/96147 [00:54<00:11, 1428.11 examples/s]
+
+Map:  84%|████████▍ | 80575/96147 [00:54<00:09, 1601.57 examples/s]
+Map:  84%|████████▍ | 80805/96147 [00:54<00:08, 1763.10 examples/s]
+
+Map:  84%|████████▍ | 81106/96147 [00:55<00:11, 1271.71 examples/s]
+Map:  85%|████████▍ | 81325/96147 [00:55<00:10, 1435.03 examples/s]
+Map:  85%|████████▍ | 81550/96147 [00:55<00:09, 1599.95 examples/s]
+Map:  85%|████████▌ | 81777/96147 [00:55<00:08, 1749.71 examples/s]
+Map:  85%|████████▌ | 81998/96147 [00:55<00:07, 1860.43 examples/s]
+
+Map:  86%|████████▌ | 82225/96147 [00:55<00:11, 1239.84 examples/s]
+Map:  86%|████████▌ | 82448/96147 [00:56<00:09, 1424.93 examples/s]
+Map:  86%|████████▌ | 82665/96147 [00:56<00:08, 1582.18 examples/s]
+
+Map:  86%|████████▌ | 82892/96147 [00:56<00:07, 1739.63 examples/s]
+Map:  86%|████████▋ | 83110/96147 [00:56<00:10, 1202.91 examples/s]
+Map:  87%|████████▋ | 83335/96147 [00:56<00:09, 1397.90 examples/s]
+
+Map:  87%|████████▋ | 83550/96147 [00:56<00:08, 1555.20 examples/s]
+Map:  87%|████████▋ | 83775/96147 [00:56<00:07, 1714.18 examples/s]
+Map:  87%|████████▋ | 83996/96147 [00:56<00:06, 1817.18 examples/s]
+
+Map:  88%|████████▊ | 84221/96147 [00:57<00:09, 1239.42 examples/s]
+Map:  88%|████████▊ | 84445/96147 [00:57<00:08, 1430.54 examples/s]
+Map:  88%|████████▊ | 84672/96147 [00:57<00:07, 1611.21 examples/s]
+
+Map:  88%|████████▊ | 84882/96147 [00:57<00:09, 1181.40 examples/s]
+Map:  89%|████████▊ | 85114/96147 [00:58<00:11, 1000.14 examples/s]
+Map:  89%|████████▉ | 85340/96147 [00:58<00:08, 1201.21 examples/s]
+
+Map:  89%|████████▉ | 85567/96147 [00:58<00:07, 1399.22 examples/s]
+Map:  89%|████████▉ | 85785/96147 [00:58<00:06, 1554.13 examples/s]
+
+Map:  89%|████████▉ | 86000/96147 [00:58<00:11, 861.84 examples/s] 
+Map:  90%|████████▉ | 86222/96147 [00:58<00:09, 1055.71 examples/s]
+Map:  90%|████████▉ | 86448/96147 [00:59<00:07, 1259.82 examples/s]
+Map:  90%|█████████ | 86669/96147 [00:59<00:06, 1443.57 examples/s]
+
+Map:  90%|█████████ | 86883/96147 [00:59<00:05, 1592.92 examples/s]
+Map:  91%|█████████ | 87110/96147 [00:59<00:07, 1155.94 examples/s]
+
+Map:  91%|█████████ | 87317/96147 [00:59<00:06, 1321.94 examples/s]
+Map:  91%|█████████ | 87534/96147 [00:59<00:05, 1495.54 examples/s]
+Map:  91%|█████████▏| 87767/96147 [00:59<00:04, 1685.29 examples/s]
+
+Map:  92%|█████████▏| 88000/96147 [01:00<00:06, 1206.61 examples/s]
+Map:  92%|█████████▏| 88238/96147 [01:00<00:05, 1424.59 examples/s]
+Map:  92%|█████████▏| 88475/96147 [01:00<00:04, 1621.88 examples/s]
+Map:  92%|█████████▏| 88708/96147 [01:00<00:04, 1784.03 examples/s]
+Map:  93%|█████████▎| 88939/96147 [01:00<00:03, 1911.91 examples/s]
+
+Map:  93%|█████████▎| 89245/96147 [01:00<00:05, 1344.32 examples/s]
+Map:  93%|█████████▎| 89477/96147 [01:01<00:04, 1523.58 examples/s]
+Map:  93%|█████████▎| 89715/96147 [01:01<00:03, 1701.14 examples/s]
+
+Map:  94%|█████████▎| 89956/96147 [01:01<00:03, 1862.20 examples/s]
+Map:  94%|█████████▍| 90237/96147 [01:01<00:04, 1338.68 examples/s]
+
+Map:  94%|█████████▍| 90472/96147 [01:01<00:03, 1524.04 examples/s]
+Map:  94%|█████████▍| 90704/96147 [01:01<00:03, 1687.53 examples/s]
+Map:  95%|█████████▍| 90938/96147 [01:01<00:02, 1834.93 examples/s]
+
+Map:  95%|█████████▍| 91222/96147 [01:02<00:03, 1309.99 examples/s]
+Map:  95%|█████████▌| 91441/96147 [01:02<00:03, 1467.54 examples/s]
+Map:  95%|█████████▌| 91684/96147 [01:02<00:02, 1664.01 examples/s]
+Map:  96%|█████████▌| 91912/96147 [01:02<00:02, 1801.45 examples/s]
+
+Map:  96%|█████████▌| 92228/96147 [01:02<00:02, 1325.79 examples/s]
+Map:  96%|█████████▌| 92454/96147 [01:02<00:02, 1490.91 examples/s]
+Map:  96%|█████████▋| 92684/96147 [01:03<00:02, 1652.01 examples/s]
+Map:  97%|█████████▋| 92905/96147 [01:03<00:01, 1776.07 examples/s]
+
+Map:  97%|█████████▋| 93214/96147 [01:03<00:02, 1271.88 examples/s]
+Map:  97%|█████████▋| 93415/96147 [01:03<00:01, 1398.06 examples/s]
+
+Map:  97%|█████████▋| 93628/96147 [01:03<00:01, 1542.78 examples/s]
+Map:  98%|█████████▊| 93853/96147 [01:03<00:01, 1696.67 examples/s]
+Map:  98%|█████████▊| 94103/96147 [01:04<00:01, 1214.60 examples/s]
+
+Map:  98%|█████████▊| 94318/96147 [01:04<00:01, 1382.49 examples/s]
+Map:  98%|█████████▊| 94541/96147 [01:04<00:01, 1554.48 examples/s]
+Map:  99%|█████████▊| 94764/96147 [01:04<00:00, 1706.20 examples/s]
+Map:  99%|█████████▉| 94982/96147 [01:04<00:00, 1819.95 examples/s]
+
+Map:  99%|█████████▉| 95217/96147 [01:04<00:00, 1237.46 examples/s]
+Map:  99%|█████████▉| 95457/96147 [01:05<00:00, 1456.65 examples/s]
+Map: 100%|█████████▉| 95687/96147 [01:05<00:00, 1635.04 examples/s]
+
+Map: 100%|█████████▉| 95897/96147 [01:05<00:00, 1741.41 examples/s]
+Map: 100%|█████████▉| 96111/96147 [01:05<00:00, 1199.46 examples/s]
+Map: 100%|██████████| 96147/96147 [01:05<00:00, 1465.97 examples/s]
+[32;1m$ cd ${WORKING_DIR_BEFORE_CMD}[0;m
+[32;1m$ export TIRA_OUTPUT_DIR="${TIRA_OUTPUT_DIR_ORIG}"[0;m
+[32;1m$ env|grep 'TIRA' > task.env[0;m
+[32;1m$ echo "${TIRA_CLEAN_UP_COMMAND}"[0;m
+rm -Rf test-datasets/advertisement-in-retrieval-augmented-generation-2025/ads-in-rag-task-2-classification-test-20250428-test/
+[32;1m$ eval "${TIRA_CLEAN_UP_COMMAND}"[0;m
+
+section_end:1746389178:step_script
+[0Ksection_start:1746389178:upload_artifacts_on_success
+[0K[0K[36;1mUploading artifacts for successful job[0;m[0;m
+[32;1mUploading artifacts...[0;m
+untracked: found 4 files                          [0;m 
+Uploading artifacts as "archive" to coordinator... 201 Created[0;m  id[0;m=102154 responseStatus[0;m=201 Created token[0;m=glcbt-64
+[32;1mUploading artifacts...[0;m
+task.env: found 1 matching artifact files and directories[0;m 
+Uploading artifacts as "dotenv" to coordinator... 201 Created[0;m  id[0;m=102154 responseStatus[0;m=201 Created token[0;m=glcbt-64
+
+section_end:1746389182:upload_artifacts_on_success
+[0Ksection_start:1746389182:cleanup_file_variables
+[0K[0K[36;1mCleaning up project directory and file based variables[0;m[0;m
+
+section_end:1746389182:cleanup_file_variables
+[0K[32;1mJob succeeded[0;m
+

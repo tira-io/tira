@@ -1,0 +1,119 @@
+[0KRunning with gitlab-runner 17.1.0 (fe451d5a)[0;m
+[0K  on webis-kubernetes-runner-tira-user-software BiUG2Lzc, system ID: r_GYuOapFsfL3u[0;m
+[0K  feature flags: FF_USE_ADVANCED_POD_SPEC_CONFIGURATION:true[0;m
+[0K[36;1mResolving secrets[0;m[0;m
+section_start:1746437473:prepare_executor
+[0K[0K[36;1mPreparing the "kubernetes" executor[0;m[0;m
+[0K"CPURequest" overwritten with "1"[0;m
+[0K"MemoryRequest" overwritten with "10Gi"[0;m
+[0K"CPULimit" overwritten with "1"[0;m
+[0K"MemoryLimit" overwritten with "10Gi"[0;m
+[0KUsing Kubernetes namespace: kibi9872[0;m
+[0KUsing Kubernetes executor with image registry.webis.de/code-research/tira/tira-user-touche-ads-baselines/clef25-adv:latest-tira-docker-software-id-mode-model ...[0;m
+[0KUsing attach strategy to execute scripts...[0;m
+section_end:1746437473:prepare_executor
+[0Ksection_start:1746437473:prepare_script
+[0K[0K[36;1mPreparing environment[0;m[0;m
+[0KUsing FF_USE_POD_ACTIVE_DEADLINE_SECONDS, the Pod activeDeadlineSeconds will be set to the job timeout: 24h0m0s...[0;m
+[0;33mWARNING: Advanced Pod Spec configuration enabled, merging the provided PodSpec to the generated one. This is a beta feature and is subject to change. Feedback is collected in this issue: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29659 ...[0;m
+Waiting for pod kibi9872/runner-biug2lzc-project-4118-concurrent-0-8opof5zb to be running, status is Pending
+Waiting for pod kibi9872/runner-biug2lzc-project-4118-concurrent-0-8opof5zb to be running, status is Pending
+	ContainersNotInitialized: "containers with incomplete status: [init-permissions]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+	ContainersNotReady: "containers with unready status: [build helper]"
+Running on runner-biug2lzc-project-4118-concurrent-0-8opof5zb via gitlab-runner-tira-user-software-bc94f56d4-dzbm5...
+
+section_end:1746437480:prepare_script
+[0Ksection_start:1746437480:get_sources
+[0K[0K[36;1mGetting source from Git repository[0;m[0;m
+[32;1mFetching changes with git depth set to 20...[0;m
+Initialized empty Git repository in /builds/code-research/tira/advertisement-in-retrieval-augmented-generation-2025/.git/
+[32;1mCreated fresh repository.[0;m
+[32;1mChecking out 6af1540b as detached HEAD (ref is eval---ads-in-rag-task-2-classification-test-20250428-test---touche-ads-baselines---2025-05-05-11-22-35---started-2025-05-05-11-22-35)...[0;m
+
+[32;1mSkipping Git submodules setup[0;m
+
+section_end:1746437482:get_sources
+[0Ksection_start:1746437482:download_artifacts
+[0K[0K[36;1mDownloading artifacts[0;m[0;m
+[32;1mDownloading artifacts for prepare-tira-environment (102272)...[0;m
+Downloading artifacts from coordinator... ok      [0;m  host[0;m=git.webis.de id[0;m=102272 responseStatus[0;m=200 OK token[0;m=glcbt-64
+
+section_end:1746437484:download_artifacts
+[0Ksection_start:1746437484:step_script
+[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m[0;m
+[32;1m$ env|grep 'TIRA' > task.env[0;m
+[32;1m$ test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}[0;m
+[32;1m$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+/predict.py --threshold 0.25
+[32;1m$ export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_INPUT_DATASET="${inputDataset}" && export TIRA_OUTPUT_DIR_ORIG="${TIRA_OUTPUT_DIR}" && export TIRA_OUTPUT_DIR="${outputDir}" && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")[0;m
+[32;1m$ echo "${TIRA_HF_MOUNT_TO_EXECUTE}"[0;m
+
+[32;1m$ eval "${TIRA_HF_MOUNT_TO_EXECUTE}"[0;m
+[32;1m$ echo "${TIRA_WORKDIR_TO_EXECUTE}"[0;m
+echo "did not change the working directory"
+[32;1m$ eval "${TIRA_WORKDIR_TO_EXECUTE}"[0;m
+did not change the working directory
+[32;1m$ echo "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+/predict.py --threshold 0.25
+[32;1m$ /tracker/tirex-tracker.sh "${TIRA_COMMAND_TO_EXECUTE}"[0;m
+Measures runtime, energy, and many other metrics of a specifed command.
+Usage: /tracker/measure-0.2.12-linux [OPTIONS] command
+
+Positionals:
+  command TEXT REQUIRED       The command to measure resources for
+
+Options:
+  -V,--version                Display program version information and exit
+  -h,--help                   Prints this help message
+  -v,--verbose [0]            Sets the logger's verbosity. Passing it multiple times increases verbosity.
+  -q,--quiet                  Supresses all outputs
+  -f,--format TEXT [simple]   Specified how the output should be formatted
+  -s,--source TEXT [[git,system,energy,gpu]]  ...
+                              The datasources to poll information from
+  --poll-interval UINT [100]  The interval in milliseconds in which to poll for updated stats like energy consumption and RAM usage. Smaller intervalls allow for higher accuracy.
+  --pedantic [0]              If set, measure will stop execution on errors
+  -o TEXT                     Sets the file to write the result measurements into.
+Run command with tirex-tracker
+
+=====  Processor information  =====
+Linux arch_perfmon flag  : yes
+Hybrid processor         : no
+IBRS and IBPB supported  : yes
+STIBP supported          : yes
+Spec arch caps supported : no
+Max CPUID level          : 13
+CPU model number         : 62
+PCM Error: can't open MSR handle for core 0 (No such file or directory)
+Try no-MSR mode by setting env variable PCM_NO_MSR=1
+Can not access CPUs Model Specific Registers (MSRs).
+execute 'modprobe msr' as root user, then execute pcm as root user.
+[2025-05-05 09:31:25.021] [gitstats] [error] Failed to get upstream branch: reference 'HEAD' is not a local branch.
+[2025-05-05 09:31:25.026] [gitstats] [error] Failed to get branch name: reference 'HEAD' is neither a local nor a remote branch.
+[2025-05-05 09:31:25.032] [linux] [error] Could not open /etc/lsb-release
+[2025-05-05 09:31:25.034] [system] [warning] I found that 2 CPU clusters are installed and will only output statistics for the first
+[2025-05-05 09:31:25.036] [linuxstats] [warning] Called too quickly apart (0 ms)
+[32;1m$ cd ${WORKING_DIR_BEFORE_CMD}[0;m
+[32;1m$ export TIRA_OUTPUT_DIR="${TIRA_OUTPUT_DIR_ORIG}"[0;m
+[32;1m$ env|grep 'TIRA' > task.env[0;m
+[32;1m$ echo "${TIRA_CLEAN_UP_COMMAND}"[0;m
+rm -Rf test-datasets/advertisement-in-retrieval-augmented-generation-2025/ads-in-rag-task-2-classification-test-20250428-test/
+[32;1m$ eval "${TIRA_CLEAN_UP_COMMAND}"[0;m
+
+section_end:1746437494:step_script
+[0Ksection_start:1746437494:upload_artifacts_on_success
+[0K[0K[36;1mUploading artifacts for successful job[0;m[0;m
+[32;1mUploading artifacts...[0;m
+untracked: found 3 files                          [0;m 
+Uploading artifacts as "archive" to coordinator... 201 Created[0;m  id[0;m=102278 responseStatus[0;m=201 Created token[0;m=glcbt-64
+[32;1mUploading artifacts...[0;m
+task.env: found 1 matching artifact files and directories[0;m 
+Uploading artifacts as "dotenv" to coordinator... 201 Created[0;m  id[0;m=102278 responseStatus[0;m=201 Created token[0;m=glcbt-64
+
+section_end:1746437495:upload_artifacts_on_success
+[0Ksection_start:1746437495:cleanup_file_variables
+[0K[0K[36;1mCleaning up project directory and file based variables[0;m[0;m
+
+section_end:1746437496:cleanup_file_variables
+[0K[32;1mJob succeeded[0;m
+
