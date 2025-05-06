@@ -199,7 +199,7 @@ API_ACCESS_MATRIX = [
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
         },
-    )
+    ),
     route_to_test(
         url_pattern="data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip",
         params={"task_id": "does-not-exist", "vm_id": "does-not-exist"},
