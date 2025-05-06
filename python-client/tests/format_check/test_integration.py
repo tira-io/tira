@@ -76,7 +76,7 @@ DATASET_TO_MINIMAL_EXAMPLE = {
     "pointwise-20250309-test": MINIMAL_WOWS_POINTWISE,
     "pointwise-smoke-test-20250128-training": MINIMAL_WOWS_POINTWISE,
     "ads-in-rag-task-1-generation-spot-check-20250423_1-training": MINIMAL_AD_GENERATION,
-    "ads-in-rag-task-1-generation-test-20250428-test": MINIMAL_AD_GENERATION,
+    "ads-in-rag-task-1-generation-test-20250506-test": MINIMAL_AD_GENERATION,
     "ads-in-rag-task-1-generation-training-20250423-training": MINIMAL_AD_GENERATION,
     "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
     "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
