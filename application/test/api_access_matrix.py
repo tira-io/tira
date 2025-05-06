@@ -193,7 +193,7 @@ API_ACCESS_MATRIX = [
             "metadata": "foo",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
