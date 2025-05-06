@@ -25,7 +25,6 @@
         <v-btn class="align-self-start" icon="mdi-arrow-right-thick" size="34" variant="text" @click="pos = pos + 1"/>
       </template>
 
-      
       <div v-if="resource_plots && resource_plots_chart">
         <Scatter :data="resource_plots_chart" :options="chart_options"/>
       </div>
@@ -56,7 +55,7 @@ ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScal
 export default {
   name: "ir-metadata-browser",
   components: {CodeSnippet, Scatter},
-  props: ['items', 'uuid'],
+  props: ['items', 'uuid', "vm_id", "dataset_id", "run_id", "task_id"],
   data() {
     return {
       selected_metadata: undefined,
@@ -145,12 +144,20 @@ export default {
       this.loading = false
       this.metadata = undefined
       this.raw_metadata = undefined
-      if (!this.uuid || this.uuid + '' === 'undefined' || !this.selected_metadata || this.selected_metadata + '' === 'undefined') {
+      let remote_url = this.rest_url + "/task/" + this.task_id + "/user/" + this.vm_id + "/dataset/" + this.dataset_id + "/view/" + this.run_id
+      console.log(remote_url)
+      
+      if (this.vm_id && this.dataset_id && this.run_id && this.task_id) {
+        
+      } else if (!this.uuid || this.uuid + '' === 'undefined' || !this.selected_metadata || this.selected_metadata + '' === 'undefined') {
         return
+      } else {
+        remote_url = this.rest_url + '/v1/anonymous/view/' + this.uuid
       }
 
       this.loading = true
-      get(this.rest_url + '/v1/anonymous/view/' + this.uuid + '/metadata/' + this.selected_metadata)
+
+      get(remote_url + '/metadata/' + this.selected_metadata)
       .then(message => {
         this.loading = false
         this.metadata = message.metadata

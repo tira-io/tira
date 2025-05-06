@@ -1,5 +1,10 @@
 <template>
   <div :class="!$vuetify.display.mdAndUp ? ' d-flex flex-column w-100 justify-space-evenly' : 'd-flex'">
+
+    <span v-if="has_ir_metadata">
+      <ir-metadata-window :run="run" :task_id="task_id"/>
+    </span>
+
     <v-dialog v-if="userinfo.role === 'admin'">
       <template v-slot:activator="{ props }">
         <span>
@@ -137,11 +142,12 @@ import { inject } from 'vue'
 
 import { get, reportSuccess, reportError, fetchUserInfo, type UserInfo } from '../utils'
 import RunReviewWindow from './RunReviewWindow.vue'
+import IrMetadataWindow from './IrMetadataWindow.vue'
 
 export default {
   name: "run-actions",
-  props: ['run'],
-  components: { RunReviewWindow },
+  props: ['run', 'task_id'],
+  components: { RunReviewWindow, IrMetadataWindow },
   emits: ['review-run'],
   data() {
     return {
@@ -167,6 +173,9 @@ export default {
     can_delete() {
       return this.run && 'published' in this.run && !this.run['published'] && 'review_state' in this.run && this.run['review_state'] != 'valid'
     },
+    has_ir_metadata() {
+      return this.run && 'valid_formats' in this.run && 'ir_metadata' in this.run['valid_formats']
+    }
   },
   methods: {
     runEvaluation(isActive: any) {

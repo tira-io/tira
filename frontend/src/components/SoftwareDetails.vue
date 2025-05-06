@@ -93,7 +93,7 @@
         </v-window-item>
 
         <v-window-item class="d-md-none" value="actions">
-          <div class="ma-2"><run-actions :run="run" @reviewRun="(i: any) => $emit('review-run', i)" /></div>
+          <div class="ma-2"><run-actions :run="run" :task_id="task_id" @reviewRun="(i: any) => $emit('review-run', i)" /></div>
         </v-window-item>
       </v-window>
     </v-card-text>

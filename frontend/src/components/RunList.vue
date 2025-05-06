@@ -5,7 +5,7 @@
       item-value="run_id" v-model:sort-by="table_sort_by" density="compact" show-select
       class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{ item }">
-        <run-actions :run="item" @reviewRun="(i: any) => reviewChanged(i)" />
+        <run-actions :run="item" :task_id="task_id" @reviewRun="(i: any) => reviewChanged(i)" />
       </template>
       <template #item.vm_id="{ item }">
         <submission-icon :submission="item" />

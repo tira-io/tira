@@ -178,6 +178,66 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
 
+def reorganize_metadata(all_metadata, metadata):
+    ret = all_metadata[metadata].copy()
+    ret = {i: ret[i] for i in ["method", "platform", "schema version"] if i in ret}
+    if (
+        "platform" in ret
+        and "hardware" in ret["platform"]
+        and "frequency" in ret["platform"]["hardware"].get("cpu", {})
+    ):
+        del ret["platform"]["hardware"]["cpu"]["frequency"]
+
+    if "resources" in all_metadata[metadata] and "runtime" in all_metadata[metadata]["resources"]:
+        ret["resources"] = {"runtime": all_metadata[metadata]["resources"]["runtime"]}
+
+    if "implementation" in all_metadata[metadata] and "source" in all_metadata[metadata]["implementation"]:
+        ret["implementation"] = {"source": all_metadata[metadata]["implementation"]["source"]}
+        if "script" in all_metadata[metadata]["implementation"]:
+            ret["implementation"]["script"] = all_metadata[metadata]["implementation"]["script"]
+
+    raw_metadata = yaml.dump(ret)
+
+    if "resources" in all_metadata[metadata]:
+        tmp = {}
+
+        for prefix in ["", "vram "]:
+            for i in ["cpu", "gpu", "ram"]:
+                if i not in all_metadata[metadata]["resources"]:
+                    continue
+                v = {}
+                for c in ["system", "process"]:
+                    if f"{prefix}used {c}" not in all_metadata[metadata]["resources"][i]:
+                        continue
+                    if "timeseries" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]:
+                        continue
+                    if "values" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]:
+                        continue
+                    if "timestamps" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]:
+                        continue
+
+                    timestamps = all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["timestamps"]
+                    timestamps = [int(i.split("ms")[0].strip()) for i in timestamps]
+                    vals: Iterable[tuple[Any, int]] = zip(
+                        all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"],
+                        timestamps,
+                    )
+                    if prefix == "vram ":
+                        vals = [(i[0] * 1024, i[1]) for i in vals]
+                    v[c] = [{"x": i[1], "y": i[0]} for i in vals]
+
+                if len(v.keys()) == 0:
+                    continue
+
+                name = i
+                if prefix:
+                    name += " (" + prefix.strip() + ")"
+                tmp[name] = v
+
+        ret["resources"] = tmp
+    return {"metadata": ret, "raw_metadata": raw_metadata, "status": "0"}
+
+
 @api_view(["GET"])
 def render_metadata_of_submission(request: "Request", submission_uuid: str, metadata: str) -> Response:
     try:
@@ -188,69 +248,7 @@ def render_metadata_of_submission(request: "Request", submission_uuid: str, meta
         )
     all_metadata = upload.ir_metadata_record(metadata)
     if metadata in all_metadata:
-        ret = all_metadata[metadata].copy()
-        ret = {i: ret[i] for i in ["method", "platform", "schema version"] if i in ret}
-        if (
-            "platform" in ret
-            and "hardware" in ret["platform"]
-            and "frequency" in ret["platform"]["hardware"].get("cpu", {})
-        ):
-            del ret["platform"]["hardware"]["cpu"]["frequency"]
-
-        if "resources" in all_metadata[metadata] and "runtime" in all_metadata[metadata]["resources"]:
-            ret["resources"] = {"runtime": all_metadata[metadata]["resources"]["runtime"]}
-
-        if "implementation" in all_metadata[metadata] and "source" in all_metadata[metadata]["implementation"]:
-            ret["implementation"] = {"source": all_metadata[metadata]["implementation"]["source"]}
-            if "script" in all_metadata[metadata]["implementation"]:
-                ret["implementation"]["script"] = all_metadata[metadata]["implementation"]["script"]
-
-        raw_metadata = yaml.dump(ret)
-
-        if "resources" in all_metadata[metadata]:
-            tmp = {}
-
-            for prefix in ["", "vram "]:
-                for i in ["cpu", "gpu", "ram"]:
-                    if i not in all_metadata[metadata]["resources"]:
-                        continue
-                    v = {}
-                    for c in ["system", "process"]:
-                        if f"{prefix}used {c}" not in all_metadata[metadata]["resources"][i]:
-                            continue
-                        if "timeseries" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]:
-                            continue
-                        if "values" not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]:
-                            continue
-                        if (
-                            "timestamps"
-                            not in all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]
-                        ):
-                            continue
-
-                        timestamps = all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"][
-                            "timestamps"
-                        ]
-                        timestamps = [int(i.split("ms")[0].strip()) for i in timestamps]
-                        vals: Iterable[tuple[Any, int]] = zip(
-                            all_metadata[metadata]["resources"][i][f"{prefix}used {c}"]["timeseries"]["values"],
-                            timestamps,
-                        )
-                        if prefix == "vram ":
-                            vals = [(i[0] * 1024, i[1]) for i in vals]
-                        v[c] = [{"x": i[1], "y": i[0]} for i in vals]
-
-                    if len(v.keys()) == 0:
-                        continue
-
-                    name = i
-                    if prefix:
-                        name += " (" + prefix.strip() + ")"
-                    tmp[name] = v
-
-            ret["resources"] = tmp
-
-        return Response({"metadata": ret, "raw_metadata": raw_metadata, "status": "0"})
+        return Response(reorganize_metadata(all_metadata, metadata))
     else:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Metadata with name {html.escape(metadata)} does not exist."})

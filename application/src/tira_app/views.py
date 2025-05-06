@@ -9,7 +9,7 @@ from typing import Any
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, HttpResponseServerError, JsonResponse
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -119,6 +119,27 @@ def zip_runs(vm_id, dataset_ids_and_run_ids, name):
                 zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
 
     return zipped
+
+
+@check_resources_exist("json")
+@check_conditional_permissions(public_data_ok=True)
+def view_ir_metadata_of_run(request, task_id, dataset_id, vm_id, run_id, metadata):
+    from .model import Run
+
+    run = Run.objects.get(run_id=run_id)
+    from .endpoints.v1._anonymous import reorganize_metadata
+
+    try:
+        all_metadata = run.ir_metadata_record(metadata)
+        if metadata in all_metadata:
+            return JsonResponse(reorganize_metadata(all_metadata, metadata))
+        else:
+            return HttpResponseServerError(
+                json.dumps({"status": 1, "message": f"Metadata with name {metadata} does not exist."})
+            )
+    except Exception as e:
+        logger.warning(e)
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Could not load metadata: {e}"}))
 
 
 @check_conditional_permissions(public_data_ok=True)

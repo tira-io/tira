@@ -1150,7 +1150,8 @@ class HybridDatabase(object):
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
             tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id,
-            tira_linktosoftwaresubmissiongitrepository.build_environment
+            tira_linktosoftwaresubmissiongitrepository.build_environment,
+            input_run.valid_formats
         FROM
             tira_run as evaluation_run
         INNER JOIN
@@ -1527,7 +1528,8 @@ class HybridDatabase(object):
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
             tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id,
-            tira_linktosoftwaresubmissiongitrepository.build_environment
+            tira_linktosoftwaresubmissiongitrepository.build_environment,
+            input_run.valid_formats
         FROM
             tira_run as evaluation_run
         INNER JOIN
@@ -1646,6 +1648,7 @@ class HybridDatabase(object):
             tira_evaluation_reviewer_id,
             tira_run_reviewer_id,
             build_environment,
+            valid_formats,
         ) in rows:
 
             if (not include_without_evaluation and not m_key) or (not include_unpublished and not eval_published):
@@ -1688,6 +1691,12 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["is_software"] = is_software
             input_run_to_evaluation[run_id]["review_state"] = review_state
             input_run_to_evaluation[run_id]["link_code"] = self.__link_to_code(build_environment)
+
+            if valid_formats:
+                try:
+                    input_run_to_evaluation[run_id]["valid_formats"] = json.loads(valid_formats)
+                except json.JSONDecodeError:
+                    pass
 
             if m_key:
                 input_run_to_evaluation[run_id]["measures"][m_key] = m_value

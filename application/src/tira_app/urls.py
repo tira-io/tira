@@ -14,6 +14,11 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         name="download_rundir",
     ),
     path(
+        "task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/view/<str:run_id>/metadata/<str:metadata>",
+        views.view_ir_metadata_of_run,
+        name="view_ir_metadata_of_run",
+    ),
+    path(
         "data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip",
         views.download_repo_template,
         name="download_repo_template",

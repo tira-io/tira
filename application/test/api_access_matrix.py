@@ -184,6 +184,23 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/view/<str:run_id>/metadata/<str:metadata>",
+        params={
+            "task_id": "shared-task-1",
+            "dataset_id": f"dataset-1-{now}-training",
+            "vm_id": "example_participant",
+            "run_id": "run-1-example_participant",
+            "metadata": "foo",
+        },
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    )
+    route_to_test(
         url_pattern="data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip",
         params={"task_id": "does-not-exist", "vm_id": "does-not-exist"},
         group_to_expected_status_code={

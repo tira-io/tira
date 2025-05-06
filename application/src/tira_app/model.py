@@ -411,6 +411,17 @@ class Run(models.Model):
             Path(settings.TIRA_ROOT) / "data" / "runs" / self.input_dataset.dataset_id / vm_id / self.run_id / "output"
         )
 
+    def ir_metadata_record(self, metadata_record):
+        from tira.check_format import lines_if_valid
+
+        try:
+            return {
+                i["name"]: i["content"]
+                for i in lines_if_valid(self.get_path_in_file_system() / metadata_record, "ir_metadata")
+            }
+        except:
+            return {}
+
 
 class Registration(models.Model):
     team_name = models.CharField(primary_key=True, max_length=50, default=None)
