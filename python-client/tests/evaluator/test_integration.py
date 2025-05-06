@@ -11,7 +11,7 @@ APPROVED_EVAL_DATASETS = {
     "pointwise-20250309-test": {},
     "pointwise-smoke-test-20250128-training": {},
     "ads-in-rag-task-1-generation-spot-check-20250423_1-training": {},
-    "ads-in-rag-task-1-generation-test-20250428-test": {},
+    "ads-in-rag-task-1-generation-test-20250506-test": {},
     "ads-in-rag-task-1-generation-training-20250423-training": {},
     "ads-in-rag-task-2-classification-spot-check-20250423-training": {},
     "ads-in-rag-task-2-classification-test-20250428-test": {},
