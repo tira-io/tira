@@ -477,6 +477,12 @@ def run_eval(request, vm_id, dataset_id, run_id):
             {"status": "1", "message": "An evaluation is already in progress."}, status=HTTPStatus.PRECONDITION_FAILED
         )
 
+    from tira.evaluators import unsandboxed_evaluation_is_allowed
+
+    if unsandboxed_evaluation_is_allowed(model.get_dataset(dataset_id)):
+        run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=run_id)
+        return JsonResponse({"status": 0, "message": "ok", "new_run": run_id, "started_evaluation": True})
+
     evaluator = model.get_evaluator(dataset_id)
     if "is_git_runner" in evaluator and evaluator["is_git_runner"]:
         ret = _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
