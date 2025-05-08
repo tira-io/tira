@@ -5,7 +5,7 @@ from tira.rest_api_client import Client
 
 ALL_DATASETS = {}
 tira = Client()
-TASKS = ["wows-eval", "advertisement-in-retrieval-augmented-generation-2025"]
+TASKS = ["wows-eval", "advertisement-in-retrieval-augmented-generation-2025", "longeval-2025"]
 for task in TASKS:
     ALL_DATASETS.update(tira.datasets(task))
 
@@ -14,14 +14,20 @@ from pathlib import Path
 
 from parameterized import parameterized
 
+from ..format_check.test_check_format_for_long_eval import persist_longeval_data
+
 
 def datasets_with_format(dataset_type):
     ret = {}
     for k, v in ALL_DATASETS.items():
         if f"{dataset_type}_format" in v:
+            format_config_key = (
+                "{dataset_type}_format_configuration" if dataset_type == "truth" else "format_configuration"
+            )
+
             ret[k] = {
                 f"{dataset_type}_format": v[f"{dataset_type}_format"],
-                f"{dataset_type}_format_configuration": v.get(f"{dataset_type}_format_configuration"),
+                f"{dataset_type}_format_configuration": v.get(format_config_key),
             }
     return ret
 
@@ -81,6 +87,13 @@ DATASET_TO_MINIMAL_EXAMPLE = {
     "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
     "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
     "ads-in-rag-task-2-classification-training-20250423-training": MINIMAL_AD_CLASSIFICATION,
+    "sci-spot-check-no-prior-data-20250322-training": {"run": persist_longeval_data(["2024-10"]), "truth": "skip"},
+    "sci-spot-check-with-prior-data-20250322-training": {"run": persist_longeval_data(["2024-11"]), "truth": "skip"},
+    "web-20250430-test": {
+        "run": persist_longeval_data(["2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08"]),
+        "truth": "skip",
+    },
+    "sci-20250430-test": {"run": persist_longeval_data(["2024-11", "2025-01"]), "truth": "skip"},
 }
 
 
@@ -98,15 +111,26 @@ class TestIntegration(unittest.TestCase):
     @parameterized.expand(datasets_with_format("truth").items())
     def test_truth_datasets_are_valid(self, k, v):
         TYPE = "truth"
+        val = DATASET_TO_MINIMAL_EXAMPLE[k][TYPE]
+        if val == "skip":
+            return
+
         with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
+            (Path(d) / "labels.jsonl").write_text(val)
             actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
             self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
 
     @parameterized.expand(datasets_with_format("run").items())
     def test_run_datasets_are_valid(self, k, v):
         TYPE = "run"
-        with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
-            actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
-            self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")
+        if isinstance(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE], Path):
+            print(v[f"{TYPE}_format"])
+            print(v[f"{TYPE}_format_configuration"])
+            actual = check_format(
+                Path(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE]), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"]
+            )
+        else:
+            with tempfile.TemporaryDirectory() as d:
+                (Path(d) / "labels.jsonl").write_text(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE])
+                actual = check_format(Path(d), v[f"{TYPE}_format"], v[f"{TYPE}_format_configuration"])
+        self.assertEqual(_fmt.OK, actual[0], f"Problem in {k}: {actual[1]}")

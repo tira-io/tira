@@ -16,6 +16,10 @@ APPROVED_EVAL_DATASETS = {
     "ads-in-rag-task-2-classification-spot-check-20250423-training": {},
     "ads-in-rag-task-2-classification-test-20250428-test": {},
     "ads-in-rag-task-2-classification-training-20250423-training": {},
+    # "sci-spot-check-no-prior-data-20250322-training": {},
+    # "sci-spot-check-with-prior-data-20250322-training": {},
+    "web-20250430-test": {},
+    "sci-20250430-test": {},
 }
 
 from parameterized import parameterized
@@ -43,12 +47,17 @@ class TestIntegration(unittest.TestCase):
     def test_datasets_with_evaluators_work(self, k, v):
         with tempfile.TemporaryDirectory() as d:
             data = DATASET_TO_MINIMAL_EXAMPLE[k]
-            inputs = Path(d) / "inputs"
             truths = Path(d) / "truths"
-            inputs.mkdir(exist_ok=True, parents=True)
             truths.mkdir(exist_ok=True, parents=True)
 
-            (inputs / "predictions.jsonl").write_text(data["run"])
-            (truths / "truths.jsonl").write_text(data["truth"])
+            if isinstance(data["run"], Path):
+                inputs = data["run"]
+            else:
+                inputs = Path(d) / "inputs"
+
+                inputs.mkdir(exist_ok=True, parents=True)
+
+                (inputs / "predictions.jsonl").write_text(data["run"])
+                (truths / "truths.jsonl").write_text(data["truth"])
 
             self.assertIsNotNone(evaluate(inputs, truths, v))

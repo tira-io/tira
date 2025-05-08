@@ -131,7 +131,10 @@ class RunFileEvaluator(TiraBaseEvaluator):
 
         self.lags = [""]
         if "LongEvalLags" == self._run_format or "LongEvalLags" in self._run_format:
-            self.lags = config["lags"]
+            if "lags" not in config and "format_configuration" in config and "lags" in config["format_configuration"]:
+                self.lags = config["format_configuration"]["lags"]
+            else:
+                self.lags = config["lags"]
 
         self._run_format = "run.txt"
         if self._truth_format and "qrels.txt" != self._truth_format and "qrels.txt" not in self._truth_format:

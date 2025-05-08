@@ -327,7 +327,9 @@ class LongEvalLags(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
             raise ValueError(
-                'Please pass a configuration "lags" that points out on which lags an dataset should run. E.g., {"lags": ["lag-1", "lag-2"]}.'
+                'Please pass a configuration "lags" that points out on which lags an dataset should run. '
+                + 'E.g., {"lags": ["lag-1", "lag-2"]}. '
+                + f"I got: {configuration}"
             )
 
         self.lags = configuration["lags"]

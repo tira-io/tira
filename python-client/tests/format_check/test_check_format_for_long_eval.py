@@ -26,13 +26,20 @@ def persist_run_to_file(directory: Path):
     )
 
 
-def persist_longeval_data(lags, ir_metadata):
-    with tempfile.TemporaryDirectory() as d:
-        copy(JSONL_OUTPUT_VALID.parent / ir_metadata, Path(d) / "ir-metadata.yml")
-        for lag in lags:
-            persist_run_to_file(Path(d) / lag)
+from tira.third_party_integrations import temporary_directory
 
-        return check_format(Path(d), "LongEvalLags", {"lags": lags})
+
+def persist_longeval_data(lags, ir_metadata="longeval-ir-metadata/ir-metadata.yml"):
+    d = temporary_directory()
+    copy(JSONL_OUTPUT_VALID.parent / ir_metadata, Path(d) / "ir-metadata.yml")
+    for lag in lags:
+        persist_run_to_file(Path(d) / lag)
+    return d
+
+
+def check_longeval_data(lags, ir_metadata):
+    d = persist_longeval_data(lags, ir_metadata)
+    return check_format(Path(d), "LongEvalLags", {"lags": lags})
 
 
 class TestLongEvalFormat(unittest.TestCase):
@@ -47,11 +54,11 @@ class TestLongEvalFormat(unittest.TestCase):
         self.assertIn("some-lag. Error: No file run.txt or run.txt.gz was found.", actual[1])
 
     def test_valid_single_long_eval_lags(self):
-        actual = persist_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata.yml")
+        actual = check_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata.yml")
         self.assertEqual(_OK, actual[0])
 
     def test_valid_multiple_long_eval_lag(self):
-        actual = persist_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata.yml")
+        actual = check_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata.yml")
         self.assertEqual(_OK, actual[0])
 
     def test_valid_multiple_single_missing_lag(self):
@@ -64,7 +71,7 @@ class TestLongEvalFormat(unittest.TestCase):
         self.assertIn("lag-3. Error: No file run.txt or run.txt.gz was found.", actual[1])
 
     def test_valid_single_long_eval_lags_with_wrong_ir_metadata(self):
-        actual = persist_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
+        actual = check_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
         self.assertEqual(_ERROR, actual[0])
         self.assertIn("is not valid", actual[1])
         self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
@@ -73,7 +80,7 @@ class TestLongEvalFormat(unittest.TestCase):
         )
 
     def test_valid_multiple_long_eval_lag_with_wrong_ir_metadata(self):
-        actual = persist_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
+        actual = check_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
         self.assertEqual(_ERROR, actual[0])
         self.assertIn("is not valid", actual[1])
         self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
