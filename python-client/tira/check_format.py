@@ -323,6 +323,24 @@ class JsonlFormat(KeyValueFormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
 
+class ToucheImageRetrieval(JsonlFormat):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(
+            {CONF_REQUIRED_FIELDS: ["argument_id", "method", "image_id", "rank", "tag"]}
+        )
+
+    def yield_next_entry(self, run_output):
+        for i in super().yield_next_entry(run_output):
+            yield {
+                "qid": i["argument_id"],
+                "q0": "0",
+                "docno": i["image_id"],
+                "rank": i["rank"],
+                "score": 1000 - i["rank"],
+                "system": i["tag"],
+            }
+
+
 class LongEvalLags(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
@@ -1030,6 +1048,7 @@ FORMAT_TO_CHECK = {
     "multi-author-writing-style-analysis-truths": lambda: MultiAuthorWritingStyleAnalysis("truth-problem"),
     "power-and-identification-truths": lambda: PowerAndIdeologyFormat("", "-*-labels"),
     "power-and-identification-predictions": lambda: PowerAndIdeologyFormat("*", "*-predictions"),
+    "touche-image-retrieval": ToucheImageRetrieval,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))

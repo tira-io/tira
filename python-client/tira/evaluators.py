@@ -124,8 +124,10 @@ class TextGenerationEvaluator(TiraBaseEvaluator):
 class RunFileEvaluator(TiraBaseEvaluator):
     def throw_if_conf_invalid(self, config: dict) -> None:
 
-        if ("run.txt" != self._run_format and "run.txt" not in self._run_format) and (
-            "LongEvalLags" != self._run_format and "LongEvalLags" not in self._run_format
+        if (
+            ("run.txt" != self._run_format and "run.txt" not in self._run_format)
+            and ("LongEvalLags" != self._run_format and "LongEvalLags" not in self._run_format)
+            and ("touche-image-retrieval" != self._run_format and "touche-image-retrieval" not in self._run_format)
         ):
             raise ValueError("I can only use the RunFileEvaluator for run.txt/LongEvalLags format")
 
@@ -136,7 +138,9 @@ class RunFileEvaluator(TiraBaseEvaluator):
             else:
                 self.lags = config["lags"]
 
-        self._run_format = "run.txt"
+        if "touche-image-retrieval" != self._run_format and "touche-image-retrieval" not in self._run_format:
+            self._run_format = "run.txt"
+
         if self._truth_format and "qrels.txt" != self._truth_format and "qrels.txt" not in self._truth_format:
             self._truth_format = "qrels.txt"
 
