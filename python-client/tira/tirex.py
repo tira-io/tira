@@ -39,3 +39,4 @@ IRDS_TO_TIREX_DATASET = {
 }
 
 TIREX_DATASETS = IRDS_TO_TIREX_DATASET.values()
+TIREX_ARTIFACT_DEBUG_URL = "https://archive.tira.io/tirex/pyterrier-artifacts-beta"
