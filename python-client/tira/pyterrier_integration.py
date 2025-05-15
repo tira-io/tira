@@ -328,9 +328,11 @@ def pt_document_transformer(path):
         pt.init()
     from .rest_api_client import Client
 
-    return PyTerrierIntegration(Client()).transform_documents(
-        None, None, None, "", matching_files=[Path(path) / "output" / "documents.jsonl.gz"]
-    )
+    path = Path(path)
+    if (path / "output").exists():
+        path = path / "output"
+
+    return PyTerrierIntegration(Client()).transform_documents(path, None)
 
 
 def pt_query_transformer(path):
@@ -340,9 +342,11 @@ def pt_query_transformer(path):
         pt.init()
     from .rest_api_client import Client
 
-    return PyTerrierIntegration(Client()).transform_queries(
-        None, None, None, "", matching_files=[Path(path) / "output" / "queries.jsonl"]
-    )
+    path = Path(path)
+    if (path / "output").exists():
+        path = path / "output"
+
+    return PyTerrierIntegration(Client()).transform_queries(path, None)
 
 
 def pt_index_transformer(path):
