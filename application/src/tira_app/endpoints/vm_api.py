@@ -28,6 +28,7 @@ from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
 from ..util import get_tira_id, link_to_discourse_team, reroute_host
 from ..views import add_context
+from rest_framework.decorators import authentication_classes, permission_classes
 
 if TYPE_CHECKING:
     from typing import Any, Mapping, Optional
@@ -665,6 +666,8 @@ def _parse_metadata_from_upload(upload_dir: Path) -> "dict[str, Any]":
 
 
 @csrf_exempt
+@permission_classes([])
+@authentication_classes([])
 def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
     if request.method == "POST":
         try:

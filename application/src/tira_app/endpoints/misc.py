@@ -7,7 +7,7 @@ import json
 from django.conf import settings
 from django.urls import path
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 from tira import __version__ as tira_version
@@ -47,6 +47,8 @@ except Exception:
 
 
 @api_view(["GET"])
+@permission_classes([])
+@authentication_classes([])
 def health_endpoint(request: Request) -> Response:
     """
     The /health endpoint returns 2xx on success (currently 204 because we don't respond with any content). It can be
@@ -56,6 +58,8 @@ def health_endpoint(request: Request) -> Response:
 
 
 @api_view(["GET"])
+@permission_classes([])
+@authentication_classes([])
 def info_endpoint(request: Request) -> Response:
     """
     The /info endpoint contains general information about the running server (e.g., the version of TIRA that is
@@ -75,6 +79,8 @@ def info_endpoint(request: Request) -> Response:
 
 
 @api_view(["GET"])
+@permission_classes([])
+@authentication_classes([])
 def well_known_endpoint(request: Request) -> Response:
     return Response(settings.WELL_KNOWN)
 

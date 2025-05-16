@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import FileResponse, HttpResponse, HttpResponseServerError
 from django.urls import path
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 from tira.check_format import _fmt, check_format
@@ -33,6 +33,8 @@ if TYPE_CHECKING:
 
 
 @api_view(["GET"])
+@permission_classes([])
+@authentication_classes([])
 def read_anonymous_submission(request: Request, submission_uuid: str) -> Response:
     """Read information about an anonymous submission identified by the ownership uuid.
 
@@ -71,6 +73,8 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
 
 
 @api_view(["GET"])
+@permission_classes([])
+@authentication_classes([])
 def download_anonymous_submission(request: Request, submission_uuid: str) -> Response:
     """Download an anonymous submission identified by the ownership uuid.
 
