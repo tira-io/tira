@@ -279,7 +279,7 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
         print(
             "\t"
             + fmt_message(
-                f"Done. Your run is available at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission",
+                f"Done. Your run is available as {system['tag']} at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission",
                 _fmt.OK,
             )
         )

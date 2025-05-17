@@ -46,12 +46,12 @@ class TestLongEvalFormat(unittest.TestCase):
     def test_error_message_on_empty_output(self):
         actual = check_format(EMPTY_OUTPUT, "LongEvalLags", {"lags": ["lag-1", "lag-2"]})
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("lag-1. Error: No file run.txt or run.txt.gz was found.", actual[1])
+        self.assertIn("I expected a file ir-metadata.yml in the directory", actual[1])
 
     def test_error_message_on_jsonl_output(self):
         actual = check_format(JSONL_OUTPUT_VALID, "LongEvalLags", {"lags": ["some-lag"]})
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("some-lag. Error: No file run.txt or run.txt.gz was found.", actual[1])
+        self.assertIn("I expected a file ir-metadata.yml in the directory", actual[1])
 
     def test_valid_single_long_eval_lags(self):
         actual = check_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata.yml")
@@ -68,7 +68,7 @@ class TestLongEvalFormat(unittest.TestCase):
 
             actual = check_format(Path(d), "LongEvalLags", {"lags": ["some-lag", "lag-2", "lag-3"]})
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("lag-3. Error: No file run.txt or run.txt.gz was found.", actual[1])
+        self.assertIn("I expected a file ir-metadata.yml in the directory", actual[1])
 
     def test_valid_single_long_eval_lags_with_wrong_ir_metadata(self):
         actual = check_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata-incomplete.yml")

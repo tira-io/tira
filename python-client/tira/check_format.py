@@ -53,6 +53,7 @@ CONF_MINIMUM_LINES = "minimum_lines"
 CONF_ID_FIELD = "id_field"
 CONF_VALUE_FIELD = "value_field"
 CONF_MAX_SIZE_MB = "max_size_mb"
+CONF_SPOT_CHECK = "spot_check"
 
 CONFIGURATION_FIELDS = {
     CONF_REQUIRED_FIELDS: "foo",
@@ -65,6 +66,7 @@ CONFIGURATION_FIELDS = {
 class FormatBase:
     def __init__(self):
         self.max_size_mb = 75
+        self.spot_check = None
 
     def yield_next_entry(self, f: Path):
         try:
@@ -87,6 +89,9 @@ class FormatBase:
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if configuration and CONF_MAX_SIZE_MB in configuration:
             self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
+
+        if configuration and CONF_SPOT_CHECK in configuration:
+            self.spot_check = configuration[CONF_SPOT_CHECK]
 
     def all_lines(self, f: Path):
         return list(self.yield_next_entry(f))
@@ -115,7 +120,13 @@ class RunFormat(FormatBase):
 
         try:
             # maximum size of 10MB
-            lines = self.all_lines(run_output)
+            num_lines = 0
+            lines = []
+            for line in self.yield_next_entry(run_output):
+                if self.spot_check and num_lines > self.spot_check:
+                    break
+                lines.append(line)
+                num_lines += 1
         except Exception as e:
             return [_fmt.ERROR, e.args[0]]
 
@@ -164,9 +175,8 @@ class RunFormat(FormatBase):
             file_path = run_output / "run.txt.gz"
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
-        from tqdm import tqdm
 
-        for line in tqdm(super().yield_next_entry(file_path), f"\tverify {file_path}"):
+        for line in super().yield_next_entry(file_path):
             yield self.parse_single_line(line.strip())
 
 
@@ -365,8 +375,11 @@ class LongEvalLags(FormatBase):
         self.format = format
 
         self.max_size_mb = 250
-        if CONF_MAX_SIZE_MB in configuration:
+        if configuration and CONF_MAX_SIZE_MB in configuration:
             self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
+        self.spot_check = 25000
+        if configuration and CONF_SPOT_CHECK in configuration:
+            self.spot_check = configuration[CONF_SPOT_CHECK]
 
     def check_ir_metadata(self, run_output: Path):
         if not (run_output / "ir-metadata.yml").exists():
@@ -397,7 +410,11 @@ class LongEvalLags(FormatBase):
                     },
                 },
             }
-            return check_format(run_output / "ir-metadata.yml", "ir_metadata", {"required_fields": required_fields})
+            return check_format(
+                run_output / "ir-metadata.yml",
+                "ir_metadata",
+                {"required_fields": required_fields},
+            )
 
     def check_format(self, run_output: Path):
         ret_msg = f"I will check that the data in {run_output} is valid ..."
@@ -410,7 +427,9 @@ class LongEvalLags(FormatBase):
             )
 
         for lag in self.lags:
-            status, msg = check_format(run_output / lag, self.format, {CONF_MAX_SIZE_MB: self.max_size_mb})
+            status, msg = check_format(
+                run_output / lag, self.format, {CONF_MAX_SIZE_MB: self.max_size_mb, CONF_SPOT_CHECK: self.spot_check}
+            )
             if status != _fmt.OK:
                 ret_code = _fmt.ERROR
                 ret_msg += "\n\t" + fmt_message(
