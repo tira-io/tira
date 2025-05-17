@@ -1,6 +1,7 @@
 import html
 import io
 import json
+import threading
 import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -18,8 +19,6 @@ from tira.evaluators import unsandboxed_evaluation_is_allowed
 from tira.io_utils import zip_dir
 from tira.third_party_integrations import temporary_directory
 from werkzeug.utils import secure_filename
-
-from tira_app.endpoints.vm_api import load_notebook
 
 from ... import model as modeldb
 from ... import tira_model as model
@@ -174,10 +173,14 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
     new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], MockedResponse())
 
-    if unsandboxed_evaluation_is_allowed(model.model._dataset_to_dict(upload.dataset)):
-        run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
-    elif model.git_pipeline_is_enabled_for_task(task_id, cache):
-        run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+    class EvalInBackground(threading.Thread):
+        def run(self, *args, **kwargs):
+            if unsandboxed_evaluation_is_allowed(model.model._dataset_to_dict(upload.dataset)):
+                run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+            elif model.git_pipeline_is_enabled_for_task(task_id, cache):
+                run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+
+    EvalInBackground().start()
 
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
