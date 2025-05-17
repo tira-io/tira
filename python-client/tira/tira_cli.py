@@ -204,7 +204,7 @@ def download_command(dataset: str, approach: "Optional[str]" = None, **kwargs) -
 
 
 def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
-    client: "TiraClient" = RestClient()
+    client: "TiraClient" = RestClient(api_key="no-api-key")
     client.login(token)
     if print_docker_auth:
         print(client.local_execution.docker_client_is_authenticated())

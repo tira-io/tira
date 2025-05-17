@@ -52,6 +52,7 @@ CONF_REQUIRED_FIELDS = "required_fields"
 CONF_MINIMUM_LINES = "minimum_lines"
 CONF_ID_FIELD = "id_field"
 CONF_VALUE_FIELD = "value_field"
+CONF_MAX_SIZE_MB = "max_size_mb"
 
 CONFIGURATION_FIELDS = {
     CONF_REQUIRED_FIELDS: "foo",
@@ -62,6 +63,9 @@ CONFIGURATION_FIELDS = {
 
 
 class FormatBase:
+    def __init__(self):
+        self.max_size_mb = 75
+
     def yield_next_entry(self, f: Path):
         try:
             f_size = f.stat().st_size
@@ -80,14 +84,15 @@ class FormatBase:
                 for line in o:
                     yield line.rstrip("\n")
 
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        if configuration and CONF_MAX_SIZE_MB in configuration:
+            self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
+
     def all_lines(self, f: Path):
         return list(self.yield_next_entry(f))
 
     def max_size(self):
-        return 75 * 1024 * 1024
-
-    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]" = None):
-        pass
+        return self.max_size_mb * 1024 * 1024
 
     def check_format(self, run_output: Path):
         return [_fmt.ERROR, "not implemented"]
@@ -159,8 +164,9 @@ class RunFormat(FormatBase):
             file_path = run_output / "run.txt.gz"
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
+        from tqdm import tqdm
 
-        for line in super().yield_next_entry(file_path):
+        for line in tqdm(super().yield_next_entry(file_path), f"\tverify {file_path}"):
             yield self.parse_single_line(line.strip())
 
 
@@ -358,23 +364,13 @@ class LongEvalLags(FormatBase):
             format = configuration["format"]
         self.format = format
 
-    def check_format(self, run_output: Path):
-        ret_msg = f"I will check that the data in {run_output} is valid ..."
-        ret_code = _fmt.OK
+        self.max_size_mb = 250
+        if CONF_MAX_SIZE_MB in configuration:
+            self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
 
-        for lag in self.lags:
-            status, msg = check_format(run_output / lag, self.format)
-            if status != _fmt.OK:
-                ret_code = _fmt.ERROR
-                ret_msg += "\n\t" + fmt_message(
-                    f"I expected a run file in the subdirectory {lag}. Error: {msg}", _fmt.ERROR
-                )
-            else:
-                ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
-
+    def check_ir_metadata(self, run_output: Path):
         if not (run_output / "ir-metadata.yml").exists():
-            ret_code = _fmt.ERROR
-            ret_msg += "\n\t" + fmt_message(
+            return _fmt.ERROR, "\n\t" + fmt_message(
                 f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
             )
         else:
@@ -401,16 +397,29 @@ class LongEvalLags(FormatBase):
                     },
                 },
             }
-            metadata_validation = check_format(
-                run_output / "ir-metadata.yml", "ir_metadata", {"required_fields": required_fields}
+            return check_format(run_output / "ir-metadata.yml", "ir_metadata", {"required_fields": required_fields})
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
+        if self.check_ir_metadata(run_output)[0] != _fmt.OK:
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + self.check_ir_metadata(run_output)[1],
+                _fmt.ERROR,
             )
-            if metadata_validation[0] != _fmt.OK:
+
+        for lag in self.lags:
+            status, msg = check_format(run_output / lag, self.format, {CONF_MAX_SIZE_MB: self.max_size_mb})
+            if status != _fmt.OK:
                 ret_code = _fmt.ERROR
                 ret_msg += "\n\t" + fmt_message(
-                    f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + metadata_validation[1], _fmt.ERROR
+                    f"I expected a run file in the subdirectory {lag}. Error: {msg}", _fmt.ERROR
                 )
             else:
-                ret_msg += "\n\t" + fmt_message(f"The file ir-metadata.yml is valid.", _fmt.OK)
+                ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
+
+        ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
 
         return [ret_code, ret_msg]
 

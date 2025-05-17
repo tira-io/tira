@@ -49,8 +49,10 @@ class Client(TiraClient):
         verify: bool = True,
         allow_local_execution: bool = False,
         archive_base_url: str = "https://tira.io",
+        base_url_api: str = "https://api.tira.io",
     ):
         self.base_url = base_url or "https://www.tira.io"
+        self.base_url_api = base_url_api or "https://api.tira.io"
         self.archive_base_url = archive_base_url
         self.logged: "set[str]" = set()
         self.verify = verify
@@ -944,7 +946,7 @@ class Client(TiraClient):
         return ret["upload"]
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
-        print(f"I will upload the submission in directory '{file_path}' to TIRA.")
+        print(f"I check that the submission in directory '{file_path}' is valid...")
         upload_to_tira = self.get_dataset(dataset_id)
 
         if isinstance(file_path, str):
@@ -979,7 +981,7 @@ class Client(TiraClient):
                 )
             )
             return False
-        from tira.io_utils import zip_dir
+        from tira.io_utils import TqdmUploadFile, flush_stdout_and_stderr, zip_dir
 
         if dry_run:
             print(
@@ -989,12 +991,14 @@ class Client(TiraClient):
             return
 
         zip_file = zip_dir(file_path)
+        print("\n", flush=True)
+        tqdm_zip_file = TqdmUploadFile(zip_file, f"Upload {file_path} to TIRA")
 
         headers = {"Accept": "application/json"}
-        files = {"file": open(zip_file, "rb")}
+        files = {"file": (os.path.basename(zip_file), tqdm_zip_file)}
 
         resp = requests.post(
-            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
+            url=f"{self.base_url_api}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
             files=files,
             headers=headers,
             verify=self.verify,
@@ -1002,6 +1006,7 @@ class Client(TiraClient):
 
         if resp.status_code not in {200, 202}:
             message = resp.content.decode()
+            flush_stdout_and_stderr(tqdm_zip_file)
             try:
                 message = json.loads(message)
                 message = message["message"]
@@ -1012,6 +1017,7 @@ class Client(TiraClient):
             raise ValueError(message)
 
         resp = resp.json()
+        flush_stdout_and_stderr(tqdm_zip_file)
         if verbose:
             print(
                 "\t"

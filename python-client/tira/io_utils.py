@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import sys
 import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
@@ -12,6 +13,7 @@ from subprocess import check_output
 from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import pandas as pd
+from tqdm import tqdm
 
 from tira.check_format import _fmt, log_message
 from tira.tira_client import TiraClient
@@ -147,6 +149,14 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
                 obj[field_to_str] = str(obj[field_to_str])
 
     return obj
+
+
+def flush_stdout_and_stderr(closable=None):
+    sys.stderr.flush()
+    sys.stdout.flush()
+    if closable:
+        closable.close()
+        print("\n")
 
 
 def zip_dir(file_path, allow_list=None):
@@ -345,6 +355,25 @@ def create_tira_size_txt(run_dir):
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f | wc -l'])
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type d | wc -l'])
     return ret
+
+
+class TqdmUploadFile:
+    def __init__(self, file_path, desc):
+        self.file = open(file_path, "rb")
+        self.file_size = os.path.getsize(file_path)
+        self.tqdm = tqdm(total=self.file_size, desc=desc, unit="B", unit_scale=True)
+
+    def read(self, size=-1):
+        chunk = self.file.read(size)
+        self.tqdm.update(len(chunk))
+        return chunk
+
+    def __getattr__(self, attr):
+        return getattr(self.file, attr)
+
+    def close(self):
+        self.file.close()
+        self.tqdm.close()
 
 
 class MonitoredExecution:
