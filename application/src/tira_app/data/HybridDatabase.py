@@ -948,21 +948,56 @@ class HybridDatabase(object):
                 tira_dockersoftware.vm_id;
             """
 
-        ret: list[dict[str, Any]] = []
-        rows = self.__execute_raw_sql_statement(prepared_statement, params=[task_id])
-        for vm, to_review, submissions, total, token in rows:
-            if vm is not None:
-                ret += [
-                    {
+        fields = ["tira_dockersoftware", "tira_upload"]
+        vm_to_results = {}
+        for field in fields:
+            stmt = prepared_statement.replace("tira_dockersoftware", field)
+            if field == "tira_upload":
+                stmt = stmt.replace("docker_software_id", "upload_id").replace(
+                    "tira_upload.upload_id", "tira_upload.id"
+                )
+            rows = self.__execute_raw_sql_statement(stmt, params=[task_id])
+            for vm, to_review, submissions, total, token in rows:
+                if vm is not None:
+                    if vm not in vm_to_results:
+                        vm_to_results[vm] = {"reviewed": 0, "to_review": 0, "total": 0}
+
+                    vm_to_results[vm] = {
                         "team": vm,
-                        "reviewed": submissions,
-                        "to_review": to_review,
-                        "total": total,
+                        "reviewed": vm_to_results[vm].get("reviewed", 0) + submissions,
+                        "to_review": vm_to_results[vm].get("to_review", 0) + to_review,
+                        "total": vm_to_results[vm].get("total", 0) + total,
                         "token": True if token else False,
                         "link": link_to_discourse_team(vm),
                         "link_submission": f"/submit/{task_id}/user/{vm}",
                     }
-                ]
+
+        ret: list[dict[str, Any]] = [v for k, v in vm_to_results.items()]
+        remaining_teams = set()
+        for team in all_teams_on_task:
+            if team not in [t["team"] for t in ret]:
+                remaining_teams.add(team)
+
+        if len(remaining_teams) > 0:
+            placeholders = ", ".join(["%s"] * len(remaining_teams))
+            rows = self.__execute_raw_sql_statement(
+                f"SELECT vm_id_id FROM tira_discoursetokenforuser WHERE vm_id_id IN ({placeholders})",
+                list(remaining_teams),
+            )
+            for vm in rows:
+                if vm is not None:
+                    ret += [
+                        {
+                            "team": team,
+                            "reviewed": 0,
+                            "to_review": 0,
+                            "total": 0,
+                            "token": True,
+                            "link": link_to_discourse_team(team),
+                            "link_submission": f"/submit/{task_id}/user/{team}",
+                        }
+                    ]
+
         for team in all_teams_on_task:
             if team not in [t["team"] for t in ret]:
                 ret += [
