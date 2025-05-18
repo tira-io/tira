@@ -18,6 +18,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, HttpR
 from django.views.decorators.csrf import csrf_exempt
 from grpc import RpcError, StatusCode
 from markdown import markdown
+from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
 from tira.third_party_integrations import temporary_directory
 
@@ -28,7 +29,6 @@ from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
 from ..util import get_tira_id, link_to_discourse_team, reroute_host
 from ..views import add_context
-from rest_framework.decorators import authentication_classes, permission_classes
 
 if TYPE_CHECKING:
     from typing import Any, Mapping, Optional
@@ -437,6 +437,8 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
 
 
 def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
+    import threading
+
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
 
@@ -453,15 +455,19 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
     truth_directory = model.model.data_path / (dataset_prefix + "datasets-truth") / task_id / dataset_id
     run_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id / "output"
 
-    eval_result = evaluate(run_directory, truth_directory, dataset, monitored=True)
-    print(eval_result)
-    eval_run_id = str(uuid4()) + "-evaluates-" + run_id
+    class EvalInBackground(threading.Thread):
+        def run(self, *args, **kwargs):
+            eval_result = evaluate(run_directory, truth_directory, dataset, monitored=True)
+            print(eval_result)
+            eval_run_id = str(uuid4()) + "-evaluates-" + run_id
 
-    run_prototext(eval_result, eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id)
-    shutil.move(src=eval_result, dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
-    print(model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
+            run_prototext(eval_result, eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id)
+            shutil.move(src=eval_result, dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
+            print(model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
 
-    model.add_run(dataset_id, vm_id, eval_run_id)
+            model.add_run(dataset_id, vm_id, eval_run_id)
+
+    EvalInBackground().start()
 
 
 @check_conditional_permissions(private_run_ok=True)

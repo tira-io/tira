@@ -1,7 +1,6 @@
 import html
 import io
 import json
-import threading
 import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -176,14 +175,10 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     new_run_db.from_upload = upload
     new_run_db.save()
 
-    class EvalInBackground(threading.Thread):
-        def run(self, *args, **kwargs):
-            if unsandboxed_evaluation_is_allowed(model.model._dataset_to_dict(upload.dataset)):
-                run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
-            elif model.git_pipeline_is_enabled_for_task(task_id, cache):
-                run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
-
-    EvalInBackground().start()
+    if unsandboxed_evaluation_is_allowed(model.model._dataset_to_dict(upload.dataset)):
+        run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+    elif model.git_pipeline_is_enabled_for_task(task_id, cache):
+        run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
 
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
