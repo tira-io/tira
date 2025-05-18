@@ -157,7 +157,8 @@ class RunFileEvaluator(TiraBaseEvaluator):
             run = run_orig
             if lag:
                 run = Path(run_orig) / lag
-            self.is_valid(Path(run), self._run_format, {CONF_MAX_SIZE_MB: self.max_size_mb})
+            run_format_config = {CONF_MAX_SIZE_MB: self.max_size_mb}
+            self.is_valid(Path(run), self._run_format, run_format_config)
 
             expected_queries = None
             if self._truth_format is not None:
@@ -166,7 +167,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
                 expected_queries = lines_if_valid(truths, self._truth_format)
                 expected_queries = set([i["qid"] for i in expected_queries])
 
-            run_data = lines_if_valid(run, self._run_format)
+            run_data = lines_if_valid(run, self._run_format, run_format_config)
             counts = defaultdict(set)
 
             for i in run_data:
