@@ -172,6 +172,9 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
             return [all_bytes]
 
     new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], MockedResponse())
+    new_run_db = modeldb.Run.objects.get(run_id=new_run["run"]["run_id"])
+    new_run_db.from_upload = upload
+    new_run_db.save()
 
     class EvalInBackground(threading.Thread):
         def run(self, *args, **kwargs):

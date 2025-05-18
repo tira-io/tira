@@ -10,6 +10,7 @@ from typing import Any
 from django.conf import settings
 from django.core.cache import cache
 from django.http import FileResponse, HttpResponseServerError, JsonResponse
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -146,6 +147,10 @@ def view_ir_metadata_of_run(request, task_id, dataset_id, vm_id, run_id, metadat
 @check_resources_exist("json")
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     """Zip the given run and hand it out for download. Deletes the zip on the server again."""
+    run = model.get_run(run_id=run_id, vm_id=vm_id, dataset_id=dataset_id)
+    if run and "from_upload" in run and run["from_upload"]:
+        return redirect(f"https://api.tira.io/v1/anonymous/{run['from_upload']}.zip")
+
     zipped = zip_run(dataset_id, vm_id, run_id)
 
     if zipped.exists():

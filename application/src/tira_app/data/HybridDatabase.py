@@ -621,6 +621,7 @@ class HybridDatabase(object):
             "evaluator_id": evaluator_id,
             "docker_software_id": docker_software_id,
             "upload_id": upload_id,
+            "from_upload": run.from_upload.uuid if run.from_upload else None,
         }
 
     def get_run(
@@ -929,7 +930,8 @@ class HybridDatabase(object):
                     tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
                 COUNT(*) - SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND
                     tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as submissions,
-                COUNT(*) as total
+                COUNT(*) as total,
+                MAX(tira_discoursetokenforuser.token)
             FROM
                 tira_run
             INNER JOIN
@@ -938,6 +940,8 @@ class HybridDatabase(object):
                 tira_review ON tira_run.run_id = tira_review.run_id
             LEFT JOIN
                 tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+            LEFT JOIN
+                tira_discoursetokenforuser on tira_dockersoftware.vm_id = tira_discoursetokenforuser.vm_id_id
             WHERE
                 tira_taskhasdataset.task_id = %s
             GROUP BY
@@ -946,7 +950,7 @@ class HybridDatabase(object):
 
         ret: list[dict[str, Any]] = []
         rows = self.__execute_raw_sql_statement(prepared_statement, params=[task_id])
-        for vm, to_review, submissions, total in rows:
+        for vm, to_review, submissions, total, token in rows:
             if vm is not None:
                 ret += [
                     {
@@ -954,12 +958,24 @@ class HybridDatabase(object):
                         "reviewed": submissions,
                         "to_review": to_review,
                         "total": total,
+                        "token": True if token else False,
                         "link": link_to_discourse_team(vm),
+                        "link_submission": f"/submit/{task_id}/user/{vm}",
                     }
                 ]
         for team in all_teams_on_task:
             if team not in [t["team"] for t in ret]:
-                ret += [{"team": team, "reviewed": 0, "to_review": 0, "total": 0, "link": link_to_discourse_team(team)}]
+                ret += [
+                    {
+                        "team": team,
+                        "reviewed": 0,
+                        "to_review": 0,
+                        "total": 0,
+                        "token": False,
+                        "link": link_to_discourse_team(team),
+                        "link_submission": f"/submit/{task_id}/user/{team}",
+                    }
+                ]
         return ret
 
     def all_runs(self) -> dict:

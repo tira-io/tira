@@ -4,11 +4,17 @@
       <template v-slot:item="row">
           <tr>
             <td>{{row.item.team}}</td>
+            <td>{{row.item.token}}</td>
             <td>{{row.item.reviewed}}</td>
             <td>{{row.item.to_review}}</td>
             <td>{{row.item.total}}</td>
             <td>
                 <a :href="row.item.link">
+                    link to {{row.item.team}}`s page
+                </a>
+            </td>
+            <td>
+                <a :href="row.item.link_submission">
                     link to {{row.item.team}}`s page
                 </a>
             </td>
@@ -28,8 +34,9 @@ interface CountOfTeamSubmissions {
   reviewed: number,
   to_review: number,
   total: number,
-  link: string
-
+  link: string,
+  token: boolean,
+  link_submission: string
 }
 
 export default {
@@ -41,10 +48,12 @@ export default {
     count_of_team_submissions:[] as CountOfTeamSubmissions[],
     table_headers: [
       { title: 'Team', key: 'team' },
+      { title: 'Has Token', key: 'token' },
       { title: 'Reviewed Submissions', key: 'reviewed' },
       { title: 'To review', key: 'to_review' },
       { title: 'Total', key: 'total' },
-      { title: 'Team Page', key: 'link' }
+      { title: 'Team Page', key: 'link' },
+      { title: 'Submission Page', key: 'link_submission' }
     ],
   }},
    beforeMount() {

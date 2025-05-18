@@ -87,10 +87,10 @@ class FormatBase:
                     yield line.rstrip("\n")
 
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
-        if configuration and CONF_MAX_SIZE_MB in configuration:
+        if configuration and hasattr(configuration, "__iter__") and CONF_MAX_SIZE_MB in configuration:
             self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
 
-        if configuration and CONF_SPOT_CHECK in configuration:
+        if configuration and hasattr(configuration, "__iter__") and CONF_SPOT_CHECK in configuration:
             self.spot_check = configuration[CONF_SPOT_CHECK]
 
     def all_lines(self, f: Path):
@@ -252,7 +252,7 @@ class KeyValueFormatBase(FormatBase):
         required_fields = set()
         minimum_lines = 1
 
-        if configuration:
+        if configuration and hasattr(configuration, "__iter__"):
             if CONF_REQUIRED_FIELDS in configuration:
                 required_fields = set(configuration[CONF_REQUIRED_FIELDS])
             if CONF_MINIMUM_LINES in configuration:
@@ -375,10 +375,10 @@ class LongEvalLags(FormatBase):
         self.format = format
 
         self.max_size_mb = 250
-        if configuration and CONF_MAX_SIZE_MB in configuration:
+        if configuration and hasattr(configuration, "__iter__") and CONF_MAX_SIZE_MB in configuration:
             self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
         self.spot_check = 25000
-        if configuration and CONF_SPOT_CHECK in configuration:
+        if configuration and hasattr(configuration, "__iter__") and CONF_SPOT_CHECK in configuration:
             self.spot_check = configuration[CONF_SPOT_CHECK]
 
     def check_ir_metadata(self, run_output: Path):
@@ -527,7 +527,7 @@ class GenIrSimulationFormat(JsonlFormat):
         required_fields = set()
         minimum_lines = 1
 
-        if configuration:
+        if configuration and hasattr(configuration, "__iter__"):
             if CONF_REQUIRED_FIELDS in configuration:
                 required_fields = set(configuration[CONF_REQUIRED_FIELDS])
             if CONF_MINIMUM_LINES in configuration:
@@ -972,7 +972,7 @@ class IrMetadataFormat(FormatBase):
 
     def apply_configuration_and_throw_if_invalid(self, configuration):
         self.required_fields = None
-        if configuration and CONF_REQUIRED_FIELDS in configuration:
+        if configuration and hasattr(configuration, "__iter__") and CONF_REQUIRED_FIELDS in configuration:
             self.required_fields = configuration[CONF_REQUIRED_FIELDS]
 
     def check_format(self, run_output: Path):
