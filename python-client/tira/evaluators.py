@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 CONF_ID_FIELD = "id_field"
 from tira.check_format import (
     CONF_ID_FIELD,
+    CONF_MAX_SIZE_MB,
     CONF_VALUE_FIELD,
     _fmt,
     check_format,
@@ -123,6 +124,9 @@ class TextGenerationEvaluator(TiraBaseEvaluator):
 
 class RunFileEvaluator(TiraBaseEvaluator):
     def throw_if_conf_invalid(self, config: dict) -> None:
+        self.max_size_mb = 75
+        if config and hasattr(config, "__iter__") and CONF_MAX_SIZE_MB in config:
+            self.max_size_mb = config[CONF_MAX_SIZE_MB]
 
         if (
             ("run.txt" != self._run_format and "run.txt" not in self._run_format)
@@ -135,6 +139,8 @@ class RunFileEvaluator(TiraBaseEvaluator):
         if "LongEvalLags" == self._run_format or "LongEvalLags" in self._run_format:
             if "lags" not in config and "format_configuration" in config and "lags" in config["format_configuration"]:
                 self.lags = config["format_configuration"]["lags"]
+                if not config or not hasattr(config, "__iter__") or not CONF_MAX_SIZE_MB in config:
+                    self.max_size_mb = 250
             else:
                 self.lags = config["lags"]
 
@@ -151,7 +157,7 @@ class RunFileEvaluator(TiraBaseEvaluator):
             run = run_orig
             if lag:
                 run = Path(run_orig) / lag
-            self.is_valid(Path(run), self._run_format, True)
+            self.is_valid(Path(run), self._run_format, {CONF_MAX_SIZE_MB: self.max_size_mb})
 
             expected_queries = None
             if self._truth_format is not None:
