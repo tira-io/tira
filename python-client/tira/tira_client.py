@@ -429,6 +429,7 @@ class TiraClient(ABC):
                 source_code_commit=commit,
                 source_code_active_branch=active_branch,
                 try_run_metadata_uuid=metadata_uuid,
+                mount_hf_model=mount_hf_model,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
