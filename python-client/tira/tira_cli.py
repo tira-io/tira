@@ -140,6 +140,16 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--dataset", required=False, default=None, help="The dataset on which the code should be tested before upload."
     )
+    parser.add_argument(
+        "--mount-hf-model",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container"
+            " during execution. This is intended to remove redundancy so that the models must not be embedded into the"
+            " Docker images."
+        ),
+    )
 
     parser.set_defaults(executable=code_submission_command)
 
@@ -218,10 +228,19 @@ def code_submission_command(
     allow_network: bool,
     command: "Optional[str]",
     dataset: "Optional[str]",
+    mount_hf_model: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    client.submit_code(Path(path), task, command, dry_run=dry_run, allow_network=allow_network, dataset_id=dataset)
+    client.submit_code(
+        Path(path),
+        task,
+        command,
+        dry_run=dry_run,
+        allow_network=allow_network,
+        dataset_id=dataset,
+        mount_hf_model=mount_hf_model,
+    )
 
     return 0
 

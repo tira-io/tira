@@ -260,6 +260,7 @@ class TiraClient(ABC):
         docker_file: "Optional[Path]" = None,
         dry_run: "Optional[bool]" = False,
         allow_network: "Optional[bool]" = False,
+        mount_hf_model: "Optional[list[dict]]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -343,6 +344,14 @@ class TiraClient(ABC):
 
         print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
 
+        hf_models = None
+        if mount_hf_model:
+            from tira.io_utils import huggingface_model_mounts
+
+            hf_models = huggingface_model_mounts(mount_hf_model)
+            hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
+            print(f"The following models from huggingface are mounted: {hf_models}\n\n")
+
         if docker_file is None:
             docker_file = path / "Dockerfile"
 
@@ -383,6 +392,7 @@ class TiraClient(ABC):
             input_dir=dataset_path,
             output_dir=tmp_dir,
             allow_network=allow_network,
+            additional_volumes=hf_models,
         )
 
         format_configuration = (
