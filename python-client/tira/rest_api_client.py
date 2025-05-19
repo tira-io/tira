@@ -823,6 +823,14 @@ class Client(TiraClient):
                 r = requests.get(url, headers=headers, stream=True)
                 total = int(r.headers.get("content-length", 0))
                 status_code = r.status_code
+                if status_code == 302 and r.headers and 'X-Disraptor-Location' in r.headers and "/dataset/" in url and "/user/" in url and "/download/" in url and ".zip" in url:
+                    run_id = url.split("/download/")[1].split(".zip")[0]
+                    new_url = r.headers["X-Disraptor-Location"]
+                    uuid = new_url.split("/v1/anonymous/")[1].split(".zip")[0]
+                    self.download_and_extract_zip(new_url, Path(target_dir) / run_id, extract)
+                    src_dir = Path(target_dir) / run_id
+                    shutil.move(src_dir / uuid, src_dir / "output")
+                    return
                 if status_code < 200 or status_code >= 300:
                     raise ValueError(f"Got non 200 status code {status_code} for {url}.")
 
@@ -849,10 +857,10 @@ class Client(TiraClient):
                     print("Download finished: ", target_dir)
 
                 return
-            except Exception:
+            except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
                 print(f"Code: {status_code}")
-                print(f"Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.")
+                print(f"Error occured while fetching {url}: {e}. I will sleep {sleep_time} seconds and continue.")
                 url = mirror_url(url)
                 time.sleep(sleep_time)
 
