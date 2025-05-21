@@ -658,6 +658,7 @@ def add_docker_software(
     commit: "Optional[str]" = None,
     active_branch: "Optional[str]" = None,
     try_run_metadata_uuid: "Optional[str]" = None,
+    tira_image_workdir: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -691,6 +692,7 @@ def add_docker_software(
         commit,
         active_branch,
         try_run_metadata_uuid,
+        tira_image_workdir,
     )
 
 
