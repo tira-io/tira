@@ -2531,6 +2531,7 @@ class HybridDatabase(object):
         commit: "Optional[str]" = None,
         active_branch: "Optional[str]" = None,
         try_run_metadata_uuid: "Optional[str]" = None,
+        tira_image_workdir: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2555,6 +2556,7 @@ class HybridDatabase(object):
             source_code_commit=commit,
             source_code_active_branch=active_branch,
             try_run_metadata=try_run_metadata,
+            tira_image_workdir=tira_image_workdir,
         )
 
         additional_inputs = range(

@@ -863,6 +863,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             commit,
             active_branch,
             data.get("try_run_metadata_uuid", None),
+            data.get("tira_image_workdir", None),
         )
 
         if data.get("mount_hf_model"):
