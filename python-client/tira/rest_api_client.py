@@ -302,6 +302,13 @@ class Client(TiraClient):
 
         if try_run_metadata_uuid:
             content["try_run_metadata_uuid"] = try_run_metadata_uuid
+            
+        try:
+            work_dir = self.local_execution.docker_image_work_dir(image)
+            if work_dir and len(work_dir) > 2:
+                content["tira_image_workdir"] = work_dir
+        except:
+            pass
 
         ret = requests.post(url, headers=headers, json=content)
         response_code = ret.status_code
