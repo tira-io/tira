@@ -518,6 +518,10 @@ def all_environment_variables_for_github_action_or_fail(params):
 
     return [k + "=" + v for k, v in ret.items()]
 
+def extract_volume_mounts(v):
+    v_modified = v.replace(":\\", "XYZ__________XYZ")
+    volume_dir, volume_bind, volume_mode = v_modified.split(":")
+    return volume_dir.replace("XYZ__________XYZ", ":\\") , volume_bind, volume_mode
 
 def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
     files = glob(str(directory) + "/*")

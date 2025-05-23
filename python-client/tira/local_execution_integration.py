@@ -474,7 +474,8 @@ class LocalExecutionIntegration:
 
         if additional_volumes:
             for v in additional_volumes:
-                volume_dir, volume_bind, volume_mode = v.split(":")
+                from tira.io_utils import extract_volume_mounts
+                volume_dir, volume_bind, volume_mode = extract_volume_mounts(v)
                 volume_dir = str(os.path.abspath(volume_dir))
                 if volume_dir in volumes:
                     raise ValueError(f"Volume to mount is multiple times defined: {volume_dir}")
