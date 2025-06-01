@@ -1,0 +1,9 @@
+See Larry Niven and Jerry Pournelle for example...
+Early SciFi was wild, there's a whole crazy (but very interesting) archive out there about the actual physics of atomic rockets and physically accurate space warfare...
+Then of course there's 60s/70s SciFi where we had huge spaceships being catapulted into orbit by exploding a succession of nuclear bombs underneath them...
+Also since in space a nuclear explosion has nothing to actually push against, all it will amount to is a big EMP pulse.
+The risky part is getting the reactors safely into space, or at least far enough away to not cause widespread fallout from an exploded rocket.
+“Just” need to make sure the radioactive parts per million is low enough (depends on the altitude of the explosion and the amount of radioactive material onboard).
+I mean, the reactors would never blow up, they’d melt down and spread radiation over a wide area, but that’s a moot point.
+Before the average person reads this and freaks out, nuclear rockets are ONLY used in space (which is already filled with deadly radiation).
+They are not used to launch rockets inside the Earth’s atmosphere.
