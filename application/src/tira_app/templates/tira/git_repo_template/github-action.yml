@@ -1,10 +1,11 @@
 name: Upload Software to TIRA
 on:
   workflow_dispatch:
-    directory:
-      description: 'The directory that contains the submission. Can be . for the root of the repository'
-      required: true
-      default: .
+    inputs:
+      directory:
+        description: 'The directory that contains the submission. Can be . for the root of the repository'
+        required: true
+        default: .
 jobs:
   docker-build:
     runs-on: ubuntu-latest

@@ -22,6 +22,7 @@ docker build -t {{ image }} -f Dockerfile .
 (3) Test that the docker image works on a small example dataset and push it to TIRA:
 
 ```
-tira-run --input-dataset {{ input_dataset }} --image {{ image }}
+tira-cli verify-installation
+tira-cli code-submission --path {% verbatim %}${{ inputs.directory }}{% endverbatim %} --task {{ task_id }} --dataset {{ input_dataset }}
 ```
 
