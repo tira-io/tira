@@ -941,6 +941,51 @@ class DocumentProcessorFormat(JsonlFormat):
             yield normalized_line
 
 
+class IrDatasetsCorpus(FormatBase):
+    def __init__(self):
+        self.docs_processor = DocumentProcessorFormat()
+        self.query_processor = QueryProcessorFormat()
+
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        self.docs_processor.apply_configuration_and_throw_if_invalid(configuration)
+        self.query_processor.apply_configuration_and_throw_if_invalid(configuration)
+
+    def yield_next_entry(self, run_output):
+        raise ValueError("not implemented")
+
+    def check_format(self, run_output: Path):
+        code, message = self.query_processor.check_format(Path(run_output) / "queries.jsonl")
+
+        if code != _fmt.OK:
+            return [_fmt.ERROR, f"No ir-dataset found. {message}"]
+
+        code, message = self.docs_processor.check_format(Path(run_output) / "corpus.jsonl.gz")
+
+        if code != _fmt.OK:
+            return [_fmt.ERROR, f"No ir-dataset found. {message}"]
+
+        return [_fmt.OK, "Valid ir-dataset found."]
+
+class LightningIrDocumentEmbeddings(FormatBase):
+    def yield_next_entry(self, run_output):
+        raise ValueError("not implemented")
+
+    def check_format(self, run_output: Path):
+        for expected_file in ["doc_ids.txt", "index.pt"]:
+            if not (Path(run_output) / expected_file).is_file():
+                return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
+        return [_fmt.OK, "Valid lightning-ir embeddings found."]
+
+class LightningIrQueryEmbeddings(FormatBase):
+    def yield_next_entry(self, run_output):
+        raise ValueError("not implemented")
+
+    def check_format(self, run_output: Path):
+        for expected_file in ["query_embeddings.pt", "query_ids.txt"]:
+            if not (Path(run_output) / expected_file).is_file():
+                return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
+        return [_fmt.OK, "Valid lightning-ir embeddings found."]
+                
 class TerrierIndex(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration):
         pass
@@ -1077,6 +1122,9 @@ FORMAT_TO_CHECK = {
     "power-and-identification-truths": lambda: PowerAndIdeologyFormat("", "-*-labels"),
     "power-and-identification-predictions": lambda: PowerAndIdeologyFormat("*", "*-predictions"),
     "touche-image-retrieval": ToucheImageRetrieval,
+    "ir-dataset-corpus": IrDatasetsCorpus,
+    "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
+    "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
