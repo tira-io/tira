@@ -984,7 +984,8 @@ class Client(TiraClient):
                 error_msg += "\n" + msg
             else:
                 print("\t" + fmt_message(msg.strip(), status_code))
-                error_msg += ""
+                error_msg = ""
+                break
 
         if error_msg:
             print(error_msg)

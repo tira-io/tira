@@ -1201,6 +1201,8 @@ def check_format(
         ret = {}
         for f in format:
             ret[f] = check_format(run_output, f, configuration)
+            if ret[f][0] == _fmt.OK:
+                return ret[f]
 
         if all(i[0] == _fmt.OK for i in ret.values()):
             return [_fmt.OK, "The output is valid."]
