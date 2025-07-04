@@ -62,7 +62,7 @@ class TestWorkingArtifacts(unittest.TestCase):
         # Test with a BM25 artifact
         art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
         self.assertIsInstance(art, TiraSourceTransformer)
-        
+
 
     def test_non_artifact_is_regular_source_transformer(self):
         """Test that local run files create regular SourceTransformer, not TiraSourceTransformer"""
@@ -78,7 +78,7 @@ class TestWorkingArtifacts(unittest.TestCase):
             # Load as regular PyTerrier dataframe and transformer
             live_df = pt.io.read_results(temp_run_file)
             live_tr = pt.transformer.get_transformer(live_df)
-            
+
             # Should be SourceTransformer but NOT TiraSourceTransformer
             self.assertIsInstance(live_tr, pt.transformer.SourceTransformer)
             self.assertNotIsInstance(live_tr, TiraSourceTransformer)
@@ -89,37 +89,37 @@ class TestWorkingArtifacts(unittest.TestCase):
     def test_on_column_mismatch_warn(self):
         """Test that on_column_mismatch='warn' produces warnings for extra query columns"""
         art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
-        
+
         # Create topics with extra query rewrite columns
         topics = pd.DataFrame([
             {"qid": "1", "query": "test query", "query_0": "rewritten query 1", "query_1": "rewritten query 2"}
         ])
-        
+
         # Should warn by default
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             result = art.transform(topics)
-            
+
             # Check that a warning was issued
             self.assertTrue(len(w) > 0)
             self.assertTrue(any("ignores rewritten queries" in str(warning.message) for warning in w))
-            
+
 
     def test_on_column_mismatch_error(self):
         """Test that on_column_mismatch='error' raises an error for extra query columns"""
         # Create artifact with error mode
         art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
         art.on_column_mismatch = "error"
-        
+
         # Create topics with extra query rewrite columns
         topics = pd.DataFrame([
             {"qid": "1", "query": "test query", "query_0": "rewritten query 1"}
         ])
-        
+
         # Should raise ValueError
         with self.assertRaises(ValueError) as cm:
             art.transform(topics)
-        
+
         self.assertIn("ignores rewritten queries", str(cm.exception))
 
     def test_on_column_mismatch_ignore(self):
@@ -127,25 +127,40 @@ class TestWorkingArtifacts(unittest.TestCase):
         # Create artifact with ignore mode
         art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
         art.on_column_mismatch = "ignore"
-        
+
         # Create topics with extra query rewrite columns
         topics = pd.DataFrame([
             {"qid": "1", "query": "test query", "query_0": "rewritten query 1"}
         ])
-        
+
         # Should not warn or error
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             result = art.transform(topics)
-            
+
             # Check that no warnings were issued about column mismatch
             column_warnings = [warning for warning in w if "ignores rewritten queries" in str(warning.message)]
             self.assertEqual(len(column_warnings), 0)
-        
+
 
     def test_on_column_mismatch_default_behavior(self):
         """Test that the default on_column_mismatch behavior is 'warn'"""
         art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
-        
+
         # Check that default is 'warn'
         self.assertEqual(art.on_column_mismatch, "warn")
+
+    def test_env_var_changes_default(self):
+        """
+        If TIRA_ARTIFACT_ON_REWRITE is set, every artifact loaded via pta.Artifact.from_url
+        should inherit that mode automatically.
+        """
+        import os
+        from unittest.mock import patch
+
+        # env-var override using patch
+        with patch.dict(os.environ, {"TIRA_ARTIFACT_ON_COLUMN_MISMATCH": "error"}):
+            # Load artifact - should inherit the environment variable setting
+            art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
+
+            self.assertEqual(art.on_column_mismatch, "error")
