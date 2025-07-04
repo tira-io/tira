@@ -360,13 +360,16 @@ def pt_index_transformer(path):
 
 def pt_transformer(path):
     import pyterrier as pt
+    from .pyterrier_util import TiraSourceTransformer
 
     if not pt.started():
         pt.init()
     # TODO hacked for the moment, in reality, we must delegate to the classes above.
 
-    return pt.transformer.get_transformer(pt.io.read_results(path + "/output/run.txt"))
+    run_path = os.path.join(path, "output", "run.txt")
+    df = pt.io.read_results(run_path)
 
+    return TiraSourceTransformer(df, on_column_mismatch="warn")
 
 def pt_artifact_entrypoint(url):
     url = url.netloc + url.path

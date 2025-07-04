@@ -26,13 +26,33 @@ def merge_runs(topics, run_file):
 
     return topics[keeping].merge(df, how="left", left_on=join_on, right_on=join_on)
 
-
 class TiraSourceTransformer(SourceTransformer):
-    def __init__(self, rtr, **kwargs):
+    """Wraps a cached Tira  run as a PyTerrier transformer.
+    
+        Parameters
+        ----------
+        on_column_mismatch : {'warn', 'error', 'ignore'}, default='warn'
+        How to react if the topics frame arriving at ``transform()`` contains 
+        extra query-rewrite columns (``query_0``, ``query_1``, etc.) that a *run*
+        artifact cannot honour.
+    """
+    def __init__(self, rtr, *, on_column_mismatch: str = "warn", **kwargs):
         super().__init__(rtr, **kwargs)
+        self.on_column_mismatch = on_column_mismatch
 
     def transform(self, topics):
         import numpy as np
+
+        # fail/warn/ignore on extra columns
+        extra = [c for c in topics.columns if c.startswith("query_")]
+        if extra and self.on_column_mismatch != "ignore":
+            import warnings
+            msg = (f"{self.__class__.__name__} ignores rewritten queries; "
+                   f"dropping columsns {extra} from topics frame."
+                   "Set on_columns_mismatch='ignore' to suppress this warning or 'error' to raise an error.")
+            if self.on_column_mismatch == "error":
+                raise ValueError(msg)
+            warnings.warn(msg, RuntimeWarning)
 
         if "docno" not in topics.columns:
             return super().transform(topics)
