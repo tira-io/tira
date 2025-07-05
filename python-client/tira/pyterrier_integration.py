@@ -328,11 +328,14 @@ def pt_document_transformer(path):
         pt.init()
     from .rest_api_client import Client
 
+    original_path = path
     path = Path(path)
     if (path / "output").exists():
         path = path / "output"
 
-    return PyTerrierIntegration(Client()).transform_documents(path, None)
+    transformer = PyTerrierIntegration(Client()).transform_documents(path, None)
+    transformer.artifact_path = original_path
+    return _add_metadata_support(transformer, original_path)
 
 
 def pt_query_transformer(path):
@@ -342,12 +345,14 @@ def pt_query_transformer(path):
         pt.init()
     from .rest_api_client import Client
 
+    original_path = path
     path = Path(path)
     if (path / "output").exists():
         path = path / "output"
 
-    return PyTerrierIntegration(Client()).transform_queries(path, None)
-
+    transformer = PyTerrierIntegration(Client()).transform_queries(path, None)
+    transformer.artifact_path = original_path
+    return _add_metadata_support(transformer, original_path)
 
 def pt_index_transformer(path):
     import pyterrier as pt
@@ -355,8 +360,9 @@ def pt_index_transformer(path):
     if not pt.started():
         pt.init()
 
-    return pt.IndexRef.of(str((Path(path) / "output" / "index").resolve().absolute()))
-
+    index_ref = pt.IndexRef.of(str((Path(path) / "output" / "index").resolve().absolute()))
+    index_ref.artifact_path = path
+    return _add_metadata_support(index_ref, path)
 
 def pt_transformer(path):
     import pyterrier as pt
@@ -366,10 +372,17 @@ def pt_transformer(path):
         pt.init()
     # TODO hacked for the moment, in reality, we must delegate to the classes above.
 
+    original_path = path
     run_path = os.path.join(path, "output", "run.txt")
     df = pt.io.read_results(run_path)
+    
+    mode= os.getenv("TIRA_ARTIFACT_ON_COLUMN_MISMATCH", "warn").lower()
+    if mode not in ["warn", "error", "ignore"]:
+        raise ValueError(f"Invalid TIRA_ARTIFACT_ON_COLUMN_MISMATCH value: {mode}. Expected 'warn', 'error', or 'ignore'.")
 
-    return TiraSourceTransformer(df, on_column_mismatch="warn")
+    transformer = TiraSourceTransformer(df, on_column_mismatch= mode)
+    transformer.artifact_path = original_path
+    return _add_metadata_support(transformer, original_path)
 
 def pt_artifact_entrypoint(url):
     url = url.netloc + url.path
@@ -435,3 +448,36 @@ def pt_artifact_entrypoint(url):
         with open(ret / "pt_meta.json", "w") as f:
             f.write(json.dumps({"type": "tira", "format": pt_format}))
     return str(ret.absolute())
+
+def _add_metadata_support(transformer, artifact_path):
+    """Add get_metadata() method to any PyTerrier transformer or IndexRef"""
+    def get_metadata():
+        """
+        Fetch and read the pt_meta.json file for this artifact.
+        
+        Returns:
+            dict: The parsed JSON content of the pt_meta.json file, or None if not found.
+        """
+        if not hasattr(transformer, 'artifact_path') or not transformer.artifact_path:
+            print("No artifact_path set for this transformer. Cannot read metadata.")
+            return None
+            
+        from pathlib import Path
+        import json
+        
+        meta_path = Path(transformer.artifact_path) / "pt_meta.json"
+        
+        if not meta_path.exists():
+            return None
+            
+        try:
+            with open(meta_path, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            import warnings
+            warnings.warn(f"Could not read pt_meta.json: {e}", RuntimeWarning)
+            return None
+    
+    # Monkey-patch the method onto the transformer
+    transformer.get_metadata = get_metadata
+    return transformer

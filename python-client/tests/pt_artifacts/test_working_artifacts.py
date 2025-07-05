@@ -102,7 +102,9 @@ class TestWorkingArtifacts(unittest.TestCase):
 
             # Check that a warning was issued
             self.assertTrue(len(w) > 0)
-            self.assertTrue(any("ignores rewritten queries" in str(warning.message) for warning in w))
+            warning_msg = str(w[0].message)
+            self.assertIn("cannot process rewritten query columns", warning_msg)
+            self.assertIn("will be ignored during retrieval", warning_msg)
 
 
     def test_on_column_mismatch_error(self):
@@ -120,7 +122,8 @@ class TestWorkingArtifacts(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             art.transform(topics)
 
-        self.assertIn("ignores rewritten queries", str(cm.exception))
+        error_msg = str(cm.exception)
+        self.assertIn("may not be the intended behavior", error_msg)
 
     def test_on_column_mismatch_ignore(self):
         """Test that on_column_mismatch='ignore' silently ignores extra query columns"""
@@ -164,3 +167,59 @@ class TestWorkingArtifacts(unittest.TestCase):
             art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
 
             self.assertEqual(art.on_column_mismatch, "error")
+
+    def test_get_metadata_transformer_artifact(self):
+        """Test that transformer artifacts have get_metadata() method that returns correct data"""
+        art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)")
+        
+        # Should have get_metadata method
+        self.assertTrue(hasattr(art, 'get_metadata'))
+        self.assertTrue(callable(art.get_metadata))
+        
+        # Should return metadata dict
+        metadata = art.get_metadata()
+        self.assertIsInstance(metadata, dict)
+        self.assertEqual(metadata.get('type'), 'tira')
+        self.assertEqual(metadata.get('format'), 'pt_transformer')
+
+    def test_get_metadata_index_artifact(self):
+        """Test that index artifacts have get_metadata() method that returns correct data"""
+        art = pta.Artifact.from_url("tira:cranfield/tira-ir-starter/Index (tira-ir-starter-pyterrier)")
+        
+        # Should have get_metadata method
+        self.assertTrue(hasattr(art, 'get_metadata'))
+        self.assertTrue(callable(art.get_metadata))
+        
+        # Should return metadata dict
+        metadata = art.get_metadata()
+        self.assertIsInstance(metadata, dict)
+        self.assertEqual(metadata.get('type'), 'tira')
+        self.assertEqual(metadata.get('format'), 'pt_index_transformer')
+
+    def test_get_metadata_query_transformer_artifact(self):
+        """Test that query transformer artifacts have get_metadata() method that returns correct data"""
+        art = pta.Artifact.from_url("tira:cranfield/qspell/hunspell")
+        
+        # Should have get_metadata method
+        self.assertTrue(hasattr(art, 'get_metadata'))
+        self.assertTrue(callable(art.get_metadata))
+        
+        # Should return metadata dict
+        metadata = art.get_metadata()
+        self.assertIsInstance(metadata, dict)
+        self.assertEqual(metadata.get('type'), 'tira')
+        self.assertEqual(metadata.get('format'), 'pt_query_transformer')
+
+    def test_get_metadata_document_transformer_artifact(self):
+        """Test that document transformer artifacts have get_metadata() method that returns correct data"""
+        art = pta.Artifact.from_url("tira:cranfield/seanmacavaney/DocT5Query (Local)")
+        
+        # Should have get_metadata method
+        self.assertTrue(hasattr(art, 'get_metadata'))
+        self.assertTrue(callable(art.get_metadata))
+        
+        # Should return metadata dict
+        metadata = art.get_metadata()
+        self.assertIsInstance(metadata, dict)
+        self.assertEqual(metadata.get('type'), 'tira')
+        self.assertEqual(metadata.get('format'), 'pt_document_transformer')

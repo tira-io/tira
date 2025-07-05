@@ -36,8 +36,10 @@ class TiraSourceTransformer(SourceTransformer):
         extra query-rewrite columns (``query_0``, ``query_1``, etc.) that a *run*
         artifact cannot honour.
     """
-    def __init__(self, rtr, *, on_column_mismatch: str = "warn", **kwargs):
+    def __init__(self, rtr, *, on_column_mismatch: str = None, **kwargs):
         super().__init__(rtr, **kwargs)
+        if on_column_mismatch is None:
+            on_column_mismatch = os.getenv("TIRA_ARTIFACT_ON_COLUMN_MISMATCH", "warn").lower()
         self.on_column_mismatch = on_column_mismatch
 
     def transform(self, topics):
@@ -47,11 +49,15 @@ class TiraSourceTransformer(SourceTransformer):
         extra = [c for c in topics.columns if c.startswith("query_")]
         if extra and self.on_column_mismatch != "ignore":
             import warnings
-            msg = (f"{self.__class__.__name__} ignores rewritten queries; "
-                   f"dropping columsns {extra} from topics frame."
-                   "Set on_columns_mismatch='ignore' to suppress this warning or 'error' to raise an error.")
             if self.on_column_mismatch == "error":
+                msg = (f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
+                       f"These columns will be ignored during retrieval, which may not be the intended behavior. "
+                       f"Set on_column_mismatch='ignore' to suppress this error or 'warn' for a warning instead.")
                 raise ValueError(msg)
+            else:  # warn mode
+                msg = (f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
+                       f"These columns will be ignored during retrieval. "
+                       f"Set on_column_mismatch='ignore' to suppress this warning or 'error' to raise an error instead.")
             warnings.warn(msg, RuntimeWarning)
 
         if "docno" not in topics.columns:
@@ -69,7 +75,6 @@ class TiraSourceTransformer(SourceTransformer):
             keeping = topics.columns[~topics.columns.isin(drop_columns)]
 
         return topics[keeping].merge(self.df, on=["qid", "docno"])
-
 
 class TiraFullRankTransformer(Transformer):
     """
