@@ -26,16 +26,18 @@ def merge_runs(topics, run_file):
 
     return topics[keeping].merge(df, how="left", left_on=join_on, right_on=join_on)
 
+
 class TiraSourceTransformer(SourceTransformer):
     """Wraps a cached Tira  run as a PyTerrier transformer.
-    
-        Parameters
-        ----------
-        on_column_mismatch : {'warn', 'error', 'ignore'}, default='warn'
-        How to react if the topics frame arriving at ``transform()`` contains 
-        extra query-rewrite columns (``query_0``, ``query_1``, etc.) that a *run*
-        artifact cannot honour.
+
+    Parameters
+    ----------
+    on_column_mismatch : {'warn', 'error', 'ignore'}, default='warn'
+    How to react if the topics frame arriving at ``transform()`` contains
+    extra query-rewrite columns (``query_0``, ``query_1``, etc.) that a *run*
+    artifact cannot honour.
     """
+
     def __init__(self, rtr, *, on_column_mismatch: str = None, **kwargs):
         super().__init__(rtr, **kwargs)
         if on_column_mismatch is None:
@@ -49,15 +51,20 @@ class TiraSourceTransformer(SourceTransformer):
         extra = [c for c in topics.columns if c.startswith("query_")]
         if extra and self.on_column_mismatch != "ignore":
             import warnings
+
             if self.on_column_mismatch == "error":
-                msg = (f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
-                       f"These columns will be ignored during retrieval, which may not be the intended behavior. "
-                       f"Set on_column_mismatch='ignore' to suppress this error or 'warn' for a warning instead.")
+                msg = (
+                    f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
+                    f"These columns will be ignored during retrieval, which may not be the intended behavior. "
+                    f"Set on_column_mismatch='ignore' to suppress this error or 'warn' for a warning instead."
+                )
                 raise ValueError(msg)
             else:  # warn mode
-                msg = (f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
-                       f"These columns will be ignored during retrieval. "
-                       f"Set on_column_mismatch='ignore' to suppress this warning or 'error' to raise an error instead.")
+                msg = (
+                    f"{self.__class__.__name__} cannot process rewritten query columns {extra}. "
+                    f"These columns will be ignored during retrieval. "
+                    f"Set on_column_mismatch='ignore' to suppress this warning or 'error' to raise an error instead."
+                )
             warnings.warn(msg, RuntimeWarning)
 
         if "docno" not in topics.columns:
@@ -75,6 +82,7 @@ class TiraSourceTransformer(SourceTransformer):
             keeping = topics.columns[~topics.columns.isin(drop_columns)]
 
         return topics[keeping].merge(self.df, on=["qid", "docno"])
+
 
 class TiraFullRankTransformer(Transformer):
     """
