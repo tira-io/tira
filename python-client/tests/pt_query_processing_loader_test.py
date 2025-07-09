@@ -156,3 +156,27 @@ class TestQueryProcessingLoader(unittest.TestCase):
         self.assertEqual(len(q(pd.DataFrame([{"qid": "301"}]))), 1)
         self.assertEqual(q(pd.DataFrame([{"qid": "301"}])).iloc[0].to_dict()["features"][0], 3.5629408815)
         self.assertEqual(q(pd.DataFrame([{"qid": "301"}])).iloc[0].to_dict()["features"][1], 2.4740487603)
+
+    def test_local_query_intent_features(self):
+        import pyterrier as pt
+        import numpy as np
+
+        from tira.rest_api_client import Client
+        from tira.third_party_integrations import ensure_pyterrier_is_loaded
+
+        ensure_pyterrier_is_loaded()
+        tira = Client()
+        intents = ['informational', 'transactional', 'navigational']
+
+        def one_hot_encode(labels):
+            return lambda x: np.array([1 if x == label else 0 for label in labels])
+
+        q = tira.pt.query_features(
+            "tests/resources/query-processing-outputs/query-intents/queries.jsonl",
+            feature_selection=['intent_prediction'],
+            map_features={'intent_prediction': one_hot_encode(intents)}
+         )
+        self.assertEqual(len(q(pd.DataFrame([{"qid": "3"}]))), 1)
+        self.assertEqual(list(q(pd.DataFrame([{"qid": "3"}])).iloc[0].to_dict()["features"]), [1,0,0])
+        self.assertEqual(list(q(pd.DataFrame([{"qid": "5"}])).iloc[0].to_dict()["features"]), [0,1,0])
+
