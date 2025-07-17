@@ -362,7 +362,9 @@ class TiraClient(ABC):
         directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
         if Path(repo.working_tree_dir).name in directory_in_path:
             directory_in_path = Path(repo.working_tree_dir).name
-        submission_name = directory_in_path.replace("/", "-").lower().replace(' ', '-').replace('\n', '').replace('\r', '')
+        submission_name = (
+            directory_in_path.replace("/", "-").lower().replace(" ", "-").replace("\n", "").replace("\r", "")
+        )
         docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
 
         if repo.is_dirty(untracked_files=True):

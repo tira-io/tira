@@ -2,14 +2,7 @@ import unittest
 
 from tira.check_format import check_format
 
-from . import (
-    _ERROR,
-    _OK,
-    EMPTY_OUTPUT,
-    TSV_OUTPUT_VALID,
-    VALID_QREL_PATH,
-    LIGTHNING_IR_DOCUMENT_EMBEDDINGS
-)
+from . import _ERROR, _OK, EMPTY_OUTPUT, LIGTHNING_IR_DOCUMENT_EMBEDDINGS, TSV_OUTPUT_VALID, VALID_QREL_PATH
 
 
 class TestLightningIrDocEmbeddingFormat(unittest.TestCase):

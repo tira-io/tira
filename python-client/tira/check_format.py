@@ -966,6 +966,7 @@ class IrDatasetsCorpus(FormatBase):
 
         return [_fmt.OK, "Valid ir-dataset found."]
 
+
 class LightningIrDocumentEmbeddings(FormatBase):
     def yield_next_entry(self, run_output):
         raise ValueError("not implemented")
@@ -976,6 +977,7 @@ class LightningIrDocumentEmbeddings(FormatBase):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
+
 class LightningIrQueryEmbeddings(FormatBase):
     def yield_next_entry(self, run_output):
         raise ValueError("not implemented")
@@ -985,7 +987,8 @@ class LightningIrQueryEmbeddings(FormatBase):
             if not (Path(run_output) / expected_file).is_file():
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
-                
+
+
 class TerrierIndex(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration):
         pass

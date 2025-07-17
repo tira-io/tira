@@ -475,6 +475,7 @@ class LocalExecutionIntegration:
         if additional_volumes:
             for v in additional_volumes:
                 from tira.io_utils import extract_volume_mounts
+
                 volume_dir, volume_bind, volume_mode = extract_volume_mounts(v)
                 volume_dir = str(os.path.abspath(volume_dir))
                 if volume_dir in volumes:

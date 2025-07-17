@@ -302,7 +302,7 @@ class Client(TiraClient):
 
         if try_run_metadata_uuid:
             content["try_run_metadata_uuid"] = try_run_metadata_uuid
-            
+
         try:
             work_dir = self.local_execution.docker_image_work_dir(image)
             if work_dir and len(work_dir) > 2:
@@ -830,7 +830,15 @@ class Client(TiraClient):
                 r = requests.get(url, headers=headers, stream=True)
                 total = int(r.headers.get("content-length", 0))
                 status_code = r.status_code
-                if status_code == 302 and r.headers and 'X-Disraptor-Location' in r.headers and "/dataset/" in url and "/user/" in url and "/download/" in url and ".zip" in url:
+                if (
+                    status_code == 302
+                    and r.headers
+                    and "X-Disraptor-Location" in r.headers
+                    and "/dataset/" in url
+                    and "/user/" in url
+                    and "/download/" in url
+                    and ".zip" in url
+                ):
                     run_id = url.split("/download/")[1].split(".zip")[0]
                     new_url = r.headers["X-Disraptor-Location"]
                     uuid = new_url.split("/v1/anonymous/")[1].split(".zip")[0]

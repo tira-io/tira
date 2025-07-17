@@ -77,7 +77,7 @@ class TestWorkingArtifacts(unittest.TestCase):
         try:
             # Load as regular PyTerrier dataframe and transformer
             live_df = pt.io.read_results(temp_run_file)
-            live_tr = pt.transformer.get_transformer(live_df)
+            live_tr = pt.Transformer.from_df(live_df)
 
             # Should be SourceTransformer but NOT TiraSourceTransformer
             self.assertIsInstance(live_tr, pt.transformer.SourceTransformer)
