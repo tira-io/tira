@@ -233,7 +233,7 @@ class PyTerrierIntegration:
         return self._features_transformer(run, "docno", "doc_features", feature_selection, map_features)
 
     def query_features(
-        self, approach, dataset, format: str = "query-processor", feature_selection=None, map_features=None
+        self, approach, dataset=None, format: str = "query-processor", feature_selection=None, map_features=None
     ):
         run = self.pd.transform_queries(approach, dataset, format)
 
