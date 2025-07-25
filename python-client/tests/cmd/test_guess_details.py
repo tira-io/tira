@@ -27,6 +27,8 @@ class TestGuessDetails(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_guess_system_details_03(self):
-        actual = guess_system_details(directory=JSONL_OUTPUT_VALID.parent / "longeval-ir-metadata" / "ir-metadata.yml", system=None)
+        actual = guess_system_details(
+            directory=JSONL_OUTPUT_VALID.parent / "longeval-ir-metadata" / "ir-metadata.yml", system=None
+        )
         self.assertEqual("ows_bm25_bo1_keyqueries", actual["tag"])
         self.assertIn("A keyquerey approach that reformulates", actual["description"])
