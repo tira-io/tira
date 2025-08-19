@@ -5,13 +5,11 @@ from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
-from tira import __version__
-from tira.check_format import fmt_message
-from tira.io_utils import _fmt, log_message, verify_tira_installation
-from tira.rest_api_client import Client as RestClient
-from tira.tira_run import guess_system_details, guess_vm_id_of_user
-
-from .cli.commands.reproduce import reproduce_command
+from . import __version__
+from ._cli.commands.reproduce import reproduce_command
+from ._cli.commands.upload import upload_command
+from .io_utils import _fmt, log_message, verify_tira_installation
+from .rest_api_client import Client as RestClient
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient
@@ -270,51 +268,6 @@ def verify_installation_command(**kwards) -> int:
 
     log_message(msg, status)
     return 0 if status == _fmt.OK else 1
-
-
-def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **kwargs) -> None:
-    client: "TiraClient" = RestClient()
-    vm_id = None
-    default_task = None
-    if client.api_key_is_valid():
-        system = guess_system_details(directory, system)
-        dataset_info = client.get_dataset(dataset=dataset)
-        default_task = dataset_info["default_task"]
-        vm_id = guess_vm_id_of_user(default_task, client)
-        if not system:
-            print(
-                fmt_message(
-                    "Please specify the name of your system. Either:"
-                    + "\n\n\tIncorporate the tag into your ir-metadata (see https://ir-metadata.org),"
-                    + "\n\n\tor, pass --system to tira-cli upload",
-                    _fmt.ERROR,
-                )
-            )
-            return 1
-
-    resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
-    if not resp or "uuid" not in resp or not resp["uuid"]:
-        return 1
-
-    if not system or not vm_id:
-        # only anonymous submissions
-        return 0
-    else:
-        print("\nI upload the metadata for the submission...")
-        resp = client.claim_ownership(
-            resp["uuid"], vm_id, system["tag"], system.get("description", "todo: Add a description"), default_task
-        )
-        if "status" not in resp or "0" != resp["status"]:
-            print(fmt_message(f"There was an error with the upload: {resp}.\n\nPlease try again...", _fmt.ERROR))
-            return 1
-        print(
-            "\t"
-            + fmt_message(
-                f"Done. Your run is available as {system['tag']} at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission",
-                _fmt.OK,
-            )
-        )
-        return 0
 
 
 """

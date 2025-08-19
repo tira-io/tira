@@ -15,7 +15,7 @@ from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 import pandas as pd
 from tqdm import tqdm
 
-from tira.check_format import _fmt, log_message
+from tira.check_format import FormatMsgType, _fmt, log_message
 from tira.tira_client import TiraClient
 
 
@@ -101,7 +101,7 @@ def verify_tirex_tracker():
     return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
 
 
-def verify_tira_installation():
+def verify_tira_installation() -> FormatMsgType:
     ret = _fmt.OK
 
     for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
@@ -518,10 +518,12 @@ def all_environment_variables_for_github_action_or_fail(params):
 
     return [k + "=" + v for k, v in ret.items()]
 
+
 def extract_volume_mounts(v):
     v_modified = v.replace(":\\", "XYZ__________XYZ")
     volume_dir, volume_bind, volume_mode = v_modified.split(":")
-    return volume_dir.replace("XYZ__________XYZ", ":\\") , volume_bind, volume_mode
+    return volume_dir.replace("XYZ__________XYZ", ":\\"), volume_bind, volume_mode
+
 
 def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
     files = glob(str(directory) + "/*")

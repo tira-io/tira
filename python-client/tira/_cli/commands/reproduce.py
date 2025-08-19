@@ -2,16 +2,19 @@ import logging
 import sys
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Mapping
 
 import yaml
 from git import Repo, exc
 
 from ...check_format import FormatMsgType, log_message
+from ...rest_api_client import Client as RestClient
 
 if TYPE_CHECKING:
     from os import PathLike
-    from typing import Any, Mapping, TextIO, TypeVar, Union
+    from typing import Any, Sequence, TextIO, TypeVar, Union
+
+    from ...tira_client import TiraClient
 
     _KT = TypeVar("_KT")  # Key type.
     _VT = TypeVar("_VT")  # Value type.
@@ -32,8 +35,21 @@ COPY . /app
 
 
 def __get_nested(
-    d: "Mapping[_KT, Union[dict, _VT]]", keys: "list[_KT]"
+    d: "Mapping[_KT, Union[dict, _VT]]", keys: "Sequence[_KT]"
 ) -> "Union[Mapping[_KT, Union[dict, _VT]], _VT]":
+    """Recursively retrieves a value from a nested mapping using a list of keys.
+
+    Args:
+        d (Mapping[_KT, Union[dict, _VT]]): The dictionary to traverse.
+        keys (list[_KT]): A list of keys representing the path to the desired value.
+
+    Raises:
+        TypeError: If an intermediate value in the path is not a mapping.
+        KeyError: If any key in the path is not found in the corresponding mapping.
+
+    Returns:
+        The value located at the nested key path.
+    """
     out: "Union[Mapping[_KT, Union[dict, _VT]], _VT]" = d
     for i, key in enumerate(keys):
         if not isinstance(out, Mapping):
@@ -58,8 +74,8 @@ def __load_metadata(metadata: "TextIO") -> "dict[str, Any]":
 def __download_code(metadata: "dict[str, Any]", dest: "PathLike") -> Repo:
     # Find out where I can get the code from
     try:
-        repository = __get_nested(metadata, ["implementation", "source", "repository"])
-        commit = __get_nested(metadata, ["implementation", "source", "commit"])
+        repository = __get_nested(metadata, ("implementation", "source", "repository"))
+        commit = __get_nested(metadata, ("implementation", "source", "commit"))
         assert isinstance(repository, str)
         assert isinstance(commit, str)
         log_message(f"Repository is at {repository}#{commit}", FormatMsgType.OK)
@@ -79,42 +95,48 @@ def __download_code(metadata: "dict[str, Any]", dest: "PathLike") -> Repo:
         sys.exit(3)
 
 
-def __configure_docker_container(metadata: "dict[str, Any]", dest: Path):
+def __configure_docker_container(metadata: "dict[str, Any]", dest: Path) -> None:
     # Search for an existing Docker configuration
     # TODO: implement
     log_message("No docker configuration found; I will create one from the metadata...", FormatMsgType.WARN)
     # Construct a Docker Container
     try:
-        packages = __get_nested(metadata, ["implementation", "python", "packages"])
+        packages = __get_nested(metadata, ("implementation", "python", "packages"))
         dockerfile = DOCKERFILE_TEMPLATE.format_map({"dependencies": "\n".join(packages)})
         (dest / "Dockerfile").write_text(dockerfile)
         log_message("Created a docker file", FormatMsgType.OK)
-        # Build the container
-        # TODO: implement
     except KeyError as e:
         log_message(f"Failed to construct a dockerfile from the metadata: {e}", FormatMsgType.ERROR)
         logging.critical("Vital information is not present in the metadata", exc_info=e)
         sys.exit(4)
 
 
-def __run_experiment(metadata: "dict[str, Any]"):
+def __run_experiment(metadata: "dict[str, Any]", directory: "Path") -> None:
     # Find out what script to run
     try:
-        script = __get_nested(metadata, ["implementation", "script", "path"])
+        script = __get_nested(metadata, ("implementation", "script", "path"))
+        assert isinstance(script, str)
         log_message(f"Running {script}", FormatMsgType.OK)
     except KeyError as e:
         log_message(f"Failed to find the command that ran the experiments: {e}", FormatMsgType.ERROR)
         logging.critical("Vital information is not present in the metadata", exc_info=e)
         sys.exit(4)
     # Run the script
-    # TODO
+    task = "bla?"  # TODO load task from metadata
+    dataset = "clueweb09/en/trec-web-2009"  # TODO load dataset from metadata
+    client: "TiraClient" = RestClient()
+    client.submit_code(
+        directory, task, script, dry_run=True, allow_network=False, dataset_id=dataset, mount_hf_model=None
+    )
 
 
 def reproduce_command(metadata: "TextIO", **kwargs) -> int:
     data = __load_metadata(metadata)
     with tempfile.TemporaryDirectory() as tmpdir:
         log_message(f"Switched working directory to {tmpdir}", FormatMsgType.OK)
-        with __download_code(data, Path(tmpdir)) as repo:
+        with __download_code(data, Path(tmpdir)) as _:
             __configure_docker_container(data, Path(tmpdir))
-            __run_experiment(data)
+            __run_experiment(data, Path(tmpdir))
+    # Each subroutine will sys.exit() with their individual error code upon error such that exit values other than 0 are
+    # still possible
     return 0
