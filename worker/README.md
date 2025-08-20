@@ -2,14 +2,12 @@
 
 `pip install -e .`
 
-# Start Broker
-```
-sudo rabbitmq-server
-```
-
 # Start a Worker
+> [!NOTE]
+> If you want to launch multiple workers on the same machine, use the `-n <name>` option.
+
 ```bash
-celery -A tira_worker:app worker -l INFO -n worker1
+celery -A tira_worker:app worker -l INFO
 ```
 
 # Testing it
