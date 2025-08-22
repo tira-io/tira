@@ -12,18 +12,42 @@ Demo Deployment
         tira-backend:
             image: ghcr.io/tira-io/tira-backend
             restart: unless-stopped
+            environment:
+                TIRA_BROKER_URL: "amqp://broker.tira.local"
+                TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
+            external_links:
+                - "broker:broker.tira.local"
         tira-frontend:
             image: ghcr.io/tira-io/tira-frontend
             restart: unless-stopped
             environment:
                 TIRA_REST_BASE_URL: https://api.tira.local
                 TIRA_GRPC_BASE_URL: https://api.tira.local
+            external_links:
+                - "nginx:api.tira.local"
+        tira-worker-1:
+            image: ghcr.io/tira-io/tira-worker
+            restart: unless-stopped
+            environment:
+                TIRA_BROKER_URL: "amqp://broker.tira.local"
+                TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
+                TIRA_API_KEY: "so-secret"
+                TIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
+            external_links:
+                - "nginx:api.tira.local"
+                - "broker:broker.tira.local"
         auth:
             image: ghcr.io/authelia/authelia
             restart: unless-stopped
             volumes:
                 - ./authelia/configuration.dev.yml:/config/configuration.yml
                 - ./authelia/users-database.yml:/config/users_database.yml
+        broker:
+            image: rabbitmq:4-management
+            restart: unless-stopped
+            ports:
+            - "5672:5672"
+            - "15672:15672"
         nginx:
             image: ghcr
             ports:

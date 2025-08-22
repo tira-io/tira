@@ -1,0 +1,27 @@
+# IMPORTANT!
+# This configuration file should also be copied into the backend.
+
+##########################################################################################
+# TIRA                                                                                   #
+##########################################################################################
+# Enables debug mode. This means more verbose output in the console and for the REST-API.
+# Settings this value to true in production is a security risk!
+debug: !ENV ${TIRA_DEBUG:false}
+
+##########################################################################################
+# Distributed Queue                                                                      #
+##########################################################################################
+# See also: https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html
+queue_broker_url: !ENV ${TIRA_BROKER_URL:amqp://localhost"}
+queue_results_backend_url: !ENV ${TIRA_RESULTS_BACKEND_URL:rpc://localhost}
+
+##########################################################################################
+# TIRA API                                                                               #
+##########################################################################################
+tira_api_key: !ENV ${TIRA_API_KEY}
+tira_rest_api:
+  wellknown_url: !ENV ${TIRA_WELLKNOWN_URL:https://archive.tira.io/.well-known/tira/client}
+  # ALTERNATIVELY, if the wellknown_url is not set, you can uncomment and set the
+  # following URLs directly:
+  # base_url: !ENV ${TIRA_API_BASE_URL:https://www.tira.io}
+  # archived_url: !ENV ${TIRA_ARCHIVED_URL:https://archive.tira.io}

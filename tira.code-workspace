@@ -9,6 +9,10 @@
 			"path": "frontend"
 		},
 		{
+			"name": "Worker",
+			"path": "worker"
+		},
+		{
 			"name": "Python API",
 			"path": "python-client"
 		},
