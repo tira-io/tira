@@ -61,19 +61,15 @@ jobs:
         params:
           - {
               image: tira-frontend,
-              context: "${{ github.workspace }}/frontend",
-              file: "${{ github.workspace }}/frontend/Dockerfile.prod",
+              context: "frontend",
+              file: "frontend/Dockerfile.prod",
             }
           - {
               image: tira-backend,
-              context: "${{ github.workspace }}/",
-              file: "${{ github.workspace }}/application/Dockerfile.prod",
+              context: "",
+              file: "application/Dockerfile.prod",
             }
-          - {
-              image: tira-worker,
-              context: "${{ github.workspace }}/",
-              file: "${{ github.workspace }}/worker/Dockerfile.prod",
-            }
+          - { image: tira-worker, context: "", file: "worker/Dockerfile.prod" }
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -93,8 +89,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ${{ matrix.params.context }}
-          file: ${{ matrix.params.file }}
+          context: ${{ github.workspace }}/${{ matrix.params.context }}
+          file: ${{ github.workspace }}/${{ matrix.params.file }}
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
