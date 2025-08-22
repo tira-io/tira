@@ -16,16 +16,17 @@ from rest_framework.response import Response
 from tira.check_format import _fmt, check_format
 from tira.evaluators import unsandboxed_evaluation_is_allowed
 from tira.io_utils import zip_dir
-from tira.third_party_integrations import temporary_directory
 from werkzeug.utils import secure_filename
 
 from ... import model as modeldb
 from ... import tira_model as model
-from ...checks import check_permissions, check_resources_exist
-from ..vm_api import run_eval, run_unsandboxed_eval
+from ...checks import check_permissions
+from ..vm_api import load_notebook, run_eval, run_unsandboxed_eval
 
 if TYPE_CHECKING:
     from typing import Any, Iterable
+
+    from ...model import Dataset
 
 # TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
@@ -60,11 +61,11 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         if ret_serialized["has_metadata"]:
             try:
                 ret_serialized["available_metadata"] = json.loads(ret.valid_formats)["ir_metadata"]
-            except:
+            except Exception:
                 pass
 
         return Response(ret_serialized)
-    except Exception as e:
+    except Exception:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
@@ -86,7 +87,7 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     submission_uuid = secure_filename(submission_uuid).replace(".zip", "")
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
-    except:
+    except Exception:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
@@ -111,13 +112,13 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     return FileResponse(ret, as_attachment=True, filename=f"{submission_uuid}.zip")
 
 
-def check_format_for_dataset(directory, dataset):
+def check_format_for_dataset(directory: "Path", dataset: "Dataset"):
     format = json.loads(dataset.format)
     format_configuration = None
     if dataset and dataset.format_configuration:
         try:
             format_configuration = json.loads(dataset.format_configuration)
-        except:
+        except Exception:
             pass
     return check_format(directory, format, format_configuration)
 
@@ -128,7 +129,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
-    except:
+    except Exception:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
@@ -183,7 +184,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
 
-def reorganize_metadata(all_metadata, metadata):
+def reorganize_metadata(all_metadata: dict, metadata: str) -> "dict[str, Any]":
     ret = all_metadata[metadata].copy()
     ret = {i: ret[i] for i in ["method", "platform", "schema version"] if i in ret}
     if (
@@ -247,7 +248,7 @@ def reorganize_metadata(all_metadata, metadata):
 def render_metadata_of_submission(request: "Request", submission_uuid: str, metadata: str) -> Response:
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
-    except:
+    except Exception:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
@@ -273,7 +274,7 @@ def render_notebook_of_submission(request: Request, submission_uuid: str) -> Res
     """
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
-    except:
+    except Exception:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )

@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
@@ -8,6 +9,9 @@ from django.urls import resolve
 
 from . import tira_model as model
 from .authentication import auth
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 logger = logging.getLogger("tira")
 
@@ -37,14 +41,14 @@ def check_permissions(func):
         if request.method == "OPTIONS":
             return HttpResponse("allowed")
 
-        vm_id = kwargs.get("vm_id", None)
+        vm_id: "Optional[str]" = kwargs.get("vm_id", None)
         user_id = kwargs.get("user_id", None)
         if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id
             vm_id = user_id
-        dataset_id = kwargs.get("dataset_id", None)
-        run_id = kwargs.get("run_id", None)
-        task_id = kwargs.get("task_id", None)
-        organizer_id = kwargs.get("organizer_id", None)
+        dataset_id: "Optional[str]" = kwargs.get("dataset_id", None)
+        run_id: "Optional[str]" = kwargs.get("run_id", None)
+        task_id: "Optional[str]" = kwargs.get("task_id", None)
+        organizer_id: "Optional[str]" = kwargs.get("organizer_id", None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
@@ -85,22 +89,23 @@ def check_permissions(func):
         ):
             return func(request, *args, **kwargs)
 
-        if (
-            request.path_info.startswith("data-download/") or request.path_info.startswith("/data-download/")
-        ) and _dataset_is_public(dataset_id):
+        if (request.path_info.startswith("data-download/") or request.path_info.startswith("/data-download/")) or (
+            dataset_id is not None and _dataset_is_public(dataset_id)
+        ):
             return func(request, *args, **kwargs)
 
         if "run_id_1" in kwargs or "run_id_2" in kwargs:
             return HttpResponseNotAllowed("Access forbidden.")
 
         if request.path_info.startswith(f"/task/{task_id}/vm/{vm_id}/software_details/"):
+            assert vm_id is not None and task_id is not None
             software_name = request.path_info.split(f"/task/{task_id}/vm/{vm_id}/software_details/")[1].split("/")[0]
             software = model.get_docker_software_by_name(software_name, vm_id, task_id)
             if software and "public_image_name" in software and software["public_image_name"]:
                 return func(request, *args, **kwargs)
 
         if request.path_info.startswith(f"/task/{task_id}/vm/{vm_id}/run_details/"):
-
+            assert run_id is not None
             review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
             logger.warning(f"Show run details for {run_id}: {review}.")
             print(f"Show run details for {run_id}: {review}.")
@@ -113,19 +118,26 @@ def check_permissions(func):
             ):
                 return func(request, *args, **kwargs)
 
-        if auth.user_is_organizer_for_endpoint(
-            request=request,
-            path=request.path_info,
-            task_id=task_id,
-            organizer_id_from_params=organizer_id,
-            dataset_id_from_params=dataset_id,
-            run_id_from_params=run_id,
-            vm_id_from_params=vm_id,
-            role=role,
+        if (
+            task_id is not None
+            and dataset_id is not None
+            and run_id is not None
+            and vm_id is not None
+            and organizer_id is not None
+            and auth.user_is_organizer_for_endpoint(
+                request=request,
+                path=request.path_info,
+                task_id=task_id,
+                organizer_id_from_params=organizer_id,
+                dataset_id_from_params=dataset_id,
+                run_id_from_params=run_id,
+                vm_id_from_params=vm_id,
+                role=role,
+            )
         ):
             return func(request, *args, **kwargs)
 
-        if vm_id:
+        if vm_id is not None:
             if not model.vm_exists(vm_id):  # If the resource does not exist
                 return _redirect_to_login()
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)

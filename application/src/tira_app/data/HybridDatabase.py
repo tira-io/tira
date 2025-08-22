@@ -949,7 +949,7 @@ class HybridDatabase(object):
             """
 
         fields = ["tira_dockersoftware", "tira_upload"]
-        vm_to_results = {}
+        vm_to_results: "dict[str, Any]" = {}
         for field in fields:
             stmt = prepared_statement.replace("tira_dockersoftware", field)
             if field == "tira_upload":
@@ -1100,7 +1100,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def all_run_formats(self):
+    def all_run_formats(self) -> "dict[str, dict[str, dict[str, dict]]]":
         prepared_statement = """
             SELECT
                 tira_run.run_id, tira_run.software_id, tira_run.upload_id,
@@ -1112,7 +1112,7 @@ class HybridDatabase(object):
             WHERE
                 valid_formats is not NULL and tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
             """
-        ret = {"Docker": {}, "Upload": {}, "VM": {}}
+        ret: "dict[str, dict[str, dict[str, dict]]]" = {"Docker": {}, "Upload": {}, "VM": {}}
 
         rows = self.__execute_raw_sql_statement(prepared_statement, params=[])
         for run_id, software_id, upload_id, docker_software_id, input_dataset_id, valid_formats in rows:

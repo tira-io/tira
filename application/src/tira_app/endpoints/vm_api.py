@@ -534,7 +534,7 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
-        if not request.FILES or not "file" in request.FILES.keys():
+        if not request.FILES or "file" not in request.FILES.keys():
             return JsonResponse({"status": 1, "message": "Please pass a payload. No file in the post"})
 
         uploaded_file = request.FILES["file"]

@@ -180,14 +180,16 @@ class Dataset(models.Model):
                 return [i for i in dataset_format if i in SUPPORTED_FORMATS]
             except json.JSONDecodeError:
                 pass
+        return None
 
     def get_truth_format(self) -> "Optional[List[str]]":
         if self and self.truth_format:
             try:
                 truth_format = json.loads(self.truth_format)
                 return [i for i in truth_format if i in SUPPORTED_FORMATS]
-            except json.SONDecodeError:
+            except json.JSONDecodeError:
                 pass
+        return None
 
     def get_file_listing(self) -> "Optional[List[str]]":
         if self and self.file_listing:
@@ -195,6 +197,7 @@ class Dataset(models.Model):
                 return json.loads(self.file_listing)
             except json.JSONDecodeError:
                 pass
+        return None
 
     def get_trusted_evaluation(self) -> "Optional[Dict[str, Any]]":
         if self and self.evaluator and self.evaluator.trusted_evaluation:
@@ -202,6 +205,7 @@ class Dataset(models.Model):
                 return json.loads(self.evaluator.trusted_evaluation)
             except json.JSONDecodeError:
                 pass
+        return None
 
     def get_format_configuration(self) -> "Optional[Dict[str, Any]]":
         if self and self.format_configuration:
@@ -209,6 +213,7 @@ class Dataset(models.Model):
                 return json.loads(self.format_configuration)
             except json.JSONDecodeError:
                 pass
+        return None
 
     def get_truth_format_configuration(self) -> "Optional[Dict[str, Any]]":
         if self and self.truth_format_configuration:
@@ -216,6 +221,7 @@ class Dataset(models.Model):
                 return json.loads(self.truth_format_configuration)
             except json.JSONDecodeError:
                 pass
+        return None
 
 
 class TaskHasDataset(models.Model):
