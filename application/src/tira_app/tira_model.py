@@ -1073,7 +1073,9 @@ def get_git_integration(
     ret = model.get_git_integration(namespace_url, "", return_dict=True, create_if_not_exists=False)
     cache.set(cache_key, ret)
 
-    return ret if return_metadata_only else get_git_runner(ret)
+    if return_metadata_only:
+        return ret
+    return get_git_runner(ret) if ret is not None else None
 
 
 # ------------------------------------------------------------
