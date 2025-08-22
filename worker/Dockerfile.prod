@@ -1,7 +1,3 @@
-# TODO: this dockerfile is the latest and greatest out of the large quantity found in this folder
-# At some point, Dockerfile.application* and Dockerfile.basis should be obsolete and can be deleted. If you read this in
-# the future and that is the case, then "Hello Future Person" and also please delete these dockerfiles.
-
 # !!!             This Dockerfile needs to be build from the project root and NOT the application folder             !!!
 
 ########################################################################################################################
@@ -25,29 +21,25 @@ EOF
 RUN useradd -ms /bin/bash tira
 
 ########################################################################################################################
-# Copy all neccessary files over                                                                                       #
-########################################################################################################################
-USER tira
-WORKDIR /tira/
-COPY --chown=tira:tira ./application ./
-COPY --chown=tira:tira ./python-client ../python-client
-
-########################################################################################################################
 # Install Python and Dependencies                                                                                      #
 ########################################################################################################################
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-# For faster build of GRPCIO (TODO: remove when GRPC is not used anymore)
-ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS=16
 
 RUN <<EOF
-apt-get -qq update
+set -e
 # Tools
-apt-get -qq install -y python3 python3-pip git pkg-config
-# Dependencies (stuff needed by at least one python package)
-# For MariaDB
-apt-get -qq install -y default-libmysqlclient-dev
+apt-get -qq update
+apt-get -qq install -y python3 python3-pip git pkg-config default-jdk
 EOF
+
+########################################################################################################################
+# Copy necessary files over and install                                                                                #
+########################################################################################################################
+USER tira
+WORKDIR /tira/
+COPY --chown=tira:tira ./worker ./
+COPY --chown=tira:tira ./python-client ../python-client
 
 USER tira
 RUN <<EOF
@@ -55,21 +47,7 @@ set -e
 export PATH="/home/tira/.local/bin:$PATH"
 
 # Install dependencies
-pip3 install -q --no-cache-dir --user ../python-client .[test,deploy,postgreqsql]
-
-chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
-EOF
-
-
-RUN <<EOF
-set -e
-export PATH="/home/tira/.local/bin:$PATH"
-# Run tests
-export TIRA_CONFIG="/tira/config/tira-application-config.yml"
-export TIRA_DEBUG=true
-make setup
-cd test
-pytest
+pip3 install -q --no-cache-dir --user ../python-client ./
 EOF
 
 ########################################################################################################################
@@ -89,8 +67,7 @@ RUN useradd -ms /bin/bash -u 1010 tira
 # Copy Data & Install Python and Dependencies                                                                          #
 ########################################################################################################################
 COPY --from=build --chown=tira:tira /home/tira/.local /home/tira/.local
-COPY --from=build --chown=tira:tira /tira/config /tira/config
-COPY --from=build /tira/src/tira_app/management/commands/irds_cli.sh /irds_cli.sh
+COPY --chown=tira:tira ./worker/tira-worker-config.yml /tira/config/tira-worker-config.yml
 
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -98,11 +75,9 @@ apt-get -qq update && apt-get -qq install -y locales python3-setuptools
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
-apt-get -qq install -y python3 python3-dev git
-# For MariaDB
-apt-get -qq install -y mariadb-client
+apt-get -qq update
+apt-get -qq install -y python3
 #
-mkdir -p /tira/application/src
 chown -R tira:tira /tira
 EOF
 
@@ -110,10 +85,8 @@ EOF
 ########################################################################################################################
 # Copy Data & Install Python and Dependencies                                                                          #
 ########################################################################################################################
-COPY --from=build --chown=tira:tira /tira/src/manage.py /home/tira/manage.py
-
 RUN <<EOF
-apt-get -qq install sudo podman
+apt-get -qq install sudo
 useradd -ms /bin/bash tira
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd
@@ -127,11 +100,9 @@ USER tira
 ENV LC_ALL=en_US.UTF-8
 ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
-ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
-ENV TIRA_CONFIG=/tira/config/tira-application-config.yml
+ENV TIRA_WORKER_CONFIG=/tira/config/tira-worker-config.yml
 ENV TIRA_DEBUG=false
 
 EXPOSE 8080
 
-# TODO: at some point it probably makes sense, not to use /tira/application/src as a working directory anymore
-CMD ["uwsgi", "--strict", "--master", "--enable-threads", "--module", "django_admin.wsgi:application", "--chdir", "/tira/application/src", "--processes", "50", "--http-socket", ":8080", "--vacuum", "--max-requests", "5000", "--limit-post", "1572864000"]
+CMD ["celery", "-A", "tira_worker:app", "worker"]

@@ -8,6 +8,17 @@ app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKE
 
 
 @app.task
+def dummytask(name: str) -> str:
+    """
+    I just greet everyone who calls me :)
+    TODO: remove me when the deployment gets serious
+    """
+    import socket
+
+    return f"{socket.gethostname()} says hello to {name}"
+
+
+@app.task
 def evaluate(runid: str) -> None:
     # TODO: init RestClient from configuration
     client: "TiraClient" = RestClient(base_url=None, api_key=TIRA_API_KEY, base_url_api="")

@@ -14,7 +14,7 @@ services:
       TIRA_BROKER_URL: "amqp://broker.tira.local"
       TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
       TIRA_API_KEY: "so-secret"
-      WETIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
+      TIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
     external_links:
       - "auth:auth.tira.local"
       - "nginx:api.tira.local"
