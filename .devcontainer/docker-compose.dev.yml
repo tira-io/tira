@@ -9,12 +9,21 @@ services:
     external_links:
       - "auth:auth.tira.local"
       - "nginx:api.tira.local"
+      - "s3mock:s3.tira.local"
+    volumes:
+      - ./devfiles/s3/.s3cfg:/home/ubuntu/.s3cfg
   auth:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped
     volumes:
       - ./devfiles/authelia/configuration.dev.yml:/config/configuration.yml
       - ./devfiles/authelia/users-database.yml:/config/users_database.yml
+  s3mock:
+    image: adobe/s3mock
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+      - "9191:9191"
   nginx:
     image: lscr.io/linuxserver/nginx
     restart: unless-stopped
