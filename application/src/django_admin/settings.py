@@ -410,5 +410,7 @@ WELL_KNOWN = {
     "disraptorURL": custom_settings["tira_rest_api"]["disraptor_url"],
 }
 
+S3_BUCKET = "tira-mirrored-resources"
+S3_CONFIG = "/home/ubuntu/.s3cfg"
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
 CSRF_TRUSTED_ORIGINS = ["https://127.0.0.1:8082", "https://127.0.0.1:8080", "https://127.0.0.1:8081"]
