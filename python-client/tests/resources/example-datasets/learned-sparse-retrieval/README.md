@@ -13,17 +13,17 @@ tira_configs:
   resolve_inputs_to: "."
   resolve_truths_to: "."
   baseline:
-    link: https://github.com/pan-webis-de/pan-code/tree/master/clef25/multi-author-analysis/naive-baseline
-    command: /predict.py --dataset $inputDataset --output $outputDir --predict 0
+    link: https://github.com/reneuir/lsr-benchmark/tree/main/step-03-retrieval-approaches/pyterrier-naive
+    command: /run-pyterrier.py --dataset $inputDataset --retrieval BM25 --output $outputDir
     format:
-      name: "multi-author-writing-style-analysis-solutions"
+      name: "run.txt"
   input_format:
     name: "lsr-benchmark-inputs"
   truth_format:
     name: "qrels.txt"
   evaluator:
-    image: registry.webis.de/code-lib/public-images/pan24-multi-author-analysis-evaluator:latest
-    command: "python3 /evaluator/evaluator.py -p ${inputRun} -t ${inputDataset} -o ${outputDir}"
+    image: webis/ir_measures_evaluator:1.0.5
+    command: "/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures 'P@10' 'nDCG@10' 'MRR'; rm -Rf ${outputDir}/evaluation-per-query*"
 ---
 
 # Multi Author Analysis Example Dataset

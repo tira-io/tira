@@ -23,3 +23,7 @@ class TestTaskSubmissions(unittest.TestCase):
     def test_fails_for_non_existing_dataset(self):
         actual = submit_task(RESOURCE_DIR / "example-datasets" / "multi-author-analysis", "does-not-exist")
         self.assertIsNone(actual)
+
+    def test_works_for_lsr_benchmark(self):
+        actual = submit_task(RESOURCE_DIR / "example-datasets" / "learned-sparse-retrieval")
+        self.assertIsNotNone(actual)
