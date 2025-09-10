@@ -14,9 +14,17 @@ from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
+from tira_app import model as modeldb
+
 from . import tira_model as model
 from .authentication import auth
 from .checks import check_conditional_permissions, check_permissions, check_resources_exist
+from .data.S3Database import S3Database
+
+try:
+    s3_db = S3Database()
+except:
+    pass
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -204,24 +212,15 @@ def download_repo_template(request, task_id, vm_id):
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):
     input_type = input_type.lower().replace("input", "")
-    input_type = "" if len(input_type) < 2 else input_type
-    task_id = model.get_dataset(dataset_id)["task"]
+    input_type = "inputs" if len(input_type) < 2 else "truths"
 
-    path = model.model.data_path / f"{dataset_type}-datasets{input_type}" / task_id / dataset_id
+    mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
+        dataset__dataset_id=dataset_id, resource_type=input_type
+    )
 
-    if not path.exists():
-        return JsonResponse(
-            {"status": 1, "reason": f"File does not exist: {path}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-        )
+    if len(mirrors) < 1:
+        return JsonResponse({"status": 1, "reason": "Does not exist"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    zipped = Path(f"{path.stem}.zip")
-    with zipfile.ZipFile(zipped, "w") as zipf:
-        for f in path.rglob("*"):
-            zipf.write(f, arcname=f.relative_to(path.parent))
+    ret_body = s3_db.read_mirrored_resource(mirrors[0].mirrored_resource)
 
-    if zipped.exists():
-        response = FileResponse(
-            open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip"
-        )
-        os.remove(zipped)
-        return response
+    return FileResponse(ret_body, as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")

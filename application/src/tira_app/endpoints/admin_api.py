@@ -21,6 +21,8 @@ from .. import model as modeldb
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
+from ..data.S3Database import S3Database
+from ..endpoints.v1._datasets import load_mirrored_resource
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
 from .v1._datasets import download_mirrored_resource
@@ -33,6 +35,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tira")
 
 logger.info("ajax_routes: Logger active")
+
+try:
+    s3_db = S3Database()
+except:
+    pass
 
 
 def _handle_get_model_exceptions(func):
@@ -965,6 +972,43 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         with zipfile.ZipFile(tmp_dir + "/tmp.zip", "r") as zip_ref:
             zip_ref.extractall(target_directory)
 
+        zipped = Path(tmp_dir + f"{target_directory.stem}.zip")
+        with zipfile.ZipFile(zipped, "w") as zipf:
+            for f in target_directory.rglob("*"):
+                zipf.write(f, arcname=f.relative_to(target_directory.parent))
+
+        with open(zipped, "rb") as f:
+            zip_bytes = f.read()
+
+        md5_sum = str(hashlib.md5(zip_bytes).hexdigest())
+        md5_first_kilobyte = str(hashlib.md5(zip_bytes[:1024]).hexdigest())
+
+        target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
+        target_dir.mkdir(exist_ok=True, parents=True)
+        target_dir = target_dir / md5_sum
+
+        existing_resource = load_mirrored_resource(md5_sum)
+
+        if not existing_resource:
+            with open(target_dir, "wb") as f, open(zipped, "rb") as s:
+                f.write(s.read())
+
+        mirror = modeldb.MirroredResource.objects.create(
+            md5_sum=md5_sum,
+            md5_first_kilobyte=md5_first_kilobyte,
+            size=len(zip_bytes),
+            mirrors="webis-s3",
+        )
+
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset["dataset_id"])
+        s3_db.upload_mirrored_resource(mirror)
+        modeldb.DatasetHasMirroredResource.objects.create(
+            dataset=dataset, mirrored_resource=mirror, resource_type=f"{dataset_type}s"
+        )
+
         return JsonResponse(
-            {"status": 0, "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."}
+            {
+                "status": 0,
+                "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'. md5sum={md5_sum}",
+            }
         )
