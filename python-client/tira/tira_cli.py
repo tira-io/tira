@@ -49,6 +49,7 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         help="Download the outputs of the specified approach. Usage: --approach <task-id>/<user-id>/<approach-name>",
     )
     parser.add_argument("--dataset", required=True, help="The dataset.")
+    parser.add_argument("--truths", action="store_true", help="Download truths.")
     parser.set_defaults(executable=download_command)
 
 
@@ -106,6 +107,27 @@ def evaluate_command(predictions: Path, truths: Path, dataset: str, **kwargs) ->
         client.evaluate(Path(predictions), dataset)
 
     return 0
+
+
+def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--path",
+        required=True,
+        default=None,
+        help="The path used to build the task.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Make a dry-run, i.e., to develop your task, i.e., not uploading to TIRA.",
+    )
+    parser.add_argument("--task", required=True, default=None, help="The name of the task in TIRA.")
+    parser.add_argument("--dataset", required=True, default=None, help="The name of the dataset in TIRA.")
+
+    parser.set_defaults(executable=dataset_submission_command)
 
 
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
@@ -204,12 +226,12 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: "Optional[str]" = None, **kwargs) -> int:
+def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, **kwargs) -> int:
     client: "TiraClient" = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
     else:
-        print(client.download_dataset(None, dataset))
+        print(client.download_dataset(None, dataset, truths))
     return 0
 
 
@@ -219,6 +241,18 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
     if print_docker_auth:
         print(client.local_execution.docker_client_is_authenticated())
     return 0
+
+
+def dataset_submission_command(
+    path: Path,
+    task: str,
+    dry_run: bool,
+    dataset: str,
+    **kwargs,
+) -> int:
+    client: "TiraClient" = RestClient()
+    ret = client.submit_dataset(Path(path), task, dataset, dry_run)
+    return 0 if ret and "inputs_zip" in ret else 1
 
 
 def code_submission_command(
@@ -326,6 +360,9 @@ def parse_args():
     )
     setup_code_submission_command(
         subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
+    )
+    setup_dataset_submission_command(
+        subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
     )
 
     return parser.parse_args()

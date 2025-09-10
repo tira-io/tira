@@ -103,6 +103,30 @@ class FormatBase:
         return [_fmt.ERROR, "not implemented"]
 
 
+class LearnedSparseRetrievalInputs(FormatBase):
+    """Checks if a given output is a valid learned sparese retrieval input."""
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        self.docs = DocumentProcessorFormat()
+        self.docs.apply_configuration_and_throw_if_invalid(configuration)
+
+        self.queries = QueryProcessorFormat()
+        self.queries.apply_configuration_and_throw_if_invalid(configuration)
+
+    def check_format(self, run_output: Path):
+        l, m = self.docs.check_format(run_output / "corpus.jsonl.gz")
+        if l != _fmt.OK:
+            return l, m
+
+        l, m = self.queries.check_format(run_output / "queries.jsonl")
+        if l != _fmt.OK:
+            return l, m
+
+        # TODO: IrMetadataFormat
+
+        return [_fmt.OK, "The dataset is in the format for the lsr-benchmark."]
+
+
 class RunFormat(FormatBase):
     """Checks if a given output is a valid run file."""
 
@@ -1116,6 +1140,7 @@ FORMAT_TO_CHECK = {
     "query-processor": QueryProcessorFormat,
     "document-processor": DocumentProcessorFormat,
     "ir_metadata": IrMetadataFormat,
+    "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
     "terrier-index": TerrierIndex,
@@ -1204,14 +1229,26 @@ def check_format(
         ret = {}
         for f in format:
             ret[f] = check_format(run_output, f, configuration)
-            if ret[f][0] == _fmt.OK:
-                return ret[f]
 
         if all(i[0] == _fmt.OK for i in ret.values()):
             return [_fmt.OK, "The output is valid."]
-        else:
-            error_msg = [i[1] for i in ret.values() if i[0] != _fmt.OK]
 
+        error_msg = [i[1] for i in ret.values() if i[0] != _fmt.OK]
+
+        if "ir_metadata" in ret:
+            metadata_valid = ret["ir_metadata"][0] == _fmt.OK
+            one_payload_valid = any(v[0] == _fmt.OK for k, v in ret.items() if k != "ir_metadata")
+
+            if metadata_valid and one_payload_valid:
+                return [_fmt.OK, "The output is valid."]
+            else:
+                return [_fmt.ERROR, "The output is not valid. Problems: " + " ".join(error_msg)]
+
+        ret = {k: v for k, v in ret.items() if v[0] == _fmt.OK}
+
+        if len(ret) > 0:
+            return [_fmt.OK, list(ret.values())[0][1]]
+        else:
             return [_fmt.ERROR, "The output is not valid. Problems: " + " ".join(error_msg)]
 
     if format not in SUPPORTED_FORMATS:

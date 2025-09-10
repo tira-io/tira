@@ -46,20 +46,23 @@ class Client(TiraClient):
         failsave_max_delay: int = 15,
         api_user_name: "Optional[str]" = None,
         tira_cache_dir: "Optional[str]" = None,
-        verify: bool = True,
+        verify: bool = None,
         allow_local_execution: bool = False,
         archive_base_url: str = "https://tira.io",
-        base_url_api: str = "https://api.tira.io",
+        base_url_api: str = None,
     ):
-        self.base_url = base_url or "https://www.tira.io"
-        self.base_url_api = base_url_api or "https://api.tira.io"
-        self.archive_base_url = archive_base_url
+        self._settings = None
         self.logged: "set[str]" = set()
-        self.verify = verify
-        self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
+        self.base_url = base_url or self.load_settings()["base_url"]
+        self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
+        self.archive_base_url = archive_base_url
+
+        self.verify = verify if verify is not None else self.load_settings()["verify"]
+        self.failsave_max_delay = failsave_max_delay
+
         self.json_cache = {}
 
         if api_key is None:
@@ -83,18 +86,31 @@ class Client(TiraClient):
         self.allow_local_execution = allow_local_execution
 
     def load_settings(self):
-        try:
-            ret = json.load(open(self.tira_cache_dir + "/.tira-settings.json", "r"))
-            if "api_key" not in ret:
-                ret["api_key"] = "no-api-key"
-            if "api_user_name" not in ret:
-                ret["api_user_name"] = "no-api-key-user"
-            return ret
-        except Exception:
-            if "load_settings" not in self.logged:
-                logging.info(f"No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.")
-                self.logged.add("load_settings")
-            return {"api_key": "no-api-key", "api_user_name": "no-api-key-user"}
+        if self._settings is None:
+            try:
+                ret = json.load(open(self.tira_cache_dir + "/.tira-settings.json", "r"))
+                if "api_key" not in ret:
+                    ret["api_key"] = "no-api-key"
+                if "api_user_name" not in ret:
+                    ret["api_user_name"] = "no-api-key-user"
+                self._settings = ret
+            except Exception:
+                if "load_settings" not in self.logged:
+                    logging.info(
+                        f"No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults."
+                    )
+                    self.logged.add("load_settings")
+                self._settings = {"api_key": "no-api-key", "api_user_name": "no-api-key-user"}
+
+            if "base_url" not in self._settings:
+                self._settings["base_url"] = "https://www.tira.io"
+            if "base_url_api" not in self._settings:
+                self._settings["base_url_api"] = "https://api.tira.io"
+            if "verify" not in self._settings:
+                self._settings["verify"] = True
+            self._settings["verify"] = bool(self._settings["verify"])
+
+        return self._settings
 
     def update_settings(self, k, v):
         settings = self.load_settings()
@@ -160,12 +176,9 @@ class Client(TiraClient):
         return ret is not None
 
     def claim_ownership(self, uuid, team, system, description, task_id):
-        headers = {
-            "Api-Key": self.api_key,
-            "Api-Username": self.api_user_name,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
+        headers = self.authentication_headers()
+        headers["Accept"] = "application/json"
+        headers["Content-Type"] = "application/json"
         self.fail_if_api_key_is_invalid()
 
         upload_group = None
@@ -269,12 +282,9 @@ class Client(TiraClient):
         source_code_active_branch=None,
         try_run_metadata_uuid=None,
     ):
-        headers = {
-            "Api-Key": self.api_key,
-            "Api-Username": self.api_user_name,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
+        headers = self.authentication_headers()
+        headers["Accept"] = "application/json"
+        headers["Content-Type"] = "application/json"
         self.fail_if_api_key_is_invalid()
         url = f"{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker"
         content = {
@@ -821,13 +831,8 @@ class Client(TiraClient):
         for _ in range(self.failsave_retries):
             status_code = None
             try:
-                headers = {"Api-Key": self.api_key, "Api-Username": self.api_user_name}
-                if self.api_key == "no-api-key":
-                    del headers["Api-Key"]
-                if self.api_user_name == "no-api-key-user":
-                    del headers["Api-Username"]
-
-                r = requests.get(url, headers=headers, stream=True)
+                headers = self.authentication_headers()
+                r = requests.get(url, headers=headers, stream=True, verify=self.verify)
                 total = int(r.headers.get("content-length", 0))
                 status_code = r.status_code
                 if (
@@ -902,6 +907,16 @@ class Client(TiraClient):
         resp = requests.post(f"{self.base_url}/session", data=f"login={user}&password={password}", headers=header)
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
+
+    def authentication_headers(self):
+        ret = {}
+        if self.api_key != "no-api-key":
+            ret["Api-Key"] = self.api_key
+        if self.api_user_name != "no-api-key-user":
+            ret["Api-Username"] = self.api_user_name
+        if "Cookie" in self.load_settings():
+            ret["Cookie"] = self.load_settings()["Cookie"]
+        return ret
 
     def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None):
         task, team, software = approach.split("/")
@@ -1185,13 +1200,11 @@ class Client(TiraClient):
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
 
-        headers = {
-            "Api-Key": self.api_key,
-            "Api-Username": self.api_user_name,
-            "Accept": "application/json",
-            "x-csrftoken": csrf,
-            "Cookie": f"csrftoken={csrf}",
-        }
+        headers = self.authentication_headers()
+        headers["Accept"] = "application/json"
+        headers["x-csrftoken"] = csrf
+        headers["Cookie"] = f"csrftoken={csrf}"
+
         for _ in range(self.failsave_retries):
             try:
                 files = None if not file_path else {"file": open(file_path, "rb")}
@@ -1243,12 +1256,9 @@ class Client(TiraClient):
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
-        headers = {"Accept": "application/json"}
+        headers = self.authentication_headers()
+        headers["Accept"] = "application/json"
 
-        if self.api_key != "no-api-key":
-            headers["Api-Key"] = self.api_key
-        if self.api_user_name != "no-api-key-user":
-            headers["Api-Username"] = self.api_user_name
         base_url = base_url if base_url else self.base_url
 
         for _ in range(failsave_retries):

@@ -15,6 +15,8 @@ tira_configs:
   baseline:
     link: https://github.com/pan-webis-de/pan-code/tree/master/clef25/multi-author-analysis/naive-baseline
     command: /predict.py --dataset $inputDataset --output $outputDir --predict 0
+    format:
+      name: "multi-author-writing-style-analysis-solutions"
   input_format:
     name: "multi-author-writing-style-analysis-problems"
   truth_format:
