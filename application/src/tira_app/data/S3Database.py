@@ -1,7 +1,10 @@
 import configparser
+from typing import Tuple
 
 import boto3
+from botocore.client import BaseClient
 from botocore.exceptions import ClientError
+from botocore.response import StreamingBody
 from django.conf import settings
 
 from tira_app import model as modeldb
@@ -36,7 +39,7 @@ class S3Database:
 
         return aws_access_key_id, aws_secret_access_key, use_https, endpoint_url
 
-    def s3_client(self):
+    def s3_client(self) -> BaseClient:
         return boto3.client(
             "s3",
             aws_access_key_id=self.__aws_access_key_id,
@@ -45,20 +48,20 @@ class S3Database:
             use_ssl=self.__use_https,
         )
 
-    def upload_mirrored_resource(self, mirrored_resource: modeldb.MirroredResource):
+    def upload_mirrored_resource(self, mirrored_resource: modeldb.MirroredResource) -> None:
         self.s3_client().upload_file(
             mirrored_resource.get_path_in_file_system(), settings.S3_BUCKET, mirrored_resource.md5_sum
         )
 
-    def read_mirrored_resource(self, mirrored_resource: modeldb.MirroredResource):
+    def read_mirrored_resource(self, mirrored_resource: modeldb.MirroredResource) -> StreamingBody:
         response = self.s3_client().get_object(Bucket=settings.S3_BUCKET, Key=mirrored_resource.md5_sum)
         return response["Body"]
 
-    def s3_file_exists(self, mirrored_resource: modeldb.MirroredResource):
+    def s3_file_exists(self, mirrored_resource: modeldb.MirroredResource) -> bool:
         http_code, content_length = self.s3_file_head(mirrored_resource)
         return http_code == 200 and int(mirrored_resource.size) == int(content_length)
 
-    def s3_file_head(self, mirrored_resource: modeldb.MirroredResource):
+    def s3_file_head(self, mirrored_resource: modeldb.MirroredResource) -> Tuple:
         s3 = self.s3_client()
 
         try:
@@ -66,6 +69,6 @@ class S3Database:
             return ret["HTTPStatusCode"], ret["HTTPHeaders"]["content-length"]
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
-                return ["404", 0]
+                return ("404", 0)
             else:
                 raise  # Some other error (permissions, etc.)
