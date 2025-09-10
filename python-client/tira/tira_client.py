@@ -474,6 +474,236 @@ class TiraClient(ABC):
             "image": docker_tag,
         }
 
+    def submit_dataset(
+        self,
+        path: Path,
+        task: str,
+        dataset: str,
+        dry_run: bool,
+        system_inputs: str = "inputs",
+        truths: str = "truths",
+        skip_baseline: bool = False,
+    ):
+        from shutil import copy
+
+        from tira.io_utils import TqdmUploadFile, verify_tira_installation, zip_dir
+        from tira.third_party_integrations import temporary_directory
+
+        all_messages = []
+
+        def print_message(message, level):
+            all_messages.append((message, level))
+            os.system("cls" if os.name == "nt" else "clear")
+            print("TIRA Dataset Submission:")
+            for m, l in all_messages:
+                log_message(m, l)
+
+        if not dry_run:
+            result = verify_tira_installation()
+            if result != _fmt.OK:
+                msg = "Your tira installation is not valid. Please run: tira-cli verify-installation"
+                print_message(msg, _fmt.ERROR)
+                return None
+
+        if path is None or not path.exists() or not path.is_dir():
+            msg = f"The path {path} does not exist. I can not continue"
+            log_message(msg, _fmt.ERROR)
+            return None
+
+        print_message("Your tira installation is valid.", _fmt.OK)
+
+        try:
+            from datasets import load_dataset, load_dataset_builder
+        except ImportError as e:
+            msg = "I could not import the datasets library to load the dataset. Please install the datasets library (e.g., via pip3 install datasets)."
+            log_message(msg, _fmt.ERROR)
+            return None
+
+        try:
+            from huggingface_hub import DatasetCard
+        except ImportError as e:
+            msg = "I could not import the huggingface_hub library to load the DatasetCard. Please install the huggingface_hub library (e.g., via pip3 install huggingface_hub)."
+            log_message(msg, _fmt.ERROR)
+            return None
+
+        if str(path).strip() in (".", ".."):
+            print_message(
+                f"Please do not pass '.' or '..' as argument for --path as the datasets library uses the name of the directory.",
+                _fmt.ERROR,
+            )
+            return None
+
+        tira_configs = DatasetCard.load(str(path / "README.md")).data["tira_configs"]
+        resolve_inputs_to = tira_configs.get("resolve_inputs_to", None)
+        input_format = tira_configs["input_format"]["name"]
+        input_config = tira_configs["input_format"].get("config", {})
+        git_url, subdir = tira_configs["baseline"]["link"].replace("/tree/master/", "/tree/main/").split("/tree/main/")
+        baseline_command = tira_configs["baseline"]["command"]
+        baseline_format = tira_configs["baseline"]["format"]["name"]
+        baseline_config = tira_configs["baseline"]["format"].get("config", {})
+        eval_image = tira_configs["evaluator"]["image"]
+        eval_command = tira_configs["evaluator"]["command"]
+        resolve_truths_to = tira_configs.get("resolve_truths_to", None)
+
+        print_message(f"The configuration of the dataset {path} is valid.", _fmt.OK)
+
+        truth_format = tira_configs["truth_format"]["name"]
+        truth_config = tira_configs["truth_format"].get("config", {})
+
+        dataset_system_inputs = load_dataset_builder(str(path), system_inputs)
+        dataset_truths = load_dataset_builder(str(path), truths)
+
+        inputs_dir = temporary_directory()
+        truth_dir = temporary_directory()
+
+        if dataset not in dataset_system_inputs.config.data_files:
+            msg = f"Dataset {dataset} is not available. Possible are: {list(dataset_system_inputs.config.data_files.keys())}"
+            log_message(msg, _fmt.ERROR)
+            return None
+
+        for data_file in dataset_system_inputs.config.data_files[dataset]:
+            relative_data_file = Path(data_file).relative_to(
+                Path(dataset_system_inputs.base_path).absolute() / resolve_inputs_to
+            )
+            target_file = inputs_dir / relative_data_file
+            target_file.parent.mkdir(exist_ok=True, parents=True)
+            copy(data_file, target_file)
+
+        for data_file in dataset_truths.config.data_files[dataset]:
+            relative_data_file = Path(data_file).relative_to(
+                Path(dataset_truths.base_path).absolute() / resolve_truths_to
+            )
+            target_file = truth_dir / relative_data_file
+            target_file.parent.mkdir(exist_ok=True, parents=True)
+            copy(data_file, target_file)
+
+        l, m = check_format(inputs_dir, input_format, input_config)
+        if l != _fmt.OK:
+            log_message(m, l)
+            return None
+
+        print_message("The system inputs are valid.", _fmt.OK)
+
+        l, m = check_format(truth_dir, truth_format, truth_config)
+        if l != _fmt.OK:
+            log_message(m, l)
+            return None
+
+        print_message("The truth data is valid.", _fmt.OK)
+
+        if not skip_baseline:
+            git_repo_local = self.clone_git_repository(git_url)
+            print_message(f"Repository for the baseline is cloned from {git_url}.", _fmt.OK)
+
+            docker_tag, _, _, _, _ = self.build_docker_image_from_code(
+                git_repo_local / Path(subdir), log_message, False
+            )
+
+            print_message(f"The baseline {subdir} is embedded in a Docker image.", _fmt.OK)
+
+            if baseline_command is None:
+                baseline_command = self.local_execution.extract_entrypoint(docker_tag)
+
+            baseline_output = temporary_directory()
+            self.local_execution.run(
+                image=docker_tag, command=baseline_command, input_dir=inputs_dir, output_dir=baseline_output
+            )
+
+            l, m = check_format(baseline_output, baseline_format, baseline_config)
+            if l != _fmt.OK:
+                log_message(f"The outputs of the baseline are at {baseline_output} and not valid: {m}", l)
+                return None
+
+            print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
+            preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
+
+            print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
+
+        ret = {}
+
+        ret["inputs_dir"] = inputs_dir
+        ret["truths_dir"] = truth_dir
+        ret["inputs_zip"] = zip_dir(inputs_dir)
+        ret["truths_zip"] = zip_dir(truth_dir)
+
+        if not dry_run:
+            headers = self.authentication_headers()
+            headers["Accept"] = "application/json"
+            headers["Content-Type"] = "application/json"
+            self.fail_if_api_key_is_invalid()
+
+            csrf_token = self.get_csrf_token()
+            headers["Cookie"] = f"csrftoken={csrf_token}" + (
+                "" if "Cookie" not in headers else "; " + headers["Cookie"]
+            )
+            headers["x-csrftoken"] = csrf_token
+
+            url = f"{self.base_url}/tira-admin/add-dataset/{task}"
+            content = {
+                "csrfmiddlewaretoken": csrf_token,
+                "dataset_id": dataset,
+                "name": dataset,
+                "task": task,
+                "type": "test",
+                "upload_name": "predictions.jsonl",
+                "is_confidential": True,
+                "irds_docker_image": "",
+                "irds_import_command": "",
+                "irds_import_truth_command": "",
+                "git_runner_image": "ubuntu:18.04",
+                "git_runner_command": "echo 'this is no real evaluator'",
+                "is_git_runner": True,
+                "use_existing_repository": False,
+                "working_directory": "obsolete",
+                "command": "obsolete",
+                "publish": False,
+                "evaluator_command": "obsolete",
+                "evaluator_image": "obsolete",
+                "evaluator_working_directory": "obsolete",
+                "description": "todo",
+                "chatnoir_id": "",
+                "ir_datasets_id": "",
+            }
+
+            import requests
+
+            resp = requests.post(url, headers=headers, json=content, verify=self.verify)
+            resp = resp.content.decode("utf8")
+            resp = json.loads(resp)
+            dataset_id = resp["context"]["dataset_id"]
+            print_message(f"Configuration for dataset {dataset_id} is uploaded to TIRA.", _fmt.OK)
+
+            def post_data(type):
+                tqdm_zip_file = TqdmUploadFile(ret[f"{type}s_zip"], f"Upload {type}s to TIRA")
+
+                headers = self.authentication_headers()
+                headers["Accept"] = "application/json"
+                headers["Cookie"] = f"csrftoken={csrf_token}" + (
+                    "" if "Cookie" not in headers else "; " + headers["Cookie"]
+                )
+                headers["x-csrftoken"] = csrf_token
+                files = {"file": (os.path.basename(ret[f"{type}s_zip"]), tqdm_zip_file)}
+
+                resp = requests.post(
+                    url=f"{self.base_url_api}/tira-admin/upload-dataset/{task}/{dataset_id}/{type}",
+                    files=files,
+                    headers=headers,
+                    verify=self.verify,
+                )
+
+                resp = resp.content.decode("utf8")
+                resp = json.loads(resp)
+                if "status" not in resp or "message" not in resp or resp["status"] != 0:
+                    log_message(f"Could not upload system {type}s: {resp}", _fmt.ERROR)
+                    return
+
+                print_message(f"{type}s are uploaded to TIRA: {resp['message']}", _fmt.OK)
+
+            post_data("input")
+            post_data("truth")
+
+        return ret
+
     def __extract_dataset_identifier(self, dataset: any):
         """Extract the dataset identifier from a passed object.
 

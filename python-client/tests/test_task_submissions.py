@@ -8,7 +8,7 @@ RESOURCE_DIR = Path(__file__).parent / "resources"
 
 def submit_task(directory, dataset="train"):
     client = TiraClient()
-    return client.submit_task(directory, "task", dataset, True)
+    return client.submit_dataset(directory, "task", dataset, True, skip_baseline=True)
 
 
 class TestTaskSubmissions(unittest.TestCase):

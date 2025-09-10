@@ -5,7 +5,12 @@ from tira.rest_api_client import Client
 
 ALL_DATASETS = {}
 tira = Client()
-TASKS = ["wows-eval", "advertisement-in-retrieval-augmented-generation-2025", "longeval-2025"]
+TASKS = [
+    "wows-eval",
+    "longeval-2025",
+    # ToDo: Add again
+    # "advertisement-in-retrieval-augmented-generation-2025",
+]
 for task in TASKS:
     ALL_DATASETS.update(tira.datasets(task))
 
@@ -81,12 +86,12 @@ DATASET_TO_MINIMAL_EXAMPLE = {
     "pairwise-smoke-test-20250210-training": MINIMAL_WOWS_PAIRWISE,
     "pointwise-20250309-test": MINIMAL_WOWS_POINTWISE,
     "pointwise-smoke-test-20250128-training": MINIMAL_WOWS_POINTWISE,
-    "ads-in-rag-task-1-generation-spot-check-20250423_1-training": MINIMAL_AD_GENERATION,
-    "ads-in-rag-task-1-generation-test-20250506-test": MINIMAL_AD_GENERATION,
-    "ads-in-rag-task-1-generation-training-20250423-training": MINIMAL_AD_GENERATION,
-    "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
-    "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
-    "ads-in-rag-task-2-classification-training-20250423-training": MINIMAL_AD_CLASSIFICATION,
+    # "ads-in-rag-task-1-generation-spot-check-20250423_1-training": MINIMAL_AD_GENERATION,
+    # "ads-in-rag-task-1-generation-test-20250506-test": MINIMAL_AD_GENERATION,
+    # "ads-in-rag-task-1-generation-training-20250423-training": MINIMAL_AD_GENERATION,
+    # "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
+    # "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
+    # "ads-in-rag-task-2-classification-training-20250423-training": MINIMAL_AD_CLASSIFICATION,
     "sci-spot-check-no-prior-data-20250322-training": {"run": persist_longeval_data(["2024-10"]), "truth": "skip"},
     "sci-spot-check-with-prior-data-20250322-training": {"run": persist_longeval_data(["2024-11"]), "truth": "skip"},
     "web-20250430-test": {
