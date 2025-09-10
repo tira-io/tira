@@ -89,7 +89,7 @@ def check_permissions(func):
         ):
             return func(request, *args, **kwargs)
 
-        if (request.path_info.startswith("data-download/") or request.path_info.startswith("/data-download/")) or (
+        if (request.path_info.startswith("data-download/") or request.path_info.startswith("/data-download/")) and (
             dataset_id is not None and _dataset_is_public(dataset_id)
         ):
             return func(request, *args, **kwargs)
@@ -118,22 +118,15 @@ def check_permissions(func):
             ):
                 return func(request, *args, **kwargs)
 
-        if (
-            task_id is not None
-            and dataset_id is not None
-            and run_id is not None
-            and vm_id is not None
-            and organizer_id is not None
-            and auth.user_is_organizer_for_endpoint(
-                request=request,
-                path=request.path_info,
-                task_id=task_id,
-                organizer_id_from_params=organizer_id,
-                dataset_id_from_params=dataset_id,
-                run_id_from_params=run_id,
-                vm_id_from_params=vm_id,
-                role=role,
-            )
+        if auth.user_is_organizer_for_endpoint(
+            request=request,
+            path=request.path_info,
+            task_id=task_id,
+            organizer_id_from_params=organizer_id,
+            dataset_id_from_params=dataset_id,
+            run_id_from_params=run_id,
+            vm_id_from_params=vm_id,
+            role=role,
         ):
             return func(request, *args, **kwargs)
 
