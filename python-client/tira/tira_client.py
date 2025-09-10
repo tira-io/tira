@@ -136,6 +136,40 @@ class TiraClient(ABC):
                 zipf.write(file_path, arcname=file)
         return zip_path
 
+    def __run_evaluation(self, image, command, predictions, truths, print_message):
+        from tira.io_utils import load_output_of_directory
+
+        if not self.local_execution.docker_is_installed_failsave():
+            msg = "Docker is not installed, I can not run the dockerized evaluator..."
+            log_message(msg, _fmt.ERROR)
+            raise ValueError(msg)
+
+        print_message("Docker is installed. I can run the dockerized evaluator.", _fmt.OK)
+        self.local_execution.ensure_image_available_locally(image)
+
+        print_message(f"The evaluator image {image} is available locally.", _fmt.OK)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            eval_config = {
+                "evaluator_id": "1",
+                "evaluator_git_runner_image": image,
+                "evaluator_git_runner_command": command,
+                "truth_directory": str(Path(truths).absolute().resolve()),
+            }
+            self.local_execution.evaluate(
+                Path(tmp_dir).absolute().resolve(),
+                predictions.absolute().resolve(),
+                allow_network=False,
+                evaluate=eval_config,
+            )
+
+            try:
+                return json.dumps(load_output_of_directory(Path(tmp_dir), evaluation=True))
+            except:
+                msg = "The evaluator failed to produce a valid evaluation..."
+                print(msg)
+                raise ValueError(msg)
+
     def evaluate(self, directory: Path, dataset_id: str):
         """Evaluate some predictions made for some dataset on your local machine.
 
@@ -143,8 +177,6 @@ class TiraClient(ABC):
             directory (Path): The path to the directory that contains the predictions that you want to evaluate.
             dataset_id (str): The ID of the TIRA dataset on which the directory is to be evaluated.
         """
-        from tira.io_utils import load_output_of_directory
-
         all_messages = []
 
         def print_message(message, level):
@@ -182,43 +214,18 @@ class TiraClient(ABC):
         print_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
 
         dataset_path = self.download_dataset(dataset_handle["default_task"], dataset_id, truth_dataset=True)
-
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
-        if not self.local_execution.docker_is_installed_failsave():
-            msg = "Docker is not installed, I can not run the dockerized evaluator..."
-            log_message(msg, _fmt.ERROR)
-            raise ValueError(msg)
+        preds = self.__run_evaluation(
+            dataset_handle["evaluator"]["image"],
+            dataset_handle["evaluator"]["command"],
+            directory,
+            dataset_path,
+            print_message,
+        )
 
-        print_message("Docker is installed. I can run the dockerized evaluator.", _fmt.OK)
-        self.local_execution.ensure_image_available_locally(dataset_handle["evaluator"]["image"])
-
-        print_message(f"The evaluator image {dataset_handle['evaluator']['image']} is available locally.", _fmt.OK)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            eval_config = {
-                "evaluator_id": "1",
-                "evaluator_git_runner_image": dataset_handle["evaluator"]["image"],
-                "evaluator_git_runner_command": dataset_handle["evaluator"]["command"],
-                "truth_directory": str(Path(dataset_path).absolute().resolve()),
-            }
-            self.local_execution.evaluate(
-                Path(tmp_dir).absolute().resolve(),
-                directory.absolute().resolve(),
-                allow_network=False,
-                evaluate=eval_config,
-            )
-
-            preds = None
-            try:
-                preds = json.dumps(load_output_of_directory(Path(tmp_dir), evaluation=True))
-            except:
-                msg = "The evaluator failed to produce a valid evaluation..."
-                print(msg)
-                raise ValueError(msg)
-
-            log_message("The evaluator was successfull.", _fmt.OK)
-            print("\n\nResult:\n\t" + preds)
+        log_message("The evaluator was successfull.", _fmt.OK)
+        print("\n\nResult:\n\t" + preds)
 
     def __extract_task_and_dataset_id(self, task, dataset):
         if dataset is None and task and len(task.split("/")) == 2:
@@ -249,6 +256,75 @@ class TiraClient(ABC):
 
         for i in lines_if_valid(Path(dataset_dir), format):
             yield i
+
+
+    def clone_git_repository(self, repo_url: str):
+        from git import Repo
+
+        target_file = Path(self.tira_cache_dir) / "git-repositories" / (repo_url.split("/")[-1])
+        if target_file.exists():
+            return target_file
+
+        target_file.parent.mkdir(exist_ok=True, parents=True)
+        Repo.clone_from(repo_url, target_file)
+        return target_file
+
+    def build_docker_image_from_code(
+        self, path: Path, print_message, dry_run: bool, docker_file: "Optional[Path]" = None
+    ):
+        repo = self._git_repo(path)
+
+        try:
+            remotes = {remote.name: remote.url for remote in repo.remotes}
+        except:
+            raise ValueError("No remotes found for the git repository.")
+
+        if len(remotes) == 0:
+            raise ValueError("No remotes found for the git repository.")
+
+        try:
+            commit = repo.commit().hexsha
+        except:
+            raise ValueError("No commits in the git repository")
+
+        try:
+            active_branch = repo.active_branch.name
+        except:
+            raise ValueError("No branch in the git repository")
+
+        print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
+
+        if docker_file is None:
+            docker_file = path / "Dockerfile"
+
+        docker_file = Path(docker_file)
+        if not docker_file.exists():
+            raise ValueError(f"No dockerfile {docker_file} exists.")
+
+        directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
+        if Path(repo.working_tree_dir).name in directory_in_path:
+            directory_in_path = Path(repo.working_tree_dir).name
+        submission_name = (
+            directory_in_path.replace("/", "-").lower().replace(" ", "-").replace("\n", "").replace("\r", "")
+        )
+        docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
+
+        if repo.is_dirty(untracked_files=True):
+            if not dry_run:
+                log_message(
+                    f"The git repository {repo.working_tree_dir} is not clean.\n\tPlease ensure that the repository is clean, i.g., git status reports that everything is committed and pushed.\n\n\tPlease pass --dry-run if you want to test without uploading",
+                    _fmt.ERROR,
+                )
+                raise ValueError("The git repository is not clean.")
+        else:
+            print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
+        print("Build Docker image...")
+        zipped_code = self._zip_tracked_files(repo, directory_in_path)
+
+        self.local_execution.build_docker_image(path, docker_tag, docker_file)
+
+        print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
+        return docker_tag, zipped_code, remotes, commit, active_branch
 
     def submit_code(
         self,
@@ -322,27 +398,10 @@ class TiraClient(ABC):
         dataset_path = self.download_dataset(task_id, dataset_id)
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
-        repo = self._git_repo(path)
-
-        try:
-            remotes = {remote.name: remote.url for remote in repo.remotes}
-        except:
-            raise ValueError("No remotes found for the git repository.")
-
-        if len(remotes) == 0:
-            raise ValueError("No remotes found for the git repository.")
-
-        try:
-            commit = repo.commit().hexsha
-        except:
-            raise ValueError("No commits in the git repository")
-
-        try:
-            active_branch = repo.active_branch.name
-        except:
-            raise ValueError("No branch in the git repository")
-
-        print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
+        docker_tag, zipped_code, remotes, commit, active_branch = self.build_docker_image_from_code(
+            path, print_message, dry_run, docker_file
+        )
+        print("Test Docker image...")
 
         hf_models = None
         if mount_hf_model:
@@ -351,38 +410,6 @@ class TiraClient(ABC):
             hf_models = huggingface_model_mounts(mount_hf_model)
             hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
             print(f"The following models from huggingface are mounted: {hf_models}\n\n")
-
-        if docker_file is None:
-            docker_file = path / "Dockerfile"
-
-        docker_file = Path(docker_file)
-        if not docker_file.exists():
-            raise ValueError(f"No dockerfile {docker_file} exists.")
-
-        directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
-        if Path(repo.working_tree_dir).name in directory_in_path:
-            directory_in_path = Path(repo.working_tree_dir).name
-        submission_name = (
-            directory_in_path.replace("/", "-").lower().replace(" ", "-").replace("\n", "").replace("\r", "")
-        )
-        docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
-
-        if repo.is_dirty(untracked_files=True):
-            if not dry_run:
-                log_message(
-                    f"The git repository {repo.working_tree_dir} is not clean.\n\tPlease ensure that the repository is clean, i.g., git status reports that everything is committed and pushed.\n\n\tPlease pass --dry-run if you want to test without uploading",
-                    _fmt.ERROR,
-                )
-                raise ValueError("The git repository is not clean.")
-        else:
-            print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
-        print("Build Docker image...")
-        zipped_code = self._zip_tracked_files(repo, directory_in_path)
-
-        self.local_execution.build_docker_image(path, docker_tag, docker_file)
-
-        print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
-        print("Test Docker image...")
 
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
@@ -411,14 +438,14 @@ class TiraClient(ABC):
             print("Upload Code Submission image...")
             metadata_uuid = self.upload_run_anonymous(tmp_dir, dataset_id)["uuid"]
 
-            print_message(f"The meta data is uploaded to TIRA.", _fmt.OK)
+            print_message("The meta data is uploaded to TIRA.", _fmt.OK)
 
             print("Push Docker image to TIRA...")
             from tira.tira_run import push_image
 
             pushed_image = push_image(self, docker_tag, task_id, user_id)
 
-            print_message(f"The Docker image is pushed to TIRA.", _fmt.OK)
+            print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             print("Configure code submission in TIRA...")
             upload = self.add_docker_software(
                 pushed_image,
