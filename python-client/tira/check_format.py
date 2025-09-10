@@ -1233,11 +1233,17 @@ def check_format(
         if all(i[0] == _fmt.OK for i in ret.values()):
             return [_fmt.OK, "The output is valid."]
 
-        metadata_valid = "ir-metadata" in ret and ret["ir-metadata"] == _fmt.OK
-        one_payload_valid = any(v == _fmt.OK for k, v in ret.items() if k != "ir-metadata")
+        if "ir-metadata" in ret:
+            metadata_valid = ret["ir-metadata"] == _fmt.OK
+            one_payload_valid = any(v == _fmt.OK for k, v in ret.items() if k != "ir-metadata")
 
-        if metadata_valid and one_payload_valid:
-            return [_fmt.OK, "The output is valid."]
+            if metadata_valid and one_payload_valid:
+                return [_fmt.OK, "The output is valid."]
+
+        ret = {k: v for k, v in ret.items() if v[0] == _fmt.OK}
+
+        if len(ret) > 0:
+            return [_fmt.OK, list(ret.values())[0][1]]
         else:
             error_msg = [i[1] for i in ret.values() if i[0] != _fmt.OK]
 

@@ -7,7 +7,7 @@ ALL_DATASETS = {}
 tira = Client()
 TASKS = [
     "wows-eval",
-    "longeval-2025",
+    # "longeval-2025",
     # ToDo: Add again
     # "advertisement-in-retrieval-augmented-generation-2025",
 ]
@@ -92,8 +92,8 @@ DATASET_TO_MINIMAL_EXAMPLE = {
     # "ads-in-rag-task-2-classification-spot-check-20250423-training": MINIMAL_AD_CLASSIFICATION,
     # "ads-in-rag-task-2-classification-test-20250428-test": MINIMAL_AD_CLASSIFICATION,
     # "ads-in-rag-task-2-classification-training-20250423-training": MINIMAL_AD_CLASSIFICATION,
-    "sci-spot-check-no-prior-data-20250322-training": {"run": persist_longeval_data(["2024-10"]), "truth": "skip"},
-    "sci-spot-check-with-prior-data-20250322-training": {"run": persist_longeval_data(["2024-11"]), "truth": "skip"},
+    # "sci-spot-check-no-prior-data-20250322-training": {"run": persist_longeval_data(["2024-10"]), "truth": "skip"},
+    # "sci-spot-check-with-prior-data-20250322-training": {"run": persist_longeval_data(["2024-11"]), "truth": "skip"},
     "web-20250430-test": {
         "run": persist_longeval_data(["2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08"]),
         "truth": "skip",

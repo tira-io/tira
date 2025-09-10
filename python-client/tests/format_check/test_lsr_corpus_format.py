@@ -28,12 +28,12 @@ class TestCheckLsrCorpusFormat(unittest.TestCase):
 
     def test_valid_ir_dataset_01(self):
         actual = check_format(IR_DATASET, ["ir-dataset-corpus", "power-and-identification-truths"])
-        self.assertEqual(_OK, actual[0])
+        self.assertEqual(_OK, actual[0], actual[1])
         self.assertIn("Valid ir-dataset found.", actual[1])
 
     def test_valid_ir_dataset_02(self):
         actual = check_format(
             IR_DATASET, ["ir-dataset-corpus", "power-and-identification-truths", "power-and-identification-predictions"]
         )
-        self.assertEqual(_OK, actual[0])
+        self.assertEqual(_OK, actual[0], actual[1])
         self.assertIn("Valid ir-dataset found.", actual[1])
