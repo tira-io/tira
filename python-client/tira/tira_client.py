@@ -257,7 +257,6 @@ class TiraClient(ABC):
         for i in lines_if_valid(Path(dataset_dir), format):
             yield i
 
-
     def clone_git_repository(self, repo_url: str):
         from git import Repo
 
