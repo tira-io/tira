@@ -128,10 +128,10 @@ def __docs(input_file, original_dataset, load_default_text):
                 return self.input_file
 
             ret = self.input_file()
-            if os.path.isfile(ret + "/documents.jsonl.gz"):
-                return ret + "/documents.jsonl.gz"
+            if os.path.isfile(ret / "documents.jsonl.gz"):
+                return ret / "documents.jsonl.gz"
             else:
-                return ret + "/documents.jsonl"
+                return ret / "documents.jsonl"
 
     return DynamicDocs(input_file, load_default_text)
 
@@ -154,7 +154,7 @@ def __lazy_qrels(input_file, original_qrels):
 
         def qrels_iter(self):
             if not self.qrels:
-                qrels_file = self.input_file() + "/qrels.txt"
+                qrels_file = self.input_file() / "qrels.txt"
 
                 self.qrels = TrecQrels(LocalDownload(qrels_file), {})
 
@@ -320,7 +320,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 return ret
 
         def topics_file(self, tira_path):
-            return get_download_dir_from_tira(tira_path, True) + "/queries.xml"
+            return get_download_dir_from_tira(tira_path, True) / "queries.xml"
 
     ret = IrDatasetsFromTira()
     ret.lazy_docs = __docs

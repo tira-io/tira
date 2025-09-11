@@ -414,15 +414,15 @@ class TestIRDatasets(unittest.TestCase):
 
         dataset = ir_datasets.topics_file("ir-lab-jena-leipzig-wise-2023/training-20231104-training")
 
-        assert dataset.endswith("/training-20231104-training/truth-data/queries.xml")
+        self.assertIn("/training-20231104-training/truth-data/queries.xml", str(dataset))
 
     def test_loading_topics_via_rest_api_from_tira_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
         from tira.third_party_integrations import ir_datasets
 
-        dataset = ir_datasets.topics_file("ir-lab-jena-leipzig-wise-2023/training-20231104-training")
+        topics_file = ir_datasets.topics_file("ir-lab-jena-leipzig-wise-2023/training-20231104-training")
 
-        assert dataset.endswith("/training-20231104-training/truth-data/queries.xml")
+        self.assertIn("/training-20231104-training/truth-data/queries.xml", str(topics_file))
 
     def test_loading_topics_via_rest_api_from_rerank_dataset_from_tira_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)

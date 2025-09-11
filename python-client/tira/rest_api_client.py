@@ -576,7 +576,7 @@ class Client(TiraClient):
 
         ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ["task", "dataset", "team", "run_id"]})
         ret = pd.read_csv(
-            ret + "/run.txt",
+            ret / "run.txt",
             sep="\\s+",
             names=["query", "q0", "docid", "rank", "score", "system"],
             dtype={"query": str, "docid": str},

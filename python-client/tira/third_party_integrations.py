@@ -99,18 +99,18 @@ def is_running_as_inference_server():
 
 
 def load_rerank_data(default, load_default_text=True):
-    default_input = get_input_directory_and_output_directory(default)[0]
+    default_input = Path(get_input_directory_and_output_directory(default)[0])
 
     if not os.path.isdir(default_input) and len(default.split("/")) == 2:
         from tira.rest_api_client import Client as RestClient
 
         default_input = RestClient().download_dataset(default.split("/")[0], default.split("/")[1])
 
-    if not default_input.endswith("rerank.jsonl") and not default_input.endswith("rerank.jsonl.gz"):
-        if os.path.isfile(default_input + "/rerank.jsonl.gz"):
-            default_input = default_input + "/rerank.jsonl.gz"
-        elif os.path.isfile(default_input + "/rerank.jsonl"):
-            default_input = default_input + "/rerank.jsonl"
+    if not str(default_input).endswith("rerank.jsonl") and not str(default_input).endswith("rerank.jsonl.gz"):
+        if os.path.isfile(default_input / "rerank.jsonl.gz"):
+            default_input = default_input / "rerank.jsonl.gz"
+        elif os.path.isfile(default_input / "rerank.jsonl"):
+            default_input = default_input / "rerank.jsonl"
 
     return all_lines_to_pandas(default_input, load_default_text)
 

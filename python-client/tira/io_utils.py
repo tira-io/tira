@@ -294,11 +294,13 @@ def _ln_huggingface_model_mounts(models: str) -> str:
     return "; ".join(ret + [f'echo "mounted {len(models)} models"'])
 
 
-def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
+def all_lines_to_pandas(input_file: Union[str, Iterable[str], Path], load_default_text: bool) -> pd.DataFrame:
     """
     .. todo:: add documentation
     .. todo:: this function has two semantics: handling a file and handling file-contents
     """
+    if isinstance(input_file, Path):
+        return all_lines_to_pandas(str(input_file), load_default_text)
     if type(input_file) is str:
         if input_file.endswith(".gz"):
             with gzip.open(input_file, "rt", encoding="utf-8") as f:
