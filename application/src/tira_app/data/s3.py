@@ -1,4 +1,5 @@
 import configparser
+import os
 from typing import Optional, Tuple
 
 import boto3
@@ -26,7 +27,7 @@ class S3Database:
 
     def read_credentials(self) -> Tuple:
         config = configparser.ConfigParser()
-        config.read(settings.S3_CONFIG)
+        config.read(os.path.expanduser(settings.S3_CONFIG))
 
         section = "default"
         aws_access_key_id = config[section]["access_key"]
