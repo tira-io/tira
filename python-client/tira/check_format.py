@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 
 class FormatMsgType(Enum):
@@ -300,7 +300,7 @@ class KeyValueFormatBase(FormatBase):
                 f"Please set both id_field and value_field or none of both. Got id_field = {self.id_field} and value_field = {self.value_field}."
             )
 
-    def has_id_and_value_field(self):
+    def has_id_and_value_field(self) -> bool:
         return self.id_field is not None and self.value_field is not None
 
 
@@ -1203,8 +1203,8 @@ def lines_if_valid(
     return checker.all_lines(run_output)
 
 
-def report_valid_formats(run_output: Path):
-    valid_formats = {}
+def report_valid_formats(run_output: Path) -> Dict[str, Any]:
+    valid_formats: Dict[str, Any] = {}
     if _fmt.OK == check_format(run_output, "ir_metadata")[0]:
         valid_formats["ir_metadata"] = sorted([i["name"] for i in lines_if_valid(run_output, "ir_metadata")])
 

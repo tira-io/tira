@@ -78,7 +78,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
 
 
-def translate_irds_id_to_tirex(dataset):
+def translate_irds_id_to_tirex(dataset: str) -> str:
     if type(dataset) is not str:
         if hasattr(dataset, "irds_ref"):
             return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())

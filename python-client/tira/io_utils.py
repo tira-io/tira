@@ -340,7 +340,7 @@ def __num(input: str) -> "Union[str, int, float]":
             return input
 
 
-def run_cmd(cmd: List[str], ignore_failure=False):
+def run_cmd(cmd: List["Optional[str]"], ignore_failure=False):
     import subprocess
 
     exit_code = subprocess.call(cmd)

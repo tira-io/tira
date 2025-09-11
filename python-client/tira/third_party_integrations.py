@@ -3,8 +3,13 @@ import logging
 import os
 import shlex
 from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 from tira.io_utils import all_lines_to_pandas
+
+if TYPE_CHECKING:
+
+    from .rest_api_client import Client
 
 
 def ensure_pyterrier_is_loaded(
@@ -130,14 +135,20 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 
 
 def persist_and_normalize_run(
-    run, system_name, default_output=None, output_file=None, depth=1000, upload_to_tira=None, tira_client=None
+    run,
+    system_name: str,
+    default_output: "Optional[Path]" = None,
+    output_file: "Optional[Path]" = None,
+    depth: int = 1000,
+    upload_to_tira: Optional["str"] = None,
+    tira_client: "Optional[Client]" = None,
 ):
     if output_file is None and default_output is None:
         print(
             'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "."'
             " as default."
         )
-        output_file = os.environ.get("TIRA_OUTPUT_DIR", ".")
+        output_file = Path(os.environ.get("TIRA_OUTPUT_DIR", "."))
 
     if default_output is not None:
         if os.environ.get("TIRA_OUTPUT_DIR") is None:

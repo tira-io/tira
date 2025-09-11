@@ -76,13 +76,13 @@ class Client(TiraClient):
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
         self.failsave_retries = failsave_retries
-        self.pd = PandasIntegration(self)
-        self.pt = PyTerrierIntegration(self)
-        self.trectools = TrecToolsIntegration(self)
-        self.profiling = ProfilingIntegration(self)
-        self.pt_ance = PyTerrierAnceIntegration(self)
-        self.pt_splade = PyTerrierSpladeIntegration(self)
-        self.local_execution = LocalExecutionIntegration(self)
+        self.pd: PandasIntegration = PandasIntegration(self)
+        self.pt: PyTerrierIntegration = PyTerrierIntegration(self)
+        self.trectools: TrecToolsIntegration = TrecToolsIntegration(self)
+        self.profiling: ProfilingIntegration = ProfilingIntegration(self)
+        self.pt_ance: PyTerrierAnceIntegration = PyTerrierAnceIntegration(self)
+        self.pt_splade: PyTerrierSpladeIntegration = PyTerrierSpladeIntegration(self)
+        self.local_execution: LocalExecutionIntegration = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
 
     def load_settings(self):
