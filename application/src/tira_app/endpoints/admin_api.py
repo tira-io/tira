@@ -9,7 +9,7 @@ import zipfile
 from http import HTTPStatus
 from os import PathLike
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, copyfileobj
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -967,13 +967,12 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         with zipfile.ZipFile(tmp_dir + "/tmp.zip", "r") as zip_ref:
             zip_ref.extractall(target_directory)
 
-        zipped = Path(tmp_dir + f"{target_directory.stem}.zip")
+        zipped = tmp_dir / f"{target_directory.stem}.zip"
         with zipfile.ZipFile(zipped, "w") as zipf:
             for f in target_directory.rglob("*"):
                 zipf.write(f, arcname=f.relative_to(target_directory.parent))
 
-        with open(zipped, "rb") as f_zipped:
-            zip_bytes = f_zipped.read()
+        zip_bytes = zipped.read_bytes()
 
         md5_sum = str(hashlib.md5(zip_bytes).hexdigest())
         md5_first_kilobyte = str(hashlib.md5(zip_bytes[:1024]).hexdigest())
@@ -986,7 +985,7 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
 
         if not existing_resource:
             with open(target_dir, "wb") as f_target, open(zipped, "rb") as s:
-                f_target.write(s.read())
+                copyfileobj(s, f_target)
 
         mirror = modeldb.MirroredResource.objects.create(
             md5_sum=md5_sum,
