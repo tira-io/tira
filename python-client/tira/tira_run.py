@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from tira.check_format import _fmt, log_message
 from tira.io_utils import huggingface_model_mounts
@@ -15,8 +15,6 @@ from tira.rest_api_client import Client as RestClient
 from tira.third_party_integrations import extract_previous_stages_from_docker_image
 
 if TYPE_CHECKING:
-    from typing import Dict
-
     from .tira_client import TiraClient
 
 
