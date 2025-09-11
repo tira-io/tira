@@ -1,6 +1,7 @@
 import logging
 import os
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple
 
 from tira.io_utils import stream_all_lines
@@ -184,7 +185,7 @@ def __queries(input_file, original_dataset):
             if type(self.input_file) is str:
                 return self.input_file
 
-            return self.input_file() + "/queries.jsonl"
+            return Path(self.input_file()) / "queries.jsonl"
 
         def __get_queries(self):
             if self.queries is None:

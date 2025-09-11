@@ -42,7 +42,7 @@ class TiraClient(ABC):
     def run_was_already_executed_on_dataset(self, approach: str, dataset: str) -> bool:
         raise ValueError("ToDo: Implement")
 
-    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> str:
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
         raise ValueError("ToDo: Implement")
 
     def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:

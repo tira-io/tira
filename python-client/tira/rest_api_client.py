@@ -455,7 +455,7 @@ class Client(TiraClient):
         """
         mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
         if mounted_output_in_sandbox:
-            return mounted_output_in_sandbox
+            return Path(mounted_output_in_sandbox)
 
         task, team, software = approach.split("/")
         if "/" in dataset and not Path(dataset).exists():
@@ -507,7 +507,7 @@ class Client(TiraClient):
 
         return ret
 
-    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
+    def get_run_execution_or_none(self, approach: str, dataset: str, previous_stage_run_id: str = None) -> Dict:
         task, team, software = approach.split("/")
         system_details = self.public_system_details(team, software)
         redirect = redirects(approach, dataset)
@@ -613,9 +613,9 @@ class Client(TiraClient):
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
         if "TIRA_INPUT_DATASET" in os.environ:
-            return os.environ["TIRA_INPUT_DATASET"]
+            return Path(os.environ["TIRA_INPUT_DATASET"])
         if allow_local_dataset and Path(dataset).exists():
-            return dataset
+            return Path(dataset)
         if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
@@ -644,7 +644,7 @@ class Client(TiraClient):
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
-            return target_dir + suffix
+            return Path(target_dir + suffix)
 
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
@@ -664,17 +664,17 @@ class Client(TiraClient):
             dataset = dataset.split("/")[-1]
 
         if os.path.isdir(target_dir + f"/{run_id}"):
-            return target_dir + f"/{run_id}/output"
+            return Path(target_dir + f"/{run_id}/output")
 
         potential_local_matches = glob(f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/*/{run_id}/output")
         if task in TASKS_WITH_REDIRECT_MERGING and len(potential_local_matches) == 1:
-            return potential_local_matches[0]
+            return Path(potential_local_matches[0])
 
         self.download_and_extract_zip(
             f"{self.base_url}/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip", target_dir
         )
 
-        return Path(target_dir + f"/{run_id}/output")
+        return Path(target_dir) / run_id / "output"
 
     def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
         """
@@ -787,7 +787,7 @@ class Client(TiraClient):
 
         return
 
-    def download_and_extract_zip(self, url, target_dir, extract=True):
+    def download_and_extract_zip(self, url: str, target_dir: str, extract: bool = True):
         url = redirects(url=url)["urls"][0]
         if "://" in url and url.split("://")[1].startswith("files.webis.de"):
             print(f"Download from the Incubator: {url}")

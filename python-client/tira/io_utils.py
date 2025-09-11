@@ -181,11 +181,17 @@ def zip_dir(file_path, allow_list=None):
     return zip_file
 
 
-def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
+def stream_all_lines(
+    input_file: Union[str, Iterable[bytes], Path], load_default_text: bool
+) -> Generator[Dict, Any, Any]:
     """
     .. todo:: add documentation
     .. todo:: this function has two semantics: handling a file and handling file-contents
     """
+    if isinstance(input_file, Path):
+        yield from stream_all_lines(str(input_file), load_default_text)
+        return
+
     if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
@@ -340,7 +346,7 @@ def __num(input: str) -> "Union[str, int, float]":
             return input
 
 
-def run_cmd(cmd: List["Optional[str]"], ignore_failure=False):
+def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
     import subprocess
 
     exit_code = subprocess.call(cmd)
