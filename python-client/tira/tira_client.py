@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import uuid
 import zipfile
-from abc import ABC, abstractmethod
+from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, overload
 
@@ -39,22 +39,16 @@ class TiraClient(ABC):
         # .. todo:: typehint
         pass
 
-    @abstractmethod
-    def run_was_already_executed_on_dataset(self, approach, dataset) -> bool:
-        # .. todo:: typehint
-        pass
+    def run_was_already_executed_on_dataset(self, approach: str, dataset: str) -> bool:
+        raise ValueError("ToDo: Implement")
 
-    @abstractmethod
-    def get_run_output(self, approach, dataset, allow_without_evaluation=False) -> str:
-        # .. todo:: typehint
-        pass
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> str:
+        raise ValueError("ToDo: Implement")
 
-    @abstractmethod
     def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:
-        pass
+        raise ValueError("ToDo: Implement")
 
-    @abstractmethod
-    def get_dataset(self, dataset) -> dict:
+    def get_dataset(self, dataset: str) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
         Args:
@@ -62,18 +56,16 @@ class TiraClient(ABC):
         Returns:
             dict: The TIRA representation of the dataset.
         """
-        pass
+        raise ValueError("ToDo: Implement")
 
-    @abstractmethod
     def download_dataset(
         self, task: str, dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
     ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
-        pass
+        raise ValueError("ToDo: Implement")
 
-    @abstractmethod
     def json_response(
         self,
         endpoint: str,
@@ -81,7 +73,7 @@ class TiraClient(ABC):
         base_url: "Optional[str]" = None,
         failsave_retries: "Optional[int]" = None,
     ) -> Dict:
-        pass
+        raise ValueError("ToDo: Implement")
 
     def api_key_is_valid(self) -> bool:
         try:
