@@ -158,8 +158,8 @@ def persist_and_normalize_run(
             output_file = os.environ.get("TIRA_OUTPUT_DIR")
             print(f'The run file is normalized inside the TIRA sandbox, I will store it at "{output_file}".')
 
-    if not output_file.endswith("run.txt"):
-        output_file = output_file + "/run.txt"
+    if not str(output_file).endswith("run.txt"):
+        output_file = output_file / "run.txt"
     if upload_to_tira and not in_tira_sandbox():
         tira = _tira_client(tira_client)
         tmp = tira.get_dataset(upload_to_tira)

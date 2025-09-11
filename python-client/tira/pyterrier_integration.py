@@ -232,6 +232,8 @@ class PyTerrierIntegration:
     def _features_transformer(
         self, run: "pd.DataFrame", id_col: str, name: str, feature_selection: Any = None, map_features: Any = None
     ) -> "TiraApplyFeatureTransformer":
+        from tira.pyterrier_util import TiraApplyFeatureTransformer
+
         cols = [col for col in run.columns if col != id_col]
         if feature_selection is not None:
             cols = [col for col in cols if col in feature_selection]
