@@ -730,12 +730,15 @@ class TiraClient(ABC):
             import requests
 
             resp = requests.post(url, headers=headers, json=content, verify=self.verify)
-            resp = resp.content.decode("utf8")
-            resp = json.loads(resp)
-            dataset_id = resp["context"]["dataset_id"]
+            resp_content = resp.content.decode("utf8")
+            try:
+                dataset_id = json.loads(resp_content)["context"]["dataset_id"]
+            except:
+                print(resp_content)
+                raise ValueError(f"Failure. Got response {resp.status_code} from server:\n\n{resp_content}")
             print_message(f"Configuration for dataset {dataset_id} is uploaded to TIRA.", _fmt.OK)
 
-            def post_data(type):
+            def post_data(type: str) -> None:
                 tqdm_zip_file = TqdmUploadFile(ret[f"{type}s_zip"], f"Upload {type}s to TIRA")
 
                 headers = self.authentication_headers()
@@ -747,19 +750,23 @@ class TiraClient(ABC):
                 files = {"file": (os.path.basename(ret[f"{type}s_zip"]), tqdm_zip_file)}
 
                 resp = requests.post(
-                    url=f"{self.base_url_api}/tira-admin/upload-dataset/{task}/{dataset_id}/{type}",
+                    url=f"{self.base_url}/tira-admin/upload-dataset/{task}/{dataset_id}/{type}",
                     files=files,
                     headers=headers,
                     verify=self.verify,
                 )
 
-                resp = resp.content.decode("utf8")
-                resp = json.loads(resp)
-                if "status" not in resp or "message" not in resp or resp["status"] != 0:
-                    log_message(f"Could not upload system {type}s: {resp}", _fmt.ERROR)
+                resp_content = resp.content.decode("utf8")
+                try:
+                    resp_parsed = json.loads(resp_content)
+                except:
+                    print(resp_content)
+                    raise ValueError(f"Failure. Got response {resp.status_code} from server:\n\n{resp_content}")
+                if "status" not in resp_parsed or "message" not in resp_parsed or resp_parsed["status"] != 0:
+                    log_message(f"Could not upload system {type}s: {resp_content}", _fmt.ERROR)
                     return
 
-                print_message(f"{type}s are uploaded to TIRA: {resp['message']}", _fmt.OK)
+                print_message(f"{type}s are uploaded to TIRA: {resp_parsed['message']}", _fmt.OK)
 
             post_data("input")
             post_data("truth")
