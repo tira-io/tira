@@ -21,7 +21,7 @@ from .. import model as modeldb
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
-from ..data.S3Database import S3Database
+from ..data.s3 import s3_db
 from ..endpoints.v1._datasets import load_mirrored_resource
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
@@ -35,11 +35,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tira")
 
 logger.info("ajax_routes: Logger active")
-
-try:
-    s3_db = S3Database()
-except:
-    pass
 
 
 def _handle_get_model_exceptions(func):
@@ -977,8 +972,8 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
             for f in target_directory.rglob("*"):
                 zipf.write(f, arcname=f.relative_to(target_directory.parent))
 
-        with open(zipped, "rb") as f:
-            zip_bytes = f.read()
+        with open(zipped, "rb") as f_zipped:
+            zip_bytes = f_zipped.read()
 
         md5_sum = str(hashlib.md5(zip_bytes).hexdigest())
         md5_first_kilobyte = str(hashlib.md5(zip_bytes[:1024]).hexdigest())
@@ -990,8 +985,8 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         existing_resource = load_mirrored_resource(md5_sum)
 
         if not existing_resource:
-            with open(target_dir, "wb") as f, open(zipped, "rb") as s:
-                f.write(s.read())
+            with open(target_dir, "wb") as f_target, open(zipped, "rb") as s:
+                f_target.write(s.read())
 
         mirror = modeldb.MirroredResource.objects.create(
             md5_sum=md5_sum,

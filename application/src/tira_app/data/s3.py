@@ -11,8 +11,7 @@ from tira_app import model as modeldb
 
 
 class S3Database:
-
-    def __init__(self):
+    def __init__(self) -> None:
         (
             self.__aws_access_key_id,
             self.__aws_secret_access_key,
@@ -26,7 +25,7 @@ class S3Database:
                 f"Bucket {settings.S3_BUCKET} does not exist. Have {buckets}. Create with something like s3cmd mb s3://{settings.S3_BUCKET}."
             )
 
-    def read_credentials(self):
+    def read_credentials(self) -> Tuple:
         config = configparser.ConfigParser()
         config.read(settings.S3_CONFIG)
 
@@ -72,3 +71,6 @@ class S3Database:
                 return ("404", 0)
             else:
                 raise  # Some other error (permissions, etc.)
+
+
+s3_db: "S3Database" = S3Database()

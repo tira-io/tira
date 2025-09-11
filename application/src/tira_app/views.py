@@ -19,12 +19,7 @@ from tira_app import model as modeldb
 from . import tira_model as model
 from .authentication import auth
 from .checks import check_conditional_permissions, check_permissions, check_resources_exist
-from .data.S3Database import S3Database
-
-try:
-    s3_db = S3Database()
-except:
-    pass
+from .data.s3 import s3_db
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
