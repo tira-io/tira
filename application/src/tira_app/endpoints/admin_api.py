@@ -21,7 +21,7 @@ from .. import model as modeldb
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
-from ..data.s3 import s3_db
+from ..data.s3 import S3Database
 from ..endpoints.v1._datasets import load_mirrored_resource
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
@@ -996,6 +996,7 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         )
 
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset["dataset_id"])
+        s3_db = S3Database()
         s3_db.upload_mirrored_resource(mirror)
         modeldb.DatasetHasMirroredResource.objects.create(
             dataset=dataset, mirrored_resource=mirror, resource_type=f"{dataset_type}s"

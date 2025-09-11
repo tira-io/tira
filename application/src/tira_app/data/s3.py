@@ -1,5 +1,5 @@
 import configparser
-from typing import Tuple
+from typing import Optional, Tuple
 
 import boto3
 from botocore.client import BaseClient
@@ -9,15 +9,14 @@ from django.conf import settings
 
 from tira_app import model as modeldb
 
+_aws_access_key_id: "Optional[str]" = None
+_aws_secret_access_key: "Optional[str]" = None
+_use_https: bool = True
+_endpoint_url: "Optional[str]" = None
+
 
 class S3Database:
     def __init__(self) -> None:
-        (
-            self.__aws_access_key_id,
-            self.__aws_secret_access_key,
-            self.__use_https,
-            self.__endpoint_url,
-        ) = self.read_credentials()
         s3 = self.s3_client()
         buckets = [i["Name"] for i in s3.list_buckets()["Buckets"]]
         if settings.S3_BUCKET not in buckets:
@@ -39,12 +38,20 @@ class S3Database:
         return aws_access_key_id, aws_secret_access_key, use_https, endpoint_url
 
     def s3_client(self) -> BaseClient:
+        global _aws_access_key_id
+        global _aws_secret_access_key
+        global _use_https
+        global _endpoint_url
+
+        if not _aws_access_key_id:
+            _aws_access_key_id, _aws_secret_access_key, _use_https, _endpoint_url = self.read_credentials()
+
         return boto3.client(
             "s3",
-            aws_access_key_id=self.__aws_access_key_id,
-            aws_secret_access_key=self.__aws_secret_access_key,
-            endpoint_url=self.__endpoint_url,
-            use_ssl=self.__use_https,
+            aws_access_key_id=_aws_access_key_id,
+            aws_secret_access_key=_aws_secret_access_key,
+            endpoint_url=_endpoint_url,
+            use_ssl=_use_https,
         )
 
     def upload_mirrored_resource(self, mirrored_resource: modeldb.MirroredResource) -> None:
@@ -71,6 +78,3 @@ class S3Database:
                 return ("404", 0)
             else:
                 raise  # Some other error (permissions, etc.)
-
-
-s3_db: "S3Database" = S3Database()

@@ -6,13 +6,13 @@ import uuid
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Dict, overload
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
 if TYPE_CHECKING:
     import io
-    from typing import Any, Dict, List, Optional, Union
+    from typing import Any, List, Optional, Union
 
     import pandas as pd
 
@@ -35,14 +35,16 @@ class TiraClient(ABC):
     def all_evaluated_appraoches(self) -> "pd.DataFrame":
         pass
 
-    def docker_software() -> "Any":
+    def docker_software(self) -> "Any":
         # .. todo:: typehint
         pass
 
+    @abstractmethod
     def run_was_already_executed_on_dataset(self, approach, dataset) -> bool:
         # .. todo:: typehint
         pass
 
+    @abstractmethod
     def get_run_output(self, approach, dataset, allow_without_evaluation=False) -> str:
         # .. todo:: typehint
         pass

@@ -19,7 +19,7 @@ from tira_app import model as modeldb
 from . import tira_model as model
 from .authentication import auth
 from .checks import check_conditional_permissions, check_permissions, check_resources_exist
-from .data.s3 import s3_db
+from .data.s3 import S3Database
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -216,6 +216,7 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
     if len(mirrors) < 1:
         return JsonResponse({"status": 1, "reason": "Does not exist"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+    s3_db = S3Database()
     ret_body = s3_db.read_mirrored_resource(mirrors[0].mirrored_resource)
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")
