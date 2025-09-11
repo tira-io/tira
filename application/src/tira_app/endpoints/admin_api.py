@@ -967,7 +967,7 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         with zipfile.ZipFile(tmp_dir + "/tmp.zip", "r") as zip_ref:
             zip_ref.extractall(target_directory)
 
-        zipped = tmp_dir / f"{target_directory.stem}.zip"
+        zipped = Path(tmp_dir) / f"{target_directory.stem}.zip"
         with zipfile.ZipFile(zipped, "w") as zipf:
             for f in target_directory.rglob("*"):
                 zipf.write(f, arcname=f.relative_to(target_directory.parent))
