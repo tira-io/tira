@@ -146,8 +146,8 @@ class PyTerrierIntegration:
 
         from tira.ir_datasets_util import translate_irds_id_to_tirex
 
-        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + "/index"
-        return pt.IndexFactory.of(os.path.abspath(ret))
+        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) / "index"
+        return pt.IndexFactory.of(os.path.abspath(str(ret)))
 
     def from_submission(self, approach, dataset=None, datasets=None, file_to_re_rank=None):
         if self.__is_re_ranker(approach):
