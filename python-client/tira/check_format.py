@@ -19,7 +19,7 @@ class FormatMsgType(Enum):
 _fmt = FormatMsgType
 
 
-def fmt_message(message: str, level: _fmt):
+def fmt_message(message: str, level: _fmt) -> str:
     """
     Prints a formatted log message with a symbol indicating the status.
 

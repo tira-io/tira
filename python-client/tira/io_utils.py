@@ -10,12 +10,12 @@ from contextlib import redirect_stderr, redirect_stdout
 from glob import glob
 from pathlib import Path
 from subprocess import check_output
-from typing import Any, Dict, Generator, Iterable, List, Optional, Union
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
 
-from tira.check_format import _fmt, log_message
+from tira.check_format import FormatMsgType, _fmt, log_message
 from tira.tira_client import TiraClient
 
 
@@ -66,11 +66,11 @@ def dataset_as_iterator(
         yield i
 
 
-def verify_docker_installation():
+def verify_docker_installation() -> Tuple[FormatMsgType, str]:
     try:
         from tira.local_execution_integration import LocalExecutionIntegration
 
-        local_execution = LocalExecutionIntegration()
+        local_execution: LocalExecutionIntegration = LocalExecutionIntegration()
         assert local_execution.docker_is_installed_failsave()
         return _fmt.OK, "Docker/Podman is installed."
     except:
@@ -101,10 +101,12 @@ def verify_tirex_tracker():
     return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
 
 
-def verify_tira_installation():
+def verify_tira_installation() -> FormatMsgType:
     ret = _fmt.OK
 
-    for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
+    checks: List[Callable] = [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]
+
+    for i in checks:
         status, msg = i()
         log_message(msg, status)
         if status == _fmt.ERROR:
@@ -377,7 +379,7 @@ class TqdmUploadFile:
 
 
 class MonitoredExecution:
-    def run(self, method):
+    def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory
 
         ret = temporary_directory()

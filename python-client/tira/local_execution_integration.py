@@ -9,11 +9,15 @@ import tempfile
 import uuid
 from copy import deepcopy
 from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 import docker
 import pandas as pd
 
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
+
+if TYPE_CHECKING:
+    from .tira_client import TiraClient
 
 
 class LocalExecutionIntegration:
@@ -166,10 +170,10 @@ class LocalExecutionIntegration:
 
         return ret + ["/var/run/docker.sock"]
 
-    def docker_is_installed_failsave(self):
+    def docker_is_installed_failsave(self) -> bool:
         return self.__docker_client() is not None
 
-    def __docker_client(self):
+    def __docker_client(self) -> docker.DockerClient:
         try:
             environ = os.environ.copy()
             if sys.platform == "linux" and "DOCKER_HOST" not in environ:
@@ -192,7 +196,7 @@ class LocalExecutionIntegration:
         except Exception as e:
             raise ValueError("It seems like docker is not installed?", e)
 
-    def docker_client_is_authenticated(self, client=None):
+    def docker_client_is_authenticated(self, client: "Optional[TiraClient]" = None) -> bool:
         if not client:
             client = self.__docker_client()
 

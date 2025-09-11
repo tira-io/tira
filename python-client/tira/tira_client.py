@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import uuid
 import zipfile
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
@@ -12,7 +12,7 @@ from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
 if TYPE_CHECKING:
     import io
-    from typing import Any, Dict, Optional, Union
+    from typing import Any, Dict, List, Optional, Union
 
     import pandas as pd
 
@@ -46,6 +46,74 @@ class TiraClient(ABC):
     def get_run_output(self, approach, dataset, allow_without_evaluation=False) -> str:
         # .. todo:: typehint
         pass
+
+    @abstractmethod
+    def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:
+        pass
+
+    @abstractmethod
+    def get_dataset(self, dataset) -> dict:
+        """Get the TIRA representation of an dataset identified by the passed dataset argument.
+
+        Args:
+            dataset (Union[str, IrDataset, PyTerrierDataset): The dataset that is either the string id of the dataset in TIRA, the string id of an ir_dataset, the string id of an PyTerrier dataset, or an instantiation of an ir_dataset or an PyTerrier dataset.
+        Returns:
+            dict: The TIRA representation of the dataset.
+        """
+        pass
+
+    @abstractmethod
+    def download_dataset(
+        self, task: str, dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+    ) -> Path:
+        """
+        Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
+        """
+        pass
+
+    @abstractmethod
+    def json_response(
+        self,
+        endpoint: str,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        base_url: "Optional[str]" = None,
+        failsave_retries: "Optional[int]" = None,
+    ) -> Dict:
+        pass
+
+    def api_key_is_valid(self) -> bool:
+        try:
+            role = self.json_response("/api/role")
+        except:
+            return False
+
+        if (
+            (self.api_user_name is None or self.api_user_name == "no-api-key-user")
+            and role
+            and "context" in role
+            and "user_id" in role["context"]
+            and role["context"]["user_id"]
+        ):
+            self.api_user_name = role["context"]["user_id"]
+
+        return (
+            role
+            and "status" in role
+            and "role" in role
+            and "csrf" in role
+            and role["csrf"]
+            and 0 == role["status"]
+            and "user_id" in role["context"]
+            and role["context"]["user_id"]
+            and "role" in role["context"]
+            and role["context"]["role"]
+            and "guest" != role["context"]["role"]
+        )
+
+    def fail_if_api_key_is_invalid(self) -> None:
+        if not self.api_key_is_valid():
+            role = self.json_response("/api/role")
+            raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[dict[str, str]]":
         # .. todo:: typehint
@@ -335,7 +403,7 @@ class TiraClient(ABC):
         docker_file: "Optional[Path]" = None,
         dry_run: "Optional[bool]" = False,
         allow_network: "Optional[bool]" = False,
-        mount_hf_model: "Optional[list[dict]]" = None,
+        mount_hf_model: "Optional[list[str]]" = None,
     ):
         """Build a tira submission from a git repository.
 

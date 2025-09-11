@@ -189,7 +189,7 @@ def upload_run_anonymous(directory: Path = None, tira_client=None, dataset_id=No
     tira.upload_run_anonymous(directory, upload_to_tira["dataset_id"])
 
 
-def temporary_directory():
+def temporary_directory() -> Path:
     import tempfile
 
     try:

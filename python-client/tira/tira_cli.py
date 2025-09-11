@@ -227,7 +227,7 @@ don't know, where else to put it, this is a good place.
 
 
 def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, **kwargs) -> int:
-    client: "TiraClient" = RestClient()
+    client: "RestClient" = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
     else:
@@ -236,7 +236,7 @@ def download_command(dataset: str, approach: "Optional[str]" = None, truths: boo
 
 
 def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
-    client: "TiraClient" = RestClient(api_key="no-api-key")
+    client: "RestClient" = RestClient(api_key="no-api-key")
     client.login(token)
     if print_docker_auth:
         print(client.local_execution.docker_client_is_authenticated())
@@ -262,7 +262,7 @@ def code_submission_command(
     allow_network: bool,
     command: "Optional[str]",
     dataset: "Optional[str]",
-    mount_hf_model: "Optional[str]",
+    mount_hf_model: "Optional[list[str]]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -294,16 +294,16 @@ def verify_installation_command(**kwards) -> int:
     return 0 if status == _fmt.OK else 1
 
 
-def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **kwargs) -> None:
-    client: "TiraClient" = RestClient()
+def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **kwargs) -> int:
+    client: "RestClient" = RestClient()
     vm_id = None
     default_task = None
     if client.api_key_is_valid():
-        system = guess_system_details(directory, system)
+        system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
         vm_id = guess_vm_id_of_user(default_task, client)
-        if not system:
+        if not system_details:
             print(
                 fmt_message(
                     "Please specify the name of your system. Either:"
@@ -318,24 +318,30 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
     if not resp or "uuid" not in resp or not resp["uuid"]:
         return 1
 
+    if default_task is None:
+        print(fmt_message(f"Could not identify the task for dataset {dataset}", _fmt.ERROR))
+        return 1
+
     if not system or not vm_id:
         # only anonymous submissions
         return 0
     else:
         print("\nI upload the metadata for the submission...")
         resp = client.claim_ownership(
-            resp["uuid"], vm_id, system["tag"], system.get("description", "todo: Add a description"), default_task
+            resp["uuid"],
+            vm_id,
+            system_details["tag"],
+            system_details.get("description", "todo: Add a description"),
+            default_task,
         )
         if "status" not in resp or "0" != resp["status"]:
             print(fmt_message(f"There was an error with the upload: {resp}.\n\nPlease try again...", _fmt.ERROR))
             return 1
-        print(
-            "\t"
-            + fmt_message(
-                f"Done. Your run is available as {system['tag']} at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission",
-                _fmt.OK,
-            )
+        msg = (
+            f"Done. Your run is available as {system_details['tag']}"
+            + f"at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission"
         )
+        print("\t" + fmt_message(msg, _fmt.OK))
         return 0
 
 
@@ -344,7 +350,7 @@ Finally, parsing the arguments and running the chose command.
 """
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="tira-cli")
     version_str = f"TIRA v{__version__} using Python v{python_version()}"
     parser.add_argument("-v", "--version", action="version", version=version_str)

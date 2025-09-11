@@ -112,7 +112,7 @@ class Client(TiraClient):
 
         return self._settings
 
-    def update_settings(self, k, v):
+    def update_settings(self, k: str, v: Any) -> None:
         settings = self.load_settings()
         settings[k] = v
         os.makedirs(self.tira_cache_dir, exist_ok=True)
@@ -121,41 +121,7 @@ class Client(TiraClient):
         if k == "api_key":
             self.api_key = settings["api_key"]
 
-    def api_key_is_valid(self):
-        try:
-            role = self.json_response("/api/role")
-        except:
-            return False
-
-        if (
-            (self.api_user_name is None or self.api_user_name == "no-api-key-user")
-            and role
-            and "context" in role
-            and "user_id" in role["context"]
-            and role["context"]["user_id"]
-        ):
-            self.api_user_name = role["context"]["user_id"]
-
-        return (
-            role
-            and "status" in role
-            and "role" in role
-            and "csrf" in role
-            and role["csrf"]
-            and 0 == role["status"]
-            and "user_id" in role["context"]
-            and role["context"]["user_id"]
-            and "role" in role["context"]
-            and role["context"]["role"]
-            and "guest" != role["context"]["role"]
-        )
-
-    def fail_if_api_key_is_invalid(self):
-        if not self.api_key_is_valid():
-            role = self.json_response("/api/role")
-            raise ValueError("It seems like the api key is invalid. Got: ", role)
-
-    def datasets(self, task):
+    def datasets(self, task: str) -> Dict:
         return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
@@ -175,7 +141,7 @@ class Client(TiraClient):
         ret = self._TiraClient__matching_dataset(datasets, ds_identifier)
         return ret is not None
 
-    def claim_ownership(self, uuid, team, system, description, task_id):
+    def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
         headers["Content-Type"] = "application/json"
@@ -482,7 +448,7 @@ class Client(TiraClient):
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
         return target_file
 
-    def get_run_output(self, approach, dataset, allow_without_evaluation=False):
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
@@ -640,7 +606,9 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
-    def download_dataset(self, task, dataset, truth_dataset=False, allow_local_dataset=False):
+    def download_dataset(
+        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+    ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
@@ -688,9 +656,9 @@ class Client(TiraClient):
 
             os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
-        return target_dir + suffix
+        return Path(target_dir + suffix)
 
-    def download_zip_to_cache_directory(self, task, dataset, team, run_id):
+    def download_zip_to_cache_directory(self, task: str, dataset: str, team: str, run_id: str) -> Path:
         target_dir = f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}"
         if "/" in dataset:
             dataset = dataset.split("/")[-1]
@@ -706,7 +674,7 @@ class Client(TiraClient):
             f"{self.base_url}/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip", target_dir
         )
 
-        return target_dir + f"/{run_id}/output"
+        return Path(target_dir + f"/{run_id}/output")
 
     def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
         """
@@ -884,7 +852,7 @@ class Client(TiraClient):
                 url = mirror_url(url)
                 time.sleep(sleep_time)
 
-    def login(self, token):
+    def login(self, token: str) -> None:
         self.api_key = token
 
         if not self.api_key_is_valid():
@@ -1250,9 +1218,9 @@ class Client(TiraClient):
         self,
         endpoint: str,
         params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
-        base_url=None,
-        failsave_retries=None,
-    ):
+        base_url: "Optional[str]" = None,
+        failsave_retries: "Optional[int]" = None,
+    ) -> Dict:
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
