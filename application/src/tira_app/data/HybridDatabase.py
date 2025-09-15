@@ -1987,6 +1987,9 @@ class HybridDatabase(object):
 
     def _fdb_add_dataset_to_task(self, task_id: str, dataset_id: str, dataset_type: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
+        if not task_file_path.exists():
+            task = modelpb.Tasks.Task()
+            task_file_path.write_text(str(task))
         task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         if dataset_type == "test":
             task.testDataset.append(dataset_id)

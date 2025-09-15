@@ -122,7 +122,14 @@ class Client(TiraClient):
             self.api_key = settings["api_key"]
 
     def datasets(self, task: str) -> Dict:
-        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        url = f"/api/datasets_by_task/{task}"
+
+        try:
+            resp = self.archived_json_response(url)
+        except:
+            resp = self.json_response(url)
+
+        return json.loads(resp["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():
