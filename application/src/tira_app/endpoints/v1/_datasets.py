@@ -1,6 +1,9 @@
 import json
+import tempfile
+import zipfile
 from hashlib import md5
 from pathlib import Path
+from shutil import copyfileobj
 from typing import TYPE_CHECKING
 
 import markdown
@@ -13,6 +16,8 @@ from rest_framework.serializers import CharField, ModelSerializer, SerializerMet
 from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
+from ... import tira_model as model
+from ...data.s3 import S3Database
 
 if TYPE_CHECKING:
     from typing import Any, Optional
@@ -122,6 +127,64 @@ def load_mirrored_resource(md5_sum: str) -> "Optional[dict[str, Any]]":
         pass
 
     return ret
+
+
+def upload_mirrored_resource(zipped: Path):
+    zip_bytes = Path(zipped).read_bytes()
+
+    md5_sum = str(md5(zip_bytes).hexdigest())
+    md5_first_kilobyte = str(md5(zip_bytes[:1024]).hexdigest())
+
+    target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
+    target_dir.mkdir(exist_ok=True, parents=True)
+    target_dir = target_dir / md5_sum
+
+    existing_resource = load_mirrored_resource(md5_sum)
+
+    if not existing_resource:
+        with open(target_dir, "wb") as f_target, open(zipped, "rb") as s:
+            copyfileobj(s, f_target)
+
+    ret = modeldb.MirroredResource.objects.create(
+        md5_sum=md5_sum,
+        md5_first_kilobyte=md5_first_kilobyte,
+        size=len(zip_bytes),
+        mirrors="webis-s3",
+    )
+
+    s3_db = S3Database()
+    s3_db.upload_mirrored_resource(ret)
+    return ret
+
+
+def upload_dataset_part_as_mirrored_resource(task_id: str, dataset_id: str, dataset_type: str) -> str:
+    dataset_suffix = "" if dataset_type == "input" else "-truth"
+
+    if dataset_id.endswith("-test"):
+        dataset_prefix = "test-"
+    elif dataset_id.endswith("-training"):
+        dataset_prefix = "training-"
+    else:
+        raise ValueError(f"can not handle dataset id {dataset_id}.")
+
+    target_directory: Path = (
+        model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
+    )
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        zipped = Path(tmp_dir) / f"{target_directory.stem}.zip"
+        with zipfile.ZipFile(zipped, "w") as zipf:
+            for f in target_directory.rglob("*"):
+                zipf.write(f, arcname=f.relative_to(target_directory.parent))
+
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        mirror = upload_mirrored_resource(zipped)
+
+        modeldb.DatasetHasMirroredResource.objects.create(
+            dataset=dataset, mirrored_resource=mirror, resource_type=f"{dataset_type}s"
+        )
+
+        return mirror.md5_sum
 
 
 def mirrors_for_dataset(dataset_id: str) -> "dict[str, dict[str, Any]]":

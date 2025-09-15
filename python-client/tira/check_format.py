@@ -932,6 +932,7 @@ class DocumentProcessorFormat(JsonlFormat):
         self.docno_name = docno_name
 
     def apply_configuration_and_throw_if_invalid(self, configuration):
+        super().apply_configuration_and_throw_if_invalid(configuration)
         self.minimum_lines = 1
         self.doc_ids = ["docno", "docid", "doc_id"]
 

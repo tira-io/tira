@@ -9,7 +9,7 @@ import zipfile
 from http import HTTPStatus
 from os import PathLike
 from pathlib import Path
-from shutil import copyfile, copyfileobj
+from shutil import copyfile
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -21,11 +21,9 @@ from .. import model as modeldb
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
-from ..data.s3 import S3Database
-from ..endpoints.v1._datasets import load_mirrored_resource
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
-from .v1._datasets import download_mirrored_resource
+from .v1._datasets import download_mirrored_resource, upload_dataset_part_as_mirrored_resource
 
 if TYPE_CHECKING:
     from typing import Any, Optional, Union
@@ -265,6 +263,11 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             from django.http import HttpResponseNotAllowed
 
             return HttpResponseNotAllowed("Access forbidden.")
+
+        try:
+            assert model.get_task(task_id) is not None
+        except:
+            return JsonResponse({"status": 1, "message": f"The task {task_id} does not exist."})
 
         upload_name = data.get("upload_name", "predictions.jsonl")
         command = data.get("evaluator_command", "")
@@ -967,39 +970,7 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         with zipfile.ZipFile(tmp_dir + "/tmp.zip", "r") as zip_ref:
             zip_ref.extractall(target_directory)
 
-        zipped = Path(tmp_dir) / f"{target_directory.stem}.zip"
-        with zipfile.ZipFile(zipped, "w") as zipf:
-            for f in target_directory.rglob("*"):
-                zipf.write(f, arcname=f.relative_to(target_directory.parent))
-
-        zip_bytes = zipped.read_bytes()
-
-        md5_sum = str(hashlib.md5(zip_bytes).hexdigest())
-        md5_first_kilobyte = str(hashlib.md5(zip_bytes[:1024]).hexdigest())
-
-        target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
-        target_dir.mkdir(exist_ok=True, parents=True)
-        target_dir = target_dir / md5_sum
-
-        existing_resource = load_mirrored_resource(md5_sum)
-
-        if not existing_resource:
-            with open(target_dir, "wb") as f_target, open(zipped, "rb") as s:
-                copyfileobj(s, f_target)
-
-        mirror = modeldb.MirroredResource.objects.create(
-            md5_sum=md5_sum,
-            md5_first_kilobyte=md5_first_kilobyte,
-            size=len(zip_bytes),
-            mirrors="webis-s3",
-        )
-
-        dataset = modeldb.Dataset.objects.get(dataset_id=dataset["dataset_id"])
-        s3_db = S3Database()
-        s3_db.upload_mirrored_resource(mirror)
-        modeldb.DatasetHasMirroredResource.objects.create(
-            dataset=dataset, mirrored_resource=mirror, resource_type=f"{dataset_type}s"
-        )
+        md5_sum = upload_dataset_part_as_mirrored_resource(task_id, dataset_id, dataset_type)
 
         return JsonResponse(
             {

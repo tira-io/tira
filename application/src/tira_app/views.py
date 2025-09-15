@@ -150,20 +150,23 @@ def view_ir_metadata_of_run(request, task_id, dataset_id, vm_id, run_id, metadat
 @check_resources_exist("json")
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     """Zip the given run and hand it out for download. Deletes the zip on the server again."""
+    from .endpoints.v1._datasets import upload_mirrored_resource
+
     run = model.get_run(run_id=run_id, vm_id=vm_id, dataset_id=dataset_id)
     if run and "from_upload" in run and run["from_upload"]:
         return redirect(f"https://api.tira.io/v1/anonymous/{run['from_upload']}.zip")
 
-    zipped = zip_run(dataset_id, vm_id, run_id)
+    db_run = modeldb.Run.objects.select_related("mirrored_resource").get(run_id=run_id)
+    if db_run.mirrored_resource is None:
+        zipped = zip_run(dataset_id, vm_id, run_id)
+        mirror = upload_mirrored_resource(zipped)
+        db_run.mirrored_resource = mirror
+        db_run.save()
 
-    if zipped.exists():
-        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{run_id}-{zipped.stem}.zip")
-        os.remove(zipped)
-        return response
-    else:
-        return JsonResponse(
-            {"status": 1, "reason": f"File does not exist: {zipped}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-        )
+    s3_db = S3Database()
+    ret_body = s3_db.read_mirrored_resource(db_run.mirrored_resource)
+
+    return FileResponse(ret_body, as_attachment=True, filename=f"{run_id}-{zipped.stem}.zip")
 
 
 @check_conditional_permissions(public_data_ok=True)
@@ -206,12 +209,21 @@ def download_repo_template(request, task_id, vm_id):
 
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):
+    from .endpoints.v1._datasets import upload_dataset_part_as_mirrored_resource
+
     input_type = input_type.lower().replace("input", "")
     input_type = "inputs" if len(input_type) < 2 else "truths"
 
     mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
         dataset__dataset_id=dataset_id, resource_type=input_type
     )
+
+    if len(mirrors) < 1:
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        upload_dataset_part_as_mirrored_resource(dataset.default_task.task_id, dataset_id, dataset_type)
+        mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
+            dataset__dataset_id=dataset_id, resource_type=input_type
+        )
 
     if len(mirrors) < 1:
         return JsonResponse({"status": 1, "reason": "Does not exist"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
