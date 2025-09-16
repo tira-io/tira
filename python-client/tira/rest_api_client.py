@@ -48,7 +48,7 @@ class Client(TiraClient):
         tira_cache_dir: "Optional[str]" = None,
         verify: bool = None,
         allow_local_execution: bool = False,
-        archive_base_url: str = "https://tira.io",
+        archive_base_url: "Optional[str]" = None,
         base_url_api: str = None,
     ):
         self._settings = None
