@@ -58,7 +58,7 @@ class Client(TiraClient):
         )
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
-        self.archive_base_url = archive_base_url
+        self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
 
         self.verify = verify if verify is not None else self.load_settings()["verify"]
         self.failsave_max_delay = failsave_max_delay
@@ -106,8 +106,12 @@ class Client(TiraClient):
                 self._settings["base_url"] = "https://www.tira.io"
             if "base_url_api" not in self._settings:
                 self._settings["base_url_api"] = "https://api.tira.io"
+            if "archive_base_url" not in self._settings:
+                self._settings["archive_base_url"] = "https://tira.io"
+
             if "verify" not in self._settings:
                 self._settings["verify"] = True
+
             self._settings["verify"] = bool(self._settings["verify"])
 
         return self._settings
