@@ -540,7 +540,7 @@ class TiraClient(ABC):
         self,
         path: Path,
         task: str,
-        dataset: str,
+        split: str,
         dry_run: bool,
         system_inputs: str = "inputs",
         truths: str = "truths",
@@ -618,12 +618,14 @@ class TiraClient(ABC):
         inputs_dir = temporary_directory()
         truth_dir = temporary_directory()
 
-        if dataset not in dataset_system_inputs.config.data_files:
-            msg = f"Dataset {dataset} is not available. Possible are: {list(dataset_system_inputs.config.data_files.keys())}"
+        if split not in dataset_system_inputs.config.data_files:
+            msg = (
+                f"Split {split} is not available. Possible are: {list(dataset_system_inputs.config.data_files.keys())}"
+            )
             log_message(msg, _fmt.ERROR)
             return None
 
-        for data_file in dataset_system_inputs.config.data_files[dataset]:
+        for data_file in dataset_system_inputs.config.data_files[split]:
             relative_data_file = Path(data_file).relative_to(
                 Path(dataset_system_inputs.base_path).absolute() / resolve_inputs_to
             )
@@ -631,7 +633,7 @@ class TiraClient(ABC):
             target_file.parent.mkdir(exist_ok=True, parents=True)
             copy(data_file, target_file)
 
-        for data_file in dataset_truths.config.data_files[dataset]:
+        for data_file in dataset_truths.config.data_files[split]:
             relative_data_file = Path(data_file).relative_to(
                 Path(dataset_truths.base_path).absolute() / resolve_truths_to
             )
@@ -699,14 +701,15 @@ class TiraClient(ABC):
                 "" if "Cookie" not in headers else "; " + headers["Cookie"]
             )
             headers["x-csrftoken"] = csrf_token
-
+            dataset_name = path.name
+            dataset_id = dataset_name.lower().replace("/", "-").replace(" ", "-").replace("_", "-")
             url = f"{self.base_url}/tira-admin/add-dataset/{task}"
             content = {
                 "csrfmiddlewaretoken": csrf_token,
-                "dataset_id": dataset,
-                "name": dataset,
+                "dataset_id": dataset_id,
+                "name": dataset_name,
                 "task": task,
-                "type": "test",
+                "type": "training" if ("train" in split.lower()) else "test",
                 "upload_name": "predictions.jsonl",
                 "is_confidential": True,
                 "irds_docker_image": "",

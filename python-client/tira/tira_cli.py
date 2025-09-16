@@ -115,7 +115,7 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
         "--path",
         required=True,
         default=None,
-        help="The path used to build the task.",
+        help="The path used to build the task (directory will be used as name).",
     )
     parser.add_argument(
         "--dry-run",
@@ -125,7 +125,7 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
         help="Make a dry-run, i.e., to develop your task, i.e., not uploading to TIRA.",
     )
     parser.add_argument("--task", required=True, default=None, help="The name of the task in TIRA.")
-    parser.add_argument("--dataset", required=True, default=None, help="The name of the dataset in TIRA.")
+    parser.add_argument("--split", required=True, default=None, help="The name of the dataset split.")
 
     parser.set_defaults(executable=dataset_submission_command)
 
@@ -247,11 +247,11 @@ def dataset_submission_command(
     path: Path,
     task: str,
     dry_run: bool,
-    dataset: str,
+    split: str,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    ret = client.submit_dataset(Path(path), task, dataset, dry_run)
+    ret = client.submit_dataset(Path(path), task, split, dry_run)
     return 0 if ret and "inputs_zip" in ret else 1
 
 
