@@ -127,7 +127,7 @@ class Client(TiraClient):
         try:
             resp = self.archived_json_response(url)
         except:
-            resp = self.json_response(url)
+            resp = self.archived_json_response(url, force_reload=True)
 
         return json.loads(resp["context"]["datasets"])
 
@@ -135,7 +135,12 @@ class Client(TiraClient):
         if not Path(dataset).exists():
             return False
         dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
-        datasets = self.archived_json_response("/v1/datasets/all")
+        url = "/v1/datasets/all"
+
+        try:
+            datasets = self.archived_json_response(url)
+        except:
+            datasets = self.archived_json_response(url, force_reload=True)
 
         return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
 
@@ -143,7 +148,10 @@ class Client(TiraClient):
         if "TIRA_INPUT_DATASET" in os.environ:
             return True
         ds_identifier = self._TiraClient__extract_dataset_identifier(dataset)
-        datasets = self.archived_json_response("/v1/datasets/all")
+        try:
+            datasets = self.archived_json_response("/v1/datasets/all")
+        except:
+            datasets = self.archived_json_response("/v1/datasets/all", force_reload=True)
 
         ret = self._TiraClient__matching_dataset(datasets, ds_identifier)
         return ret is not None
