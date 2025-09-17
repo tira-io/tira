@@ -125,11 +125,11 @@ class Client(TiraClient):
         if k == "api_key":
             self.api_key = settings["api_key"]
 
-    def datasets(self, task: str) -> Dict:
+    def datasets(self, task: str, force_reload: bool = False) -> Dict:
         url = f"/api/datasets_by_task/{task}"
 
         try:
-            resp = self.archived_json_response(url)
+            resp = self.archived_json_response(url, force_reload=force_reload)
         except:
             resp = self.archived_json_response(url, force_reload=True)
 
