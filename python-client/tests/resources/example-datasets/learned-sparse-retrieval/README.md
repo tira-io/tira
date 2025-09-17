@@ -16,7 +16,7 @@ tira_configs:
     link: https://github.com/reneuir/lsr-benchmark/tree/main/step-03-retrieval-approaches/pyterrier-naive
     command: /run-pyterrier.py --dataset $inputDataset --retrieval BM25 --output $outputDir
     format:
-      name: "run.txt"
+      name: ["run.txt", "lightning-ir-document-embeddings", "lightning-ir-query-embeddings"]
   input_format:
     name: "lsr-benchmark-inputs"
   truth_format:

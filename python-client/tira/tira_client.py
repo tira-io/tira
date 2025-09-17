@@ -6,7 +6,7 @@ import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, overload
+from typing import TYPE_CHECKING, Dict, List, overload
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
