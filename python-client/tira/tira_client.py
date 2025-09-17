@@ -612,6 +612,9 @@ class TiraClient(ABC):
         truth_format = tira_configs["truth_format"]["name"]
         truth_config = tira_configs["truth_format"].get("config", {})
 
+        baseline_format = baseline_format if isinstance(baseline_format, List) else [baseline_format]
+        truth_format = truth_format if isinstance(truth_format, List) else [truth_format]
+
         dataset_system_inputs = load_dataset_builder(str(path), system_inputs)
         dataset_truths = load_dataset_builder(str(path), truths)
 
@@ -728,6 +731,10 @@ class TiraClient(ABC):
                 "description": "todo",
                 "chatnoir_id": "",
                 "ir_datasets_id": "",
+                "format": baseline_format,
+                "format_configuration": json.dumps(baseline_config),
+                "truth_format": truth_format,
+                "truth_format_configuration": json.dumps(truth_config),
             }
 
             import requests

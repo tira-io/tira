@@ -294,10 +294,12 @@ def verify_installation_command(**kwards) -> int:
     return 0 if status == _fmt.OK else 1
 
 
-def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **kwargs) -> int:
+def upload_command(
+    dataset: str, directory: Path, dry_run: bool, system: str, default_task: "Optional[str]" = None, **kwargs
+) -> int:
     client: "RestClient" = RestClient()
     vm_id = None
-    default_task = None
+
     if client.api_key_is_valid():
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
@@ -323,6 +325,7 @@ def upload_command(dataset: str, directory: Path, dry_run: bool, system: str, **
         return 1
 
     if not system or not vm_id:
+        print("Claim your run at https://127.0.0.1:8082/claim-submission/" + resp["uuid"])
         # only anonymous submissions
         return 0
     else:
