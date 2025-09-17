@@ -998,7 +998,10 @@ class LightningIrDocumentEmbeddings(FormatBase):
 
     def check_format(self, run_output: Path):
         for expected_file in ["doc-ids.txt", "doc-embeddings.npz"]:
-            if not (Path(run_output) / expected_file).is_file():
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
@@ -1009,7 +1012,10 @@ class LightningIrQueryEmbeddings(FormatBase):
 
     def check_format(self, run_output: Path):
         for expected_file in ["query-embeddings.npz", "query-ids.txt"]:
-            if not (Path(run_output) / expected_file).is_file():
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
