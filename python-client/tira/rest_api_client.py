@@ -183,7 +183,7 @@ class Client(TiraClient):
                 "paper_link": "",
             }
 
-        ret = requests.post(url, headers=headers, json=content)
+        ret = requests.post(url, headers=headers, json=content, verify=self.verify)
         ret = ret.content.decode("utf8")
         return json.loads(ret)
 

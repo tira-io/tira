@@ -431,13 +431,13 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
 
         ret = {}
         if "nDCG@10" in self._measures:
-            ret["nDCG@10"] = te.get_ndcg(depth=10)
+            ret["nDCG@10"] = float(te.get_ndcg(depth=10))
 
         if "P@10" in self._measures:
-            ret["P@10"] = te.get_precision(depth=10)
+            ret["P@10"] = float(te.get_precision(depth=10))
 
         if "RR" in self._measures:
-            ret["RR"] = te.get_reciprocal_rank()
+            ret["RR"] = float(te.get_reciprocal_rank())
 
         return {k: ret[k] for k in self._measures}
 
@@ -544,7 +544,7 @@ def get_evaluators_if_valid(
 def evaluate(
     run: Path,
     truths: Path,
-    config: "Union[dict, str]",
+    config: "Union[Dict, str]",
     output_dir: "Optional[Path]" = None,
     client: "Optional[TiraClient]" = None,
     monitored: "Optional[bool]" = False,

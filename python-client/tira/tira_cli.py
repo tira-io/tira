@@ -197,6 +197,8 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--system", required=False, default=None, help="The system name under which the run should be uploaded."
     )
+
+    parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
     parser.set_defaults(executable=upload_command)
 
 
@@ -295,16 +297,24 @@ def verify_installation_command(**kwards) -> int:
 
 
 def upload_command(
-    dataset: str, directory: Path, dry_run: bool, system: str, default_task: "Optional[str]" = None, **kwargs
+    dataset: str,
+    directory: Path,
+    dry_run: bool,
+    system: str,
+    default_task: "Optional[str]" = None,
+    tira_vm_id: "Optional[str]" = None,
+    **kwargs,
 ) -> int:
     client: "RestClient" = RestClient()
-    vm_id = None
 
     if client.api_key_is_valid():
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
-        vm_id = guess_vm_id_of_user(default_task, client)
+        if tira_vm_id:
+            vm_id = tira_vm_id
+        else:
+            vm_id = guess_vm_id_of_user(default_task, client)
         if not system_details:
             print(
                 fmt_message(

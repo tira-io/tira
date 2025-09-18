@@ -6,7 +6,7 @@ import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, overload
+from typing import TYPE_CHECKING, Callable, Dict, List, overload
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
@@ -198,7 +198,9 @@ class TiraClient(ABC):
                 zipf.write(file_path, arcname=file)
         return zip_path
 
-    def __run_evaluation(self, image, command, predictions, truths, print_message):
+    def __run_evaluation(
+        self, image: str, command: str, predictions: Path, truths: Path, print_message: Callable
+    ) -> str:
         from tira.io_utils import load_output_of_directory
 
         if not self.local_execution.docker_is_installed_failsave():
@@ -553,7 +555,7 @@ class TiraClient(ABC):
 
         all_messages = []
 
-        def print_message(message, level):
+        def print_message(message: str, level: _fmt) -> None:
             all_messages.append((message, level))
             os.system("cls" if os.name == "nt" else "clear")
             print("TIRA Dataset Submission:")
@@ -603,8 +605,12 @@ class TiraClient(ABC):
         baseline_command = tira_configs["baseline"]["command"]
         baseline_format = tira_configs["baseline"]["format"]["name"]
         baseline_config = tira_configs["baseline"]["format"].get("config", {})
-        eval_image = tira_configs["evaluator"]["image"]
-        eval_command = tira_configs["evaluator"]["command"]
+        if "measures" in tira_configs["evaluator"]:
+            eval_image, eval_command, eval_measures = None, None, tira_configs["evaluator"]["measures"]
+        else:
+            eval_image = tira_configs["evaluator"]["image"]
+            eval_command = tira_configs["evaluator"]["command"]
+            eval_measures = None
         resolve_truths_to = tira_configs.get("resolve_truths_to", None)
 
         print_message(f"The configuration of the dataset {path} is valid.", _fmt.OK)
@@ -681,10 +687,25 @@ class TiraClient(ABC):
                 log_message(f"The outputs of the baseline are at {baseline_output} and not valid: {m}", l)
                 return None
 
-            print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
-            preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
+            if eval_image is not None and eval_command is not None:
+                print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
+                preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
 
-            print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
+                print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
+            else:
+                from tira.evaluators import evaluate
+
+                eval_config: Dict = {
+                    "measures": eval_measures,
+                    "run_format": baseline_format,
+                    "truth_format": truth_format,
+                }
+                preds = evaluate(
+                    baseline_output,
+                    truth_dir,
+                    eval_config,
+                )
+                print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
 
         ret = {}
 
@@ -718,8 +739,8 @@ class TiraClient(ABC):
                 "irds_docker_image": "",
                 "irds_import_command": "",
                 "irds_import_truth_command": "",
-                "git_runner_image": "ubuntu:18.04",
-                "git_runner_command": "echo 'this is no real evaluator'",
+                "git_runner_image": eval_image if eval_image else "ubuntu:18.04",
+                "git_runner_command": eval_command if eval_command else "echo 'this is no real evaluator'",
                 "is_git_runner": True,
                 "use_existing_repository": False,
                 "working_directory": "obsolete",
@@ -736,6 +757,9 @@ class TiraClient(ABC):
                 "truth_format": truth_format,
                 "truth_format_configuration": json.dumps(truth_config),
             }
+
+            if eval_measures is not None:
+                content["trusted_measures"] = eval_measures
 
             import requests
 

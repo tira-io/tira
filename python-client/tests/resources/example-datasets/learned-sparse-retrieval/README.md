@@ -22,8 +22,7 @@ tira_configs:
   truth_format:
     name: "qrels.txt"
   evaluator:
-    image: webis/ir_measures_evaluator:1.0.5
-    command: "/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures 'P@10' 'nDCG@10' 'MRR'; rm -Rf ${outputDir}/evaluation-per-query*"
+    measures: ["nDCG@10","P@10"]
 ---
 
 # Multi Author Analysis Example Dataset
