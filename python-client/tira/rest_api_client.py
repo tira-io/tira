@@ -815,9 +815,12 @@ class Client(TiraClient):
         if "://" in url and url.split("://")[1].startswith("zenodo.org"):
             print(f"Download from Zenodo: {url}")
 
+        run_id = None if ("/download/" not in url or ".zip" not in url) else url.split("/download/")[1].split(".zip")[0]
+
         for _ in range(self.failsave_retries):
             status_code = None
             try:
+
                 headers = self.authentication_headers()
                 r = requests.get(url, headers=headers, stream=True, verify=self.verify)
                 total = int(r.headers.get("content-length", 0))
@@ -828,10 +831,8 @@ class Client(TiraClient):
                     and "X-Disraptor-Location" in r.headers
                     and "/dataset/" in url
                     and "/user/" in url
-                    and "/download/" in url
-                    and ".zip" in url
+                    and run_id is not None
                 ):
-                    run_id = url.split("/download/")[1].split(".zip")[0]
                     new_url = r.headers["X-Disraptor-Location"]
                     uuid = new_url.split("/v1/anonymous/")[1].split(".zip")[0]
                     self.download_and_extract_zip(new_url, Path(target_dir) / run_id, extract)
