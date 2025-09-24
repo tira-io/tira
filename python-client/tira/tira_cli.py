@@ -195,6 +195,13 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
         help="Make a dry-run, i.e., to verify that your output is valid without uploading to TIRA.",
     )
     parser.add_argument(
+        "--anonymous",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Upload anonymous without authentication. You get an code to later claim your submission.",
+    )
+    parser.add_argument(
         "--system", required=False, default=None, help="The system name under which the run should be uploaded."
     )
 
@@ -303,11 +310,23 @@ def upload_command(
     system: str,
     default_task: "Optional[str]" = None,
     tira_vm_id: "Optional[str]" = None,
+    anonymous: "Optional[bool]" = False,
     **kwargs,
 ) -> int:
     client: "RestClient" = RestClient()
+    api_key_is_valid = client.api_key_is_valid()
 
-    if client.api_key_is_valid():
+    if not anonymous and not api_key_is_valid:
+        msg = "You are not authenticated. Please either pass --anonymous to upload without authentication of run tira-cli login to authenticate."
+        print(
+            fmt_message(
+                msg,
+                _fmt.ERROR,
+            )
+        )
+        return 1
+
+    if api_key_is_valid:
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]

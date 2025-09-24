@@ -328,7 +328,7 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
 REFERENCE_DATASETS: dict[str, str] = {}
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-S3_CONFIG = "None"
+S3_CONFIG = Path(__file__).parent / "test-s3-config"
 S3_BUCKET = "None"
 
 WELL_KNOWN = {

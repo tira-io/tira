@@ -15,19 +15,20 @@ _aws_secret_access_key: "Optional[str]" = None
 _use_https: bool = True
 _endpoint_url: "Optional[str]" = None
 
+DO_NOT_USE_S3 = str(settings.S3_BUCKET).lower() == "none"
+
+_s3_config_file = os.path.expanduser(settings.S3_CONFIG)
+if not os.path.exists(_s3_config_file):
+    raise ValueError(f"Config file does not exist: {_s3_config_file}")
+
 
 class S3Database:
-    def __init__(self) -> None:
-        s3 = self.s3_client()
-        buckets = [i["Name"] for i in s3.list_buckets()["Buckets"]]
-        if settings.S3_BUCKET not in buckets:
-            raise ValueError(
-                f"Bucket {settings.S3_BUCKET} does not exist. Have {buckets}. Create with something like s3cmd mb s3://{settings.S3_BUCKET}."
-            )
-
     def read_credentials(self) -> Tuple:
+        if DO_NOT_USE_S3:
+            raise ValueError("foo")
         config = configparser.ConfigParser()
-        config.read(os.path.expanduser(settings.S3_CONFIG))
+        global _s3_config_file
+        config.read(_s3_config_file)
 
         section = "default"
         aws_access_key_id = config[section]["access_key"]
@@ -79,3 +80,16 @@ class S3Database:
                 return ("404", 0)
             else:
                 raise  # Some other error (permissions, etc.)
+
+
+def fail_if_target_bucket_does_not_exist() -> None:
+    s3 = S3Database().s3_client()
+    buckets = [i["Name"] for i in s3.list_buckets()["Buckets"]]
+    if settings.S3_BUCKET not in buckets:
+        raise ValueError(
+            f"Bucket {settings.S3_BUCKET} does not exist. Have {buckets}. Create with something like s3cmd mb s3://{settings.S3_BUCKET}."
+        )
+
+
+if not DO_NOT_USE_S3:
+    fail_if_target_bucket_does_not_exist()

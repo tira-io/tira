@@ -25,6 +25,8 @@ from ...data.s3 import S3Database
 from ..v1._datasets import upload_mirrored_resource
 from ..vm_api import load_notebook, run_eval, run_unsandboxed_eval
 
+s3_db = S3Database()
+
 if TYPE_CHECKING:
     from typing import Any, Iterable
 
@@ -114,8 +116,10 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
         upload.mirrored_resource = mirror
         upload.save()
 
-    s3_db = S3Database()
-    ret_body = s3_db.read_mirrored_resource(upload.mirrored_resource)
+    try:
+        ret_body = s3_db.read_mirrored_resource(upload.mirrored_resource)
+    except:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{submission_uuid}.zip")
 
@@ -163,6 +167,9 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     dataset_id = upload.dataset.dataset_id
 
     if "upload_group" not in body:
+        modeldb.VirtualMachine.objects.create(
+            vm_id=vm_id, user_password="initial_user_password", roles="user", host="host", ip="ip", ssh=12, rdp=12
+        )
         body["upload_group"] = model.add_upload(task_id, vm_id)["id"]
         model.model.update_upload_metadata(
             task_id, vm_id, body["upload_group"], body["display_name"], body["description"], body["paper_link"]

@@ -91,7 +91,7 @@ class Task(models.Model):
     task_id = models.CharField(max_length=150, primary_key=True)
     task_name = models.CharField(max_length=150, default="")
     task_description = models.TextField(default="")
-    vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
     organizer = models.ForeignKey(Organizer, on_delete=models.SET_NULL, null=True)
     web = models.CharField(max_length=150, default="")
     featured = models.BooleanField(default=False)

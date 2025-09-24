@@ -2679,11 +2679,9 @@ class HybridDatabase(object):
     ):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
-        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
         task.update(
             task_name=task_name,
             task_description=task_description,
-            vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
             featured=featured,

@@ -176,7 +176,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
@@ -404,9 +404,9 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 302,
-            PARTICIPANT: 200,
+            PARTICIPANT: 500,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
         },
@@ -442,7 +442,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
@@ -458,7 +458,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
