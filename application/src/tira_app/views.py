@@ -162,7 +162,7 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
         except Exception as e:
             msg = f"Could not upload data from s3 in download_rundir {e}."
             print(msg, e)
-            logger.warning(msg, e)
+            logger.warning(msg)
             return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
         db_run.mirrored_resource = mirror
@@ -173,7 +173,7 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     except Exception as e:
         msg = f"Could not load data from s3 in download_rundir {e}."
         print(msg, e)
-        logger.warning(msg, e)
+        logger.warning(msg)
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{run_id}.zip")
@@ -235,7 +235,7 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
         except Exception as e:
             msg = f"Could not upload data from s3 in download_datadir {e}."
             print(msg, e)
-            logger.warning(msg, e)
+            logger.warning(msg)
             return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
         mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
             dataset__dataset_id=dataset_id, resource_type=input_type
@@ -249,7 +249,7 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
     except Exception as e:
         msg = f"Could not load data from s3 in download_datadir {e}."
         print(msg, e)
-        logger.warning(msg, e)
+        logger.warning(msg)
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")

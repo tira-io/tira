@@ -126,7 +126,7 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     except Exception as e:
         msg = f"Could not load data from s3 in download_anonymous_submission {e}."
         print(msg, e)
-        logger.warning(msg, e)
+        logger.warning(msg)
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{submission_uuid}.zip")
