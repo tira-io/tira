@@ -65,7 +65,8 @@ export PATH="/home/tira/.local/bin:$PATH"
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
 export TIRA_DEBUG=true
 cp /tira/config/tira-application-config.yml /tira/config/ORIG-tira-application-config.yml
-echo -e '\ntira_s3_config:\n  s3_bucket: none' >> /tira/config/tira-application-config.yml
+echo '\ntira_s3_config:\n  s3_bucket: none' >> /tira/config/tira-application-config.yml
+cat /tira/config/tira-application-config.yml
 touch /home/tira/.s3cfg
 make setup
 cd test
