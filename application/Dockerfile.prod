@@ -64,11 +64,14 @@ export PATH="/home/tira/.local/bin:$PATH"
 # Run tests
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
 export TIRA_DEBUG=true
+cp /tira/config/tira-application-config.yml /tira/config/ORIG-tira-application-config.yml
+echo -e '\ntira_s3_config:\n  s3_bucket: none' >> /tira/config/tira-application-config.yml
 touch /home/tira/.s3cfg
 make setup
 cd test
 pytest
 rm /home/tira/.s3cfg
+mv /tira/config/ORIG-tira-application-config.yml /tira/config/tira-application-config.yml
 EOF
 
 ########################################################################################################################
