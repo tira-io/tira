@@ -32,8 +32,7 @@ jobs:
         run: |
           pip3 install .[dev,test]
           echo -e '\ntira_s3_config:\n  s3_bucket: none' >> ./config/tira-application-config.yml
-          cat ./config/tira-application-config.yml
-          echo "make setup"
+          touch ~/.s3cfg
           make setup
         env:
           TIRA_ROOT: ${{github.workspace}}/model/src
