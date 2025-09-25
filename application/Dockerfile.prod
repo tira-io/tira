@@ -64,9 +64,11 @@ export PATH="/home/tira/.local/bin:$PATH"
 # Run tests
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
 export TIRA_DEBUG=true
+touch /home/tira/.s3cfg
 make setup
 cd test
 pytest
+rm /home/tira/.s3cfg
 EOF
 
 ########################################################################################################################
