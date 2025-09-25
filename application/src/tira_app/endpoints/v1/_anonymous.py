@@ -1,6 +1,7 @@
 import html
 import io
 import json
+import logging
 import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -31,6 +32,10 @@ if TYPE_CHECKING:
     from typing import Any, Iterable
 
     from ...model import Dataset
+
+
+logger = logging.getLogger("tira")
+logger.info("Anonymous: Logger active")
 
 # TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
@@ -118,7 +123,10 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
 
     try:
         ret_body = s3_db.read_mirrored_resource(upload.mirrored_resource)
-    except:
+    except Exception as e:
+        msg = f"Could not load data from s3 in download_anonymous_submission {e}."
+        print(msg, e)
+        logger.warning(msg, e)
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
     return FileResponse(ret_body, as_attachment=True, filename=f"{submission_uuid}.zip")
