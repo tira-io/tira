@@ -148,10 +148,11 @@ def upload_mirrored_resource(zipped: Path):
     ret = modeldb.MirroredResource.objects.update_or_create(
         md5_sum=md5_sum,
         defaults={"md5_first_kilobyte": md5_first_kilobyte, "size": len(zip_bytes), "mirrors": "webis-s3"},
-    )
+    )[0]
 
     s3_db = S3Database()
     s3_db.upload_mirrored_resource(ret)
+
     return ret
 
 

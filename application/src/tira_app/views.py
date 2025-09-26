@@ -231,7 +231,9 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
     if len(mirrors) < 1:
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
         try:
-            upload_dataset_part_as_mirrored_resource(dataset.default_task.task_id, dataset_id, dataset_type)
+            upload_dataset_part_as_mirrored_resource(
+                dataset.default_task.task_id, dataset_id, input_type.replace("s", "")
+            )
         except Exception as e:
             msg = f"Could not upload data from s3 in download_datadir {e}."
             print(msg, e)
