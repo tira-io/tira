@@ -9,7 +9,7 @@ from tira import __version__
 from tira.check_format import fmt_message
 from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
-from tira.tira_run import guess_system_details, guess_vm_id_of_user
+from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient
@@ -186,7 +186,12 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--directory", required=True, default=None, help="The directory with the predictions to upload."
     )
-    parser.add_argument("--dataset", required=True, help="The dataset for to which the predictions should be uploaded.")
+    parser.add_argument(
+        "--dataset",
+        help="The dataset for to which the predictions should be uploaded.",
+        required=False,
+        default=None,
+    )
     parser.add_argument(
         "--dry-run",
         required=False,
@@ -304,7 +309,7 @@ def verify_installation_command(**kwards) -> int:
 
 
 def upload_command(
-    dataset: str,
+    dataset: "Optional[str]",
     directory: Path,
     dry_run: bool,
     system: str,
@@ -316,24 +321,35 @@ def upload_command(
     client: "RestClient" = RestClient()
     api_key_is_valid = client.api_key_is_valid()
 
+    if dataset is None:
+        dataset = guess_dataset(directory)
+
+    if dataset is None:
+        msg = (
+            "The dataset is not defined. Please either define a it in a ir-metadata.yml"
+            + " (data: test collection: name: ...) or pass --dataset."
+        )
+        print(fmt_message(msg, _fmt.ERROR))
+        return 1
+
     if not anonymous and not api_key_is_valid:
         msg = "You are not authenticated. Please either pass --anonymous to upload without authentication of run tira-cli login to authenticate."
-        print(
-            fmt_message(
-                msg,
-                _fmt.ERROR,
-            )
-        )
+        print(fmt_message(msg, _fmt.ERROR))
         return 1
 
     if api_key_is_valid:
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
+        if system_details and "team" in system_details and not system:
+            tira_vm_id = system_details["team"]
+            system = tira_vm_id
+
         if tira_vm_id:
             vm_id = tira_vm_id
         else:
             vm_id = guess_vm_id_of_user(default_task, client)
+
         if not system_details:
             print(
                 fmt_message(

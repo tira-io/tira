@@ -183,8 +183,8 @@ class Client(TiraClient):
                 "paper_link": "",
             }
 
-        ret = requests.post(url, headers=headers, json=content, verify=self.verify)
-        ret = ret.content.decode("utf8")
+        response = requests.post(url, headers=headers, json=content, verify=self.verify)
+        ret = response.content.decode("utf8")
         return json.loads(ret)
 
     def get_dataset(self, dataset) -> dict:
@@ -896,7 +896,7 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def authentication_headers(self):
+    def authentication_headers(self) -> Dict:
         ret = {}
         if self.api_key != "no-api-key":
             ret["Api-Key"] = self.api_key

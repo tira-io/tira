@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
 from tira.check_format import _fmt, log_message
 from tira.io_utils import huggingface_model_mounts
@@ -65,6 +65,32 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
         return
 
 
+def guess_dataset(directory) -> Optional[str]:
+    from tira.check_format import lines_if_valid
+
+    ret = []
+    lines = []
+    try:
+        lines = lines_if_valid(Path(directory), "ir_metadata")
+    except ValueError:
+        pass
+
+    for line in lines:
+        if (
+            line
+            and "content" in line
+            and "data" in line["content"]
+            and line["content"]["data"]
+            and "test collection" in line["content"]["data"]
+            and "name" in line["content"]["data"]["test collection"]
+            and isinstance(line["content"]["data"]["test collection"]["name"], str)
+        ):
+            ret.append(line["content"]["data"]["test collection"]["name"])
+
+    ret = list(set(ret))
+    return None if len(ret) != 1 else ret[0]
+
+
 def guess_system_details(directory, system) -> Dict:
     if system:
         return {"tag": system}
@@ -88,6 +114,8 @@ def guess_system_details(directory, system) -> Dict:
             ret = {"tag": line["content"]["tag"]}
             if "research goal" in line["content"] and "description" in line["content"]["research goal"]:
                 ret["description"] = line["content"]["research goal"]["description"]
+            if "actor" in line["content"] and "team" in line["content"]["actor"]:
+                ret["team"] = line["content"]["actor"]["team"]
 
             return ret
 

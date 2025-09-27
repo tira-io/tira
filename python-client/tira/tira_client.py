@@ -597,6 +597,13 @@ class TiraClient(ABC):
             )
             return None
 
+        if not (path / "README.md").is_file():
+            print_message(
+                f"I expect a huggingface dataset configuration in a file {path / 'README.md'}.",
+                _fmt.ERROR,
+            )
+            return None
+
         tira_configs = DatasetCard.load(str(path / "README.md")).data["tira_configs"]
         resolve_inputs_to = tira_configs.get("resolve_inputs_to", None)
         input_format = tira_configs["input_format"]["name"]

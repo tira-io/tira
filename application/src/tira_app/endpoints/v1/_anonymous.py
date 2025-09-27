@@ -175,8 +175,16 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     dataset_id = upload.dataset.dataset_id
 
     if "upload_group" not in body:
-        modeldb.VirtualMachine.objects.create(
-            vm_id=vm_id, user_password="initial_user_password", roles="user", host="host", ip="ip", ssh=12, rdp=12
+        modeldb.VirtualMachine.objects.update_or_create(
+            vm_id=vm_id,
+            defaults={
+                "user_password": "initial_user_password",
+                "roles": "user",
+                "host": "host",
+                "ip": "ip",
+                "ssh": 12,
+                "rdp": 12,
+            },
         )
         body["upload_group"] = model.add_upload(task_id, vm_id)["id"]
         model.model.update_upload_metadata(
