@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.urls import path
 
-from ...model import DockerSoftware
+from ...model import DockerSoftware, Run, Upload
 from ...tira_model import model
 
 if TYPE_CHECKING:
@@ -75,6 +75,12 @@ def software_details(request: "HttpRequest", user_id: str, software: str) -> Jso
         if not i.public_image_name or i.deleted:
             continue
         ret.append(serialize_docker_software(i))
+
+    if len(ret) == 0:
+        for i in Upload.objects.filter(vm_id=user_id, display_name=software):
+            for run in Run.objects.select_related("review").filter(upload=i):
+                if run.review.published and not run.review.blinded:
+                    ret = [{"foo": "1212"}]
 
     if len(ret) == 1:
         return JsonResponse(ret[0], safe=False)
