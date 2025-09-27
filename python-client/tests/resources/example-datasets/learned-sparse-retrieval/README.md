@@ -7,7 +7,7 @@ configs:
 - config_name: truths
   data_files:
   - split: train
-    path: ["qrels.txt", "queries.jsonl", "dataset-metadata.yml", "config.json", "subsample.json"]
+    path: ["qrels.txt", "queries.jsonl", "dataset-metadata.json", "config.json", "subsample.json"]
 
 tira_configs:
   resolve_inputs_to: "."

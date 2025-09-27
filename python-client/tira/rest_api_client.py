@@ -504,12 +504,12 @@ class Client(TiraClient):
         else:
             return None
 
-    def public_system_details(self, team_name, system_name):
+    def public_system_details(self, team_name, system_name, force_reload=False):
         endpoint = f"/v1/systems/{team_name}/{system_name}".replace(" ", "%20")
         ret = None
 
         try:
-            ret = self.archived_json_response(endpoint)
+            ret = self.archived_json_response(endpoint, force_reload=force_reload)
         except:
             pass
 
