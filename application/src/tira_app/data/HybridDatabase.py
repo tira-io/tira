@@ -2449,13 +2449,15 @@ class HybridDatabase(object):
         (run_dir / "run.prototext").write_text(str(run))
 
         if uploaded_file.name.endswith(".zip"):
-            with open(run_dir / "output" / uploaded_file.name, "wb+") as destination:
+            tmp_zip_file = run_dir / "output" / uploaded_file.name
+            with open(tmp_zip_file, "wb+") as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
 
             with zipfile.ZipFile(run_dir / "output" / uploaded_file.name, "r") as zip_ref:
                 zip_ref.extractall(run_dir / "output")
 
+            tmp_zip_file.unlink()
         else:
             default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
             if upload.rename_to and upload.rename_to.replace(" ", "").replace("\\", "").replace("/", "").strip():
