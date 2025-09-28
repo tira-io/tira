@@ -65,7 +65,7 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
         return
 
 
-def guess_dataset(directory) -> Optional[str]:
+def guess_dataset(directory: Path, include_hidden_dirs=True) -> Optional[str]:
     from tira.check_format import lines_if_valid
 
     ret = []
@@ -78,6 +78,7 @@ def guess_dataset(directory) -> Optional[str]:
     for line in lines:
         if (
             line
+            and (include_hidden_dirs or ("name" in line and not line["name"].startswith(".")))
             and "content" in line
             and "data" in line["content"]
             and line["content"]["data"]
@@ -88,6 +89,13 @@ def guess_dataset(directory) -> Optional[str]:
             ret.append(line["content"]["data"]["test collection"]["name"])
 
     ret = list(set(ret))
+    if len(ret) > 1:
+        if include_hidden_dirs:
+            tmp_ret = guess_dataset(directory, False)
+            if tmp_ret is not None:
+                return tmp_ret
+
+        print(f"Dataset definitions are ambiguous, I got {ret}.")
     return None if len(ret) != 1 else ret[0]
 
 

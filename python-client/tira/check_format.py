@@ -1111,7 +1111,7 @@ class IrMetadataFormat(FormatBase):
 
         candidates = [str(run_output)]
         for pattern in ["/*.yml", "/*.yaml", "/.*.yml", "/.*.yaml"]:
-            for depth in ["", "/**", "/**/**"]:
+            for depth in ["", "/**", "/**/**", "/.**", "/.**/**", "/.**/.**"]:
                 candidates += glob(str(run_output) + depth + pattern)
 
         for candidate in candidates:
@@ -1129,8 +1129,11 @@ class IrMetadataFormat(FormatBase):
 
                         if not at_least_one_positive_field:
                             continue
+                    name = candidate.split("/")[-1]
+                    if len(candidate.split("/")) > 1 and candidate.split("/")[-2].startswith("."):
+                        name = str(candidate.split("/")[-2]) + "/" + name
 
-                    yield {"name": candidate.split("/")[-1], "content": content}
+                    yield {"name": name, "content": content}
                 except yaml.YAMLError:
                     pass
 

@@ -342,7 +342,7 @@ def upload_command(
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
         if system_details and "team" in system_details and not system:
-            tira_vm_id = system_details["team"]
+            tira_vm_id = str(system_details["team"])
             system = tira_vm_id
 
         if tira_vm_id:

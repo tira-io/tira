@@ -161,7 +161,7 @@ def flush_stdout_and_stderr(closable=None):
         print("\n")
 
 
-def zip_dir(file_path, allow_list=None):
+def zip_dir(file_path: Path, allow_list: "Optional[set]" = None) -> Path:
     if os.path.isfile(file_path):
         return zip_dir(Path(file_path).parent, set([Path(file_path).name]))
     from tira.third_party_integrations import temporary_directory
@@ -368,17 +368,17 @@ def create_tira_size_txt(run_dir):
 
 
 class TqdmUploadFile:
-    def __init__(self, file_path, desc):
+    def __init__(self, file_path: Path, desc: str) -> None:
         self.file = open(file_path, "rb")
         self.file_size = os.path.getsize(file_path)
         self.tqdm = tqdm(total=self.file_size, desc=desc, unit="B", unit_scale=True)
 
-    def read(self, size=-1):
+    def read(self, size: int = -1) -> bytes:
         chunk = self.file.read(size)
         self.tqdm.update(len(chunk))
         return chunk
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Any:
         return getattr(self.file, attr)
 
     def close(self):

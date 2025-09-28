@@ -1013,7 +1013,7 @@ class Client(TiraClient):
         if dry_run:
             print(
                 "\nResult:\n\t"
-                + fmt_message(f"The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
+                + fmt_message("The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
             )
             return
 
