@@ -6,13 +6,13 @@ import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Callable, Dict, List, overload
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
 if TYPE_CHECKING:
     import io
-    from typing import Any, Dict, Optional, Union
+    from typing import Any, List, Optional, Union
 
     import pandas as pd
 
@@ -35,17 +35,79 @@ class TiraClient(ABC):
     def all_evaluated_appraoches(self) -> "pd.DataFrame":
         pass
 
-    def docker_software() -> "Any":
+    def docker_software(self) -> "Any":
         # .. todo:: typehint
         pass
 
-    def run_was_already_executed_on_dataset(self, approach, dataset) -> bool:
-        # .. todo:: typehint
-        pass
+    def run_was_already_executed_on_dataset(self, approach: str, dataset: str) -> bool:
+        raise ValueError("ToDo: Implement")
 
-    def get_run_output(self, approach, dataset, allow_without_evaluation=False) -> str:
-        # .. todo:: typehint
-        pass
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
+        raise ValueError("ToDo: Implement")
+
+    def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:
+        raise ValueError("ToDo: Implement")
+
+    def get_dataset(self, dataset: str) -> dict:
+        """Get the TIRA representation of an dataset identified by the passed dataset argument.
+
+        Args:
+            dataset (Union[str, IrDataset, PyTerrierDataset): The dataset that is either the string id of the dataset in TIRA, the string id of an ir_dataset, the string id of an PyTerrier dataset, or an instantiation of an ir_dataset or an PyTerrier dataset.
+        Returns:
+            dict: The TIRA representation of the dataset.
+        """
+        raise ValueError("ToDo: Implement")
+
+    def download_dataset(
+        self, task: str, dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+    ) -> Path:
+        """
+        Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
+        """
+        raise ValueError("ToDo: Implement")
+
+    def json_response(
+        self,
+        endpoint: str,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        base_url: "Optional[str]" = None,
+        failsave_retries: "Optional[int]" = None,
+    ) -> Dict:
+        raise ValueError("ToDo: Implement")
+
+    def api_key_is_valid(self) -> bool:
+        try:
+            role = self.json_response("/api/role")
+        except:
+            return False
+
+        if (
+            (self.api_user_name is None or self.api_user_name == "no-api-key-user")
+            and role
+            and "context" in role
+            and "user_id" in role["context"]
+            and role["context"]["user_id"]
+        ):
+            self.api_user_name = role["context"]["user_id"]
+
+        return (
+            role
+            and "status" in role
+            and "role" in role
+            and "csrf" in role
+            and role["csrf"]
+            and 0 == role["status"]
+            and "user_id" in role["context"]
+            and role["context"]["user_id"]
+            and "role" in role["context"]
+            and role["context"]["role"]
+            and "guest" != role["context"]["role"]
+        )
+
+    def fail_if_api_key_is_invalid(self) -> None:
+        if not self.api_key_is_valid():
+            role = self.json_response("/api/role")
+            raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[dict[str, str]]":
         # .. todo:: typehint
@@ -136,7 +198,9 @@ class TiraClient(ABC):
                 zipf.write(file_path, arcname=file)
         return zip_path
 
-    def __run_evaluation(self, image, command, predictions, truths, print_message):
+    def __run_evaluation(
+        self, image: str, command: str, predictions: Path, truths: Path, print_message: Callable
+    ) -> str:
         from tira.io_utils import load_output_of_directory
 
         if not self.local_execution.docker_is_installed_failsave():
@@ -335,7 +399,7 @@ class TiraClient(ABC):
         docker_file: "Optional[Path]" = None,
         dry_run: "Optional[bool]" = False,
         allow_network: "Optional[bool]" = False,
-        mount_hf_model: "Optional[list[dict]]" = None,
+        mount_hf_model: "Optional[list[str]]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -478,7 +542,7 @@ class TiraClient(ABC):
         self,
         path: Path,
         task: str,
-        dataset: str,
+        split: str,
         dry_run: bool,
         system_inputs: str = "inputs",
         truths: str = "truths",
@@ -491,7 +555,7 @@ class TiraClient(ABC):
 
         all_messages = []
 
-        def print_message(message, level):
+        def print_message(message: str, level: _fmt) -> None:
             all_messages.append((message, level))
             os.system("cls" if os.name == "nt" else "clear")
             print("TIRA Dataset Submission:")
@@ -533,6 +597,13 @@ class TiraClient(ABC):
             )
             return None
 
+        if not (path / "README.md").is_file():
+            print_message(
+                f"I expect a huggingface dataset configuration in a file {path / 'README.md'}.",
+                _fmt.ERROR,
+            )
+            return None
+
         tira_configs = DatasetCard.load(str(path / "README.md")).data["tira_configs"]
         resolve_inputs_to = tira_configs.get("resolve_inputs_to", None)
         input_format = tira_configs["input_format"]["name"]
@@ -541,8 +612,12 @@ class TiraClient(ABC):
         baseline_command = tira_configs["baseline"]["command"]
         baseline_format = tira_configs["baseline"]["format"]["name"]
         baseline_config = tira_configs["baseline"]["format"].get("config", {})
-        eval_image = tira_configs["evaluator"]["image"]
-        eval_command = tira_configs["evaluator"]["command"]
+        if "measures" in tira_configs["evaluator"]:
+            eval_image, eval_command, eval_measures = None, None, tira_configs["evaluator"]["measures"]
+        else:
+            eval_image = tira_configs["evaluator"]["image"]
+            eval_command = tira_configs["evaluator"]["command"]
+            eval_measures = None
         resolve_truths_to = tira_configs.get("resolve_truths_to", None)
 
         print_message(f"The configuration of the dataset {path} is valid.", _fmt.OK)
@@ -550,18 +625,23 @@ class TiraClient(ABC):
         truth_format = tira_configs["truth_format"]["name"]
         truth_config = tira_configs["truth_format"].get("config", {})
 
+        baseline_format = baseline_format if isinstance(baseline_format, List) else [baseline_format]
+        truth_format = truth_format if isinstance(truth_format, List) else [truth_format]
+
         dataset_system_inputs = load_dataset_builder(str(path), system_inputs)
         dataset_truths = load_dataset_builder(str(path), truths)
 
         inputs_dir = temporary_directory()
         truth_dir = temporary_directory()
 
-        if dataset not in dataset_system_inputs.config.data_files:
-            msg = f"Dataset {dataset} is not available. Possible are: {list(dataset_system_inputs.config.data_files.keys())}"
+        if split not in dataset_system_inputs.config.data_files:
+            msg = (
+                f"Split {split} is not available. Possible are: {list(dataset_system_inputs.config.data_files.keys())}"
+            )
             log_message(msg, _fmt.ERROR)
             return None
 
-        for data_file in dataset_system_inputs.config.data_files[dataset]:
+        for data_file in dataset_system_inputs.config.data_files[split]:
             relative_data_file = Path(data_file).relative_to(
                 Path(dataset_system_inputs.base_path).absolute() / resolve_inputs_to
             )
@@ -569,7 +649,7 @@ class TiraClient(ABC):
             target_file.parent.mkdir(exist_ok=True, parents=True)
             copy(data_file, target_file)
 
-        for data_file in dataset_truths.config.data_files[dataset]:
+        for data_file in dataset_truths.config.data_files[split]:
             relative_data_file = Path(data_file).relative_to(
                 Path(dataset_truths.base_path).absolute() / resolve_truths_to
             )
@@ -614,10 +694,25 @@ class TiraClient(ABC):
                 log_message(f"The outputs of the baseline are at {baseline_output} and not valid: {m}", l)
                 return None
 
-            print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
-            preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
+            if eval_image is not None and eval_command is not None:
+                print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
+                preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
 
-            print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
+                print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
+            else:
+                from tira.evaluators import evaluate
+
+                eval_config: Dict = {
+                    "measures": eval_measures,
+                    "run_format": baseline_format,
+                    "truth_format": truth_format,
+                }
+                preds = evaluate(
+                    baseline_output,
+                    truth_dir,
+                    eval_config,
+                )
+                print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
 
         ret = {}
 
@@ -637,21 +732,22 @@ class TiraClient(ABC):
                 "" if "Cookie" not in headers else "; " + headers["Cookie"]
             )
             headers["x-csrftoken"] = csrf_token
-
+            dataset_name = path.name
+            dataset_id = dataset_name.lower().replace("/", "-").replace(" ", "-").replace("_", "-")
             url = f"{self.base_url}/tira-admin/add-dataset/{task}"
             content = {
                 "csrfmiddlewaretoken": csrf_token,
-                "dataset_id": dataset,
-                "name": dataset,
+                "dataset_id": dataset_id,
+                "name": dataset_name,
                 "task": task,
-                "type": "test",
+                "type": "training" if ("train" in split.lower()) else "test",
                 "upload_name": "predictions.jsonl",
                 "is_confidential": True,
                 "irds_docker_image": "",
                 "irds_import_command": "",
                 "irds_import_truth_command": "",
-                "git_runner_image": "ubuntu:18.04",
-                "git_runner_command": "echo 'this is no real evaluator'",
+                "git_runner_image": eval_image if eval_image else "ubuntu:18.04",
+                "git_runner_command": eval_command if eval_command else "echo 'this is no real evaluator'",
                 "is_git_runner": True,
                 "use_existing_repository": False,
                 "working_directory": "obsolete",
@@ -663,17 +759,27 @@ class TiraClient(ABC):
                 "description": "todo",
                 "chatnoir_id": "",
                 "ir_datasets_id": "",
+                "format": baseline_format,
+                "format_configuration": json.dumps(baseline_config),
+                "truth_format": truth_format,
+                "truth_format_configuration": json.dumps(truth_config),
             }
+
+            if eval_measures is not None:
+                content["trusted_measures"] = eval_measures
 
             import requests
 
             resp = requests.post(url, headers=headers, json=content, verify=self.verify)
-            resp = resp.content.decode("utf8")
-            resp = json.loads(resp)
-            dataset_id = resp["context"]["dataset_id"]
+            resp_content = resp.content.decode("utf8")
+            try:
+                dataset_id = json.loads(resp_content)["context"]["dataset_id"]
+            except:
+                print(resp_content)
+                raise ValueError(f"Failure. Got response {resp.status_code} from server:\n\n{resp_content}")
             print_message(f"Configuration for dataset {dataset_id} is uploaded to TIRA.", _fmt.OK)
 
-            def post_data(type):
+            def post_data(type: str) -> None:
                 tqdm_zip_file = TqdmUploadFile(ret[f"{type}s_zip"], f"Upload {type}s to TIRA")
 
                 headers = self.authentication_headers()
@@ -685,19 +791,23 @@ class TiraClient(ABC):
                 files = {"file": (os.path.basename(ret[f"{type}s_zip"]), tqdm_zip_file)}
 
                 resp = requests.post(
-                    url=f"{self.base_url_api}/tira-admin/upload-dataset/{task}/{dataset_id}/{type}",
+                    url=f"{self.base_url}/tira-admin/upload-dataset/{task}/{dataset_id}/{type}",
                     files=files,
                     headers=headers,
                     verify=self.verify,
                 )
 
-                resp = resp.content.decode("utf8")
-                resp = json.loads(resp)
-                if "status" not in resp or "message" not in resp or resp["status"] != 0:
-                    log_message(f"Could not upload system {type}s: {resp}", _fmt.ERROR)
+                resp_content = resp.content.decode("utf8")
+                try:
+                    resp_parsed = json.loads(resp_content)
+                except:
+                    print(resp_content)
+                    raise ValueError(f"Failure. Got response {resp.status_code} from server:\n\n{resp_content}")
+                if "status" not in resp_parsed or "message" not in resp_parsed or resp_parsed["status"] != 0:
+                    log_message(f"Could not upload system {type}s: {resp_content}", _fmt.ERROR)
                     return
 
-                print_message(f"{type}s are uploaded to TIRA: {resp['message']}", _fmt.OK)
+                print_message(f"{type}s are uploaded to TIRA: {resp_parsed['message']}", _fmt.OK)
 
             post_data("input")
             post_data("truth")

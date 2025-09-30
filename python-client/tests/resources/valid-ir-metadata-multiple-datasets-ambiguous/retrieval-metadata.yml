@@ -1,0 +1,214 @@
+data:
+  test collection:
+    name: learned-sparse-retrieval-20250926-training
+implementation:
+  executable: null
+  python:
+    interactive: false
+    modules: 3.10.12
+    packages:
+    - Deprecated==1.2.18
+    - GitPython==3.1.44
+    - HeapDict==1.0.1
+    - Jinja2==3.1.6
+    - MarkupSafe==3.0.2
+    - PyYAML==6.0.2
+    - Pygments==2.19.2
+    - UNKNOWN==0.2.16.dev10+g329425f8b
+    - asttokens==3.0.0
+    - beautifulsoup4==4.13.4
+    - cbor==1.0.0
+    - certifi==2025.6.15
+    - charset-normalizer==3.4.2
+    - chest==0.2.3
+    - click==8.2.1
+    - decorator==5.2.1
+    - dill==0.4.0
+    - docker==7.1.0
+    - exceptiongroup==1.3.0
+    - executing==2.2.0
+    - filelock==3.18.0
+    - fsspec==2025.5.1
+    - gitdb==4.0.12
+    - idna==3.10
+    - ijson==3.4.0
+    - importlib_metadata==8.7.0
+    - importlib_resources==6.5.2
+    - inscriptis==2.6.0
+    - ipython==8.37.0
+    - ir_datasets==0.5.11
+    - ir_measures==0.4.1
+    - jedi==0.19.2
+    - joblib==1.5.2
+    - lsr-benchmark==0.0.1
+    - lxml==6.0.0
+    - lz4==4.4.4
+    - matplotlib-inline==0.1.7
+    - maturin==1.9.0
+    - more-itertools==10.8.0
+    - mpmath==1.3.0
+    - networkx==3.4.2
+    - numpy==2.2.6
+    - nvidia-cublas-cu12==12.6.4.1
+    - nvidia-cuda-cupti-cu12==12.6.80
+    - nvidia-cuda-nvrtc-cu12==12.6.77
+    - nvidia-cuda-runtime-cu12==12.6.77
+    - nvidia-cudnn-cu12==9.5.1.17
+    - nvidia-cufft-cu12==11.3.0.4
+    - nvidia-cufile-cu12==1.11.1.6
+    - nvidia-curand-cu12==10.3.7.77
+    - nvidia-cusolver-cu12==11.7.1.2
+    - nvidia-cusparse-cu12==12.5.4.2
+    - nvidia-cusparselt-cu12==0.6.3
+    - nvidia-nccl-cu12==2.26.2
+    - nvidia-nvjitlink-cu12==12.6.85
+    - nvidia-nvtx-cu12==12.6.77
+    - packaging==25.0
+    - pandas==2.3.0
+    - parso==0.8.4
+    - patsy==1.0.1
+    - pexpect==4.9.0
+    - pip==22.0.2
+    - prompt_toolkit==3.0.51
+    - ptyprocess==0.7.0
+    - pure_eval==0.2.3
+    - pyarrow==20.0.0
+    - pyjnius==1.7.0
+    - pyseismic-lsr==0.3.0
+    - pyterrier-alpha==0.16.2
+    - python-dateutil==2.9.0.post0
+    - python-terrier==0.13.1
+    - pytrec_eval-terrier==0.5.9
+    - pytz==2025.2
+    - requests==2.32.4
+    - ruamel.yaml.clib==0.2.12
+    - ruamel.yaml==0.18.14
+    - scipy==1.15.3
+    - setuptools==59.6.0
+    - six==1.17.0
+    - smmap==5.0.2
+    - soupsieve==2.7
+    - stack-data==0.6.3
+    - statsmodels==0.14.5
+    - sympy==1.14.0
+    - tomli==2.2.1
+    - torch==2.7.1
+    - tqdm==4.67.1
+    - traitlets==5.14.3
+    - trec-car-tools==2.6
+    - triton==3.3.1
+    - typing_extensions==4.14.0
+    - tzdata==2025.2
+    - unlzw3==0.2.3
+    - urllib3==2.5.0
+    - warc3-wet-clueweb09==0.2.5
+    - warc3-wet==0.2.5
+    - wcwidth==0.2.13
+    - wheel==0.37.1
+    - wrapt==1.17.3
+    - zipp==3.23.0
+    - zlib-state==0.1.9
+  script:
+    path: step-03-retrieval-approaches/seismic/build-and-search-seismic-index.py
+  source:
+    archive:
+      path: trec-28-deep-learning-passages/.tirex-tracker/code.zip
+      script path: step-03-retrieval-approaches/seismic/build-and-search-seismic-index.py
+    branch: main
+    commit: 5779a3f93e08881850859c1d0faa85d38c537fee
+    hash: c1766d5230f6a08aa771f74e482b7de1ffa823cb
+    is repo: 1
+    lang: null
+    repository: git@github.com:reneuir/lsr-benchmark.git
+    tags: []
+    unchecked files: 1
+    uncommitted changes: 1
+    unpushed changes: 1
+    upstream branch: null
+platform:
+  hardware:
+    cpu:
+      architecture: x86_64
+      byte order: Little Endian
+      caches:
+        l1d: 576 KiB
+        l1i: 384 KiB
+        l2: 7680 KiB
+        l3: 18432 KiB
+      features: rdtsc rdtscp rdpid mwait fxsave xsave fpu mmx mmx_plus prefetchw daz
+        sse sse2 sse3 ssse3 sse4_1 sse4_2 avx avxvnni fma3 f16c avx2 cmov cmpxchg8b
+        cmpxchg16b clwb movbe lahf_sahf lzcnt popcnt bmi bmi2 adx aes vaes pclmulqdq
+        vpclmulqdq gfni rdrand rdseed sha
+      frequency:
+        avg: 0
+        max: 0
+        min: 0
+        timeseries:
+          timestamps:
+          - 2ms
+          values:
+          - 0
+      frequency max: 4700000 MHz
+      frequency min: 400000 MHz
+      model: Intel 12th Gen Core i7-1260P
+      number of cores: 12
+      threads per core: 1
+      vendor id: Intel Corporation
+      virtualization: null
+    gpu:
+      supported: 0
+    ram: 33347 MB
+  operating system:
+    distribution: Ubuntu 22.04.5 LTS
+    kernel: Linux 6.12.49-1-lts x86_64
+  software: {}
+resources:
+  cpu:
+    energy used system: 0 J
+    used process:
+      avg: 0
+      max: 0
+      min: 0
+      timeseries:
+        timestamps:
+        - 2ms
+        values:
+        - 0
+    used system:
+      avg: 0
+      max: 0
+      min: 0
+      timeseries:
+        timestamps:
+        - 2ms
+        values:
+        - 0
+  gpu:
+    energy used system: 0 J
+  ram:
+    energy used system: 0 J
+    used process:
+      avg: 0
+      max: 1499529
+      min: 0
+      timeseries:
+        timestamps:
+        - 2ms
+        values:
+        - 1499529
+    used system:
+      avg: 0
+      max: 19260
+      min: 0
+      timeseries:
+        timestamps:
+        - 2ms
+        values:
+        - 19260
+  runtime:
+    start time: 2025-09-28T06:22:54.388019243+0000
+    stop time: 2025-09-28T06:22:54.416860828+0000
+    system: 0 ms
+    user: 30 ms
+    wallclock: 28 ms
+schema version: 0.2

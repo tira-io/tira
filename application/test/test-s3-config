@@ -1,0 +1,7 @@
+[default]
+
+access_key=SOME-ACCESS-KEY
+secret_key=SOME-SECRET-KEY
+host_base = 127.0.0.1:7480
+host_bucket = 127.0.0.1:7480/%(bucket)
+

@@ -91,7 +91,7 @@ class Task(models.Model):
     task_id = models.CharField(max_length=150, primary_key=True)
     task_name = models.CharField(max_length=150, default="")
     task_description = models.TextField(default="")
-    vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
     organizer = models.ForeignKey(Organizer, on_delete=models.SET_NULL, null=True)
     web = models.CharField(max_length=150, default="")
     featured = models.BooleanField(default=False)
@@ -291,6 +291,7 @@ class AnonymousUploads(models.Model):
     metadata_git_repo = models.CharField(max_length=500, default=None, null=True)
     metadata_has_notebook = models.BooleanField(default=False)
     valid_formats = models.TextField(default=None, null=True)
+    mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.RESTRICT, null=True, default=None)
 
     def get_path_in_file_system(self):
         return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
@@ -402,6 +403,7 @@ class Run(models.Model):
     access_token = models.CharField(max_length=150, default="")
     valid_formats = models.TextField(default=None, null=True)
     from_upload = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
+    mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.RESTRICT, null=True, default=None)
 
     def get_path_in_file_system(self):
         vm_id = None

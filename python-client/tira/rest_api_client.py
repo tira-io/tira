@@ -48,7 +48,7 @@ class Client(TiraClient):
         tira_cache_dir: "Optional[str]" = None,
         verify: bool = None,
         allow_local_execution: bool = False,
-        archive_base_url: str = "https://tira.io",
+        archive_base_url: "Optional[str]" = None,
         base_url_api: str = None,
     ):
         self._settings = None
@@ -58,7 +58,7 @@ class Client(TiraClient):
         )
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
-        self.archive_base_url = archive_base_url
+        self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
 
         self.verify = verify if verify is not None else self.load_settings()["verify"]
         self.failsave_max_delay = failsave_max_delay
@@ -76,13 +76,13 @@ class Client(TiraClient):
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
         self.failsave_retries = failsave_retries
-        self.pd = PandasIntegration(self)
-        self.pt = PyTerrierIntegration(self)
-        self.trectools = TrecToolsIntegration(self)
-        self.profiling = ProfilingIntegration(self)
-        self.pt_ance = PyTerrierAnceIntegration(self)
-        self.pt_splade = PyTerrierSpladeIntegration(self)
-        self.local_execution = LocalExecutionIntegration(self)
+        self.pd: PandasIntegration = PandasIntegration(self)
+        self.pt: PyTerrierIntegration = PyTerrierIntegration(self)
+        self.trectools: TrecToolsIntegration = TrecToolsIntegration(self)
+        self.profiling: ProfilingIntegration = ProfilingIntegration(self)
+        self.pt_ance: PyTerrierAnceIntegration = PyTerrierAnceIntegration(self)
+        self.pt_splade: PyTerrierSpladeIntegration = PyTerrierSpladeIntegration(self)
+        self.local_execution: LocalExecutionIntegration = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
 
     def load_settings(self):
@@ -106,13 +106,17 @@ class Client(TiraClient):
                 self._settings["base_url"] = "https://www.tira.io"
             if "base_url_api" not in self._settings:
                 self._settings["base_url_api"] = "https://api.tira.io"
+            if "archive_base_url" not in self._settings:
+                self._settings["archive_base_url"] = "https://tira.io"
+
             if "verify" not in self._settings:
                 self._settings["verify"] = True
+
             self._settings["verify"] = bool(self._settings["verify"])
 
         return self._settings
 
-    def update_settings(self, k, v):
+    def update_settings(self, k: str, v: Any) -> None:
         settings = self.load_settings()
         settings[k] = v
         os.makedirs(self.tira_cache_dir, exist_ok=True)
@@ -121,48 +125,26 @@ class Client(TiraClient):
         if k == "api_key":
             self.api_key = settings["api_key"]
 
-    def api_key_is_valid(self):
+    def datasets(self, task: str, force_reload: bool = False) -> Dict:
+        url = f"/api/datasets_by_task/{task}"
+
         try:
-            role = self.json_response("/api/role")
+            resp = self.archived_json_response(url, force_reload=force_reload)
         except:
-            return False
+            resp = self.archived_json_response(url, force_reload=True)
 
-        if (
-            (self.api_user_name is None or self.api_user_name == "no-api-key-user")
-            and role
-            and "context" in role
-            and "user_id" in role["context"]
-            and role["context"]["user_id"]
-        ):
-            self.api_user_name = role["context"]["user_id"]
-
-        return (
-            role
-            and "status" in role
-            and "role" in role
-            and "csrf" in role
-            and role["csrf"]
-            and 0 == role["status"]
-            and "user_id" in role["context"]
-            and role["context"]["user_id"]
-            and "role" in role["context"]
-            and role["context"]["role"]
-            and "guest" != role["context"]["role"]
-        )
-
-    def fail_if_api_key_is_invalid(self):
-        if not self.api_key_is_valid():
-            role = self.json_response("/api/role")
-            raise ValueError("It seems like the api key is invalid. Got: ", role)
-
-    def datasets(self, task):
-        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        return json.loads(resp["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():
             return False
         dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
-        datasets = self.archived_json_response("/v1/datasets/all")
+        url = "/v1/datasets/all"
+
+        try:
+            datasets = self.archived_json_response(url)
+        except:
+            datasets = self.archived_json_response(url, force_reload=True)
 
         return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
 
@@ -170,12 +152,15 @@ class Client(TiraClient):
         if "TIRA_INPUT_DATASET" in os.environ:
             return True
         ds_identifier = self._TiraClient__extract_dataset_identifier(dataset)
-        datasets = self.archived_json_response("/v1/datasets/all")
+        try:
+            datasets = self.archived_json_response("/v1/datasets/all")
+        except:
+            datasets = self.archived_json_response("/v1/datasets/all", force_reload=True)
 
         ret = self._TiraClient__matching_dataset(datasets, ds_identifier)
         return ret is not None
 
-    def claim_ownership(self, uuid, team, system, description, task_id):
+    def claim_ownership(self, uuid: str, team: str, system: str, description: str, task_id: str) -> Dict:
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
         headers["Content-Type"] = "application/json"
@@ -198,8 +183,8 @@ class Client(TiraClient):
                 "paper_link": "",
             }
 
-        ret = requests.post(url, headers=headers, json=content)
-        ret = ret.content.decode("utf8")
+        response = requests.post(url, headers=headers, json=content, verify=self.verify)
+        ret = response.content.decode("utf8")
         return json.loads(ret)
 
     def get_dataset(self, dataset) -> dict:
@@ -482,14 +467,14 @@ class Client(TiraClient):
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
         return target_file
 
-    def get_run_output(self, approach, dataset, allow_without_evaluation=False):
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
         mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
         if mounted_output_in_sandbox:
-            return mounted_output_in_sandbox
+            return Path(mounted_output_in_sandbox)
 
         task, team, software = approach.split("/")
         if "/" in dataset and not Path(dataset).exists():
@@ -519,12 +504,12 @@ class Client(TiraClient):
         else:
             return None
 
-    def public_system_details(self, team_name, system_name):
+    def public_system_details(self, team_name, system_name, force_reload=False):
         endpoint = f"/v1/systems/{team_name}/{system_name}".replace(" ", "%20")
         ret = None
 
         try:
-            ret = self.archived_json_response(endpoint)
+            ret = self.archived_json_response(endpoint, force_reload=force_reload)
         except:
             pass
 
@@ -541,7 +526,7 @@ class Client(TiraClient):
 
         return ret
 
-    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
+    def get_run_execution_or_none(self, approach: str, dataset: str, previous_stage_run_id: str = None) -> Dict:
         task, team, software = approach.split("/")
         system_details = self.public_system_details(team, software)
         redirect = redirects(approach, dataset)
@@ -610,7 +595,7 @@ class Client(TiraClient):
 
         ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ["task", "dataset", "team", "run_id"]})
         ret = pd.read_csv(
-            ret + "/run.txt",
+            ret / "run.txt",
             sep="\\s+",
             names=["query", "q0", "docid", "rank", "score", "system"],
             dtype={"query": str, "docid": str},
@@ -640,14 +625,16 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
-    def download_dataset(self, task, dataset, truth_dataset=False, allow_local_dataset=False):
+    def download_dataset(
+        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+    ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
         if "TIRA_INPUT_DATASET" in os.environ:
-            return os.environ["TIRA_INPUT_DATASET"]
+            return Path(os.environ["TIRA_INPUT_DATASET"])
         if allow_local_dataset and Path(dataset).exists():
-            return dataset
+            return Path(dataset)
         if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
@@ -676,7 +663,7 @@ class Client(TiraClient):
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
-            return target_dir + suffix
+            return Path(target_dir + suffix)
 
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
@@ -688,25 +675,25 @@ class Client(TiraClient):
 
             os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
-        return target_dir + suffix
+        return Path(target_dir + suffix)
 
-    def download_zip_to_cache_directory(self, task, dataset, team, run_id):
+    def download_zip_to_cache_directory(self, task: str, dataset: str, team: str, run_id: str) -> Path:
         target_dir = f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}"
         if "/" in dataset:
             dataset = dataset.split("/")[-1]
 
         if os.path.isdir(target_dir + f"/{run_id}"):
-            return target_dir + f"/{run_id}/output"
+            return Path(target_dir + f"/{run_id}/output")
 
         potential_local_matches = glob(f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/*/{run_id}/output")
         if task in TASKS_WITH_REDIRECT_MERGING and len(potential_local_matches) == 1:
-            return potential_local_matches[0]
+            return Path(potential_local_matches[0])
 
         self.download_and_extract_zip(
             f"{self.base_url}/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip", target_dir
         )
 
-        return target_dir + f"/{run_id}/output"
+        return Path(target_dir) / run_id / "output"
 
     def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
         """
@@ -819,7 +806,7 @@ class Client(TiraClient):
 
         return
 
-    def download_and_extract_zip(self, url, target_dir, extract=True):
+    def download_and_extract_zip(self, url: str, target_dir: str, extract: bool = True):
         url = redirects(url=url)["urls"][0]
         if "://" in url and url.split("://")[1].startswith("files.webis.de"):
             print(f"Download from the Incubator: {url}")
@@ -828,9 +815,12 @@ class Client(TiraClient):
         if "://" in url and url.split("://")[1].startswith("zenodo.org"):
             print(f"Download from Zenodo: {url}")
 
+        run_id = None if ("/download/" not in url or ".zip" not in url) else url.split("/download/")[1].split(".zip")[0]
+
         for _ in range(self.failsave_retries):
             status_code = None
             try:
+
                 headers = self.authentication_headers()
                 r = requests.get(url, headers=headers, stream=True, verify=self.verify)
                 total = int(r.headers.get("content-length", 0))
@@ -841,10 +831,8 @@ class Client(TiraClient):
                     and "X-Disraptor-Location" in r.headers
                     and "/dataset/" in url
                     and "/user/" in url
-                    and "/download/" in url
-                    and ".zip" in url
+                    and run_id is not None
                 ):
-                    run_id = url.split("/download/")[1].split(".zip")[0]
                     new_url = r.headers["X-Disraptor-Location"]
                     uuid = new_url.split("/v1/anonymous/")[1].split(".zip")[0]
                     self.download_and_extract_zip(new_url, Path(target_dir) / run_id, extract)
@@ -884,7 +872,7 @@ class Client(TiraClient):
                 url = mirror_url(url)
                 time.sleep(sleep_time)
 
-    def login(self, token):
+    def login(self, token: str) -> None:
         self.api_key = token
 
         if not self.api_key_is_valid():
@@ -908,7 +896,7 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def authentication_headers(self):
+    def authentication_headers(self) -> Dict:
         ret = {}
         if self.api_key != "no-api-key":
             ret["Api-Key"] = self.api_key
@@ -1025,7 +1013,7 @@ class Client(TiraClient):
         if dry_run:
             print(
                 "\nResult:\n\t"
-                + fmt_message(f"The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
+                + fmt_message("The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
             )
             return
 
@@ -1250,9 +1238,9 @@ class Client(TiraClient):
         self,
         endpoint: str,
         params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
-        base_url=None,
-        failsave_retries=None,
-    ):
+        base_url: "Optional[str]" = None,
+        failsave_retries: "Optional[int]" = None,
+    ) -> Dict:
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")

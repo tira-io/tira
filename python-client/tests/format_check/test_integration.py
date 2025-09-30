@@ -1,11 +1,12 @@
 import unittest
+from typing import List
 
 from tira.check_format import _fmt, check_format
 from tira.rest_api_client import Client
 
 ALL_DATASETS = {}
 tira = Client()
-TASKS = [
+TASKS: List[str] = [
     "wows-eval",
     # "longeval-2025",
     # ToDo: Add again
@@ -16,13 +17,14 @@ for task in TASKS:
 
 import tempfile
 from pathlib import Path
+from typing import Dict
 
 from parameterized import parameterized
 
 from ..format_check.test_check_format_for_long_eval import persist_longeval_data
 
 
-def datasets_with_format(dataset_type):
+def datasets_with_format(dataset_type) -> Dict:
     ret = {}
     for k, v in ALL_DATASETS.items():
         if f"{dataset_type}_format" in v:

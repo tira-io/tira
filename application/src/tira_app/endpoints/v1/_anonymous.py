@@ -1,6 +1,7 @@
 import html
 import io
 import json
+import logging
 import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -21,12 +22,20 @@ from werkzeug.utils import secure_filename
 from ... import model as modeldb
 from ... import tira_model as model
 from ...checks import check_permissions
+from ...data.s3 import S3Database
+from ..v1._datasets import upload_mirrored_resource
 from ..vm_api import load_notebook, run_eval, run_unsandboxed_eval
+
+s3_db = S3Database()
 
 if TYPE_CHECKING:
     from typing import Any, Iterable
 
     from ...model import Dataset
+
+
+logger = logging.getLogger("tira")
+logger.info("Anonymous: Logger active")
 
 # TODO: this file needs to be refactored to use ModelSerializer and ModelViewSet
 
@@ -103,13 +112,24 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
 
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
 
-    ret = io.BytesIO()
-    with zipfile.ZipFile(ret, "w") as zipf:
-        for f in result_dir.rglob("*"):
-            zipf.write(f, arcname=f.relative_to(result_dir.parent))
+    if upload.mirrored_resource is None:
+        zipped = Path(f"{submission_uuid}.zip")
+        with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for f in result_dir.rglob("*"):
+                zipf.write(f, arcname=f.relative_to(result_dir.parent))
+        mirror = upload_mirrored_resource(zipped)
+        upload.mirrored_resource = mirror
+        upload.save()
 
-    ret.seek(0)
-    return FileResponse(ret, as_attachment=True, filename=f"{submission_uuid}.zip")
+    try:
+        ret_body = s3_db.read_mirrored_resource(upload.mirrored_resource)
+    except Exception as e:
+        msg = f"Could not load data from s3 in download_anonymous_submission {e}."
+        print(msg, e)
+        logger.warning(msg)
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
+
+    return FileResponse(ret_body, as_attachment=True, filename=f"{submission_uuid}.zip")
 
 
 def check_format_for_dataset(directory: "Path", dataset: "Dataset"):
@@ -155,6 +175,17 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     dataset_id = upload.dataset.dataset_id
 
     if "upload_group" not in body:
+        modeldb.VirtualMachine.objects.update_or_create(
+            vm_id=vm_id,
+            defaults={
+                "user_password": "initial_user_password",
+                "roles": "user",
+                "host": "host",
+                "ip": "ip",
+                "ssh": 12,
+                "rdp": 12,
+            },
+        )
         body["upload_group"] = model.add_upload(task_id, vm_id)["id"]
         model.model.update_upload_metadata(
             task_id, vm_id, body["upload_group"], body["display_name"], body["description"], body["paper_link"]

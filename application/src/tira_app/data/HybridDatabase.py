@@ -1987,6 +1987,9 @@ class HybridDatabase(object):
 
     def _fdb_add_dataset_to_task(self, task_id: str, dataset_id: str, dataset_type: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
+        if not task_file_path.exists():
+            task = modelpb.Tasks.Task()
+            task_file_path.write_text(str(task))
         task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         if dataset_type == "test":
             task.testDataset.append(dataset_id)
@@ -2446,13 +2449,15 @@ class HybridDatabase(object):
         (run_dir / "run.prototext").write_text(str(run))
 
         if uploaded_file.name.endswith(".zip"):
-            with open(run_dir / "output" / uploaded_file.name, "wb+") as destination:
+            tmp_zip_file = run_dir / "output" / uploaded_file.name
+            with open(tmp_zip_file, "wb+") as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
 
             with zipfile.ZipFile(run_dir / "output" / uploaded_file.name, "r") as zip_ref:
                 zip_ref.extractall(run_dir / "output")
 
+            tmp_zip_file.unlink()
         else:
             default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
             if upload.rename_to and upload.rename_to.replace(" ", "").replace("\\", "").replace("/", "").strip():
@@ -2676,11 +2681,9 @@ class HybridDatabase(object):
     ):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
-        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
         task.update(
             task_name=task_name,
             task_description=task_description,
-            vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
             featured=featured,

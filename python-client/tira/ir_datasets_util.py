@@ -1,6 +1,7 @@
 import logging
 import os
 from copy import deepcopy
+from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple
 
 from tira.io_utils import stream_all_lines
@@ -78,7 +79,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
 
 
-def translate_irds_id_to_tirex(dataset):
+def translate_irds_id_to_tirex(dataset: str) -> str:
     if type(dataset) is not str:
         if hasattr(dataset, "irds_ref"):
             return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
@@ -127,10 +128,10 @@ def __docs(input_file, original_dataset, load_default_text):
                 return self.input_file
 
             ret = self.input_file()
-            if os.path.isfile(ret + "/documents.jsonl.gz"):
-                return ret + "/documents.jsonl.gz"
+            if os.path.isfile(ret / "documents.jsonl.gz"):
+                return ret / "documents.jsonl.gz"
             else:
-                return ret + "/documents.jsonl"
+                return ret / "documents.jsonl"
 
     return DynamicDocs(input_file, load_default_text)
 
@@ -153,7 +154,7 @@ def __lazy_qrels(input_file, original_qrels):
 
         def qrels_iter(self):
             if not self.qrels:
-                qrels_file = self.input_file() + "/qrels.txt"
+                qrels_file = self.input_file() / "qrels.txt"
 
                 self.qrels = TrecQrels(LocalDownload(qrels_file), {})
 
@@ -184,7 +185,7 @@ def __queries(input_file, original_dataset):
             if type(self.input_file) is str:
                 return self.input_file
 
-            return self.input_file() + "/queries.jsonl"
+            return Path(self.input_file()) / "queries.jsonl"
 
         def __get_queries(self):
             if self.queries is None:
@@ -319,7 +320,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 return ret
 
         def topics_file(self, tira_path):
-            return get_download_dir_from_tira(tira_path, True) + "/queries.xml"
+            return get_download_dir_from_tira(tira_path, True) / "queries.xml"
 
     ret = IrDatasetsFromTira()
     ret.lazy_docs = __docs

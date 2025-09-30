@@ -23,7 +23,7 @@ from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
-from .v1._datasets import download_mirrored_resource
+from .v1._datasets import download_mirrored_resource, upload_dataset_part_as_mirrored_resource
 
 if TYPE_CHECKING:
     from typing import Any, Optional, Union
@@ -263,6 +263,11 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             from django.http import HttpResponseNotAllowed
 
             return HttpResponseNotAllowed("Access forbidden.")
+
+        try:
+            assert model.get_task(task_id) is not None
+        except:
+            return JsonResponse({"status": 1, "message": f"The task {task_id} does not exist."})
 
         upload_name = data.get("upload_name", "predictions.jsonl")
         command = data.get("evaluator_command", "")
@@ -965,6 +970,11 @@ def admin_upload_dataset(request: "HttpRequest", task_id: str, dataset_id: str, 
         with zipfile.ZipFile(tmp_dir + "/tmp.zip", "r") as zip_ref:
             zip_ref.extractall(target_directory)
 
+        md5_sum = upload_dataset_part_as_mirrored_resource(task_id, dataset_id, dataset_type)
+
         return JsonResponse(
-            {"status": 0, "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."}
+            {
+                "status": 0,
+                "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'. md5sum={md5_sum}",
+            }
         )

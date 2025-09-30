@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 
 import pandas as pd
 import pyterrier as pt
@@ -217,3 +218,35 @@ class TestWorkingArtifacts(unittest.TestCase):
         self.assertIsInstance(metadata, dict)
         self.assertEqual(metadata.get("type"), "tira")
         self.assertEqual(metadata.get("format"), "pt_document_transformer")
+
+    def test_local_bm25_artifact_from_file(self):
+        expected = {
+            "qid": "3",
+            "docno": "doc-3",
+            "rank": 1,
+            "score": 1.0,
+            "name": "tag",
+        }
+        bm25 = load_artifact(
+            "tira:" + str((Path(__file__).parent.parent / "resources" / "ranking-outputs" / "run.txt").absolute())
+        )
+
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
+        print(run)
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
+    def test_local_bm25_artifact_from_dir(self):
+        expected = {
+            "qid": "3",
+            "docno": "doc-3",
+            "rank": 1,
+            "score": 1.0,
+            "name": "tag",
+        }
+        bm25 = load_artifact("tira:" + str((Path(__file__).parent.parent / "resources" / "ranking-outputs").absolute()))
+
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
+        print(run)
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)

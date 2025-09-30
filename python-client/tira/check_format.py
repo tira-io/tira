@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 
 class FormatMsgType(Enum):
@@ -19,7 +19,7 @@ class FormatMsgType(Enum):
 _fmt = FormatMsgType
 
 
-def fmt_message(message: str, level: _fmt):
+def fmt_message(message: str, level: _fmt) -> str:
     """
     Prints a formatted log message with a symbol indicating the status.
 
@@ -300,7 +300,7 @@ class KeyValueFormatBase(FormatBase):
                 f"Please set both id_field and value_field or none of both. Got id_field = {self.id_field} and value_field = {self.value_field}."
             )
 
-    def has_id_and_value_field(self):
+    def has_id_and_value_field(self) -> bool:
         return self.id_field is not None and self.value_field is not None
 
 
@@ -932,6 +932,7 @@ class DocumentProcessorFormat(JsonlFormat):
         self.docno_name = docno_name
 
     def apply_configuration_and_throw_if_invalid(self, configuration):
+        super().apply_configuration_and_throw_if_invalid(configuration)
         self.minimum_lines = 1
         self.doc_ids = ["docno", "docid", "doc_id"]
 
@@ -996,8 +997,11 @@ class LightningIrDocumentEmbeddings(FormatBase):
         raise ValueError("not implemented")
 
     def check_format(self, run_output: Path):
-        for expected_file in ["doc_ids.txt", "index.pt"]:
-            if not (Path(run_output) / expected_file).is_file():
+        for expected_file in ["doc-ids.txt", "doc-embeddings.npz"]:
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
@@ -1007,8 +1011,11 @@ class LightningIrQueryEmbeddings(FormatBase):
         raise ValueError("not implemented")
 
     def check_format(self, run_output: Path):
-        for expected_file in ["query_embeddings.pt", "query_ids.txt"]:
-            if not (Path(run_output) / expected_file).is_file():
+        for expected_file in ["query-embeddings.npz", "query-ids.txt"]:
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
@@ -1104,7 +1111,7 @@ class IrMetadataFormat(FormatBase):
 
         candidates = [str(run_output)]
         for pattern in ["/*.yml", "/*.yaml", "/.*.yml", "/.*.yaml"]:
-            for depth in ["", "/**", "/**/**"]:
+            for depth in ["", "/**", "/**/**", "/.**", "/.**/**", "/.**/.**"]:
                 candidates += glob(str(run_output) + depth + pattern)
 
         for candidate in candidates:
@@ -1122,8 +1129,11 @@ class IrMetadataFormat(FormatBase):
 
                         if not at_least_one_positive_field:
                             continue
+                    name = candidate.split("/")[-1]
+                    if len(candidate.split("/")) > 1 and candidate.split("/")[-2].startswith("."):
+                        name = str(candidate.split("/")[-2]) + "/" + name
 
-                    yield {"name": candidate.split("/")[-1], "content": content}
+                    yield {"name": name, "content": content}
                 except yaml.YAMLError:
                     pass
 
@@ -1203,8 +1213,8 @@ def lines_if_valid(
     return checker.all_lines(run_output)
 
 
-def report_valid_formats(run_output: Path):
-    valid_formats = {}
+def report_valid_formats(run_output: Path) -> Dict[str, Any]:
+    valid_formats: Dict[str, Any] = {}
     if _fmt.OK == check_format(run_output, "ir_metadata")[0]:
         valid_formats["ir_metadata"] = sorted([i["name"] for i in lines_if_valid(run_output, "ir_metadata")])
 
