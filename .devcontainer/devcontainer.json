@@ -25,7 +25,9 @@
 	"forwardPorts": [
 		"nginx:8080",
 		"nginx:8081",
-		"nginx:8082"
+		"nginx:8082",
+		"s3mock:9090",
+		"s3mock:9191"
 	],
 
 	"portsAttributes": {
