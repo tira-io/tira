@@ -22,6 +22,7 @@ services:
       - "s3mock:s3.tira.local"
     volumes:
       - ./devfiles/s3/.s3cfg:/home/ubuntu/.s3cfg
+      - ./devfiles/s3/.s3cfg:/root/.s3cfg
   auth:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped
