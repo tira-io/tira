@@ -386,7 +386,7 @@ def upload_command(
             print(fmt_message(f"There was an error with the upload: {resp}.\n\nPlease try again...", _fmt.ERROR))
             return 1
         msg = (
-            f"Done. Your run is available as {system_details['tag']}"
+            f"Done. Your run is available as {system_details['tag']} "
             + f"at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission"
         )
         print("\t" + fmt_message(msg, _fmt.OK))
