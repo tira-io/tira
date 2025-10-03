@@ -30,6 +30,7 @@ RUN useradd -ms /bin/bash tira
 USER tira
 WORKDIR /tira/
 COPY --chown=tira:tira ./application ./
+COPY --chown=tira:tira ./worker/tira-worker-config.yml ./config/tira-worker-config.yml
 COPY --chown=tira:tira ./python-client ../python-client
 
 ########################################################################################################################
@@ -66,6 +67,7 @@ set -e
 export PATH="/home/tira/.local/bin:$PATH"
 # Run tests
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
+export TIRA_WORKER_CONFIG="/tira/config/tira-worker-config.yml"
 export TIRA_DEBUG=true
 cp /tira/config/tira-application-config.yml /tira/config/ORIG-tira-application-config.yml
 echo '\ntira_s3_config:\n  s3_bucket: none' >> /tira/config/tira-application-config.yml
@@ -135,6 +137,7 @@ ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
 ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
 ENV TIRA_CONFIG=/tira/config/tira-application-config.yml
+ENV TIRA_WORKER_CONFIG=/tira/config/tira-worker-config.yml
 ENV TIRA_DEBUG=false
 
 EXPOSE 8080
