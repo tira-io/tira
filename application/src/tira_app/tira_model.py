@@ -15,10 +15,11 @@ from django.conf import settings
 from django.core.cache import BaseCache, cache
 from django.db import connections, router
 from slugify import slugify
+from tira.io_utils import get_tira_id
 
 from .data.HybridDatabase import HybridDatabase
 from .git_runner import get_git_runner, get_git_runner_for_software_integration
-from .util import get_tira_id, register_run
+from .util import register_run
 
 if TYPE_CHECKING:
     from typing import Any, Literal, Optional, Union

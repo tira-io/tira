@@ -6,7 +6,7 @@ import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, overload
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, overload
 
 from tira.check_format import _fmt, check_format, lines_if_valid, log_message
 
@@ -199,9 +199,16 @@ class TiraClient(ABC):
         return zip_path
 
     def __run_evaluation(
-        self, image: str, command: str, predictions: Path, truths: Path, print_message: Callable
+        self,
+        image: str,
+        command: str,
+        predictions: Path,
+        truths: Path,
+        print_message: Callable,
+        ret_dir: Optional[Path] = None,
     ) -> str:
         from tira.io_utils import load_output_of_directory
+        from tira.third_party_integrations import temporary_directory
 
         if not self.local_execution.docker_is_installed_failsave():
             msg = "Docker is not installed, I can not run the dockerized evaluator..."
@@ -213,28 +220,30 @@ class TiraClient(ABC):
 
         print_message(f"The evaluator image {image} is available locally.", _fmt.OK)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            eval_config = {
-                "evaluator_id": "1",
-                "evaluator_git_runner_image": image,
-                "evaluator_git_runner_command": command,
-                "truth_directory": str(Path(truths).absolute().resolve()),
-            }
-            self.local_execution.evaluate(
-                Path(tmp_dir).absolute().resolve(),
-                predictions.absolute().resolve(),
-                allow_network=False,
-                evaluate=eval_config,
-            )
+        if ret_dir is None:
+            ret_dir = temporary_directory()
 
-            try:
-                return json.dumps(load_output_of_directory(Path(tmp_dir), evaluation=True))
-            except:
-                msg = "The evaluator failed to produce a valid evaluation..."
-                print(msg)
-                raise ValueError(msg)
+        eval_config = {
+            "evaluator_id": "1",
+            "evaluator_git_runner_image": image,
+            "evaluator_git_runner_command": command,
+            "truth_directory": str(Path(truths).absolute().resolve()),
+        }
+        self.local_execution.evaluate(
+            Path(ret_dir).absolute().resolve(),
+            predictions.absolute().resolve(),
+            allow_network=False,
+            evaluate=eval_config,
+        )
 
-    def evaluate(self, directory: Path, dataset_id: str):
+        try:
+            return json.dumps(load_output_of_directory(Path(ret_dir), evaluation=True))
+        except:
+            msg = "The evaluator failed to produce a valid evaluation..."
+            print(msg)
+            raise ValueError(msg)
+
+    def evaluate(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
         """Evaluate some predictions made for some dataset on your local machine.
 
         Args:
@@ -286,6 +295,7 @@ class TiraClient(ABC):
             directory,
             dataset_path,
             print_message,
+            results_dir,
         )
 
         log_message("The evaluator was successfull.", _fmt.OK)

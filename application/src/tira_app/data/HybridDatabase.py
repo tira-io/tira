@@ -13,6 +13,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
 from tira.check_format import SUPPORTED_FORMATS
+from tira.io_utils import get_tira_id
 
 from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
@@ -20,7 +21,6 @@ from ..util import (
     TiraModelIntegrityError,
     TiraModelWriteError,
     auto_reviewer,
-    get_tira_id,
     get_today_timestamp,
     link_to_discourse_team,
     now,

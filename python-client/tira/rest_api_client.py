@@ -904,6 +904,9 @@ class Client(TiraClient):
             ret["Api-Username"] = self.api_user_name
         if "Cookie" in self.load_settings():
             ret["Cookie"] = self.load_settings()["Cookie"]
+        if "Host" in self.load_settings():
+            ret["Host"] = self.load_settings()["Host"]
+
         return ret
 
     def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None):
@@ -1257,7 +1260,7 @@ class Client(TiraClient):
                 else:
                     break
             except Exception as e:
-                if resp.status_code in {403, 404}:
+                if 'resp' not in vars() or resp.status_code in {403, 404}:
                     raise e
 
                 sleep_time = randint(1, self.failsave_max_delay)

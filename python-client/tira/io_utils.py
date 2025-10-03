@@ -357,6 +357,23 @@ def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
         raise ValueError(f"Command {cmd} did exit with return code {exit_code}.")
 
 
+def get_tira_id() -> str:
+    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, dataset_id, task_id):
+    with open(os.path.join(run_dir, 'run.prototext'), 'w') as f:
+        f.write(run_prototext(run_dir, run_id, input_run_id, software_id, dataset_id, task_id))
+
+    with open(os.path.join(run_dir, 'file-list.txt'), 'wb') as f:
+        file_list = check_output(['tree', '-ahv', os.path.join(run_dir, 'output')])
+        f.write(file_list)
+
+    size_txt = create_tira_size_txt(run_dir)
+    with open(os.path.join(run_dir, 'size.txt'), 'wb') as f:
+        f.write(size_txt)
+
+
 def create_tira_size_txt(run_dir):
     ret = check_output(
         ["bash", "-c", '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1']
