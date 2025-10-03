@@ -53,7 +53,7 @@ EOF
 ########################################################################################################################
 # Production Container                                                                                                 #
 ########################################################################################################################
-FROM ubuntu:24.04
+FROM debian:bookworm-slim
 
 ########################################################################################################################
 # Create User                                                                                                          #
@@ -85,10 +85,10 @@ EOF
 RUN <<EOF
 set -e
 apt-get -qq install sudo tree curl gpg
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
 echo \
-    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
     "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
     tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update -y
