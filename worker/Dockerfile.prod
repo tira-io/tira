@@ -53,10 +53,7 @@ EOF
 ########################################################################################################################
 # Production Container                                                                                                 #
 ########################################################################################################################
-# FROM debian:stable-slim
-# Pyjinius does not support python3.13 yet https://github.com/terrier-org/pyterrier/pull/573 and https://github.com/kivy/pyjnius/pull/753
-# TODO: reenable stable-slim instead of bookworm-slim when python3.13 can be supported
-FROM debian:bookworm-slim
+FROM ubuntu:24.04
 
 ########################################################################################################################
 # Create User                                                                                                          #
@@ -86,8 +83,17 @@ EOF
 # Copy Data & Install Python and Dependencies                                                                          #
 ########################################################################################################################
 RUN <<EOF
-apt-get -qq install sudo
-useradd -ms /bin/bash tira
+set -e
+apt-get -qq install sudo tree curl gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get update -y
+apt-get install -y docker-ce-cli
+
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd
 usermod -aG sudo tira
