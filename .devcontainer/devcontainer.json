@@ -52,7 +52,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "sudo sh -c 'cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../worker; pip install -e .; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data'",
+	"postCreateCommand": "sudo sh -c 'cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../worker; pip install -e .; cd ../application/; pip install -e .[test,dev]; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
 
 	// Configure tool-specific properties.
 	"customizations": {

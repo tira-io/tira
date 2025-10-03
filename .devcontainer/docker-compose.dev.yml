@@ -23,6 +23,11 @@ services:
     volumes:
       - ./devfiles/s3/.s3cfg:/home/ubuntu/.s3cfg
       - ./devfiles/s3/.s3cfg:/root/.s3cfg
+      - /tmp/:/tmp/
+      - ./devfiles/tira-settings.json:/tmp/tira-dev-cache-dir/.tira-settings.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    privileged: true
   auth:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped

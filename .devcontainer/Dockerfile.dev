@@ -27,6 +27,9 @@ RUN <<EOF
     usermod -aG sudo ubuntu
     usermod -aG docker ubuntu
 
+    chmod o+r /var/run/docker.sock
+    chmod o+w /var/run/docker.sock
+
 	# Add users to sudoers
 	echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -59,6 +62,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-con
 ENV TIRA_ROOT=/workspaces/tira/model/src
 ENV TIRA_CONFIG=/workspaces/tira/application/config/tira-application-config.yml
 ENV TIRA_DEBUG=false
+ENV TIRA_CACHE_DIR=/tmp/tira-dev-cache-dir/
 ENV DISCOURSE_API_KEY="I am so secret"
 
 ########################################################################################################################
