@@ -45,7 +45,7 @@ def execute_monitored(method: Callable):
 
 
 @app.task
-def evaluate(run_id: str, dataset: str, task: str, team: str) -> bytes:
+def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str) -> bytes:
     client: TiraClient = get_admin_client()
 
     truths = client.download_dataset(task, dataset, truth_dataset=True)
@@ -54,9 +54,8 @@ def evaluate(run_id: str, dataset: str, task: str, team: str) -> bytes:
     print("Run is available locally:", run_dir)
 
     eval_results = execute_monitored(lambda i: client.evaluate(run_dir, dataset, i))
-    software_id = "fooo"
     persist_tira_metadata_for_job(
-        eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, software_id, dataset, task
+        eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
     )
     ret: Path = zip_dir(eval_results)
 

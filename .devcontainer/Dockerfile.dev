@@ -72,7 +72,7 @@ USER root
 RUN <<EOF
 	# Install Java (some dependencies like python are already installed by the application module)
     apt-get update
-    apt-get install -y openjdk-11-jdk
+    apt-get install -y openjdk-11-jdk tree
 	# Install Docker and set correct permissions to the docker.sock
 	apt-get install -y curl
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg

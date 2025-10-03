@@ -7,6 +7,7 @@ import sys
 import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime as dt
 from glob import glob
 from pathlib import Path
 from subprocess import check_output
@@ -362,15 +363,15 @@ def get_tira_id() -> str:
 
 
 def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, dataset_id, task_id):
-    with open(os.path.join(run_dir, 'run.prototext'), 'w') as f:
-        f.write(run_prototext(run_dir, run_id, input_run_id, software_id, dataset_id, task_id))
+    with open(os.path.join(run_dir, "run.prototext"), "w") as f:
+        f.write(run_prototext(run_id, input_run_id, software_id, dataset_id, task_id))
 
-    with open(os.path.join(run_dir, 'file-list.txt'), 'wb') as f:
-        file_list = check_output(['tree', '-ahv', os.path.join(run_dir, 'output')])
+    with open(os.path.join(run_dir, "file-list.txt"), "wb") as f:
+        file_list = check_output(["tree", "-ahv", os.path.join(run_dir, "output")])
         f.write(file_list)
 
     size_txt = create_tira_size_txt(run_dir)
-    with open(os.path.join(run_dir, 'size.txt'), 'wb') as f:
+    with open(os.path.join(run_dir, "size.txt"), "wb") as f:
         f.write(size_txt)
 
 
@@ -425,30 +426,29 @@ class MonitoredExecution:
         return ret
 
 
-def run_prototext(output_dir, run_id, input_run_id, software_id, dataset_id, task_id):
-    with open(output_dir / "run.prototext", "w") as f:
-        f.write(
-            '''softwareId: "'''
-            + str(software_id)
-            + '''"
+def run_prototext(run_id: str, input_run_id: str, software_id: str, dataset_id: str, task_id: str) -> str:
+    return (
+        '''softwareId: "'''
+        + str(software_id)
+        + '''"
 runId: "'''
-            + run_id
-            + '''"
+        + run_id
+        + '''"
 inputDataset: "'''
-            + dataset_id
-            + '''"
+        + dataset_id
+        + '''"
 inputRun: "'''
-            + input_run_id
-            + '''"
+        + input_run_id
+        + '''"
 downloadable: false
 deleted: false
 taskId: "'''
-            + task_id
-            + '''"
+        + task_id
+        + '''"
 accessToken: "'''
-            + str(uuid.uuid4())
-            + '''"'''
-        )
+        + str(uuid.uuid4())
+        + '''"'''
+    )
 
 
 def parse_prototext_key_values(file_name):
