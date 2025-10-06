@@ -14,12 +14,6 @@ app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKE
 gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 
 
-if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
-    gpu_devices = gpu_device_ids()
-else:
-    gpu_devices = None
-
-
 def get_admin_client() -> TiraClient:
     ret: "TiraClient" = RestClient()
     role = ret.json_response("/api/role")
@@ -28,6 +22,21 @@ def get_admin_client() -> TiraClient:
         raise ValueError(f"The tira client has no admin credentials. Got {role}")
 
     return ret
+
+
+if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
+    gpu_devices = gpu_device_ids()
+    get_admin_client().local_execution.run(
+        image="bash",
+        command="ls -lha",
+        input_dir="/tmp",
+        output_dir="/tmp/foo",
+        cpu_count=3,
+        mem_limit="10g",
+        gpu_device_ids=gpu_devices,
+    )
+else:
+    gpu_devices = None
 
 
 def execute_monitored(method: Callable):
@@ -43,8 +52,9 @@ def run(
     docker_image: str,
     command: str,
     software_id: str,
+    team: str,
     mount_hf_model: "Optional[list[str]]" = None,
-):
+) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
     if gpu_devices is None:
@@ -70,18 +80,16 @@ def run(
             allow_network=False,
             additional_volumes=hf_models,
             cpu_count=3,
-            mem_limit="50g",
+            mem_limit="10g",
             gpu_device_ids=gpu_devices,
         )
     )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
-    ret: Path = zip_dir(run_results)
-
-    return ret.read_bytes()
+    client.upload_run_admin(dataset, team, run_results)
 
 
 @app.task
-def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str) -> bytes:
+def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str) -> None:
     client: TiraClient = get_admin_client()
 
     truths = client.download_dataset(task, dataset, truth_dataset=True)
@@ -93,9 +101,8 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str)
     persist_tira_metadata_for_job(
         eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
     )
-    ret: Path = zip_dir(eval_results)
 
-    return ret.read_bytes()
+    client.upload_run_admin(dataset, team, eval_results)
 
 
 get_admin_client()
