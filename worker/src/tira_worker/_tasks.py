@@ -1,5 +1,6 @@
+import sys
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 from celery import Celery
 from tira.io_utils import get_tira_id, persist_tira_metadata_for_job, zip_dir
@@ -7,8 +8,16 @@ from tira.rest_api_client import Client as RestClient
 from tira.rest_api_client import TiraClient
 
 from .settings import QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
+from .utils import gpu_device_ids
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+
+
+if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
+    gpu_devices = gpu_device_ids()
+else:
+    gpu_devices = None
 
 
 def get_admin_client() -> TiraClient:
@@ -21,21 +30,54 @@ def get_admin_client() -> TiraClient:
     return ret
 
 
-@app.task
-def dummytask(name: str) -> str:
-    """
-    I just greet everyone who calls me :)
-    TODO: remove me when the deployment gets serious
-    """
-    import socket
-
-    return f"{socket.gethostname()} says hello to {name}"
-
-
 def execute_monitored(method: Callable):
     from tira.io_utils import MonitoredExecution
 
     return MonitoredExecution().run(lambda i: method(i))
+
+
+@gpu_executor.task
+def run(
+    dataset: str,
+    task: str,
+    docker_image: str,
+    command: str,
+    software_id: str,
+    mount_hf_model: "Optional[list[str]]" = None,
+):
+    client: TiraClient = get_admin_client()
+    global gpu_devices
+    if gpu_devices is None:
+        raise ValueError("fooo")
+
+    system_inputs = client.download_dataset(task, dataset)
+    print("Inputs are available locally:", system_inputs)
+
+    hf_models = None
+    if mount_hf_model:
+        from tira.io_utils import huggingface_model_mounts
+
+        hf_models = huggingface_model_mounts(mount_hf_model)
+        hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
+        print(f"The following models from huggingface are mounted: {hf_models}\n\n")
+
+    run_results = execute_monitored(
+        lambda i: client.local_execution.run(
+            image=docker_image,
+            command=command,
+            input_dir=system_inputs,
+            output_dir=i,
+            allow_network=False,
+            additional_volumes=hf_models,
+            cpu_count=3,
+            mem_limit="50g",
+            gpu_device_ids=gpu_devices,
+        )
+    )
+    persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
+    ret: Path = zip_dir(run_results)
+
+    return ret.read_bytes()
 
 
 @app.task

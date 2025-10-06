@@ -305,7 +305,7 @@ class Client(TiraClient):
         except:
             pass
 
-        ret = requests.post(url, headers=headers, json=content)
+        ret = requests.post(url, headers=headers, json=content, verify=self.verify)
         response_code = ret.status_code
         ret = ret.content.decode("utf8")
         try:
@@ -902,10 +902,10 @@ class Client(TiraClient):
             ret["Api-Key"] = self.api_key
         if self.api_user_name != "no-api-key-user":
             ret["Api-Username"] = self.api_user_name
-        if "Cookie" in self.load_settings():
-            ret["Cookie"] = self.load_settings()["Cookie"]
-        if "Host" in self.load_settings():
-            ret["Host"] = self.load_settings()["Host"]
+
+        if "Header" in self.load_settings():
+            for k, v in self.load_settings()["Header"].items():
+                ret[k] = v
 
         return ret
 
@@ -973,6 +973,12 @@ class Client(TiraClient):
 
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
+
+    def upload_run_admin(self, dataset: str, team: str, file_path: Path) -> None:
+        from tira.io_utils import zip_dir
+
+        zip_file = zip_dir(file_path)
+        self.execute_post_return_json(f"/v1/admin/upload-response/{dataset}/{team}", file_path=zip_file)
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
@@ -1201,7 +1207,12 @@ class Client(TiraClient):
                 files = None if not file_path else {"file": open(file_path, "rb")}
 
                 resp = requests.post(
-                    url=f"{self.base_url}{endpoint}", files=files, headers=headers, params=params, json=json_payload
+                    url=f"{self.base_url}{endpoint}",
+                    files=files,
+                    headers=headers,
+                    params=params,
+                    json=json_payload,
+                    verify=self.verify,
                 )
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}")
@@ -1260,7 +1271,7 @@ class Client(TiraClient):
                 else:
                     break
             except Exception as e:
-                if 'resp' not in vars() or resp.status_code in {403, 404}:
+                if "resp" not in vars() or resp.status_code in {403, 404}:
                     raise e
 
                 sleep_time = randint(1, self.failsave_max_delay)

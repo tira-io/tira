@@ -401,6 +401,9 @@ class LocalExecutionIntegration:
         additional_volumes=None,
         eval_dir="tira-evaluation",
         gpu_count=0,
+        cpu_count=None,
+        mem_limit=None,
+        gpu_device_ids=None,
     ):
         previous_stages = []
         original_args = {
@@ -501,6 +504,10 @@ class LocalExecutionIntegration:
         device_requests = []
         if gpu_count != 0:
             device_requests = [docker.types.DeviceRequest(count=gpu_count, capabilities=[["gpu"]])]
+        elif gpu_device_ids:
+            device_requests = [
+                docker.types.DeviceRequest(device_ids=[str(i)], capabilities=[["gpu"]]) for i in gpu_device_ids
+            ]
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
@@ -519,6 +526,8 @@ class LocalExecutionIntegration:
             remove=True,
             network_disabled=not allow_network,
             device_requests=device_requests,
+            mem_limit=mem_limit,
+            cpu_count=cpu_count,
         )
 
         for line in container.attach(stdout=True, stream=True, logs=True):

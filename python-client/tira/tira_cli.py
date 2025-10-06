@@ -172,6 +172,7 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
             " Docker images."
         ),
     )
+    parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
 
     parser.set_defaults(executable=code_submission_command)
 
@@ -277,6 +278,7 @@ def code_submission_command(
     command: "Optional[str]",
     dataset: "Optional[str]",
     mount_hf_model: "Optional[list[str]]",
+    tira_vm_id: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -288,6 +290,7 @@ def code_submission_command(
         allow_network=allow_network,
         dataset_id=dataset,
         mount_hf_model=mount_hf_model,
+        user_id=tira_vm_id,
     )
 
     return 0
