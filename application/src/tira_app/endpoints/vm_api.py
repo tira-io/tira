@@ -477,7 +477,7 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str, join: bo
     import io
 
     from celery.result import AsyncResult
-    from tira_worker import app, evaluate
+    from tira_worker import evaluate
 
     evaluator_id = model.get_dataset(dataset)["evaluator_id"]
     result: AsyncResult = evaluate.delay(

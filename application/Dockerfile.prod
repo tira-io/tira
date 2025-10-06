@@ -32,6 +32,7 @@ WORKDIR /tira/
 COPY --chown=tira:tira ./application ./
 COPY --chown=tira:tira ./worker/tira-worker-config.yml ./config/tira-worker-config.yml
 COPY --chown=tira:tira ./python-client ../python-client
+COPY --chown=tira:tira ./worker ../worker
 
 ########################################################################################################################
 # Install Python and Dependencies                                                                                      #
@@ -56,6 +57,7 @@ set -e
 export PATH="/home/tira/.local/bin:$PATH"
 
 # Install dependencies
+pip3 install -q --no-cache-dir --user ../worker
 pip3 install -q --no-cache-dir --user ../python-client .[test,deploy,postgreqsql]
 
 chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
