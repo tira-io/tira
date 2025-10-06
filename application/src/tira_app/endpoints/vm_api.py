@@ -524,7 +524,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
     if unsandboxed_evaluation_is_allowed(ds):
         run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=run_id)
     else:
-        run_sandboxed_eval(run_id, dataset_id, ds["default_task"], vm_id)
+        run_sandboxed_eval(run_id, dataset_id, ds["task"], vm_id)
 
     return JsonResponse({"status": 0, "message": "ok", "new_run": run_id, "started_evaluation": True})
 

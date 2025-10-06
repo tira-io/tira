@@ -102,12 +102,12 @@ EOF
 ########################################################################################################################
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
-USER tira
 ENV LC_ALL=en_US.UTF-8
 ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
 ENV TIRA_WORKER_CONFIG=/tira/config/tira-worker-config.yml
 ENV TIRA_DEBUG=false
+ENV PYTHONPATH=/home/tira/.local/lib/python3.11/site-packages/
 
 EXPOSE 8080
 

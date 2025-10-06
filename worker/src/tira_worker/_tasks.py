@@ -35,13 +35,7 @@ def dummytask(name: str) -> str:
 def execute_monitored(method: Callable):
     from tira.io_utils import MonitoredExecution
 
-    def failsave_exec(i):
-        try:
-            method(i)
-        except:
-            pass
-
-    return MonitoredExecution().run(lambda i: failsave_exec(i))
+    return MonitoredExecution().run(lambda i: method(i))
 
 
 @app.task
