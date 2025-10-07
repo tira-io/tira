@@ -503,6 +503,9 @@ def run_sandboxed_software(
 ) -> None:
     from tira_worker import run
 
+    if isinstance(mount_hf_model, str):
+        mount_hf_model = [mount_hf_model]
+
     run.apply_async(
         args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model], queue=docker_resources
     )
