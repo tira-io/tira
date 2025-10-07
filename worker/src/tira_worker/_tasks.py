@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from celery import Celery
-from tira.io_utils import get_tira_id, persist_tira_metadata_for_job, zip_dir
+from tira.io_utils import get_tira_id, persist_tira_metadata_for_job
 from tira.rest_api_client import Client as RestClient
 from tira.rest_api_client import TiraClient
 
-from .settings import QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
+from .settings import CPU_COUNT, MEMORY_LIMIT, QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
 from .utils import gpu_device_ids
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
@@ -31,8 +31,8 @@ if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
         command="ls -lha",
         input_dir="/tmp",
         output_dir="/tmp/foo",
-        cpu_count=3,
-        mem_limit="10g",
+        cpu_count=CPU_COUNT,
+        mem_limit=MEMORY_LIMIT,
         gpu_device_ids=gpu_devices,
     )
 else:
@@ -79,8 +79,8 @@ def run(
             output_dir=i,
             allow_network=False,
             additional_volumes=hf_models,
-            cpu_count=3,
-            mem_limit="10g",
+            cpu_count=CPU_COUNT,
+            mem_limit=MEMORY_LIMIT,
             gpu_device_ids=gpu_devices,
         )
     )

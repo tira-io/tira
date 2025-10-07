@@ -14,5 +14,8 @@ _config = parse_config(_CONF_PATH, default_value=None, loader=yaml.FullLoader)
 QUEUE_BROKER_URL = _config["queue_broker_url"]
 QUEUE_RESULTS_BACKEND_URL = _config["queue_results_backend_url"]
 
+MEMORY_LIMIT = _config.get("memory_limit", "60g")
+CPU_COUNT = int(_config.get("cpu_count", "3"))
+
 # Delete the remaining config
 del _config
