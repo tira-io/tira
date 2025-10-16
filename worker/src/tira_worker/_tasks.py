@@ -57,8 +57,6 @@ def run(
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
-    if gpu_devices is None:
-        raise ValueError("fooo")
 
     system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)

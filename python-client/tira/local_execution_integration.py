@@ -528,6 +528,7 @@ class LocalExecutionIntegration:
             device_requests=device_requests,
             mem_limit=mem_limit,
             cpu_count=cpu_count,
+            privileged=True,
         )
 
         for line in container.attach(stdout=True, stream=True, logs=True):
