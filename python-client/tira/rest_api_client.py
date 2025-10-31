@@ -958,7 +958,7 @@ class Client(TiraClient):
     def unblind_run(self, run_id: str, dataset: str, team: str):
         logging.info(f"Unblind run: {run_id}.")
         ret = self.json_response(f"/blind/{team}/{dataset}/{run_id}/false")
-        if ("status" not in ret) or ("0" != ret["status"]) or ("published" not in ret) or (not ret["published"]):
+        if ("status" not in ret) or ("0" != ret["status"]) or ("blinded" not in ret) or (ret["blinded"]):
             raise ValueError(f"Publishing the run failed. Got {ret}")
 
     def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str, failsave: bool = False) -> int:
