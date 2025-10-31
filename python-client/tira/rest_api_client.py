@@ -723,11 +723,8 @@ class Client(TiraClient):
                 self.add_run_to_leaderboard(task, team, dataset, evaluation_run_id=evaluation_run_id)
 
         if evaluation_run_id:
-            logging.info(f"Publish run: {evaluation_run_id}.")
-            ret = self.json_response(f"/publish/{team}/{dataset}/{evaluation_run_id}/true")
+            self.publish_run(evaluation_run_id, dataset, team)
 
-            if ("status" not in ret) or ("0" != ret["status"]) or ("published" not in ret) or (not ret["published"]):
-                raise ValueError(f"Adding the run to the leaderboard failed. Got {ret}")
 
     def get_configuration_of_evaluation(self, task_id, dataset_id):
         """Get the configuration of the evaluator for the passed dataset inside the task specified by task_id."""
@@ -940,6 +937,29 @@ class Client(TiraClient):
         logging.info(ret)
         ret = json.loads(ret)
         assert ret["status"] == 0
+
+    def review_run(self, run_id: str, dataset_id: str, team: str, no_errors: bool, output_error: bool, software_error: bool, comment: str):
+        dataset_id = "trec-28-deep-learning-passages-20250926-training"
+        team = "reneuir-baselines"
+        review = {"no_errors": no_errors, "output_error": output_error, "software_error": software_error, "comment": comment}
+
+        ret = execute_post_return_json(f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review)
+        print(ret)
+
+        assert ret["status"] == 0
+
+    def publish_run(self, run_id: str, dataset: str, team: str):  
+        logging.info(f"Publish run: {run_id}.")
+        ret = self.json_response(f"/publish/{team}/{dataset}/{run_id}/true")
+
+        if ("status" not in ret) or ("0" != ret["status"]) or ("published" not in ret) or (not ret["published"]):
+            raise ValueError(f"Publishing the run failed. Got {ret}")
+
+    def unblind_run(self, run_id: str, dataset: str, team: str):
+        logging.info(f"Unblind run: {run_id}.")
+        ret = self.json_response(f"/blind/{team}/{dataset}/{run_id}/false")
+        if ("status" not in ret) or ("0" != ret["status"]) or ("published" not in ret) or (not ret["published"]):
+            raise ValueError(f"Publishing the run failed. Got {ret}")
 
     def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str, failsave: bool = False) -> int:
         """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name.
