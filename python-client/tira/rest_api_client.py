@@ -943,7 +943,7 @@ class Client(TiraClient):
         team = "reneuir-baselines"
         review = {"no_errors": no_errors, "output_error": output_error, "software_error": software_error, "comment": comment}
 
-        ret = execute_post_return_json(f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review)
+        ret = self.execute_post_return_json(f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review)
         print(ret)
 
         assert ret["status"] == 0
