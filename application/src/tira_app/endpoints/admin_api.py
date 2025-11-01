@@ -187,6 +187,7 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             irds_re_ranking_image=data.get("irds_re_ranking_image", ""),
             irds_re_ranking_command=data.get("irds_re_ranking_command", ""),
             irds_re_ranking_resource=data.get("irds_re_ranking_resource", ""),
+            aggregated_results=data.get("aggregated_results"),
         )
 
         return JsonResponse(

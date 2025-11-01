@@ -271,6 +271,13 @@ class HybridDatabase(object):
             logger.error(f"Task with id {task.task_id} has no master vm associated")
             master_vm_id = "None"
 
+        aggregated_results = None
+        if task.aggregated_results:
+            try:
+                aggregated_results = json.loads(task.aggregated_results)
+            except:
+                pass
+
         result = {
             "task_id": task.task_id,
             "task_name": task.task_name,
@@ -300,6 +307,7 @@ class HybridDatabase(object):
             "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
             "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
             "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval,
+            "aggregated_results": aggregated_results,
         }
 
         if include_dataset_stats:
@@ -2678,7 +2686,28 @@ class HybridDatabase(object):
         irds_re_ranking_image: str = "",
         irds_re_ranking_command: str = "",
         irds_re_ranking_resource: str = "",
+        aggregated_results: "Optional[List]" = None,
     ):
+
+        if aggregated_results:
+            import tempfile
+
+            from tira.check_format import _fmt, check_format
+
+            valid = True
+            for aggregated_result in aggregated_results:
+                try:
+                    with tempfile.TemporaryDirectory() as tmp:
+                        json.dump(aggregated_result, open(f"{tmp}/aggregated-results.json", "w"))
+                        c, _ = check_format(Path(tmp), "aggregated-results.json")
+                        if c != _fmt.OK:
+                            valid = False
+                except:
+                    valid = False
+            if not valid:
+                aggregated_results = None
+            else:
+                aggregated_results = json.dumps(aggregated_results)
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
@@ -2695,6 +2724,7 @@ class HybridDatabase(object):
             irds_re_ranking_image=irds_re_ranking_image,
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
+            aggregated_results=aggregated_results,
         )
 
         if help_command:

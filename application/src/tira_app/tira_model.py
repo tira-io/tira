@@ -930,6 +930,7 @@ def edit_task(
     irds_re_ranking_image: str = "",
     irds_re_ranking_command: str = "",
     irds_re_ranking_resource: str = "",
+    aggregated_results: "Optional[str]" = None,
 ):
     """Update the task's data"""
 
@@ -954,6 +955,7 @@ def edit_task(
         irds_re_ranking_image,
         irds_re_ranking_command,
         irds_re_ranking_resource,
+        aggregated_results,
     )
 
 

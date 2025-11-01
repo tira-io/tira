@@ -500,7 +500,7 @@ class TiraClient(ABC):
         format_configuration = (
             None if "format_configuration" not in dataset_handle else dataset_handle["format_configuration"]
         )
-        result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0], format_configuration)
+        result, msg = check_format(Path(tmp_dir), dataset_handle["format"], format_configuration)
         if result != _fmt.OK:
             print(msg)
             raise ValueError(msg)

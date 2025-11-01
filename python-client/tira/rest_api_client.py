@@ -246,7 +246,7 @@ class Client(TiraClient):
 
         return ret
 
-    def metadata_for_task(self, task_name, team_name=None):
+    def metadata_for_task(self, task_name: str, team_name: "Optional[str]" = None) -> Dict:
         if team_name is None:
             return self.json_response(f"/api/task/{task_name}")
         else:
@@ -725,7 +725,6 @@ class Client(TiraClient):
         if evaluation_run_id:
             self.publish_run(evaluation_run_id, dataset, team)
 
-
     def get_configuration_of_evaluation(self, task_id, dataset_id):
         """Get the configuration of the evaluator for the passed dataset inside the task specified by task_id."""
         ret = self.json_response(f"/api/configuration-of-evaluation/{task_id}/{dataset_id}")
@@ -938,17 +937,33 @@ class Client(TiraClient):
         ret = json.loads(ret)
         assert ret["status"] == 0
 
-    def review_run(self, run_id: str, dataset_id: str, team: str, no_errors: bool, output_error: bool, software_error: bool, comment: str):
+    def review_run(
+        self,
+        run_id: str,
+        dataset_id: str,
+        team: str,
+        no_errors: bool,
+        output_error: bool,
+        software_error: bool,
+        comment: str,
+    ):
         dataset_id = "trec-28-deep-learning-passages-20250926-training"
         team = "reneuir-baselines"
-        review = {"no_errors": no_errors, "output_error": output_error, "software_error": software_error, "comment": comment}
+        review = {
+            "no_errors": no_errors,
+            "output_error": output_error,
+            "software_error": software_error,
+            "comment": comment,
+        }
 
-        ret = self.execute_post_return_json(f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review)
+        ret = self.execute_post_return_json(
+            f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review
+        )
         print(ret)
 
         assert ret["status"] == 0
 
-    def publish_run(self, run_id: str, dataset: str, team: str):  
+    def publish_run(self, run_id: str, dataset: str, team: str):
         logging.info(f"Publish run: {run_id}.")
         ret = self.json_response(f"/publish/{team}/{dataset}/{run_id}/true")
 
@@ -1134,7 +1149,7 @@ class Client(TiraClient):
 
         return self.execute_post_return_json(endpoint, json_payload=body)
 
-    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]"):
+    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]") -> None:
         task = self.metadata_for_task(task_id)["context"]["task"]
         fields_to_rename = {
             "name": "task_name",
@@ -1143,10 +1158,23 @@ class Client(TiraClient):
             "help_text": "command_description",
             "help_command": "command_placeholder",
             "task_teams": "allowed_task_teams",
+            "aggregated_results": "aggregated_results",
         }
         for k, v in fields_to_rename.items():
             task[k] = task[v]
             del task[v]
+
+        if "aggregated_results" in to_rename:
+            if len(to_rename["aggregated_results"]) == 0:
+                raise ValueError("Empty aggregated results is not allowed.")
+
+            for aggregated_result in to_rename["aggregated_results"]:
+                with tempfile.TemporaryDirectory() as tmp:
+                    json.dump(aggregated_result, open(f"{tmp}/aggregated-results.json", "w"))
+                    c, msg = check_format(Path(tmp), "aggregated-results.json")
+                    if c != _fmt.OK:
+                        raise ValueError("Aggregated result is invalid: " + msg)
+            task["aggregated_results"] = None
 
         for k, v in to_rename.items():
             assert k in task, k
@@ -1240,8 +1268,9 @@ class Client(TiraClient):
                     break
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
-                logging.warn(
-                    f"Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep"
+                resp_code = resp.status_code if "resp" in locals() else "unknown-response-code"
+                logging.warning(
+                    f"Error occured while fetching {endpoint}. Code: {resp_code}. I will sleep"
                     f" {sleep_time} seconds and continue.",
                     exc_info=e,
                 )

@@ -385,6 +385,28 @@ def create_tira_size_txt(run_dir):
     return ret
 
 
+def patch_ir_metadata(run_dir: str, src_pattern: Dict, target_pattern: Dict) -> None:
+    import yaml
+
+    from tira.check_format import IrMetadataFormat
+
+    fmt = IrMetadataFormat()
+    fmt.apply_configuration_and_throw_if_invalid({})
+    for i in fmt.all_lines(run_dir):
+        name = i["name"]
+        cnt = i["content"]
+
+        if (
+            "data" in cnt
+            and "test collection" in cnt["data"]
+            and "name" in cnt["data"]["test collection"]
+            and cnt["data"]["test collection"]["name"] == src_pattern["data"]["test collection"]["name"]
+        ):
+            cnt["data"]["test collection"]["name"] = target_pattern["data"]["test collection"]["name"]
+            with open(Path(run_dir) / name, "w") as f:
+                yaml.safe_dump(cnt, f)
+
+
 class TqdmUploadFile:
     def __init__(self, file_path: Path, desc: str) -> None:
         self.file = open(file_path, "rb")

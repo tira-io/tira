@@ -119,6 +119,7 @@ class Task(models.Model):
     irds_re_ranking_image = models.CharField(max_length=150, default="")
     irds_re_ranking_command = models.CharField(max_length=150, default="")
     irds_re_ranking_resource = models.CharField(max_length=150, default="")
+    aggregated_results = models.TextField(default=None, null=True)
 
 
 class AllowedServer(models.Model):

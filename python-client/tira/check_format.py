@@ -154,7 +154,7 @@ class RunFormat(FormatBase):
         except Exception as e:
             return [_fmt.ERROR, e.args[0]]
 
-        if len(lines) < 10:
+        if len(lines) < 5:
             return [_fmt.ERROR, f"The run file contains only {len(lines)} lines, this is likely an error."]
 
         query_to_docs = {}
@@ -302,6 +302,31 @@ class KeyValueFormatBase(FormatBase):
 
     def has_id_and_value_field(self) -> bool:
         return self.id_field is not None and self.value_field is not None
+
+
+class AggregatedResults(FormatBase):
+    def check_format(self, run_output: Path):
+        if not (run_output / "aggregated-results.json").exists():
+            return [_fmt.ERROR, "No aggregated-results.json files."]
+
+        try:
+            val = json.load(open(run_output / "aggregated-results.json"))
+        except:
+            return [_fmt.ERROR, "The aggregated-results.json file is invalid json."]
+
+        for required_field in [
+            "title",
+            "description",
+            "ev_keys",
+            "lines",
+            "table_headers",
+            "table_headers_small_layout",
+            "table_sort_by",
+        ]:
+            if required_field not in val:
+                return [_fmt.ERROR, "The aggregated-results.json misses the field " + required_field]
+
+        return [_fmt.OK, "The agregated-results.json file has the correct format."]
 
 
 class JsonlFormat(KeyValueFormatBase):
@@ -1163,6 +1188,7 @@ FORMAT_TO_CHECK = {
     "ir-dataset-corpus": IrDatasetsCorpus,
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
     "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
+    "aggregated-results.json": AggregatedResults,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
