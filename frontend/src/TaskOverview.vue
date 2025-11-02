@@ -78,7 +78,7 @@
 
     <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x: any) => addDataset(x)"
       @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)" :userinfo="userinfo" />
-    <v-container v-if="!loading && task.aggregated_results.length == 0" id="dataset-select">
+    <v-container v-if="!loading && (!task.aggregated_results || task.aggregated_results.length == 0)" id="dataset-select">
       <h2>Submissions</h2>
       <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
         v-model="selectedDataset" variant="underlined" clearable />
@@ -86,7 +86,7 @@
       <run-list v-if="selectedDataset" :task_id="task_id" :from_archive="from_archive" :organizer="task.organizer" :organizer_id="task.organizer_id"
         :dataset_id="selectedDataset" />
     </v-container>
-    <v-container v-if="!loading && task.aggregated_results.length > 0" id="dataset-select">
+    <v-container v-if="!loading && task.aggregated_results && task.aggregated_results.length > 0" id="dataset-select">
       <div v-for="aggregated_result in task.aggregated_results">
         <h2>{{ aggregated_result.title }}</h2>
         {{ aggregated_result.description }}
