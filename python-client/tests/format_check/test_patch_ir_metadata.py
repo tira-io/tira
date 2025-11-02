@@ -8,7 +8,7 @@ from tira.io_utils import patch_ir_metadata
 
 
 def patch(original_dict: Dict, src_pattern: Dict, target_pattern: Dict):
-    with tempfile.TemporaryDirectory(delete=False) as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         additional_fields = ["platform", "implementation", "resources"]
         ret = str(tmp_dir) + "/foo.yml"
         original_dict = original_dict.copy()
