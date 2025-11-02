@@ -27,12 +27,12 @@
     </v-data-table>
 </template>
 
-<script lang="ts">
+<script>
 
 export default {
   name: "aggregated-result-list",
   props: ['table_headers', 'table_headers_small_layout', 'initial_table_sort_by', 'lines'],
-    data() {
+  data() {
     return {
       table_sort_by: [],
     }
