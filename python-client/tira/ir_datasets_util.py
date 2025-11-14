@@ -119,9 +119,10 @@ def __docs(input_file, original_dataset, load_default_text):
         def stream_docs(self):
             already_covered = set()
             for i in stream_all_lines(self.get_input_file(), self.load_default_text):
-                if i["docno"] not in already_covered:
-                    already_covered.add(i["docno"])
-                    yield GenericDoc(doc_id=i["docno"], text=i["text"])
+                docno = i["docno"] if "docno" in i else i["doc_id"]
+                if docno not in already_covered:
+                    already_covered.add(docno)
+                    yield GenericDoc(doc_id=docno, text=i["text"])
 
         def get_input_file(self):
             if type(self.input_file) is str:
