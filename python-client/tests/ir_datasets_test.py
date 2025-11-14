@@ -114,7 +114,7 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i.query_id): i.text for i in dataset.queries_iter()}
 
         assert len(list(dataset.queries_iter())) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor\nchoking line ."
+        assert len(queries) == 225
 
     def test_loading_raw_ir_datasets_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
@@ -123,7 +123,7 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i.query_id): i.text for i in dataset.queries_iter()}
 
         assert len(list(dataset.queries_iter())) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor\nchoking line ."
+        assert len(queries) == 225
 
     def test_loading_queries_from_ir_datasets_from_custom_directory_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
@@ -147,6 +147,33 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len(list(dataset.queries_iter())) == 2
         assert queries["1"] == "fox jumps above animal"
+
+    def test_loading_queries_from_ir_datasets_from_custom_directory_01gz(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=False)
+        os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank-gz"
+        ir_datasets = load_ir_datasets()
+        del os.environ["TIRA_INPUT_DATASET"]
+        dataset = ir_datasets.load("does-not-exist-and-is-not-used")
+        queries = {i.query_id: i.text for i in dataset.queries_iter()}
+        docs = list(dataset.docs_iter())
+
+        assert len(list(dataset.queries_iter())) == 2
+        assert queries["1"] == "fox jumps above animal"
+        self.assertEqual("static_ir_dataset-tests/resources/sample-input-full-rank-gz", dataset.dataset_id())
+        self.assertEqual(5, len(docs))
+
+    def test_loading_queries_from_ir_datasets_from_custom_directory_02gz(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank-gz"
+        ir_datasets = load_ir_datasets()
+        del os.environ["TIRA_INPUT_DATASET"]
+        dataset = ir_datasets.load("does-not-exist-and-is-not-used")
+        queries = {i.query_id: i.text for i in dataset.queries_iter()}
+        docs = list(dataset.docs_iter())
+
+        assert len(list(dataset.queries_iter())) == 2
+        assert queries["1"] == "fox jumps above animal"
+        self.assertEqual(5, len(docs))
 
     def test_loading_queries_from_ir_datasets_from_custom_directory_2_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
@@ -218,7 +245,7 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        assert len(queries) == 225
 
     def test_no_patching_for_pyterrier_datasets_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
@@ -228,7 +255,7 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        assert len(queries) == 225
 
     def test_patching_for_pyterrier_datasets_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)

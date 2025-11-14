@@ -130,6 +130,8 @@ def __docs(input_file, original_dataset, load_default_text):
             ret = self.input_file()
             if os.path.isfile(ret / "documents.jsonl.gz"):
                 return ret / "documents.jsonl.gz"
+            elif os.path.isfile(ret / "corpus.jsonl.gz"):
+                return ret / "corpus.jsonl.gz"
             else:
                 return ret / "documents.jsonl"
 
@@ -269,6 +271,8 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
         docs_file = directory
         if os.path.isfile(docs_file + "/documents.jsonl.gz"):
             docs_file = docs_file + "/documents.jsonl.gz"
+        elif os.path.isfile(docs_file + "/corpus.jsonl.gz"):
+            docs_file = docs_file + "/corpus.jsonl.gz"
         else:
             docs_file = docs_file + "/documents.jsonl"
 
