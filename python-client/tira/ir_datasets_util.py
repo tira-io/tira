@@ -269,7 +269,7 @@ def register_dataset(zip_files: List[str], ir_datasets_id):
     from hashlib import md5
 
     import ir_datasets
-    from ir_datasets.util import LocalDownload, RequestsDownload, ZipExtractCache, home_path
+    from ir_datasets.util import Cache, LocalDownload, RequestsDownload, ZipExtractCache, home_path
 
     if ir_datasets_id in ir_datasets.registry:
         return
@@ -280,7 +280,9 @@ def register_dataset(zip_files: List[str], ir_datasets_id):
     for zip_file in zip_files:
         cache_dir = home_path() / "irds-from-zips" / md5(str(zip_file).encode("utf-8")).hexdigest()
         file_download = (
-            RequestsDownload(zip_file) if str(zip_file).startswith("http") else LocalDownload(Path(zip_file))
+            Cache(RequestsDownload(zip_file), Path(str(cache_dir) + ".zip"))
+            if str(zip_file).startswith("http")
+            else LocalDownload(Path(zip_file))
         )
         extracted_file = ZipExtractCache(file_download, cache_dir).path()
         ds = load_ir_dataset_from_local_file(extracted_file, ir_datasets_id)
