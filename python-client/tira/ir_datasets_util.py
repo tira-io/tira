@@ -2,7 +2,7 @@ import logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, List, NamedTuple
 
 from tira.io_utils import stream_all_lines
 from tira.tirex import IRDS_TO_TIREX_DATASET
@@ -265,28 +265,62 @@ def __scored_docs(input_file, original_dataset):
     return DynamicScoredDocs(docs)
 
 
-def static_ir_dataset(directory, existing_ir_dataset=None):
+def register_dataset(zip_files: List[str], ir_datasets_id):
+    from hashlib import md5
+
+    import ir_datasets
+    from ir_datasets.util import LocalDownload, RequestsDownload, ZipExtractCache, home_path
+
+    if ir_datasets_id in ir_datasets.registry:
+        return
+
+    if isinstance(zip_files, str) or isinstance(zip_files, Path):
+        return register_dataset([zip_files], ir_datasets_id)
+
+    for zip_file in zip_files:
+        cache_dir = home_path() / "irds-from-zips" / md5(str(zip_file).encode("utf-8")).hexdigest()
+        file_download = (
+            RequestsDownload(zip_file) if str(zip_file).startswith("http") else LocalDownload(Path(zip_file))
+        )
+        extracted_file = ZipExtractCache(file_download, cache_dir).path()
+        ds = load_ir_dataset_from_local_file(extracted_file, ir_datasets_id)
+        ir_datasets.registry.register(ir_datasets_id, ds)
+
+
+def load_ir_dataset_from_local_file(directory, ir_dataset_id):
     from ir_datasets.datasets.base import Dataset
+    from ir_datasets.formats.trec import TrecQrels
+    from ir_datasets.util import LocalDownload
 
+    queries_file = str(directory) + "/queries.jsonl"
+    docs_file = str(directory)
+    if os.path.isfile(docs_file + "/documents.jsonl.gz"):
+        docs_file = docs_file + "/documents.jsonl.gz"
+    elif os.path.isfile(docs_file + "/corpus.jsonl.gz"):
+        docs_file = docs_file + "/corpus.jsonl.gz"
+    else:
+        docs_file = docs_file + "/documents.jsonl"
+
+    qrels = None
+    if os.path.isfile(str(directory) + "/qrels.txt"):
+        qrels = TrecQrels(LocalDownload(str(directory) + "/qrels.txt"), {})
+
+    docs = __docs(docs_file, None, True)
+    queries = __queries(queries_file, None)
+    ret = Dataset(docs, queries, qrels)
+    ret.dataset_id = lambda: ir_dataset_id
+    return ret
+
+
+def static_ir_dataset(directory, existing_ir_dataset=None):
     if existing_ir_dataset is None:
-        queries_file = directory + "/queries.jsonl"
-        docs_file = directory
-        if os.path.isfile(docs_file + "/documents.jsonl.gz"):
-            docs_file = docs_file + "/documents.jsonl.gz"
-        elif os.path.isfile(docs_file + "/corpus.jsonl.gz"):
-            docs_file = docs_file + "/corpus.jsonl.gz"
-        else:
-            docs_file = docs_file + "/documents.jsonl"
-
-        docs = __docs(docs_file, None, True)
-        queries = __queries(queries_file, None)
-        ret = Dataset(docs, queries)
-        ret.dataset_id = lambda: f"static_ir_dataset-{directory}"
+        ret = load_ir_dataset_from_local_file(directory, f"static_ir_dataset-{directory}")
         return static_ir_dataset(directory, ret)
 
     class StaticIrDatasets:
-        def load(self, dataset_id):
-            print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
+        def load(self, dataset_id, verbose=True):
+            if verbose:
+                print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
             return existing_ir_dataset
 
         def topics_file(self, dataset_id):

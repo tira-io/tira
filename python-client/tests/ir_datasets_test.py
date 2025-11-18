@@ -1,8 +1,10 @@
 import os
 import unittest
+from pathlib import Path
 
 import ir_datasets
 
+from tira.ir_datasets_util import register_dataset
 from tira.third_party_integrations import (
     ensure_pyterrier_is_loaded,
     load_ir_datasets,
@@ -547,3 +549,37 @@ class TestIRDatasets(unittest.TestCase):
         actual = [i.doc_id for i in dataset.irds_ref().docs_store().get_many_iter(["doc-2", "doc-3"]) if i]
 
         self.assertEqual(expected, actual)
+
+    def test_loading_dataset_from_local_zip_01(self):
+        zip_file = Path(__file__).parent / "resources" / "example-dataset.zip"
+        register_dataset([zip_file], "some-new-dataset-01")
+        ds = ir_datasets.load("some-new-dataset-01")
+        self.assertEqual(10, len(list(ds.qrels_iter())))
+        self.assertEqual(2, len(list(ds.queries_iter())))
+        self.assertEqual(5, len(list(ds.docs_iter())))
+
+    def test_loading_dataset_from_local_zip_02(self):
+        zip_file = Path(__file__).parent / "resources" / "example-dataset.zip"
+        register_dataset(zip_file, "some-new-dataset-02")
+        ds = ir_datasets.load("some-new-dataset-02")
+        self.assertEqual(10, len(list(ds.qrels_iter())))
+        self.assertEqual(2, len(list(ds.queries_iter())))
+        self.assertEqual(5, len(list(ds.docs_iter())))
+
+    def test_loading_dataset_from_local_zip_03(self):
+        zip_file = Path(__file__).parent / "resources" / "example-dataset.zip"
+        register_dataset(str(zip_file), "some-new-dataset-03")
+        ds = ir_datasets.load("some-new-dataset-03")
+        self.assertEqual(10, len(list(ds.qrels_iter())))
+        self.assertEqual(2, len(list(ds.queries_iter())))
+        self.assertEqual(5, len(list(ds.docs_iter())))
+
+    def test_redundant_adding_datasets(self):
+        zip_file = Path(__file__).parent / "resources" / "example-dataset.zip"
+        register_dataset([zip_file], "some-new-dataset-04")
+        register_dataset([zip_file], "some-new-dataset-04")
+        register_dataset([zip_file], "some-new-dataset-04")
+        ds = ir_datasets.load("some-new-dataset-04")
+        self.assertEqual(10, len(list(ds.qrels_iter())))
+        self.assertEqual(2, len(list(ds.queries_iter())))
+        self.assertEqual(5, len(list(ds.docs_iter())))
