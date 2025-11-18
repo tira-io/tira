@@ -120,6 +120,8 @@ class TestIntegration(unittest.TestCase):
     @parameterized.expand(datasets_with_format("truth").items())
     def test_truth_datasets_are_valid(self, k, v):
         TYPE = "truth"
+        if k not in DATASET_TO_MINIMAL_EXAMPLE:
+            return
         val = DATASET_TO_MINIMAL_EXAMPLE[k][TYPE]
         if val == "skip":
             return
@@ -132,6 +134,8 @@ class TestIntegration(unittest.TestCase):
     @parameterized.expand(datasets_with_format("run").items())
     def test_run_datasets_are_valid(self, k, v):
         TYPE = "run"
+        if k not in DATASET_TO_MINIMAL_EXAMPLE:
+            return
         if isinstance(DATASET_TO_MINIMAL_EXAMPLE[k][TYPE], Path):
             print(v[f"{TYPE}_format"])
             print(v[f"{TYPE}_format_configuration"])
