@@ -2,7 +2,7 @@ dataset:
   display_name: Dataset
   links:
     - display_name: Tutorial Post-hoc Analysis of Test Collections with ir_datasets
-      href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
+      href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-ir-datasets.ipynb
       target: _blank
   components:
     args_me:
@@ -233,7 +233,7 @@ document_processing:
       component_type: [TIREx, Tutorial]
       links:
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-medical-classification.ipynb
           target: _blank
         - display_name: Paper
           href: https://webis.de/publications.html?q=health#schlatt_2022a
@@ -245,7 +245,7 @@ document_processing:
       component_type: [Tutorial]
       links:
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-stopword-lists.ipynb
           target: _blank
       components:
         porter_stemmer:
@@ -254,7 +254,7 @@ document_processing:
           component_type: [Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-stemming.ipynb
               target: _blank
         krovetz_stemmer:
           display_name: KrovetzStemmer
@@ -262,7 +262,7 @@ document_processing:
           component_type: [Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-stemming.ipynb
               target: _blank
         lemmatization:
           display_name: Lemmatization
@@ -270,7 +270,7 @@ document_processing:
           component_type: [Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-04-lemmatization.ipynb
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-lemmatization.ipynb
               target: _blank
 
     stopword_removal:
@@ -279,7 +279,7 @@ document_processing:
       component_type: [Tutorial]
       links:
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-stopword-lists.ipynb
           target: _blank
 
 query_processing:
@@ -291,7 +291,7 @@ query_processing:
       focus_type: [Recall]
       links:
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-05-query-expansion.ipynb
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-expansion.ipynb
           target: _blank
         - display_name: PyTerrier Documentation
           href: https://pyterrier.readthedocs.io/en/latest/rewrite.html
@@ -316,7 +316,7 @@ query_processing:
           tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-a
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
         hyb_b:
@@ -326,7 +326,7 @@ query_processing:
           tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-b
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
         hyb_i:
@@ -336,7 +336,7 @@ query_processing:
           tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-i
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
         wt_snp:
@@ -345,7 +345,7 @@ query_processing:
           component_type: [TIREx, Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
         wiki:
@@ -354,7 +354,7 @@ query_processing:
           component_type: [TIREx, Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
         naive:
@@ -363,7 +363,7 @@ query_processing:
           component_type: [TIREx, Tutorial]
           links:
             - display_name: Tutorial
-              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-segmentation.ipynb
               target: _blank
 
     query_performance_prediction:
@@ -374,7 +374,7 @@ query_processing:
           href: https://github.com/Zendelo/QPP-EnhancedEval/tree/main/code/qpptk
           target: _blank
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
           target: _blank
       components:
         avg_idf:
@@ -382,84 +382,84 @@ query_processing:
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         avg_scq:
           display_name: avg-scq
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         avg_var:
           display_name: avg-var
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         clarity:
           display_name: clarity
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         max_idf:
           display_name: max-idf
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         max_scq:
           display_name: max-scq
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         max_var:
           display_name: max-var
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         nqc:
           display_name: nqc
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         scq:
           display_name: scq
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         smv:
           display_name: smv
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         var:
           display_name: var
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
         wig:
           display_name: wig
           component_type: [TIREx, Tutorial]
           links:
           - display_name: Tutorial
-            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-query-performance-prediction.ipynb
             target: _blank
 
     health_classification:
@@ -467,7 +467,7 @@ query_processing:
       component_type: [TIREx, Tutorial]
       links:
         - display_name: Tutorial
-          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
+          href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-medical-classification.ipynb
           target: _blank
         - display_name: Paper
           href: https://webis.de/publications.html?q=health#schlatt_2022a
@@ -862,7 +862,7 @@ evaluation:
       href: https://demo.ir-measur.es/reverse
       target: _blank
     - display_name: Tutorial Post-hoc Analysis of Test Collections with ir_datasets
-      href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
+      href: https://github.com/tira-io/teaching-ir-with-shared-tasks/blob/main/tutorials/tutorial-ir-datasets.ipynb
       target: _blank
   components:
     bpref:
