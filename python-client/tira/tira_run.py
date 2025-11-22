@@ -126,6 +126,17 @@ def guess_system_details(directory, system) -> Dict:
                 ret["team"] = line["content"]["actor"]["team"]
 
             return ret
+        if (
+            line
+            and "content" in line
+            and "actor" in line["content"]
+            and "team" in line["content"]["actor"]
+            and "method" in line["content"]
+            and "name" in line["content"]["method"]
+            and "description" in line["content"]["method"]
+            and isinstance(line["content"]["method"]["name"], str)
+        ):
+            return {"team": line["content"]["actor"]["team"], "description": line["content"]["method"]["description"], "tag": line["content"]["method"]["name"]}
 
     return None
 
