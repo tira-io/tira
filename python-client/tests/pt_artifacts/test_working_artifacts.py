@@ -30,6 +30,22 @@ class TestWorkingArtifacts(unittest.TestCase):
         actual = run.iloc[0].to_dict()
         self.assertEqual(expected, actual)
 
+    def test_bm25_artifact_with_tira_dataset_id(self):
+        expected = {
+            "qid": "51",
+            "docno": "S885c6b4f-Ad3259e81",
+            "rank": 1,
+            "score": 26.07818108898493,
+            "name": "pyterrier.default_pipelines.wmodel_batch_retrieve",
+        }
+        bm25 = load_artifact(
+            "tira:argsme-touche-2021-task-1-20230209-training/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)"
+        )
+
+        run = bm25.transform(pd.DataFrame([{"qid": "51"}]))
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
     def test_hyb_a_query_segmentation_artifact(self):
         expected = ["should", "blood donations", "be financially compensated"]
         hyb_a = load_artifact("tira:argsme/2020-04-01/touche-2021-task-1/ows/query-segmentation-hyb-a")

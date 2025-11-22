@@ -430,6 +430,25 @@ def _extract_dataset_team_approach(url: str) -> Tuple[str, str, str, str]:
             break
 
     if dataset_id is None:
+        from tira.rest_api_client import Client
+
+        tira = Client()
+        for ds in tira.archived_json_response("/v1/datasets/all"):
+            if (
+                not ds
+                or "dataset_id" not in ds
+                or not ds["dataset_id"]
+                or "default_task" not in ds
+                or not ds["default_task"]
+            ):
+                continue
+
+            if url.startswith(ds["dataset_id"] + "/"):
+                url = url.replace(ds["dataset_id"], ds["default_task"])
+                dataset_id = ds["dataset_id"]
+                break
+
+    if dataset_id is None:
         raise ValueError(
             f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. But could not find a ir-dataset."
             f"I got '{url}'. Please see {TIREX_ARTIFACT_DEBUG_URL} for an overview of all available dataset ids."
