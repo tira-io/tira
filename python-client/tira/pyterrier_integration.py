@@ -483,7 +483,8 @@ def _download_artifact_from_tira(url: str) -> Tuple[Path, str]:
                 raise ValueError("Fooo")
 
             for k in system["verified_outputs"][dataset_id]:
-                pt_format = OUTPUT_FORMAT_TO_PT_FORMAT[k]
+                if k in OUTPUT_FORMAT_TO_PT_FORMAT:
+                    pt_format = OUTPUT_FORMAT_TO_PT_FORMAT[k]
 
     if pt_format is None:
         raise ValueError(
