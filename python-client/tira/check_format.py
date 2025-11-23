@@ -406,6 +406,57 @@ class ToucheImageRetrieval(JsonlFormat):
             }
 
 
+class RunWithIrMetadata(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        self.max_size_mb = 250
+        if configuration and hasattr(configuration, "__iter__") and CONF_MAX_SIZE_MB in configuration:
+            self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
+
+    def check_ir_metadata(self, run_output: Path):
+        if not (run_output / "ir-metadata.yml").exists():
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
+            )
+        else:
+            required_fields = {
+                "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "data": {"test collection": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "method": {
+                    "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                    "name": {"type": str, "default": "ENTER_VALUE_HERE"},
+                },
+            }
+            return check_format(
+                run_output / "ir-metadata.yml",
+                "ir_metadata",
+                {"required_fields": required_fields},
+            )
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
+        if self.check_ir_metadata(run_output)[0] != _fmt.OK:
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + self.check_ir_metadata(run_output)[1],
+                _fmt.ERROR,
+            )
+
+        status, msg = check_format(run_output, ["run.txt"], {CONF_MAX_SIZE_MB: self.max_size_mb})
+        if status != _fmt.OK:
+            ret_code = _fmt.ERROR
+            ret_msg += "\n\t" + fmt_message(
+                f"I expected a run file in the directory {run_output}. Error: {msg}", _fmt.ERROR
+            )
+        else:
+            ret_msg += "\n\t" + fmt_message(f"The run in directory {run_output} is valid.", _fmt.OK)
+
+        ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
+
+        return [ret_code, ret_msg]
+
+
 class LongEvalLags(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
@@ -1178,6 +1229,7 @@ FORMAT_TO_CHECK = {
     "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "run-with-metadata": RunWithIrMetadata,
     "terrier-index": TerrierIndex,
     "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
     "multi-author-writing-style-analysis-solutions": lambda: MultiAuthorWritingStyleAnalysis("solution-problem"),
