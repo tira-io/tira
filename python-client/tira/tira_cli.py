@@ -326,6 +326,10 @@ def upload_command(
 
     if dataset is None:
         dataset = guess_dataset(directory)
+        if "ENTER_VALUE_HERE" in dataset:
+            msg = f"The value for (data: test collection: name) in the metadata of the directory {directory} is still set to the default value ENTER_VALUE_HERE. Please replace this."
+            print(fmt_message(msg, _fmt.ERROR))
+            return 1
 
     if dataset is None:
         msg = (
@@ -365,7 +369,9 @@ def upload_command(
             return 1
 
     if not system or not vm_id:
-        print(fmt_message(f"You are not authenticated and no anonymous submissions are allowed for {dataset}", _fmt.ERROR))
+        print(
+            fmt_message(f"You are not authenticated and no anonymous submissions are allowed for {dataset}", _fmt.ERROR)
+        )
         return 1
 
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)

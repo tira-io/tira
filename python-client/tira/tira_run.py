@@ -96,6 +96,7 @@ def guess_dataset(directory: Path, include_hidden_dirs=True) -> Optional[str]:
                 return tmp_ret
 
         print(f"Dataset definitions are ambiguous, I got {ret}.")
+
     return None if len(ret) != 1 else ret[0]
 
 
@@ -136,7 +137,11 @@ def guess_system_details(directory, system) -> Dict:
             and "description" in line["content"]["method"]
             and isinstance(line["content"]["method"]["name"], str)
         ):
-            return {"team": line["content"]["actor"]["team"], "description": line["content"]["method"]["description"], "tag": line["content"]["method"]["name"]}
+            return {
+                "team": line["content"]["actor"]["team"],
+                "description": line["content"]["method"]["description"],
+                "tag": line["content"]["method"]["name"],
+            }
 
     return None
 
