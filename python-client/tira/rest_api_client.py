@@ -1030,6 +1030,9 @@ class Client(TiraClient):
         if len(accepted_formats) == 0:
             accepted_formats = ["run.txt"]  # default format
 
+        if "run-with-metadata" in accepted_formats:
+            accepted_formats = [i for i in accepted_formats if i != "run.txt"]
+
         format_configuration = upload_to_tira.get("format_configuration")
 
         for format in accepted_formats:
