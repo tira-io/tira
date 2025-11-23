@@ -403,7 +403,10 @@ def pt_transformer(path):
     # TODO hacked for the moment, in reality, we must delegate to the classes above.
 
     original_path = path
-    run_path = os.path.join(path, "output", "run.txt")
+    if Path(os.path.join(path, "output", "run.txt.gz")).exists():
+        run_path = os.path.join(path, "output", "run.txt.gz")
+    else:
+        run_path = os.path.join(path, "output", "run.txt")
     df = pt.io.read_results(run_path)
 
     mode = os.getenv("TIRA_ARTIFACT_ON_COLUMN_MISMATCH", "warn").lower()

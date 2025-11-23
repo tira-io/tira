@@ -263,6 +263,18 @@ class TestWorkingArtifacts(unittest.TestCase):
         bm25 = load_artifact("tira:" + str((Path(__file__).parent.parent / "resources" / "ranking-outputs").absolute()))
 
         run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
-        print(run)
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
+    def test_loading_wows_artifact(self):
+        expected = {
+            "qid": "3",
+            "docno": "e2e37f514110c0b3b7548903495348fac3db79d29df27a645f5eab0de4007716",
+            "rank": 0,
+            "score": 37.94272,
+            "name": "pyterrier",
+        }
+        bm25 = pt.Artifact.from_url(f"tira:radboud-validation-20251114-training/ows/chatnoir-title-bm25-100")
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
         actual = run.iloc[0].to_dict()
         self.assertEqual(expected, actual)
