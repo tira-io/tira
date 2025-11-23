@@ -138,6 +138,16 @@ class TestIRDatasets(unittest.TestCase):
         assert len(list(dataset.queries_iter())) == 2
         assert queries["1"] == "fox jumps above animal"
         self.assertEqual("static_ir_dataset-tests/resources/sample-input-full-rank", dataset.dataset_id())
+        actual_sum_of_letters = 0
+        expected_sum_of_letters = 171
+        actual_text_length = 0
+        expected_text_length = 432
+        for doc in dataset.docs_iter():
+            actual_sum_of_letters += doc.letters
+            actual_text_length += len(doc.text) + len(doc.default_text())
+        self.assertEqual(actual_sum_of_letters, expected_sum_of_letters)
+        self.assertEqual(actual_text_length, expected_text_length)
+
 
     def test_loading_queries_from_ir_datasets_from_custom_directory_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)

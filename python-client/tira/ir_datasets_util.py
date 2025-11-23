@@ -90,6 +90,20 @@ def translate_irds_id_to_tirex(dataset: str) -> str:
 
 def __docs(input_file, original_dataset, load_default_text):
     from ir_datasets.formats import BaseDocs, GenericDoc
+    fields_to_skip_from_additional = set(["text", "default_text", "original_document", "docno", "doc_id", "docid", "id", "qid", "query", "rank", "score"])
+    class TirexDoc(GenericDoc):
+        def __init__(self, doc_id, text):
+            super().__init__()
+            self._dict = {}
+
+        def __getattr__(self, key):
+            if key in self._dict:
+                return self._dict[key]
+            else:
+                return super().__getattribute__(key)
+
+        def _set(self, key, value):
+            self._dict[key] = value
 
     class DynamicDocs(BaseDocs):
         def __init__(self, input_file, load_default_text):
@@ -123,7 +137,22 @@ def __docs(input_file, original_dataset, load_default_text):
                 if docno not in already_covered:
                     already_covered.add(docno)
                     text = i["text"] if "text" in i else i["default_text"]
-                    yield GenericDoc(doc_id=docno, text=text)
+                    ret = TirexDoc(doc_id=docno, text=text)
+                    additional_fields = {}
+                    
+                    for k, v in i.items():
+                        if k not in fields_to_skip_from_additional:
+                            additional_fields[k] = v
+
+                    if "original_document" in i:
+                        for k, v in i["original_document"].items():
+                            if k not in fields_to_skip_from_additional:
+                                additional_fields[k] = v
+
+                    for k, v in additional_fields.items():
+                        ret._set(k, v)
+
+                    yield ret
 
         def get_input_file(self):
             if type(self.input_file) is str:
@@ -307,7 +336,7 @@ def load_ir_dataset_from_local_file(directory, ir_dataset_id):
     if os.path.isfile(str(directory) + "/qrels.txt"):
         qrels = TrecQrels(LocalDownload(str(directory) + "/qrels.txt"), {})
 
-    docs = __docs(docs_file, None, True)
+    docs = __docs(docs_file, None, False)
     queries = __queries(queries_file, None)
     ret = Dataset(docs, queries, qrels)
     ret.dataset_id = lambda: ir_dataset_id
