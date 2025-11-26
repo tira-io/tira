@@ -22,7 +22,7 @@ from .git_runner import get_git_runner, get_git_runner_for_software_integration
 from .util import register_run
 
 if TYPE_CHECKING:
-    from typing import Any, Literal, Optional, Union
+    from typing import Any, List, Literal, Optional, Union
 
     from django.core.files.uploadedfile import UploadedFile
     from django.http import HttpRequest
@@ -930,7 +930,7 @@ def edit_task(
     irds_re_ranking_image: str = "",
     irds_re_ranking_command: str = "",
     irds_re_ranking_resource: str = "",
-    aggregated_results: "Optional[str]" = None,
+    aggregated_results: "Optional[List]" = None,
 ):
     """Update the task's data"""
 

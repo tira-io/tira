@@ -2705,9 +2705,9 @@ class HybridDatabase(object):
                 except:
                     valid = False
             if not valid:
-                aggregated_results = None
+                aggregated_results_json = None
             else:
-                aggregated_results = json.dumps(aggregated_results)
+                aggregated_results_json = json.dumps(aggregated_results)
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
@@ -2724,7 +2724,7 @@ class HybridDatabase(object):
             irds_re_ranking_image=irds_re_ranking_image,
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
-            aggregated_results=aggregated_results,
+            aggregated_results=aggregated_results_json,
         )
 
         if help_command:
