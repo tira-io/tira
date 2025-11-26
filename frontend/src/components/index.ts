@@ -16,6 +16,7 @@ import SubissionIcon from "./SubmissionIcon.vue"
 import ConfirmDelete from "./ConfirmDelete.vue"
 import CodeSnippet from "./CodeSnippet.vue"
 import IrMetadataBrowser from "./IrMetadataBrowser.vue";
+import AggregatedResultList from "./AggregatedResultList.vue";
 
 import { useDisplay } from 'vuetify'
 
@@ -24,4 +25,4 @@ function is_mobile() {
     return mobile.value
 }
 
-export { Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, DirectoryInspector, IrMetadataBrowser, is_mobile }
+export { Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, DirectoryInspector, IrMetadataBrowser, AggregatedResultList, is_mobile }

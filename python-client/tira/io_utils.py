@@ -7,15 +7,16 @@ import sys
 import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime as dt
 from glob import glob
 from pathlib import Path
 from subprocess import check_output
-from typing import Any, Dict, Generator, Iterable, List, Optional, Union
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
 
-from tira.check_format import _fmt, log_message
+from tira.check_format import FormatMsgType, _fmt, log_message
 from tira.tira_client import TiraClient
 
 
@@ -66,11 +67,11 @@ def dataset_as_iterator(
         yield i
 
 
-def verify_docker_installation():
+def verify_docker_installation() -> Tuple[FormatMsgType, str]:
     try:
         from tira.local_execution_integration import LocalExecutionIntegration
 
-        local_execution = LocalExecutionIntegration()
+        local_execution: LocalExecutionIntegration = LocalExecutionIntegration()
         assert local_execution.docker_is_installed_failsave()
         return _fmt.OK, "Docker/Podman is installed."
     except:
@@ -101,10 +102,12 @@ def verify_tirex_tracker():
     return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
 
 
-def verify_tira_installation():
+def verify_tira_installation() -> FormatMsgType:
     ret = _fmt.OK
 
-    for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
+    checks: List[Callable] = [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]
+
+    for i in checks:
         status, msg = i()
         log_message(msg, status)
         if status == _fmt.ERROR:
@@ -159,7 +162,7 @@ def flush_stdout_and_stderr(closable=None):
         print("\n")
 
 
-def zip_dir(file_path, allow_list=None):
+def zip_dir(file_path: Path, allow_list: "Optional[set]" = None) -> Path:
     if os.path.isfile(file_path):
         return zip_dir(Path(file_path).parent, set([Path(file_path).name]))
     from tira.third_party_integrations import temporary_directory
@@ -179,11 +182,17 @@ def zip_dir(file_path, allow_list=None):
     return zip_file
 
 
-def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
+def stream_all_lines(
+    input_file: Union[str, Iterable[bytes], Path], load_default_text: bool
+) -> Generator[Dict, Any, Any]:
     """
     .. todo:: add documentation
     .. todo:: this function has two semantics: handling a file and handling file-contents
     """
+    if isinstance(input_file, Path):
+        yield from stream_all_lines(str(input_file), load_default_text)
+        return
+
     if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
@@ -286,11 +295,13 @@ def _ln_huggingface_model_mounts(models: str) -> str:
     return "; ".join(ret + [f'echo "mounted {len(models)} models"'])
 
 
-def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
+def all_lines_to_pandas(input_file: Union[str, Iterable[str], Path], load_default_text: bool) -> pd.DataFrame:
     """
     .. todo:: add documentation
     .. todo:: this function has two semantics: handling a file and handling file-contents
     """
+    if isinstance(input_file, Path):
+        return all_lines_to_pandas(str(input_file), load_default_text)
     if type(input_file) is str:
         if input_file.endswith(".gz"):
             with gzip.open(input_file, "rt", encoding="utf-8") as f:
@@ -338,13 +349,30 @@ def __num(input: str) -> "Union[str, int, float]":
             return input
 
 
-def run_cmd(cmd: List[str], ignore_failure=False):
+def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
     import subprocess
 
     exit_code = subprocess.call(cmd)
 
     if not ignore_failure and exit_code != 0:
         raise ValueError(f"Command {cmd} did exit with return code {exit_code}.")
+
+
+def get_tira_id() -> str:
+    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, dataset_id, task_id):
+    with open(os.path.join(run_dir, "run.prototext"), "w") as f:
+        f.write(run_prototext(run_id, input_run_id, software_id, dataset_id, task_id))
+
+    with open(os.path.join(run_dir, "file-list.txt"), "wb") as f:
+        file_list = check_output(["tree", "-ahv", os.path.join(run_dir, "output")])
+        f.write(file_list)
+
+    size_txt = create_tira_size_txt(run_dir)
+    with open(os.path.join(run_dir, "size.txt"), "wb") as f:
+        f.write(size_txt)
 
 
 def create_tira_size_txt(run_dir):
@@ -357,18 +385,40 @@ def create_tira_size_txt(run_dir):
     return ret
 
 
+def patch_ir_metadata(run_dir: str, src_pattern: Dict, target_pattern: Dict) -> None:
+    import yaml
+
+    from tira.check_format import IrMetadataFormat
+
+    fmt = IrMetadataFormat()
+    fmt.apply_configuration_and_throw_if_invalid({})
+    for i in fmt.all_lines(run_dir):
+        name = i["name"]
+        cnt = i["content"]
+
+        if (
+            "data" in cnt
+            and "test collection" in cnt["data"]
+            and "name" in cnt["data"]["test collection"]
+            and cnt["data"]["test collection"]["name"] == src_pattern["data"]["test collection"]["name"]
+        ):
+            cnt["data"]["test collection"]["name"] = target_pattern["data"]["test collection"]["name"]
+            with open(Path(run_dir) / name, "w") as f:
+                yaml.safe_dump(cnt, f)
+
+
 class TqdmUploadFile:
-    def __init__(self, file_path, desc):
+    def __init__(self, file_path: Path, desc: str) -> None:
         self.file = open(file_path, "rb")
         self.file_size = os.path.getsize(file_path)
         self.tqdm = tqdm(total=self.file_size, desc=desc, unit="B", unit_scale=True)
 
-    def read(self, size=-1):
+    def read(self, size: int = -1) -> bytes:
         chunk = self.file.read(size)
         self.tqdm.update(len(chunk))
         return chunk
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Any:
         return getattr(self.file, attr)
 
     def close(self):
@@ -377,7 +427,7 @@ class TqdmUploadFile:
 
 
 class MonitoredExecution:
-    def run(self, method):
+    def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory
 
         ret = temporary_directory()
@@ -398,30 +448,29 @@ class MonitoredExecution:
         return ret
 
 
-def run_prototext(output_dir, run_id, input_run_id, software_id, dataset_id, task_id):
-    with open(output_dir / "run.prototext", "w") as f:
-        f.write(
-            '''softwareId: "'''
-            + str(software_id)
-            + '''"
+def run_prototext(run_id: str, input_run_id: str, software_id: str, dataset_id: str, task_id: str) -> str:
+    return (
+        '''softwareId: "'''
+        + str(software_id)
+        + '''"
 runId: "'''
-            + run_id
-            + '''"
+        + run_id
+        + '''"
 inputDataset: "'''
-            + dataset_id
-            + '''"
+        + dataset_id
+        + '''"
 inputRun: "'''
-            + input_run_id
-            + '''"
+        + input_run_id
+        + '''"
 downloadable: false
 deleted: false
 taskId: "'''
-            + task_id
-            + '''"
+        + task_id
+        + '''"
 accessToken: "'''
-            + str(uuid.uuid4())
-            + '''"'''
-        )
+        + str(uuid.uuid4())
+        + '''"'''
+    )
 
 
 def parse_prototext_key_values(file_name):

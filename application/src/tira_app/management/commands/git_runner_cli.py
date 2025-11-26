@@ -12,7 +12,6 @@ from ...tira_model import (
     get_git_integration,
     load_refresh_timestamp_for_cache_key,
 )
-from ...util import get_tira_id
 
 logger = logging.getLogger("tira")
 
@@ -157,24 +156,6 @@ class Command(BaseCommand):
 
         if "archive_docker_software" in options and options["archive_docker_software"]:
             self.archive_docker_software(options["archive_docker_software"], git_runner)
-
-        if "run_image" in options and options["run_image"]:
-            git_runner.start_git_workflow(
-                task_id="clickbait-spoiling",
-                dataset_id="task-1-type-classification-validation-20220924-training",
-                vm_id="princess-knight",
-                run_id=get_tira_id(),
-                git_runner_image="webis/pan-clickbait-spoiling-evaluator:0.0.10",
-                git_runner_command="bash -c '/clickbait-spoiling-eval.py --task 2 --ground_truth_spoiler $inputDataset --input_run $inputRun --output_prototext ${outputDir}/evaluation.prototext'",
-                git_repository_id=2761,
-                evaluator_id="task-2-spoiler-generation-validation-20220924-training-evaluator",
-                user_image_to_execute="registry.webis.de/code-research/tira/tira-user-princess-knight/naive-baseline-task2:0.0.1-tira-docker-software-id-genteel-upstream",
-                user_command_to_execute=(
-                    "/naive-baseline-task-2.py --input $inputDataset/input.jsonl --output $outputDir/run.jsonl"
-                ),
-                tira_software_id="17",
-                resources="small-resources-gpu",
-            )
 
         if "clean_repository" in options and options["clean_repository"]:
             #            raise ValueError('ToDo: please insert the git authentication token with the name "tira-automation-bot-gitlab-admin-token" (maiks keepass) to git_runner.py method get_git_runner'

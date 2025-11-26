@@ -25,3 +25,8 @@ class TestLightningIrQueryEmbeddingFormat(unittest.TestCase):
         actual = check_format(LIGTHNING_IR_QUERY_EMBEDDINGS, "lightning-ir-query-embeddings")
         self.assertEqual(_OK, actual[0])
         self.assertIn("Valid lightning-ir embeddings found", actual[1])
+
+    def test_valid_query_embeddings_recursive(self):
+        actual = check_format(LIGTHNING_IR_QUERY_EMBEDDINGS.parent, "lightning-ir-query-embeddings")
+        self.assertEqual(_OK, actual[0])
+        self.assertIn("Valid lightning-ir embeddings found", actual[1])

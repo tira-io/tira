@@ -3,8 +3,13 @@ import logging
 import os
 import shlex
 from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 from tira.io_utils import all_lines_to_pandas
+
+if TYPE_CHECKING:
+
+    from .rest_api_client import Client
 
 
 def ensure_pyterrier_is_loaded(
@@ -94,18 +99,18 @@ def is_running_as_inference_server():
 
 
 def load_rerank_data(default, load_default_text=True):
-    default_input = get_input_directory_and_output_directory(default)[0]
+    default_input = Path(get_input_directory_and_output_directory(default)[0])
 
     if not os.path.isdir(default_input) and len(default.split("/")) == 2:
         from tira.rest_api_client import Client as RestClient
 
         default_input = RestClient().download_dataset(default.split("/")[0], default.split("/")[1])
 
-    if not default_input.endswith("rerank.jsonl") and not default_input.endswith("rerank.jsonl.gz"):
-        if os.path.isfile(default_input + "/rerank.jsonl.gz"):
-            default_input = default_input + "/rerank.jsonl.gz"
-        elif os.path.isfile(default_input + "/rerank.jsonl"):
-            default_input = default_input + "/rerank.jsonl"
+    if not str(default_input).endswith("rerank.jsonl") and not str(default_input).endswith("rerank.jsonl.gz"):
+        if os.path.isfile(default_input / "rerank.jsonl.gz"):
+            default_input = default_input / "rerank.jsonl.gz"
+        elif os.path.isfile(default_input / "rerank.jsonl"):
+            default_input = default_input / "rerank.jsonl"
 
     return all_lines_to_pandas(default_input, load_default_text)
 
@@ -130,14 +135,20 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 
 
 def persist_and_normalize_run(
-    run, system_name, default_output=None, output_file=None, depth=1000, upload_to_tira=None, tira_client=None
+    run,
+    system_name: str,
+    default_output: "Optional[Path]" = None,
+    output_file: "Optional[Path]" = None,
+    depth: int = 1000,
+    upload_to_tira: Optional["str"] = None,
+    tira_client: "Optional[Client]" = None,
 ):
     if output_file is None and default_output is None:
         print(
             'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "."'
             " as default."
         )
-        output_file = os.environ.get("TIRA_OUTPUT_DIR", ".")
+        output_file = Path(os.environ.get("TIRA_OUTPUT_DIR", "."))
 
     if default_output is not None:
         if os.environ.get("TIRA_OUTPUT_DIR") is None:
@@ -147,8 +158,8 @@ def persist_and_normalize_run(
             output_file = os.environ.get("TIRA_OUTPUT_DIR")
             print(f'The run file is normalized inside the TIRA sandbox, I will store it at "{output_file}".')
 
-    if not output_file.endswith("run.txt"):
-        output_file = output_file + "/run.txt"
+    if not str(output_file).endswith("run.txt"):
+        output_file = output_file / "run.txt"
     if upload_to_tira and not in_tira_sandbox():
         tira = _tira_client(tira_client)
         tmp = tira.get_dataset(upload_to_tira)
@@ -189,7 +200,7 @@ def upload_run_anonymous(directory: Path = None, tira_client=None, dataset_id=No
     tira.upload_run_anonymous(directory, upload_to_tira["dataset_id"])
 
 
-def temporary_directory():
+def temporary_directory() -> Path:
     import tempfile
 
     try:

@@ -12,3 +12,4 @@ disallow_untyped_calls = true
 explicit_package_bases = true
 ignore_missing_imports = true
 install_types = true
+exclude = '^(tests/)'

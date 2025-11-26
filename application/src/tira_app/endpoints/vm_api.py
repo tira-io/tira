@@ -1,7 +1,9 @@
 import html
 import json
 import logging
+import os
 import shutil
+import threading
 import uuid
 import zipfile
 from functools import wraps
@@ -20,6 +22,7 @@ from grpc import RpcError, StatusCode
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
+from tira.io_utils import get_tira_id
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
@@ -27,7 +30,7 @@ from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
-from ..util import get_tira_id, link_to_discourse_team, reroute_host
+from ..util import link_to_discourse_team, reroute_host
 from ..views import add_context
 
 if TYPE_CHECKING:
@@ -437,8 +440,6 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
 
 
 def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
-    import threading
-
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
 
@@ -461,13 +462,53 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
             print(eval_result)
             eval_run_id = str(uuid4()) + "-evaluates-" + run_id
 
-            run_prototext(eval_result, eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id)
+            with open(os.path.join(eval_result, "run.prototext"), "w") as f:
+                f.write(run_prototext(eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id))
+
             shutil.move(src=eval_result, dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
             print(model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
 
             model.add_run(dataset_id, vm_id, eval_run_id)
 
     EvalInBackground().start()
+
+
+def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
+    from tira_worker import evaluate
+
+    evaluator_id = model.get_dataset(dataset)["evaluator_id"]
+    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team], queue="evaluator")
+
+
+def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
+    from tira.evaluators import unsandboxed_evaluation_is_allowed
+
+    ds = model.get_dataset(dataset_id)
+    if unsandboxed_evaluation_is_allowed(ds):
+        run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=run_id)
+    else:
+        run_sandboxed_eval(run_id=run_id, dataset=dataset_id, task=task_id, team=vm_id)
+
+
+def run_sandboxed_software(
+    task_id: str,
+    dataset_id: str,
+    vm_id: str,
+    docker_image: str,
+    command: str,
+    software_id: str,
+    docker_resources: str,
+    input_runs: str,
+    mount_hf_model: "Optional[list[str]]",
+) -> None:
+    from tira_worker import run
+
+    if isinstance(mount_hf_model, str):
+        mount_hf_model = [mount_hf_model]
+
+    run.apply_async(
+        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model], queue=docker_resources
+    )
 
 
 @check_conditional_permissions(private_run_ok=True)
@@ -484,21 +525,10 @@ def run_eval(request, vm_id, dataset_id, run_id):
             {"status": "1", "message": "An evaluation is already in progress."}, status=HTTPStatus.PRECONDITION_FAILED
         )
 
-    from tira.evaluators import unsandboxed_evaluation_is_allowed
+    ds = model.get_dataset(dataset_id)
+    _run_evaluation(vm_id, ds["task"], run_id, dataset_id)
 
-    if unsandboxed_evaluation_is_allowed(model.get_dataset(dataset_id)):
-        run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=run_id)
-        return JsonResponse({"status": 0, "message": "ok", "new_run": run_id, "started_evaluation": True})
-
-    evaluator = model.get_evaluator(dataset_id)
-    if "is_git_runner" in evaluator and evaluator["is_git_runner"]:
-        ret = _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
-        git_runner = model.get_git_integration(dataset_id=dataset_id)
-        git_runner.all_running_pipelines_for_repository(evaluator["git_repository_id"], cache, force_cache_refresh=True)
-
-        return ret
-
-    return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
+    return JsonResponse({"status": 0, "message": "ok", "new_run": run_id, "started_evaluation": True})
 
 
 @check_conditional_permissions(private_run_ok=True)
@@ -558,13 +588,7 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
             Run.objects.get(run_id=new_run["run"]["run_id"]).delete()
             return JsonResponse({"status": 1, "message": message})
 
-        dataset_dict = model.model._dataset_to_dict(dataset)
-
-        if unsandboxed_evaluation_is_allowed(dataset_dict):
-            run_unsandboxed_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
-        elif model.git_pipeline_is_enabled_for_task(task_id, cache):
-            run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
-            return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
+        _run_evaluation(vm_id, task_id, new_run["run"]["run_id"], dataset_id)
 
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
     else:
@@ -1376,56 +1400,21 @@ def run_execute_docker_software(
     if not dataset_id or dataset_id is None or dataset_id == "None":
         return JsonResponse({"status": 1, "message": "Please specify the associated dataset_id."})
 
-    evaluator = model.get_evaluator(dataset_id)
-
-    if (
-        not evaluator
-        or "is_git_runner" not in evaluator
-        or not evaluator["is_git_runner"]
-        or "git_runner_image" not in evaluator
-        or not evaluator["git_runner_image"]
-        or "git_runner_command" not in evaluator
-        or not evaluator["git_runner_command"]
-        or "git_repository_id" not in evaluator
-        or not evaluator["git_repository_id"]
-    ):
-        return JsonResponse(
-            {"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"}
-        )
-
     input_runs, errors = model.get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_id)
 
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
-    git_runner = model.get_git_integration(task_id=task_id)
-    git_runner.run_docker_software_with_git_workflow(
+    run_sandboxed_software(
         task_id,
         dataset_id,
         vm_id,
-        get_tira_id(),
-        evaluator["git_runner_image"],
-        evaluator["git_runner_command"],
-        evaluator["git_repository_id"],
-        evaluator["evaluator_id"],
         docker_software["tira_image_name"],
         docker_software["command"],
         "docker-software-" + docker_software_id,
         docker_resources,
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
-        docker_software.get("tira_image_workdir", None),
-    )
-
-    running_pipelines = git_runner.all_running_pipelines_for_repository(
-        evaluator["git_repository_id"], cache, force_cache_refresh=True
-    )
-    print(
-        "Refreshed Cache for repo "
-        + str(evaluator["git_repository_id"])
-        + " with "
-        + str(len(running_pipelines))
-        + " jobs."
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)

@@ -13,6 +13,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
 from tira.check_format import SUPPORTED_FORMATS
+from tira.io_utils import get_tira_id
 
 from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
@@ -20,7 +21,6 @@ from ..util import (
     TiraModelIntegrityError,
     TiraModelWriteError,
     auto_reviewer,
-    get_tira_id,
     get_today_timestamp,
     link_to_discourse_team,
     now,
@@ -28,7 +28,7 @@ from ..util import (
 from . import data as dbops
 
 if TYPE_CHECKING:
-    from typing import _T, Any, Iterable, Literal, Mapping, Optional, Sequence, Union
+    from typing import _T, Any, Iterable, List, Literal, Mapping, Optional, Sequence, Union
 
     from django.core.files.uploadedfile import UploadedFile
     from django.db.models import BaseManager
@@ -271,6 +271,13 @@ class HybridDatabase(object):
             logger.error(f"Task with id {task.task_id} has no master vm associated")
             master_vm_id = "None"
 
+        aggregated_results = None
+        if task.aggregated_results:
+            try:
+                aggregated_results = json.loads(task.aggregated_results)
+            except:
+                pass
+
         result = {
             "task_id": task.task_id,
             "task_name": task.task_name,
@@ -300,6 +307,7 @@ class HybridDatabase(object):
             "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
             "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
             "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval,
+            "aggregated_results": aggregated_results,
         }
 
         if include_dataset_stats:
@@ -1987,6 +1995,9 @@ class HybridDatabase(object):
 
     def _fdb_add_dataset_to_task(self, task_id: str, dataset_id: str, dataset_type: str) -> None:
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
+        if not task_file_path.exists():
+            task = modelpb.Tasks.Task()
+            task_file_path.write_text(str(task))
         task = Parse(task_file_path.read_bytes(), modelpb.Tasks.Task())
         if dataset_type == "test":
             task.testDataset.append(dataset_id)
@@ -2446,13 +2457,15 @@ class HybridDatabase(object):
         (run_dir / "run.prototext").write_text(str(run))
 
         if uploaded_file.name.endswith(".zip"):
-            with open(run_dir / "output" / uploaded_file.name, "wb+") as destination:
+            tmp_zip_file = run_dir / "output" / uploaded_file.name
+            with open(tmp_zip_file, "wb+") as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
 
             with zipfile.ZipFile(run_dir / "output" / uploaded_file.name, "r") as zip_ref:
                 zip_ref.extractall(run_dir / "output")
 
+            tmp_zip_file.unlink()
         else:
             default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
             if upload.rename_to and upload.rename_to.replace(" ", "").replace("\\", "").replace("/", "").strip():
@@ -2673,14 +2686,33 @@ class HybridDatabase(object):
         irds_re_ranking_image: str = "",
         irds_re_ranking_command: str = "",
         irds_re_ranking_resource: str = "",
+        aggregated_results: "Optional[List]" = None,
     ):
 
+        if aggregated_results:
+            import tempfile
+
+            from tira.check_format import _fmt, check_format
+
+            valid = True
+            for aggregated_result in aggregated_results:
+                try:
+                    with tempfile.TemporaryDirectory() as tmp:
+                        json.dump(aggregated_result, open(f"{tmp}/aggregated-results.json", "w"))
+                        c, _ = check_format(Path(tmp), "aggregated-results.json")
+                        if c != _fmt.OK:
+                            valid = False
+                except:
+                    valid = False
+            if not valid:
+                aggregated_results_json = None
+            else:
+                aggregated_results_json = json.dumps(aggregated_results)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
-        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
         task.update(
             task_name=task_name,
             task_description=task_description,
-            vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
             featured=featured,
@@ -2692,6 +2724,7 @@ class HybridDatabase(object):
             irds_re_ranking_image=irds_re_ranking_image,
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
+            aggregated_results=aggregated_results_json,
         )
 
         if help_command:

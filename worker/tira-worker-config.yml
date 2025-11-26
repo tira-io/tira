@@ -1,0 +1,16 @@
+# IMPORTANT!
+# This configuration file should also be copied into the backend.
+
+##########################################################################################
+# TIRA                                                                                   #
+##########################################################################################
+# Enables debug mode. This means more verbose output in the console and for the REST-API.
+# Settings this value to true in production is a security risk!
+debug: !ENV ${TIRA_DEBUG:false}
+
+##########################################################################################
+# Distributed Queue                                                                      #
+##########################################################################################
+# See also: https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html
+queue_broker_url: !ENV ${TIRA_BROKER_URL:amqp://localhost"}
+queue_results_backend_url: !ENV ${TIRA_RESULTS_BACKEND_URL:rpc://localhost}

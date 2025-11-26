@@ -24,10 +24,6 @@ class TiraModelIntegrityError(Exception):
     pass
 
 
-def get_tira_id() -> str:
-    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
-
-
 def get_today_timestamp() -> str:
     return dt.now().strftime("%Y%m%d")
 

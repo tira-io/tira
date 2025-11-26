@@ -9,11 +9,15 @@ import tempfile
 import uuid
 from copy import deepcopy
 from pathlib import Path
+from typing import TYPE_CHECKING, Optional
 
 import docker
 import pandas as pd
 
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
+
+if TYPE_CHECKING:
+    from .tira_client import TiraClient
 
 
 class LocalExecutionIntegration:
@@ -166,10 +170,10 @@ class LocalExecutionIntegration:
 
         return ret + ["/var/run/docker.sock"]
 
-    def docker_is_installed_failsave(self):
+    def docker_is_installed_failsave(self) -> bool:
         return self.__docker_client() is not None
 
-    def __docker_client(self):
+    def __docker_client(self) -> docker.DockerClient:
         try:
             environ = os.environ.copy()
             if sys.platform == "linux" and "DOCKER_HOST" not in environ:
@@ -192,7 +196,7 @@ class LocalExecutionIntegration:
         except Exception as e:
             raise ValueError("It seems like docker is not installed?", e)
 
-    def docker_client_is_authenticated(self, client=None):
+    def docker_client_is_authenticated(self, client: "Optional[TiraClient]" = None) -> bool:
         if not client:
             client = self.__docker_client()
 
@@ -397,6 +401,9 @@ class LocalExecutionIntegration:
         additional_volumes=None,
         eval_dir="tira-evaluation",
         gpu_count=0,
+        cpu_count=None,
+        mem_limit=None,
+        gpu_device_ids=None,
     ):
         previous_stages = []
         original_args = {
@@ -497,6 +504,10 @@ class LocalExecutionIntegration:
         device_requests = []
         if gpu_count != 0:
             device_requests = [docker.types.DeviceRequest(count=gpu_count, capabilities=[["gpu"]])]
+        elif gpu_device_ids:
+            device_requests = [
+                docker.types.DeviceRequest(device_ids=[str(i)], capabilities=[["gpu"]]) for i in gpu_device_ids
+            ]
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
@@ -515,6 +526,9 @@ class LocalExecutionIntegration:
             remove=True,
             network_disabled=not allow_network,
             device_requests=device_requests,
+            mem_limit=mem_limit,
+            cpu_count=cpu_count,
+            privileged=True,
         )
 
         for line in container.attach(stdout=True, stream=True, logs=True):

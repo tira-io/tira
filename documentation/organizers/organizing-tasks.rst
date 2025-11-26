@@ -1,10 +1,25 @@
 Organizing Tasks
 ================
 
-.. dropdown:: :material-regular:`looks_one;1.5em` Apply for a Reviewer Account
+
+   You can test that the setup of your task is valid on your machine. Please install the TIRA client on your machine:
+   
+   .. code::
+
+      pip3 install tira
+
+   Next, you can use the `tira-cli dataset-submission ...` command to test and upload your task.
+
+   Examples of declarative task setups are available at, for instance, example tasks, including their definitions, include:
+   
+   - `Learned Sparse Retrieval <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/learned-sparse-retrieval>`_
+   - `Multi Author Analysis <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/multi-author-analysis>`_ 
+
+
+.. dropdown:: :material-regular:`looks_one;1.5em` Apply for a Organizer Account
    :chevron: down-up
 
-   Create an account at `tira.io <https://www.tira.io/>`_ and ask an admin to add you to the `tira_reviewer <https://www.tira.io/g/tira_reviewer>`_ group.
+   You can host your own instance of tira. If you want to organize your task at TIRA.io, you can create an account at `tira.io <https://www.tira.io/>`_ and ask an admin to add you to the `tira_reviewer <https://www.tira.io/g/tira_reviewer>`_ group.
 
 
 .. dropdown:: :material-regular:`looks_two;1.5em` Setup the Git Runner

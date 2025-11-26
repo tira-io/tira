@@ -378,7 +378,23 @@ USE_TZ = True
 DISCOURSE_API_URL = custom_settings["discourse_api_url"]
 DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
 PUBLIC_TRAINING_DATA = set(
-    ["jena-topics-20231026-test", "leipzig-topics-20231025-test", "subsampled-ms-marco-ir-lab-20250105-test"]
+    [
+        "jena-topics-20231026-test",
+        "leipzig-topics-20231025-test",
+        "subsampled-ms-marco-ir-lab-20250105-test",
+        "trec-18-web-20251008-test",
+        "trec-19-web-20251008-test",
+        "trec-20-web-20251008-test",
+        "trec-21-web-20251008-test",
+        "trec-22-web-20251008-test",
+        "trec-23-web-20251008-test",
+        "trec-28-misinfo-20251008_1-test",
+        "trec-robust-2004-fold-1-20250927-test",
+        "trec-robust-2004-fold-2-20250926-test",
+        "trec-robust-2004-fold-3-20250926-test",
+        "trec-robust-2004-fold-4-20250926-test",
+        "trec-robust-2004-fold-5-20250926-test",
+    ]
 )
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {

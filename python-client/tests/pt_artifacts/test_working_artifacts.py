@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 
 import pandas as pd
 import pyterrier as pt
@@ -23,6 +24,22 @@ class TestWorkingArtifacts(unittest.TestCase):
         }
         bm25 = load_artifact(
             "tira:argsme/2020-04-01/touche-2021-task-1/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)"
+        )
+
+        run = bm25.transform(pd.DataFrame([{"qid": "51"}]))
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
+    def test_bm25_artifact_with_tira_dataset_id(self):
+        expected = {
+            "qid": "51",
+            "docno": "S885c6b4f-Ad3259e81",
+            "rank": 1,
+            "score": 26.07818108898493,
+            "name": "pyterrier.default_pipelines.wmodel_batch_retrieve",
+        }
+        bm25 = load_artifact(
+            "tira:argsme-touche-2021-task-1-20230209-training/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)"
         )
 
         run = bm25.transform(pd.DataFrame([{"qid": "51"}]))
@@ -217,3 +234,47 @@ class TestWorkingArtifacts(unittest.TestCase):
         self.assertIsInstance(metadata, dict)
         self.assertEqual(metadata.get("type"), "tira")
         self.assertEqual(metadata.get("format"), "pt_document_transformer")
+
+    def test_local_bm25_artifact_from_file(self):
+        expected = {
+            "qid": "3",
+            "docno": "doc-3",
+            "rank": 1,
+            "score": 1.0,
+            "name": "tag",
+        }
+        bm25 = load_artifact(
+            "tira:" + str((Path(__file__).parent.parent / "resources" / "ranking-outputs" / "run.txt").absolute())
+        )
+
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
+        print(run)
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
+    def test_local_bm25_artifact_from_dir(self):
+        expected = {
+            "qid": "3",
+            "docno": "doc-3",
+            "rank": 1,
+            "score": 1.0,
+            "name": "tag",
+        }
+        bm25 = load_artifact("tira:" + str((Path(__file__).parent.parent / "resources" / "ranking-outputs").absolute()))
+
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)
+
+    def test_loading_wows_artifact(self):
+        expected = {
+            "qid": "3",
+            "docno": "e2e37f514110c0b3b7548903495348fac3db79d29df27a645f5eab0de4007716",
+            "rank": 0,
+            "score": 37.94272,
+            "name": "pyterrier",
+        }
+        bm25 = pt.Artifact.from_url(f"tira:radboud-validation-20251114-training/ows/chatnoir-title-bm25-100")
+        run = bm25.transform(pd.DataFrame([{"qid": "3"}]))
+        actual = run.iloc[0].to_dict()
+        self.assertEqual(expected, actual)

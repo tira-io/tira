@@ -3,13 +3,14 @@ from abc import ABC
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 CONF_ID_FIELD = "id_field"
 from tira.check_format import (
     CONF_ID_FIELD,
     CONF_MAX_SIZE_MB,
     CONF_VALUE_FIELD,
+    KeyValueFormatBase,
     _fmt,
     check_format,
     check_format_configuration_if_valid,
@@ -73,6 +74,11 @@ class TextGenerationEvaluator(TiraBaseEvaluator):
 
         run_format_checker = check_format_configuration_if_valid(self._run_format, self._run_format_configuration)
 
+        if not isinstance(run_format_checker, KeyValueFormatBase):
+            raise ValueError(
+                f"Configuration error. {self._run_format} needs to be an instance of run_format_checker. But got {run_format_checker}."
+            )
+
         if not run_format_checker.has_id_and_value_field():
             raise ValueError(f"The run format needs an field {CONF_ID_FIELD} and an field {CONF_VALUE_FIELD}")
 
@@ -86,6 +92,11 @@ class TextGenerationEvaluator(TiraBaseEvaluator):
             truth_format_checker = check_format_configuration_if_valid(
                 self._truth_format, self._truth_format_configuration
             )
+            if not isinstance(truth_format_checker, KeyValueFormatBase):
+                raise ValueError(
+                    f"Configuration error. {self._truth_format} needs to be an instance of KeyValueFormatBase. But got {truth_format_checker}."
+                )
+
             if truth_format_checker.id_field is not None:
                 self.truth_id_column = truth_format_checker.id_field
 
@@ -226,9 +237,9 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
 
         return truths_rankings, predictions_rankings
 
-    def __pairwise_rankings(self, id_to_query_doc: Any, predictions: Any):
-        truths_rankings = {}
-        predictions_rankings = {}
+    def __pairwise_rankings(self, id_to_query_doc: Any, predictions: Any) -> Tuple[Dict, Dict]:
+        truths_rankings: Dict = {}
+        predictions_rankings: Dict = {}
 
         for k, v in id_to_query_doc.items():
             if v["query_id"] not in truths_rankings:
@@ -243,8 +254,8 @@ class WowsEvalEvaluator(TiraBaseEvaluator):
 
             predictions_rankings[v["query_id"]][v["doc_id"]] += float(predictions[k]["probability_relevant"])
 
-        ret_truths_ranking = {}
-        ret_predictions_rankings = {}
+        ret_truths_ranking: Dict = {}
+        ret_predictions_rankings: Dict = {}
 
         for qid, docids in truths_rankings.items():
             ret_truths_ranking[qid] = [{"doc_id": i, "score": truths_rankings[qid][i]} for i in docids]
@@ -420,13 +431,13 @@ class TrecToolsEvaluator(TiraBaseEvaluator):
 
         ret = {}
         if "nDCG@10" in self._measures:
-            ret["nDCG@10"] = te.get_ndcg(depth=10)
+            ret["nDCG@10"] = float(te.get_ndcg(depth=10))
 
         if "P@10" in self._measures:
-            ret["P@10"] = te.get_precision(depth=10)
+            ret["P@10"] = float(te.get_precision(depth=10))
 
         if "RR" in self._measures:
-            ret["RR"] = te.get_reciprocal_rank()
+            ret["RR"] = float(te.get_reciprocal_rank())
 
         return {k: ret[k] for k in self._measures}
 
@@ -533,7 +544,7 @@ def get_evaluators_if_valid(
 def evaluate(
     run: Path,
     truths: Path,
-    config: "Union[dict, str]",
+    config: "Union[Dict, str]",
     output_dir: "Optional[Path]" = None,
     client: "Optional[TiraClient]" = None,
     monitored: "Optional[bool]" = False,

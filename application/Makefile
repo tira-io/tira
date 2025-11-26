@@ -23,6 +23,8 @@ clean:
 	rm -f ../model/src/model/virtual-machines/admin.prototext
 
 setup:
+	s3cmd mb s3://tira-mirrored-resources || echo "already exists"
+	python3 src/manage.py makemigrations
 	python3 src/manage.py migrate
 	python3 src/manage.py createcachetable
 	python3 src/manage.py makemigrations tira

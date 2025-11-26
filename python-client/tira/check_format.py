@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 
 class FormatMsgType(Enum):
@@ -19,7 +19,7 @@ class FormatMsgType(Enum):
 _fmt = FormatMsgType
 
 
-def fmt_message(message: str, level: _fmt):
+def fmt_message(message: str, level: _fmt) -> str:
     """
     Prints a formatted log message with a symbol indicating the status.
 
@@ -154,7 +154,7 @@ class RunFormat(FormatBase):
         except Exception as e:
             return [_fmt.ERROR, e.args[0]]
 
-        if len(lines) < 10:
+        if len(lines) < 5:
             return [_fmt.ERROR, f"The run file contains only {len(lines)} lines, this is likely an error."]
 
         query_to_docs = {}
@@ -300,8 +300,33 @@ class KeyValueFormatBase(FormatBase):
                 f"Please set both id_field and value_field or none of both. Got id_field = {self.id_field} and value_field = {self.value_field}."
             )
 
-    def has_id_and_value_field(self):
+    def has_id_and_value_field(self) -> bool:
         return self.id_field is not None and self.value_field is not None
+
+
+class AggregatedResults(FormatBase):
+    def check_format(self, run_output: Path):
+        if not (run_output / "aggregated-results.json").exists():
+            return [_fmt.ERROR, "No aggregated-results.json files."]
+
+        try:
+            val = json.load(open(run_output / "aggregated-results.json"))
+        except:
+            return [_fmt.ERROR, "The aggregated-results.json file is invalid json."]
+
+        for required_field in [
+            "title",
+            "description",
+            "ev_keys",
+            "lines",
+            "table_headers",
+            "table_headers_small_layout",
+            "table_sort_by",
+        ]:
+            if required_field not in val:
+                return [_fmt.ERROR, "The aggregated-results.json misses the field " + required_field]
+
+        return [_fmt.OK, "The agregated-results.json file has the correct format."]
 
 
 class JsonlFormat(KeyValueFormatBase):
@@ -363,6 +388,124 @@ class JsonlFormat(KeyValueFormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
 
+class TrecEvalLeaderboard(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(configuration)
+
+        minimum_lines = 5
+
+        if configuration and hasattr(configuration, "__iter__"):
+            if CONF_MINIMUM_LINES in configuration:
+                minimum_lines = int(configuration[CONF_MINIMUM_LINES])
+
+        self.minimum_lines = minimum_lines
+
+    def matching_files(self, run_output):
+        ret = []
+        for i in [run_output] + glob(f"{run_output.absolute()}/*"):
+            valid_lines = 0
+            i = Path(i)
+            if not i.is_file():
+                continue
+
+            for l in super().yield_next_entry(i):
+                if not l.strip():
+                    continue
+
+                if not self.parse_line_failsave(l):
+                    break
+
+                if valid_lines > self.minimum_lines:
+                    ret.append(Path(i))
+                    break
+                valid_lines += 1
+
+        return ret
+
+    def parse_line_failsave(self, l):
+        try:
+            run, metric, query, value = l.split()
+            return {"run": run, "metric": metric, "query": query, "value": value}
+        except:
+            return None
+
+    def check_format(self, run_output: Path):
+        matches = self.matching_files(run_output)
+
+        if len(matches) != 1:
+            msg = "No unique file in trec-eval -q format was found, only the files "
+            msg += str(os.listdir(run_output)) + " were available."
+            return [_fmt.ERROR, msg]
+
+        lines = 0
+        run_to_measure_to_queries = {}
+
+        try:
+            for i in self.yield_next_entry(run_output):
+                lines += 1
+                if i["run"] not in run_to_measure_to_queries:
+                    run_to_measure_to_queries[i["run"]] = {}
+                if i["metric"] not in run_to_measure_to_queries[i["run"]]:
+                    run_to_measure_to_queries[i["run"]][i["metric"]] = set()
+                run_to_measure_to_queries[i["run"]][i["metric"]].add(i["query"])
+        except Exception as e:
+            return [_fmt.ERROR, repr(e)]
+
+        if lines < self.minimum_lines:
+            return [
+                _fmt.ERROR,
+                f"The trec-eval-leaderboard file contains only {lines} lines, this is likely an error.",
+            ]
+
+        if len(run_to_measure_to_queries.keys()) < 2:
+            return [
+                _fmt.ERROR,
+                f"The trec-eval-leaderboard file contains only {len(run_to_measure_to_queries.keys())} systems, this is likely an error.",
+            ]
+
+        expected_measures = run_to_measure_to_queries[list(run_to_measure_to_queries.keys())[0]].keys()
+        expected_queries = run_to_measure_to_queries[list(run_to_measure_to_queries.keys())[0]][
+            list(expected_measures)[0]
+        ]
+
+        for run in run_to_measure_to_queries:
+            actual_measures = run_to_measure_to_queries[run].keys()
+            if actual_measures != expected_measures:
+                return [
+                    _fmt.ERROR,
+                    "The trec-eval-leaderboard is not valid. Some measures are not available for all scenarios.",
+                ]
+            for measure in actual_measures:
+                if "all" not in run_to_measure_to_queries[run][measure]:
+                    return [
+                        _fmt.ERROR,
+                        f"The trec-eval-leaderboard is not valid. The all entry for run {run} and measure {measure} is missing.",
+                    ]
+                actual_queries = run_to_measure_to_queries[run][measure]
+                if actual_queries != expected_queries:
+                    return [
+                        _fmt.ERROR,
+                        "The trec-eval-leaderboard is not valid. Some queries are not evaluated for all scenarios.",
+                    ]
+
+        return [_fmt.OK, "Valid trec-eval-leaderboard."]
+
+    def yield_next_entry(self, f: Path):
+        matches = self.matching_files(f)
+
+        if len(matches) != 1:
+            raise ValueError(
+                "No unique file in trec-eval -q format was found, only the files "
+                + str(os.listdir(f))
+                + " were available."
+            )
+
+        for i in super().yield_next_entry(matches[0]):
+            i = self.parse_line_failsave(i)
+            if i:
+                yield i
+
+
 class ToucheImageRetrieval(JsonlFormat):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         super().apply_configuration_and_throw_if_invalid(
@@ -379,6 +522,57 @@ class ToucheImageRetrieval(JsonlFormat):
                 "score": 1000 - i["rank"],
                 "system": i["tag"],
             }
+
+
+class RunWithIrMetadata(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        self.max_size_mb = 250
+        if configuration and hasattr(configuration, "__iter__") and CONF_MAX_SIZE_MB in configuration:
+            self.max_size_mb = configuration[CONF_MAX_SIZE_MB]
+
+    def check_ir_metadata(self, run_output: Path):
+        if not (run_output / "ir-metadata.yml").exists():
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
+            )
+        else:
+            required_fields = {
+                "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "data": {"test collection": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "method": {
+                    "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                    "name": {"type": str, "default": "ENTER_VALUE_HERE"},
+                },
+            }
+            return check_format(
+                run_output / "ir-metadata.yml",
+                "ir_metadata",
+                {"required_fields": required_fields},
+            )
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
+        if self.check_ir_metadata(run_output)[0] != _fmt.OK:
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + self.check_ir_metadata(run_output)[1],
+                _fmt.ERROR,
+            )
+
+        status, msg = check_format(run_output, ["run.txt"], {CONF_MAX_SIZE_MB: self.max_size_mb})
+        if status != _fmt.OK:
+            ret_code = _fmt.ERROR
+            ret_msg += "\n\t" + fmt_message(
+                f"I expected a run file in the directory {run_output}. Error: {msg}", _fmt.ERROR
+            )
+        else:
+            ret_msg += "\n\t" + fmt_message(f"The run in directory {run_output} is valid.", _fmt.OK)
+
+        ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
+
+        return [ret_code, ret_msg]
 
 
 class LongEvalLags(FormatBase):
@@ -932,6 +1126,7 @@ class DocumentProcessorFormat(JsonlFormat):
         self.docno_name = docno_name
 
     def apply_configuration_and_throw_if_invalid(self, configuration):
+        super().apply_configuration_and_throw_if_invalid(configuration)
         self.minimum_lines = 1
         self.doc_ids = ["docno", "docid", "doc_id"]
 
@@ -996,8 +1191,11 @@ class LightningIrDocumentEmbeddings(FormatBase):
         raise ValueError("not implemented")
 
     def check_format(self, run_output: Path):
-        for expected_file in ["doc_ids.txt", "index.pt"]:
-            if not (Path(run_output) / expected_file).is_file():
+        for expected_file in ["doc-ids.txt", "doc-embeddings.npz"]:
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
@@ -1007,8 +1205,11 @@ class LightningIrQueryEmbeddings(FormatBase):
         raise ValueError("not implemented")
 
     def check_format(self, run_output: Path):
-        for expected_file in ["query_embeddings.pt", "query_ids.txt"]:
-            if not (Path(run_output) / expected_file).is_file():
+        for expected_file in ["query-embeddings.npz", "query-ids.txt"]:
+            if (
+                len(glob(f"{Path(run_output)}/{expected_file}")) == 0
+                and len(glob(f"{Path(run_output)}/**/{expected_file}")) == 0
+            ):
                 return [_fmt.ERROR, f"No lightning-ir embeddings found. I expected a file {expected_file}"]
         return [_fmt.OK, "Valid lightning-ir embeddings found."]
 
@@ -1104,7 +1305,7 @@ class IrMetadataFormat(FormatBase):
 
         candidates = [str(run_output)]
         for pattern in ["/*.yml", "/*.yaml", "/.*.yml", "/.*.yaml"]:
-            for depth in ["", "/**", "/**/**"]:
+            for depth in ["", "/**", "/**/**", "/.**", "/.**/**", "/.**/.**"]:
                 candidates += glob(str(run_output) + depth + pattern)
 
         for candidate in candidates:
@@ -1122,8 +1323,11 @@ class IrMetadataFormat(FormatBase):
 
                         if not at_least_one_positive_field:
                             continue
+                    name = candidate.split("/")[-1]
+                    if len(candidate.split("/")) > 1 and candidate.split("/")[-2].startswith("."):
+                        name = str(candidate.split("/")[-2]) + "/" + name
 
-                    yield {"name": candidate.split("/")[-1], "content": content}
+                    yield {"name": name, "content": content}
                 except yaml.YAMLError:
                     pass
 
@@ -1132,6 +1336,7 @@ FORMAT_TO_CHECK = {
     "run.txt": RunFormat,
     "*.jsonl": JsonlFormat,
     "*.tsv": TsvFormat,
+    "trec-eval-leaderboard": TrecEvalLeaderboard,
     "text-alignment-corpus": TextAlignmentCorpusFormat,
     "text-alignment-features": TextAlignmentFeaturesFormat,
     "style-change-detection-corpus": PanStyleChangeDetectionCorpusFormat,
@@ -1143,6 +1348,7 @@ FORMAT_TO_CHECK = {
     "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "run-with-metadata": RunWithIrMetadata,
     "terrier-index": TerrierIndex,
     "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
     "multi-author-writing-style-analysis-solutions": lambda: MultiAuthorWritingStyleAnalysis("solution-problem"),
@@ -1153,6 +1359,7 @@ FORMAT_TO_CHECK = {
     "ir-dataset-corpus": IrDatasetsCorpus,
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
     "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
+    "aggregated-results.json": AggregatedResults,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
@@ -1203,8 +1410,8 @@ def lines_if_valid(
     return checker.all_lines(run_output)
 
 
-def report_valid_formats(run_output: Path):
-    valid_formats = {}
+def report_valid_formats(run_output: Path) -> Dict[str, Any]:
+    valid_formats: Dict[str, Any] = {}
     if _fmt.OK == check_format(run_output, "ir_metadata")[0]:
         valid_formats["ir_metadata"] = sorted([i["name"] for i in lines_if_valid(run_output, "ir_metadata")])
 

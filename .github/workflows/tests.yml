@@ -31,6 +31,8 @@ jobs:
         working-directory: ${{github.workspace}}/application
         run: |
           pip3 install .[dev,test]
+          echo -e '\ntira_s3_config:\n  s3_bucket: none' >> ./config/tira-application-config.yml
+          touch ~/.s3cfg
           make setup
         env:
           TIRA_ROOT: ${{github.workspace}}/model/src
@@ -75,6 +77,7 @@ jobs:
       - name: Install Dependencies
         working-directory: ${{github.workspace}}/python-client
         run: |
+          sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
           pip3 install .[test,dev]
           python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded(is_offline=False)'

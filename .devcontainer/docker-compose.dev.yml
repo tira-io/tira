@@ -1,23 +1,45 @@
 services:
   devenv:
-    image: webis/tira:dev-container-0.0.1
+    # image: webis/tira:dev-container-0.0.1
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
       # TIRA Frontend Environment Variables
       VITE_TIRA_REST_BASE_URL: https://127.0.0.1:8080
       VITE_TIRA_GRPC_BASE_URL: https://127.0.0.1:8080
+      # TIRA Worker Environment Variables
+      TIRA_WORKER_CONFIG: "/workspaces/tira/worker/tira-worker-config.yml"
+      TIRA_BROKER_URL: "amqp://broker.tira.local"
+      TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
+      TIRA_API_KEY: "so-secret"
+      TIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
     external_links:
       - "auth:auth.tira.local"
       - "nginx:api.tira.local"
+      - "broker:broker.tira.local"
       - "s3mock:s3.tira.local"
     volumes:
       - ./devfiles/s3/.s3cfg:/home/ubuntu/.s3cfg
+      - ./devfiles/s3/.s3cfg:/root/.s3cfg
+      - /tmp/:/tmp/
+      - ./devfiles/tira-settings.json:/tmp/tira-dev-cache-dir/.tira-settings.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    privileged: true
   auth:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped
     volumes:
       - ./devfiles/authelia/configuration.dev.yml:/config/configuration.yml
       - ./devfiles/authelia/users-database.yml:/config/users_database.yml
+  broker:
+    image: rabbitmq:4-management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
   s3mock:
     image: adobe/s3mock
     restart: unless-stopped

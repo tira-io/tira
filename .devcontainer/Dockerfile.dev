@@ -4,7 +4,7 @@ FROM ubuntu:24.04
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update && apt-get install -y sudo git locales
+RUN apt-get update && apt-get install -y sudo git locales s3cmd
 RUN echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 ########################################################################################################################
@@ -26,6 +26,13 @@ RUN <<EOF
 	echo 'ubuntu:1234' | chpasswd
     usermod -aG sudo ubuntu
     usermod -aG docker ubuntu
+
+    chmod o+r /var/run/docker.sock
+    chmod o+w /var/run/docker.sock
+
+	# Add users to sudoers
+	echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 EOF
 
 
@@ -46,7 +53,7 @@ EOF
 ########################################################################################################################
 # Backend (Application)                                                                                                #
 ########################################################################################################################
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
     libpcre3-dev
@@ -54,7 +61,8 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-con
 # Environment Variables for TIRA Configuration:
 ENV TIRA_ROOT=/workspaces/tira/model/src
 ENV TIRA_CONFIG=/workspaces/tira/application/config/tira-application-config.yml
-ENV TIRA_DEBUG=true
+ENV TIRA_DEBUG=false
+ENV TIRA_CACHE_DIR=/tmp/tira-dev-cache-dir/
 ENV DISCOURSE_API_KEY="I am so secret"
 
 ########################################################################################################################
@@ -64,7 +72,7 @@ USER root
 RUN <<EOF
 	# Install Java (some dependencies like python are already installed by the application module)
     apt-get update
-    apt-get install -y openjdk-11-jdk
+    apt-get install -y openjdk-11-jdk tree
 	# Install Docker and set correct permissions to the docker.sock
 	apt-get install -y curl
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -84,7 +92,7 @@ EOF
 ########################################################################################################################
 # Documentation                                                                                                        #
 ########################################################################################################################
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip pkg-config plantuml wget
 # Install umlet
@@ -95,4 +103,3 @@ RUN mkdir -p /usr/share/umlet \
 	&& unzip download.zip
 USER dev
 RUN pip3 install sphinx furo myst-parser sphinx-toolbox sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
-
