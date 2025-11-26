@@ -309,18 +309,42 @@
 <span class="w">    </span><span class="nt">tira-backend</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/tira-io/tira-backend</span>
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<span class="w">        </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">TIRA_BROKER_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;amqp://broker.tira.local&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rpc://broker.tira.local&quot;</span>
+<span class="w">        </span><span class="nt">external_links</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;broker:broker.tira.local&quot;</span>
 <span class="w">    </span><span class="nt">tira-frontend</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/tira-io/tira-frontend</span>
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 <span class="w">        </span><span class="nt">environment</span><span class="p">:</span>
 <span class="w">            </span><span class="nt">TIRA_REST_BASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://api.tira.local</span>
 <span class="w">            </span><span class="nt">TIRA_GRPC_BASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://api.tira.local</span>
+<span class="w">        </span><span class="nt">external_links</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nginx:api.tira.local&quot;</span>
+<span class="w">    </span><span class="nt">tira-worker-1</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/tira-io/tira-worker</span>
+<span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<span class="w">        </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">TIRA_BROKER_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;amqp://broker.tira.local&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rpc://broker.tira.local&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_API_KEY</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;so-secret&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_WELLKNOWN_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://api.tira.local/.well-known/tira/client&quot;</span>
+<span class="w">        </span><span class="nt">external_links</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nginx:api.tira.local&quot;</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;broker:broker.tira.local&quot;</span>
 <span class="w">    </span><span class="nt">auth</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/authelia/authelia</span>
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 <span class="w">        </span><span class="nt">volumes</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./authelia/configuration.dev.yml:/config/configuration.yml</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./authelia/users-database.yml:/config/users_database.yml</span>
+<span class="w">    </span><span class="nt">broker</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rabbitmq:4-management</span>
+<span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5672:5672&quot;</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;15672:15672&quot;</span>
 <span class="w">    </span><span class="nt">nginx</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr</span>
 <span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
