@@ -90,7 +90,11 @@ def translate_irds_id_to_tirex(dataset: str) -> str:
 
 def __docs(input_file, original_dataset, load_default_text):
     from ir_datasets.formats import BaseDocs, GenericDoc
-    fields_to_skip_from_additional = set(["text", "default_text", "original_document", "docno", "doc_id", "docid", "id", "qid", "query", "rank", "score"])
+
+    fields_to_skip_from_additional = set(
+        ["text", "default_text", "original_document", "docno", "doc_id", "docid", "id", "qid", "query", "rank", "score"]
+    )
+
     class TirexDoc(GenericDoc):
         def __init__(self, doc_id, text):
             super().__init__()
@@ -139,7 +143,7 @@ def __docs(input_file, original_dataset, load_default_text):
                     text = i["text"] if "text" in i else i["default_text"]
                     ret = TirexDoc(doc_id=docno, text=text)
                     additional_fields = {}
-                    
+
                     for k, v in i.items():
                         if k not in fields_to_skip_from_additional:
                             additional_fields[k] = v

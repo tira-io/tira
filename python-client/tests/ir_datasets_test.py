@@ -148,7 +148,6 @@ class TestIRDatasets(unittest.TestCase):
         self.assertEqual(actual_sum_of_letters, expected_sum_of_letters)
         self.assertEqual(actual_text_length, expected_text_length)
 
-
     def test_loading_queries_from_ir_datasets_from_custom_directory_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"

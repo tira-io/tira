@@ -28,7 +28,7 @@ from ..util import (
 from . import data as dbops
 
 if TYPE_CHECKING:
-    from typing import _T, Any, Iterable, Literal, Mapping, Optional, Sequence, Union
+    from typing import _T, Any, Iterable, Literal, Mapping, Optional, Sequence, Union, List
 
     from django.core.files.uploadedfile import UploadedFile
     from django.db.models import BaseManager

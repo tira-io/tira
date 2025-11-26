@@ -17,7 +17,9 @@ class Command(BaseCommand):
         if "task" in options and options["task"]:
             for dataset in tqdm(model.get_datasets_by_task(options["task"])):
                 # print(dataset["dataset_id"])
-                for run in tqdm(modeldb.Run.objects.filter(input_dataset__dataset_id=dataset["dataset_id"]), dataset["dataset_id"]):
+                for run in tqdm(
+                    modeldb.Run.objects.filter(input_dataset__dataset_id=dataset["dataset_id"]), dataset["dataset_id"]
+                ):
                     if run.evaluator:
                         continue
                     run.valid_formats = json.dumps(report_valid_formats(run.get_path_in_file_system()))
