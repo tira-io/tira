@@ -77,6 +77,7 @@ jobs:
       - name: Install Dependencies
         working-directory: ${{github.workspace}}/python-client
         run: |
+          sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
           pip3 install .[test,dev]
           python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded(is_offline=False)'
