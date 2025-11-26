@@ -388,6 +388,124 @@ class JsonlFormat(KeyValueFormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
 
+class TrecEvalLeaderboard(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(configuration)
+
+        minimum_lines = 5
+
+        if configuration and hasattr(configuration, "__iter__"):
+            if CONF_MINIMUM_LINES in configuration:
+                minimum_lines = int(configuration[CONF_MINIMUM_LINES])
+
+        self.minimum_lines = minimum_lines
+
+    def matching_files(self, run_output):
+        ret = []
+        for i in [run_output] + glob(f"{run_output.absolute()}/*"):
+            valid_lines = 0
+            i = Path(i)
+            if not i.is_file():
+                continue
+
+            for l in super().yield_next_entry(i):
+                if not l.strip():
+                    continue
+
+                if not self.parse_line_failsave(l):
+                    break
+
+                if valid_lines > self.minimum_lines:
+                    ret.append(Path(i))
+                    break
+                valid_lines += 1
+
+        return ret
+
+    def parse_line_failsave(self, l):
+        try:
+            run, metric, query, value = l.split()
+            return {"run": run, "metric": metric, "query": query, "value": value}
+        except:
+            return None
+
+    def check_format(self, run_output: Path):
+        matches = self.matching_files(run_output)
+
+        if len(matches) != 1:
+            msg = "No unique file in trec-eval -q format was found, only the files "
+            msg += str(os.listdir(run_output)) + " were available."
+            return [_fmt.ERROR, msg]
+
+        lines = 0
+        run_to_measure_to_queries = {}
+
+        try:
+            for i in self.yield_next_entry(run_output):
+                lines += 1
+                if i["run"] not in run_to_measure_to_queries:
+                    run_to_measure_to_queries[i["run"]] = {}
+                if i["metric"] not in run_to_measure_to_queries[i["run"]]:
+                    run_to_measure_to_queries[i["run"]][i["metric"]] = set()
+                run_to_measure_to_queries[i["run"]][i["metric"]].add(i["query"])
+        except Exception as e:
+            return [_fmt.ERROR, repr(e)]
+
+        if lines < self.minimum_lines:
+            return [
+                _fmt.ERROR,
+                f"The trec-eval-leaderboard file contains only {lines} lines, this is likely an error.",
+            ]
+
+        if len(run_to_measure_to_queries.keys()) < 2:
+            return [
+                _fmt.ERROR,
+                f"The trec-eval-leaderboard file contains only {len(run_to_measure_to_queries.keys())} systems, this is likely an error.",
+            ]
+
+        expected_measures = run_to_measure_to_queries[list(run_to_measure_to_queries.keys())[0]].keys()
+        expected_queries = run_to_measure_to_queries[list(run_to_measure_to_queries.keys())[0]][
+            list(expected_measures)[0]
+        ]
+
+        for run in run_to_measure_to_queries:
+            actual_measures = run_to_measure_to_queries[run].keys()
+            if actual_measures != expected_measures:
+                return [
+                    _fmt.ERROR,
+                    "The trec-eval-leaderboard is not valid. Some measures are not available for all scenarios.",
+                ]
+            for measure in actual_measures:
+                if "all" not in run_to_measure_to_queries[run][measure]:
+                    return [
+                        _fmt.ERROR,
+                        f"The trec-eval-leaderboard is not valid. The all entry for run {run} and measure {measure} is missing.",
+                    ]
+                actual_queries = run_to_measure_to_queries[run][measure]
+                if actual_queries != expected_queries:
+                    return [
+                        _fmt.ERROR,
+                        "The trec-eval-leaderboard is not valid. Some queries are not evaluated for all scenarios.",
+                    ]
+
+        return [_fmt.OK, "Valid trec-eval-leaderboard."]
+
+    def yield_next_entry(self, f: Path):
+        matches = self.matching_files(f)
+
+        if len(matches) != 1:
+            raise ValueError(
+                "No unique file in trec-eval -q format was found, only the files "
+                + str(os.listdir(f))
+                + " were available."
+            )
+
+        for i in super().yield_next_entry(matches[0]):
+            i = self.parse_line_failsave(i)
+            if i:
+                yield i
+
+
 class ToucheImageRetrieval(JsonlFormat):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         super().apply_configuration_and_throw_if_invalid(
@@ -1218,6 +1336,7 @@ FORMAT_TO_CHECK = {
     "run.txt": RunFormat,
     "*.jsonl": JsonlFormat,
     "*.tsv": TsvFormat,
+    "trec-eval-leaderboard": TrecEvalLeaderboard,
     "text-alignment-corpus": TextAlignmentCorpusFormat,
     "text-alignment-features": TextAlignmentFeaturesFormat,
     "style-change-detection-corpus": PanStyleChangeDetectionCorpusFormat,
