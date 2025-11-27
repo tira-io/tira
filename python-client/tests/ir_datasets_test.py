@@ -594,7 +594,7 @@ class TestIRDatasets(unittest.TestCase):
         self.assertEqual(5, len(list(ds.docs_iter())))
 
     def test_loading_dataset_from_remote_zip_01(self):
-        zip_file = "https://github.com/tira-io/tira/raw/refs/heads/remove_grpc/python-client/tests/resources/example-dataset.zip"
+        zip_file = "https://github.com/tira-io/tira/raw/refs/heads/main/python-client/tests/resources/example-dataset.zip"
         register_dataset([zip_file], "new-from-remote-01")
         ds = ir_datasets.load("new-from-remote-01")
         self.assertEqual(10, len(list(ds.qrels_iter())))
