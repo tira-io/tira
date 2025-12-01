@@ -26,7 +26,7 @@ jobs:
         run: |
           # Install tira from the repository since the pip version may not be up-to-date enough.
           # The install musst be editable (-e) since importing from tira fails otherwise
-          pip3 install .[dev,test]
+          pip3 install .[dev,test,ir]
       - name: Install dependencies
         working-directory: ${{github.workspace}}/application
         run: |
@@ -79,7 +79,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
-          pip3 install .[test,dev]
+          pip3 install .[test,dev,ir]
           python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded(is_offline=False)'
       - name: Running Tests
         working-directory: ${{github.workspace}}/python-client
