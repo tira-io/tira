@@ -1253,7 +1253,7 @@ class TrecRagRuns(FormatBase):
         return [_fmt.OK, "Valid trec-rag runs."]
 
     def yield_next_entry(self, f: Path):
-        for f in [f] + glob(f"{f}/*"):
+        for f in [f] + glob(f"{f}/*") + glob(f"{f}/runs/*"):
             try:
                 run = self.load_run_failsave(Path(f))
             except:
