@@ -345,9 +345,6 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             else:
                 truth_data = None
 
-        if not data.get("use_existing_repository", True):
-            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
-
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
         if not model.task_exists(task_id):
