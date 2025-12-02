@@ -1243,14 +1243,14 @@ class TrecRagRuns(FormatBase):
 
     def check_format(self, run_output: Path):
         actual_rag_responses = self.all_lines(run_output)
-        if len(actual_rag_responses) <= 5:
-            msg = "No trec-rag-responses were found, "
+        if len(actual_rag_responses) <= 2:
+            msg = "No trec-rag-runs were found, "
             if Path(run_output).is_dir():
                 msg += f"only the files {os.listdir(run_output)}."
             else:
                 msg += f"only the file {run_output}."
             return [_fmt.ERROR, msg]
-        return [_fmt.OK, "Valid trec-rag responses."]
+        return [_fmt.OK, "Valid trec-rag runs."]
 
     def yield_next_entry(self, f: Path):
         for f in [f] + glob(f"{f}/*"):
@@ -1291,11 +1291,11 @@ class TrecRagRuns(FormatBase):
                     error_lines += 1
                     continue
 
-                if "responses" not in l or not isinstance(l["responses"], dict):
+                if "responses" not in l:
                     error_lines += 1
                     continue
 
-                if "answer" not in l or not isinstance(l["answer"], dict):
+                if "answer" not in l:
                     error_lines += 1
                     continue
 
@@ -1436,7 +1436,7 @@ FORMAT_TO_CHECK = {
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
     "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
     "aggregated-results.json": AggregatedResults,
-    "trec-rag-responses": TrecRagRuns,
+    "trec-rag-runs": TrecRagRuns,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
