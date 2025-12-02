@@ -1237,6 +1237,82 @@ class TerrierIndex(FormatBase):
         pass
 
 
+class TrecRagRuns(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_format(self, run_output: Path):
+        actual_rag_responses = self.all_lines(run_output)
+        if len(actual_rag_responses) <= 5:
+            msg = "No trec-rag-responses were found, "
+            if Path(run_output).is_dir():
+                msg += f"only the files {os.listdir(run_output)}."
+            else:
+                msg += f"only the file {run_output}."
+            return [_fmt.ERROR, msg]
+        return [_fmt.OK, "Valid trec-rag responses."]
+
+    def yield_next_entry(self, f: Path):
+        for f in [f] + glob(f"{f}/*"):
+            try:
+                run = self.load_run_failsave(Path(f))
+            except:
+                continue
+            for i in run:
+                yield i
+
+    def load_run_failsave(self, path: Path):
+        if not path or not path.exists() or not path.is_file():
+            return []
+
+        ret = []
+        error_lines = 0
+        with open(path, 'r') as f:
+            for l in f:
+                if error_lines > 4:
+                    return []
+
+                try:
+                    l = json.loads(l)
+                except:
+                    error_lines += 1
+                    continue
+
+                if not isinstance(l, dict):
+                    error_lines += 1
+                    continue
+
+                if "responses" in l and "answer" not in l:
+                    l["answer"] = l["responses"]
+                if "answer" in l and "responses" not in l:
+                    l["responses"] = l["answer"]
+
+                if "metadata" not in l or not isinstance(l["metadata"], dict):
+                    error_lines += 1
+                    continue
+
+                if "responses" not in l or not isinstance(l["responses"], dict):
+                    error_lines += 1
+                    continue
+
+                if "answer" not in l or not isinstance(l["answer"], dict):
+                    error_lines += 1
+                    continue
+
+                if "narrative_id" in l["metadata"] and "topic_id" not in l["metadata"]:
+                    l["metadata"]["topic_id"] = l["metadata"]["narrative_id"]
+
+                if "topic_id" in l["metadata"] and "narrative_id" not in l["metadata"]:
+                    l["metadata"]["narrative_id"] = l["metadata"]["topic_id"]
+
+                if "topic_id" in l["metadata"] and "narrative_id" in l["metadata"] and l["metadata"]["topic_id"] != l["metadata"]["narrative_id"]:
+                    raise ValueError(f"Inconsistent metadata: {l['metadata']}")
+
+                l["path"] = str(path.absolute())
+                ret.append(l)
+
+        return ret
+
 class IrMetadataFormat(FormatBase):
     """Checks if a given output contains valid ir_metadata."""
 
@@ -1360,6 +1436,7 @@ FORMAT_TO_CHECK = {
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
     "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
     "aggregated-results.json": AggregatedResults,
+    "trec-rag-responses": TrecRagRuns,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
