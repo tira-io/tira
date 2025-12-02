@@ -408,17 +408,20 @@ class TrecEvalLeaderboard(FormatBase):
             if not i.is_file():
                 continue
 
-            for l in super().yield_next_entry(i):
-                if not l.strip():
-                    continue
+            try:
+                for l in super().yield_next_entry(i):
+                    if not l.strip():
+                        continue
 
-                if not self.parse_line_failsave(l):
-                    break
+                    if not self.parse_line_failsave(l):
+                        break
 
-                if valid_lines > self.minimum_lines:
-                    ret.append(Path(i))
-                    break
-                valid_lines += 1
+                    if valid_lines > self.minimum_lines:
+                        ret.append(Path(i))
+                        break
+                    valid_lines += 1
+            except:
+                continue
 
         return ret
 
