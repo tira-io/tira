@@ -155,7 +155,7 @@ export default {
       start_evaluation_is_pending: false,
       delete_is_pending: false,
       grpc_url: inject("gRPC base URL"),
-      base_url = get_from_archive("/", false),
+      base_url: get_from_archive("/", false)
     }
   },
   computed: {
