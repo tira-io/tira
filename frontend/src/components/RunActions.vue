@@ -140,7 +140,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportSuccess, reportError, fetchUserInfo, type UserInfo } from '../utils'
+import { get, get_from_archive, reportSuccess, reportError, fetchUserInfo, type UserInfo } from '../utils'
 import RunReviewWindow from './RunReviewWindow.vue'
 import IrMetadataWindow from './IrMetadataWindow.vue'
 
@@ -154,7 +154,8 @@ export default {
       userinfo: inject('userinfo') as UserInfo,
       start_evaluation_is_pending: false,
       delete_is_pending: false,
-      grpc_url: inject("gRPC base URL")
+      grpc_url: inject("gRPC base URL"),
+      base_url = get_from_archive("/", false),
     }
   },
   computed: {
@@ -165,10 +166,10 @@ export default {
       return this.run && 'link_serp' in this.run ? this.run['link_serp'] : null;
     },
     link_results() {
-      return this.run && 'link_results_download' in this.run ? this.run['link_results_download'] : null;
+      return this.run && 'link_results_download' in this.run ? this.base_url + this.run['link_results_download'] : null;
     },
     link_run() {
-      return this.run && 'link_run_download' in this.run ? this.run['link_run_download'] : null;
+      return this.run && 'link_run_download' in this.run ? this.base_url + this.run['link_run_download'] : null;
     },
     can_delete() {
       return this.run && 'published' in this.run && !this.run['published'] && 'review_state' in this.run && this.run['review_state'] != 'valid'
