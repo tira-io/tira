@@ -486,6 +486,10 @@ class TiraClient(ABC):
 
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
+        
+        gpu_device_ids = None
+        if "NVIDIA_VISIBLE_DEVICES" in os.environ and os.environ["NVIDIA_VISIBLE_DEVICES"]:
+            gpu_device_ids = [os.environ["NVIDIA_VISIBLE_DEVICES"]]
 
         tmp_dir = temporary_directory()
         self.local_execution.run(
@@ -495,6 +499,7 @@ class TiraClient(ABC):
             output_dir=tmp_dir,
             allow_network=allow_network,
             additional_volumes=hf_models,
+            gpu_device_ids=gpu_device_ids
         )
 
         format_configuration = (
@@ -504,7 +509,7 @@ class TiraClient(ABC):
         if result != _fmt.OK:
             print(msg)
             raise ValueError(msg)
-        print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
+        print_message(f"The docker image produced valid outputs on the dataset {dataset_id}. (You can verify them at {tmp_dir})", _fmt.OK)
         shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
 
         if not dry_run:

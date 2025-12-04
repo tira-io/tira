@@ -334,7 +334,7 @@ class LocalExecutionIntegration:
             help_response = client.containers.run(
                 image,
                 entrypoint="sh",
-                command="-c './tracked --help'",
+                command="-c '/tracked --help'",
                 volumes=volumes,
                 detach=False,
                 remove=True,
@@ -519,7 +519,7 @@ class LocalExecutionIntegration:
         container = client.containers.run(
             image,
             entrypoint=entrypoint,
-            command=f'{entrypoint_flags} "{command}; sleep .1"',
+            command=f'{entrypoint_flags} "sleep .1; {command}"',
             environment=environment,
             volumes=volumes,
             detach=True,
@@ -533,6 +533,9 @@ class LocalExecutionIntegration:
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode("utf-8"))
+        
+        return_code = container.wait()
+        # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
 
         if evaluate:
             self.evaluate(eval_dir, output_dir, allow_network, client)
