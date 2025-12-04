@@ -508,6 +508,8 @@ class LocalExecutionIntegration:
             device_requests = [
                 docker.types.DeviceRequest(device_ids=[str(i)], capabilities=[["gpu"]]) for i in gpu_device_ids
             ]
+            environment["NVIDIA_VISIBLE_DEVICES"] = gpu_device_ids[0]
+            environment["CUDA_VISIBLE_DEVICES"] = gpu_device_ids[0]
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
