@@ -14,4 +14,4 @@ def _parse_resource_requirements(nvidia_smi_output: str) -> str:
     if len(ret) != 1:
         raise ValueError(f"I do not know how to process gpus {ret} from {os.environ['NVIDIA_VISIBLE_DEVICES']}.")
 
-    return [ret[0].split(":")[0].split()[-1]]
+    return [os.environ["NVIDIA_VISIBLE_DEVICES"]]
