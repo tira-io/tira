@@ -201,7 +201,7 @@ def docker_image_details(image: str) -> "dict[str, Any]":
 
     ret = subprocess.check_output(["podman", "image", "inspect", image])
     retjson = json.loads(ret)
-    if len(ret) != 1:
+    if len(retjson) != 1:
         raise ValueError(f"Could not handle {retjson}")
     firstret = retjson[0]
     image_id = firstret["Id"] if ":" not in firstret["Id"] else firstret["Id"].split(":")[1]

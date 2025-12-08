@@ -321,13 +321,23 @@ def upload_command(
     anonymous: "Optional[bool]" = False,
     **kwargs,
 ) -> int:
+    if not directory or not Path(directory).is_dir():
+        msg = f"The directory passed via --directory does not exist. Got {directory}"
+        print(fmt_message(msg, _fmt.ERROR))
+        return 1
     client: "RestClient" = RestClient()
     api_key_is_valid = client.api_key_is_valid()
 
     if dataset is None:
         dataset = guess_dataset(directory)
-        if "ENTER_VALUE_HERE" in dataset:
+        if dataset and "ENTER_VALUE_HERE" in dataset:
             msg = f"The value for (data: test collection: name) in the metadata of the directory {directory} is still set to the default value ENTER_VALUE_HERE. Please replace this."
+            print(fmt_message(msg, _fmt.ERROR))
+            return 1
+    else:
+        potential_inconsistent_dataset = guess_dataset(directory)
+        if potential_inconsistent_dataset:
+            msg = f"The dataset for the submission is inconsistent. I got {dataset} from the --dataset command line but the metadata of the directory {directory} contains {potential_inconsistent_dataset}. Please fix this."
             print(fmt_message(msg, _fmt.ERROR))
             return 1
 
@@ -339,7 +349,14 @@ def upload_command(
         print(fmt_message(msg, _fmt.ERROR))
         return 1
 
-    if not anonymous and not api_key_is_valid:
+    if tira_vm_id:
+        system_details = guess_system_details(directory, None)
+        if system_details and "tag" in system_details and tira_vm_id != system_details["tag"]:
+            msg = f"The team for which the submission is to be uploaded is inconsistent. I got {tira_vm_id} from the --tira-vm-id command line but the metadata of the directory {directory} contains {system_details['tag']}. Please fix this."
+            print(fmt_message(msg, _fmt.ERROR))
+            return 1
+
+    if not dry_run and not anonymous and not api_key_is_valid:
         msg = "You are not authenticated. Please either pass --anonymous to upload without authentication of run tira-cli login to authenticate."
         print(fmt_message(msg, _fmt.ERROR))
         return 1
@@ -368,13 +385,20 @@ def upload_command(
             )
             return 1
 
-    if not system or not vm_id:
+    if not dry_run and (not system or not vm_id):
         print(
             fmt_message(f"You are not authenticated and no anonymous submissions are allowed for {dataset}", _fmt.ERROR)
         )
         return 1
 
+    if dry_run and not system:
+        system = "vm_id"
+
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
+
+    if dry_run:
+        return 0 if resp else 1
+
     if not resp or "uuid" not in resp or not resp["uuid"]:
         return 1
 

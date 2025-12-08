@@ -1062,7 +1062,7 @@ class Client(TiraClient):
                 "\nResult:\n\t"
                 + fmt_message("The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
             )
-            return
+            return True
 
         zip_file = zip_dir(file_path)
         print("\n", flush=True)
