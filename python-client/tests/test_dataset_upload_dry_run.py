@@ -113,3 +113,13 @@ class TestRunUploadDryRun(unittest.TestCase):
             outp,
         )
         self.assertEqual(0, ret_code)
+
+    def test_on_complete_submission_consistent_dataset_id(self):
+        p = Path(__file__).parent / "resources" / "wows26" / "complete"
+        ret_code, outp = upl("some-test-collection", str(p), None)
+
+        self.assertIn(
+            "The run is valid. I skip upload to TIRA as --dry-run was passed.",
+            outp,
+        )
+        self.assertEqual(0, ret_code)

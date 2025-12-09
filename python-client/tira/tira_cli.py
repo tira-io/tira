@@ -336,7 +336,7 @@ def upload_command(
             return 1
     else:
         potential_inconsistent_dataset = guess_dataset(directory)
-        if potential_inconsistent_dataset:
+        if potential_inconsistent_dataset and dataset != potential_inconsistent_dataset:
             msg = f"The dataset for the submission is inconsistent. I got {dataset} from the --dataset command line but the metadata of the directory {directory} contains {potential_inconsistent_dataset}. Please fix this."
             print(fmt_message(msg, _fmt.ERROR))
             return 1
