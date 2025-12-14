@@ -568,6 +568,33 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
+def openai_api_environment_variables():
+    ret = {}
+    for k, v in os.environ.items():
+        if k.startswith("OPENAI_"):
+            ret[k] = v
+
+    errors = []
+    required_field_to_description = {
+        "OPENAI_API_KEY": "\n\t- Please pass the environment variable OPENAI_API_KEY that authenticates you. E.g., run export OPENAI_API_KEY=sk-XY...",
+        "OPENAI_BASE_URL": "\n\t- Please pass the environment variable OPENAI_BASE_URL. E.g., run export OPENAI_BASE_URL=https://openrouter.ai/api/v1",
+        "OPENAI_MODEL": "\n\t- Please pass the environment variable OPENAI_MODEL. E.g., run export OPENAI_MODEL=llama-3.3-70b-instruct",
+    }
+
+    if len(ret) > 0:
+        for k, desc in required_field_to_description.items():
+            if k not in ret:
+                errors.append(desc)
+
+    if len(errors) > 0:
+        msg = "Some environment variables are missing for access to "
+        msg += "LLMs via Rest APIs.\n" + ("".join(errors))
+        log_message(msg, _fmt.ERROR)
+        raise ValueError(msg)
+
+    return ret
+
+
 def extract_volume_mounts(v):
     v_modified = v.replace(":\\", "XYZ__________XYZ")
     volume_dir, volume_bind, volume_mode = v_modified.split(":")

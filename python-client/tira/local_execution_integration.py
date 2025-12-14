@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Optional
 import docker
 import pandas as pd
 
+from tira.io_utils import openai_api_environment_variables
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 if TYPE_CHECKING:
@@ -511,6 +512,12 @@ class LocalExecutionIntegration:
             environment["NVIDIA_VISIBLE_DEVICES"] = gpu_device_ids[0]
             environment["CUDA_VISIBLE_DEVICES"] = gpu_device_ids[0]
 
+        openai_env = openai_api_environment_variables()
+        if openai_env is not None and len(openai_env) > 0:
+            environment.update(openai_env)
+            # TODO: fine-grained ip-tables rules for only access to the URL in the environment variable.
+            allow_network = True
+
         entrypoint = "sh"
         entrypoint_flags = "-c"
         if self.tirex_tracker_available_in_docker_image(image, client):
@@ -535,7 +542,7 @@ class LocalExecutionIntegration:
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode("utf-8"))
-        
+
         return_code = container.wait()
         # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
 
