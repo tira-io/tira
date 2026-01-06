@@ -52,8 +52,9 @@ class Client(TiraClient):
         base_url_api: str = None,
     ):
         self._settings = None
+        self.api_key_already_checked = False
         self.logged: "set[str]" = set()
-        self.tira_cache_dir = (
+        self.tira_cache_dir = str(
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
         self.base_url = base_url or self.load_settings()["base_url"]
@@ -73,8 +74,7 @@ class Client(TiraClient):
             self.api_user_name = api_user_name
 
         self.failsave_retries = 1
-        if self.api_key != "no-api-key":
-            self.fail_if_api_key_is_invalid()
+
         self.failsave_retries = failsave_retries
         self.pd: PandasIntegration = PandasIntegration(self)
         self.pt: PyTerrierIntegration = PyTerrierIntegration(self)
@@ -107,7 +107,7 @@ class Client(TiraClient):
             if "base_url_api" not in self._settings:
                 self._settings["base_url_api"] = "https://api.tira.io"
             if "archive_base_url" not in self._settings:
-                self._settings["archive_base_url"] = "https://tira.io"
+                self._settings["archive_base_url"] = "https://archive.tira.io"
 
             if "verify" not in self._settings:
                 self._settings["verify"] = True
@@ -892,12 +892,15 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def authentication_headers(self) -> Dict:
+    def authentication_headers(self, url) -> Dict:
         ret = {}
-        if self.api_key != "no-api-key":
-            ret["Api-Key"] = self.api_key
-        if self.api_user_name != "no-api-key-user":
-            ret["Api-Username"] = self.api_user_name
+
+        if not url or not url.startswith(self.load_settings()["archive_base_url"]):
+            if self.api_key != "no-api-key":
+                ret["Api-Key"] = self.api_key
+                self.fail_if_api_key_is_invalid()
+            if self.api_user_name != "no-api-key-user":
+                ret["Api-Username"] = self.api_user_name
 
         if "Header" in self.load_settings():
             for k, v in self.load_settings()["Header"].items():
@@ -1310,10 +1313,11 @@ class Client(TiraClient):
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
-        headers = self.authentication_headers()
-        headers["Accept"] = "application/json"
 
         base_url = base_url if base_url else self.base_url
+
+        headers = self.authentication_headers(base_url)
+        headers["Accept"] = "application/json"
 
         for _ in range(failsave_retries):
             try:

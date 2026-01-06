@@ -76,6 +76,9 @@ class TiraClient(ABC):
         raise ValueError("ToDo: Implement")
 
     def api_key_is_valid(self) -> bool:
+        if self.api_key_already_checked:
+            return True
+
         try:
             role = self.json_response("/api/role")
         except:
@@ -90,7 +93,7 @@ class TiraClient(ABC):
         ):
             self.api_user_name = role["context"]["user_id"]
 
-        return (
+        ret = (
             role
             and "status" in role
             and "role" in role
@@ -103,6 +106,10 @@ class TiraClient(ABC):
             and role["context"]["role"]
             and "guest" != role["context"]["role"]
         )
+
+        if ret:
+            self.api_key_already_checked = True
+        return ret
 
     def fail_if_api_key_is_invalid(self) -> None:
         if not self.api_key_is_valid():
@@ -486,7 +493,7 @@ class TiraClient(ABC):
 
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
-        
+
         gpu_device_ids = None
         if "NVIDIA_VISIBLE_DEVICES" in os.environ and os.environ["NVIDIA_VISIBLE_DEVICES"]:
             gpu_device_ids = [os.environ["NVIDIA_VISIBLE_DEVICES"]]
@@ -499,7 +506,7 @@ class TiraClient(ABC):
             output_dir=tmp_dir,
             allow_network=allow_network,
             additional_volumes=hf_models,
-            gpu_device_ids=gpu_device_ids
+            gpu_device_ids=gpu_device_ids,
         )
 
         format_configuration = (
@@ -509,7 +516,10 @@ class TiraClient(ABC):
         if result != _fmt.OK:
             print(msg)
             raise ValueError(msg)
-        print_message(f"The docker image produced valid outputs on the dataset {dataset_id}. (You can verify them at {tmp_dir})", _fmt.OK)
+        print_message(
+            f"The docker image produced valid outputs on the dataset {dataset_id}. (You can verify them at {tmp_dir})",
+            _fmt.OK,
+        )
         shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
 
         if not dry_run:
@@ -706,11 +716,15 @@ class TiraClient(ABC):
 
             l, m = check_format(baseline_output, baseline_format, baseline_config)
             if l != _fmt.OK:
-                log_message(f"The outputs of the baseline are at {baseline_output} and not valid: {m}", l)
+                log_message(
+                    f"The outputs of the baseline on {inputs_dir} are at {baseline_output} and not valid: {m}", l
+                )
                 return None
 
             if eval_image is not None and eval_command is not None:
-                print_message(f"The baseline produced valid outputs at {baseline_output}.", _fmt.OK)
+                print_message(
+                    f"The baseline produced valid outputs at {baseline_output} for input {inputs_dir}.", _fmt.OK
+                )
                 preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
 
                 print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
