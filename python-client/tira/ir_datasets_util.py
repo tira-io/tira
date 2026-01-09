@@ -1,7 +1,8 @@
 import logging
 import os
 from copy import deepcopy
-from typing import TYPE_CHECKING, NamedTuple
+from pathlib import Path
+from typing import TYPE_CHECKING, List, NamedTuple
 
 from tira.io_utils import stream_all_lines
 from tira.tirex import IRDS_TO_TIREX_DATASET
@@ -78,7 +79,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
 
 
-def translate_irds_id_to_tirex(dataset):
+def translate_irds_id_to_tirex(dataset: str) -> str:
     if type(dataset) is not str:
         if hasattr(dataset, "irds_ref"):
             return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
@@ -89,6 +90,24 @@ def translate_irds_id_to_tirex(dataset):
 
 def __docs(input_file, original_dataset, load_default_text):
     from ir_datasets.formats import BaseDocs, GenericDoc
+
+    fields_to_skip_from_additional = set(
+        ["text", "default_text", "original_document", "docno", "doc_id", "docid", "id", "qid", "query", "rank", "score"]
+    )
+
+    class TirexDoc(GenericDoc):
+        def __init__(self, doc_id, text):
+            super().__init__()
+            self._dict = {}
+
+        def __getattr__(self, key):
+            if key in self._dict:
+                return self._dict[key]
+            else:
+                return super().__getattribute__(key)
+
+        def _set(self, key, value):
+            self._dict[key] = value
 
     class DynamicDocs(BaseDocs):
         def __init__(self, input_file, load_default_text):
@@ -118,19 +137,38 @@ def __docs(input_file, original_dataset, load_default_text):
         def stream_docs(self):
             already_covered = set()
             for i in stream_all_lines(self.get_input_file(), self.load_default_text):
-                if i["docno"] not in already_covered:
-                    already_covered.add(i["docno"])
-                    yield GenericDoc(doc_id=i["docno"], text=i["text"])
+                docno = i["docno"] if "docno" in i else i["doc_id"]
+                if docno not in already_covered:
+                    already_covered.add(docno)
+                    text = i["text"] if "text" in i else i["default_text"]
+                    ret = TirexDoc(doc_id=docno, text=text)
+                    additional_fields = {}
+
+                    for k, v in i.items():
+                        if k not in fields_to_skip_from_additional:
+                            additional_fields[k] = v
+
+                    if "original_document" in i:
+                        for k, v in i["original_document"].items():
+                            if k not in fields_to_skip_from_additional:
+                                additional_fields[k] = v
+
+                    for k, v in additional_fields.items():
+                        ret._set(k, v)
+
+                    yield ret
 
         def get_input_file(self):
             if type(self.input_file) is str:
                 return self.input_file
 
             ret = self.input_file()
-            if os.path.isfile(ret + "/documents.jsonl.gz"):
-                return ret + "/documents.jsonl.gz"
+            if os.path.isfile(ret / "documents.jsonl.gz"):
+                return ret / "documents.jsonl.gz"
+            elif os.path.isfile(ret / "corpus.jsonl.gz"):
+                return ret / "corpus.jsonl.gz"
             else:
-                return ret + "/documents.jsonl"
+                return ret / "documents.jsonl"
 
     return DynamicDocs(input_file, load_default_text)
 
@@ -153,7 +191,7 @@ def __lazy_qrels(input_file, original_qrels):
 
         def qrels_iter(self):
             if not self.qrels:
-                qrels_file = self.input_file() + "/qrels.txt"
+                qrels_file = self.input_file() / "qrels.txt"
 
                 self.qrels = TrecQrels(LocalDownload(qrels_file), {})
 
@@ -184,7 +222,7 @@ def __queries(input_file, original_dataset):
             if type(self.input_file) is str:
                 return self.input_file
 
-            return self.input_file() + "/queries.jsonl"
+            return Path(self.input_file()) / "queries.jsonl"
 
         def __get_queries(self):
             if self.queries is None:
@@ -260,26 +298,64 @@ def __scored_docs(input_file, original_dataset):
     return DynamicScoredDocs(docs)
 
 
-def static_ir_dataset(directory, existing_ir_dataset=None):
+def register_dataset(zip_files: List[str], ir_datasets_id):
+    from hashlib import md5
+
+    import ir_datasets
+    from ir_datasets.util import Cache, LocalDownload, RequestsDownload, ZipExtractCache, home_path
+
+    if ir_datasets_id in ir_datasets.registry:
+        return
+
+    if isinstance(zip_files, str) or isinstance(zip_files, Path):
+        return register_dataset([zip_files], ir_datasets_id)
+
+    for zip_file in zip_files:
+        cache_dir = home_path() / "irds-from-zips" / md5(str(zip_file).encode("utf-8")).hexdigest()
+        file_download = (
+            Cache(RequestsDownload(zip_file), Path(str(cache_dir) + ".zip"))
+            if str(zip_file).startswith("http")
+            else LocalDownload(Path(zip_file))
+        )
+        extracted_file = ZipExtractCache(file_download, cache_dir).path()
+        ds = load_ir_dataset_from_local_file(extracted_file, ir_datasets_id)
+        ir_datasets.registry.register(ir_datasets_id, ds)
+
+
+def load_ir_dataset_from_local_file(directory, ir_dataset_id):
     from ir_datasets.datasets.base import Dataset
+    from ir_datasets.formats.trec import TrecQrels
+    from ir_datasets.util import LocalDownload
 
+    queries_file = str(directory) + "/queries.jsonl"
+    docs_file = str(directory)
+    if os.path.isfile(docs_file + "/documents.jsonl.gz"):
+        docs_file = docs_file + "/documents.jsonl.gz"
+    elif os.path.isfile(docs_file + "/corpus.jsonl.gz"):
+        docs_file = docs_file + "/corpus.jsonl.gz"
+    else:
+        docs_file = docs_file + "/documents.jsonl"
+
+    qrels = None
+    if os.path.isfile(str(directory) + "/qrels.txt"):
+        qrels = TrecQrels(LocalDownload(str(directory) + "/qrels.txt"), {})
+
+    docs = __docs(docs_file, None, False)
+    queries = __queries(queries_file, None)
+    ret = Dataset(docs, queries, qrels)
+    ret.dataset_id = lambda: ir_dataset_id
+    return ret
+
+
+def static_ir_dataset(directory, existing_ir_dataset=None):
     if existing_ir_dataset is None:
-        queries_file = directory + "/queries.jsonl"
-        docs_file = directory
-        if os.path.isfile(docs_file + "/documents.jsonl.gz"):
-            docs_file = docs_file + "/documents.jsonl.gz"
-        else:
-            docs_file = docs_file + "/documents.jsonl"
-
-        docs = __docs(docs_file, None, True)
-        queries = __queries(queries_file, None)
-        ret = Dataset(docs, queries)
-        ret.dataset_id = lambda: f"static_ir_dataset-{directory}"
+        ret = load_ir_dataset_from_local_file(directory, f"static_ir_dataset-{directory}")
         return static_ir_dataset(directory, ret)
 
     class StaticIrDatasets:
-        def load(self, dataset_id):
-            print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
+        def load(self, dataset_id, verbose=True):
+            if verbose:
+                print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
             return existing_ir_dataset
 
         def topics_file(self, dataset_id):
@@ -319,7 +395,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 return ret
 
         def topics_file(self, tira_path):
-            return get_download_dir_from_tira(tira_path, True) + "/queries.xml"
+            return get_download_dir_from_tira(tira_path, True) / "queries.xml"
 
     ret = IrDatasetsFromTira()
     ret.lazy_docs = __docs

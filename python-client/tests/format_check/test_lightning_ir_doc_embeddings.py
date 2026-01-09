@@ -25,3 +25,8 @@ class TestLightningIrDocEmbeddingFormat(unittest.TestCase):
         actual = check_format(LIGTHNING_IR_DOCUMENT_EMBEDDINGS, "lightning-ir-document-embeddings")
         self.assertEqual(_OK, actual[0])
         self.assertIn("Valid lightning-ir embeddings found", actual[1])
+
+    def test_valid_doc_embeddings_recursive(self):
+        actual = check_format(LIGTHNING_IR_DOCUMENT_EMBEDDINGS.parent, "lightning-ir-document-embeddings")
+        self.assertEqual(_OK, actual[0])
+        self.assertIn("Valid lightning-ir embeddings found", actual[1])

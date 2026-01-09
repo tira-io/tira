@@ -1,0 +1,45 @@
+# We use the ir-metadata standard to describe and process runs.
+# The fields below are mandatory, you can add additional metadata if you like.
+# There are two libraries that automate and simplify tracking of experimental metadata that you can use optionally:
+#
+#   - The metadata module of [repro_eval](https://www.ir-metadata.org/software/):
+#     Tracks the platform and implementation of your experiments.
+#
+#   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
+#     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
+#
+# See https://www.ir-metadata.org for more details.
+
+method:
+  description: |
+    ENTER_VALUE_HERE
+    ...
+    This is a multi line string
+    ...
+    ENTER_VALUE_HERE
+
+  name: ENTER_VALUE_HERE
+
+actor:
+  team: ENTER_VALUE_HERE
+
+data:
+  test collection:
+    name: ENTER_VALUE_HERE
+
+platform:
+  software:
+    # Which software and tools did you use for training, tunning and running your system?
+    # You can maintain the software that you used manually.
+    # Alternatively, you can use repro_eval or the tirex_tracker to track this.
+    libraries:
+      - ENTER_VALUE_HERE
+      - ENTER_VALUE_HERE
+
+implementation:
+  source:
+    # Please provide a reference to your code if possible.
+    # If you can not share your code, you can delete the implementation section.
+    # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
+    repository: ENTER_VALUE_HERE
+

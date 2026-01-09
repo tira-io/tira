@@ -1,0 +1,10 @@
+data:
+  test collection:
+    name: some other dataset
+implementation:
+  executable: null
+  python:
+    interactive: false
+    modules: 3.10.12
+    packages:
+    - Deprecated==1.2.18

@@ -29,7 +29,7 @@ def persist_run_to_file(directory: Path):
 from tira.third_party_integrations import temporary_directory
 
 
-def persist_longeval_data(lags, ir_metadata="longeval-ir-metadata/ir-metadata.yml"):
+def persist_longeval_data(lags, ir_metadata="longeval-ir-metadata/ir-metadata.yml") -> Path:
     d = temporary_directory()
     copy(JSONL_OUTPUT_VALID.parent / ir_metadata, Path(d) / "ir-metadata.yml")
     for lag in lags:

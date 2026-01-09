@@ -1,5 +1,6 @@
 import os
 import unittest
+from pathlib import Path
 
 import pandas as pd
 
@@ -151,7 +152,7 @@ class InputRunMountTest(unittest.TestCase):
 
         actual_dir, actual_files = tira_cli_download_run_output("tests/resources/re-ranking-outputs/", "a")
 
-        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(Path(expected_dir), actual_dir)
         self.assertEqual(expected_files, actual_files)
 
     def test_cli_download_run_output_02(self):
@@ -161,7 +162,7 @@ class InputRunMountTest(unittest.TestCase):
         tira_cli_download_run_output("tests/resources/input-run-02/", "a")
         actual_dir, actual_files = tira_cli_download_run_output("tests/resources/input-run-02/", "b")
 
-        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(Path(expected_dir), actual_dir)
         self.assertEqual(expected_files, actual_files)
 
     def test_cli_download_dataset_01(self):
@@ -170,7 +171,7 @@ class InputRunMountTest(unittest.TestCase):
 
         actual_dir, actual_files = tira_cli_download_dataset("tests/resources/re-ranking-outputs/")
 
-        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(Path(expected_dir), actual_dir)
         self.assertEqual(expected_files, actual_files)
 
     def test_cli_download_dataset_02(self):
@@ -179,7 +180,7 @@ class InputRunMountTest(unittest.TestCase):
 
         actual_dir, actual_files = tira_cli_download_dataset("tests/resources/input-run-02//2")
 
-        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(Path(expected_dir), actual_dir)
         self.assertEqual(expected_files, actual_files)
 
     def test_from_submission_01(self):

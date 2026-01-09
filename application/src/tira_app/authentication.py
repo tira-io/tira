@@ -93,11 +93,11 @@ class Authentication(object):
         self,
         request: "HttpRequest",
         path: str,
-        task_id: str,
-        organizer_id_from_params: str,
-        dataset_id_from_params: str,
-        run_id_from_params: str,
-        vm_id_from_params: str,
+        task_id: "Optional[str]",
+        organizer_id_from_params: "Optional[str]",
+        dataset_id_from_params: "Optional[str]",
+        run_id_from_params: "Optional[str]",
+        vm_id_from_params: "Optional[str]",
         role: str,
     ) -> bool:
         return False
@@ -351,11 +351,11 @@ Best regards"""
         self,
         request: "HttpRequest",
         path: str,
-        task_id: str,
-        organizer_id_from_params: str,
-        dataset_id_from_params: str,
-        run_id_from_params: str,
-        vm_id_from_params: str,
+        task_id: "Optional[str]",
+        organizer_id_from_params: "Optional[str]",
+        dataset_id_from_params: "Optional[str]",
+        run_id_from_params: "Optional[str]",
+        vm_id_from_params: "Optional[str]",
         role: str,
     ) -> bool:
         if request is None or path is None:

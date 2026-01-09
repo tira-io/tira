@@ -46,6 +46,7 @@ SECRET_KEY = custom_settings["django_secret"]
 ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
 TIRA_ROOT = Path(custom_settings["tira_root"])
+
 if not TIRA_ROOT.is_dir():
     logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
 
@@ -327,6 +328,8 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
 REFERENCE_DATASETS: dict[str, str] = {}
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
+S3_CONFIG = Path(__file__).parent / "test-s3-config"
+S3_BUCKET = "None"
 
 WELL_KNOWN = {
     "api": custom_settings["tira_rest_api"]["base_url"],

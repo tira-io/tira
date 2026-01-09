@@ -1,13 +1,19 @@
 import json
 import os
 import tempfile
-from typing import Iterable, Mapping
+from pathlib import Path
+from typing import TYPE_CHECKING, Iterable, Mapping, Optional
 
 import pandas as pd
 from pyterrier.transformer import SourceTransformer, Transformer
 
+if TYPE_CHECKING:
+    import pandas as pd
 
-def merge_runs(topics, run_file):
+    from .tira_client import TiraClient
+
+
+def merge_runs(topics: "pd.DataFrame", run_file: Path) -> "pd.DataFrame":
     import numpy as np
 
     df = pd.read_csv(run_file, sep="\\s+", names=["qid", "q0", "docno", "rank", "score", "system"])
@@ -38,8 +44,8 @@ class TiraSourceTransformer(SourceTransformer):
     artifact cannot honour.
     """
 
-    def __init__(self, rtr, *, on_column_mismatch: str = None, **kwargs):
-        super().__init__(rtr, **kwargs)
+    def __init__(self, rtr: "pd.DataFrame", *, on_column_mismatch: "Optional[str]" = None, **kwargs) -> None:
+        super().__init__(rtr, **kwargs)  # type: ignore[no-untyped-call]
         if on_column_mismatch is None:
             on_column_mismatch = os.getenv("TIRA_ARTIFACT_ON_COLUMN_MISMATCH", "warn").lower()
         self.on_column_mismatch = on_column_mismatch
@@ -89,7 +95,7 @@ class TiraFullRankTransformer(Transformer):
     A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
     """
 
-    def __init__(self, approach, tira_client, input_dir, **kwargs):
+    def __init__(self, approach: str, tira_client: "TiraClient", input_dir, **kwargs):
         self.approach = approach
         self.tira_client = tira_client
         self.input_dir = input_dir

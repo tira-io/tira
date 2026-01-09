@@ -1,0 +1,12 @@
+{
+    "title": "foo",
+    "description": "foo",
+    "ev_keys": [
+      "Ndcg@10",
+      "P@10"
+    ],
+    "table_headers": [],
+    "table_headers_small_layout": [],
+    "table_sort_by": [],
+    "lines": []
+}

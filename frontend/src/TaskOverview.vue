@@ -78,7 +78,7 @@
 
     <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x: any) => addDataset(x)"
       @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)" :userinfo="userinfo" />
-    <v-container v-if="!loading" id="dataset-select">
+    <v-container v-if="!loading && (!task.aggregated_results || task.aggregated_results.length == 0)" id="dataset-select">
       <h2>Submissions</h2>
       <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
         v-model="selectedDataset" variant="underlined" clearable />
@@ -86,19 +86,32 @@
       <run-list v-if="selectedDataset" :task_id="task_id" :from_archive="from_archive" :organizer="task.organizer" :organizer_id="task.organizer_id"
         :dataset_id="selectedDataset" />
     </v-container>
+    <v-container v-if="!loading && task.aggregated_results && task.aggregated_results.length > 0" id="dataset-select">
+      <div v-for="aggregated_result in task.aggregated_results">
+        <h2>{{ aggregated_result.title }}</h2>
+        {{ aggregated_result.description }}
+        <aggregated-result-list 
+          :table_headers="aggregated_result.table_headers"
+          :table_headers_small_layout="aggregated_result.table_headers_small_layout"
+          :initial_table_sort_by="aggregated_result.table_sort_by"
+          :lines="aggregated_result.lines"
+        />
+
+      </div>
+    </v-container>
   </div>
 </template>
 
 <script lang="ts">
 import { inject } from 'vue'
 
-import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
+import { TiraBreadcrumb, TiraTaskAdmin, RunList, AggregatedResultList, Loading, SubmitButton, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
 import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get_from_archive, inject_response, reportError, type UserInfo, DatasetInfo, TaskInfo } from './utils'
 export default {
   name: "task-list",
-  components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
+  components: { AggregatedResultList, TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,
@@ -108,14 +121,15 @@ export default {
       task: {
         "task_id": "", "task_name": "", "task_description": "",
         "organizer": "", "organizer_id": "", "web": "", "year": "",
-        "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false
+        "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false,
+        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}]
       },
       vm: '',
       user_id: '',
       user_vms_for_task: [],
       datasets: [{ 'dataset_id': 'loading...', 'id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }] as DatasetInfo[],
       tab: "test",
-      from_archive: true
+      from_archive: true,
     }
   },
   computed: {

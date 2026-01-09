@@ -14,9 +14,14 @@ from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
+from tira_app import model as modeldb
+
 from . import tira_model as model
 from .authentication import auth
 from .checks import check_conditional_permissions, check_permissions, check_resources_exist
+from .data.s3 import S3Database
+
+s3_db = S3Database()
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -147,20 +152,31 @@ def view_ir_metadata_of_run(request, task_id, dataset_id, vm_id, run_id, metadat
 @check_resources_exist("json")
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     """Zip the given run and hand it out for download. Deletes the zip on the server again."""
-    run = model.get_run(run_id=run_id, vm_id=vm_id, dataset_id=dataset_id)
-    if run and "from_upload" in run and run["from_upload"]:
-        return redirect(f"https://api.tira.io/v1/anonymous/{run['from_upload']}.zip")
+    from .endpoints.v1._datasets import upload_mirrored_resource
 
-    zipped = zip_run(dataset_id, vm_id, run_id)
+    db_run = modeldb.Run.objects.select_related("mirrored_resource").get(run_id=run_id)
+    if db_run.mirrored_resource is None:
+        zipped = zip_run(dataset_id, vm_id, run_id)
+        try:
+            mirror = upload_mirrored_resource(zipped)
+        except Exception as e:
+            msg = f"Could not upload data from s3 in download_rundir {e}."
+            print(msg, e)
+            logger.warning(msg)
+            return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
 
-    if zipped.exists():
-        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{run_id}-{zipped.stem}.zip")
-        os.remove(zipped)
-        return response
-    else:
-        return JsonResponse(
-            {"status": 1, "reason": f"File does not exist: {zipped}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-        )
+        db_run.mirrored_resource = mirror
+        db_run.save()
+
+    try:
+        ret_body = s3_db.read_mirrored_resource(db_run.mirrored_resource)
+    except Exception as e:
+        msg = f"Could not load data from s3 in download_rundir {e}."
+        print(msg, e)
+        logger.warning(msg)
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
+
+    return FileResponse(ret_body, as_attachment=True, filename=f"{run_id}.zip")
 
 
 @check_conditional_permissions(public_data_ok=True)
@@ -203,25 +219,39 @@ def download_repo_template(request, task_id, vm_id):
 
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):
+    from .endpoints.v1._datasets import upload_dataset_part_as_mirrored_resource
+
     input_type = input_type.lower().replace("input", "")
-    input_type = "" if len(input_type) < 2 else input_type
-    task_id = model.get_dataset(dataset_id)["task"]
+    input_type = "inputs" if len(input_type) < 2 else "truths"
 
-    path = model.model.data_path / f"{dataset_type}-datasets{input_type}" / task_id / dataset_id
+    mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
+        dataset__dataset_id=dataset_id, resource_type=input_type
+    )
 
-    if not path.exists():
-        return JsonResponse(
-            {"status": 1, "reason": f"File does not exist: {path}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR
+    if len(mirrors) < 1:
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        try:
+            upload_dataset_part_as_mirrored_resource(
+                dataset.default_task.task_id, dataset_id, input_type.replace("s", "")
+            )
+        except Exception as e:
+            msg = f"Could not upload data from s3 in download_datadir {e}."
+            print(msg, e)
+            logger.warning(msg)
+            return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
+        mirrors = modeldb.DatasetHasMirroredResource.objects.filter(
+            dataset__dataset_id=dataset_id, resource_type=input_type
         )
 
-    zipped = Path(f"{path.stem}.zip")
-    with zipfile.ZipFile(zipped, "w") as zipf:
-        for f in path.rglob("*"):
-            zipf.write(f, arcname=f.relative_to(path.parent))
+    if len(mirrors) < 1:
+        return JsonResponse({"status": 1, "reason": "Does not exist"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    if zipped.exists():
-        response = FileResponse(
-            open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip"
-        )
-        os.remove(zipped)
-        return response
+    try:
+        ret_body = s3_db.read_mirrored_resource(mirrors[0].mirrored_resource)
+    except Exception as e:
+        msg = f"Could not load data from s3 in download_datadir {e}."
+        print(msg, e)
+        logger.warning(msg)
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not load data from s3."}))
+
+    return FileResponse(ret_body, as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")

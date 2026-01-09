@@ -1,5 +1,6 @@
 from django.urls import include, path
 
+from ._admin import endpoints as admin_endpoints
 from ._anonymous import endpoints as anonymous_endpoints
 from ._datasets import endpoints as dataset_endpoints
 from ._evaluations import endpoints as evaluation_endpoints
@@ -20,4 +21,5 @@ endpoints = [
     path("tirex/", include(tirex_endpoints)),
     path("tasks/", include(task_endpoints)),
     path("user/", include(user_endpoints)),
+    path("admin/", include(admin_endpoints)),
 ]

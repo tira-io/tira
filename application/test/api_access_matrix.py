@@ -176,7 +176,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
@@ -215,11 +215,11 @@ API_ACCESS_MATRIX = [
         url_pattern="data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip",
         params={"dataset_type": "training", "dataset_id": f"dataset-1-{now}-training", "input_type": "input-"},
         group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
+            ADMIN: 500,
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER: 500,
+            ORGANIZER_WRONG_TASK: 500,
         },
     ),
     route_to_test(
@@ -230,7 +230,7 @@ API_ACCESS_MATRIX = [
             "input_type": "input-",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
@@ -256,10 +256,10 @@ API_ACCESS_MATRIX = [
             "input_type": "input-",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
-            ORGANIZER: 200,
+            ORGANIZER: 500,
             ORGANIZER_WRONG_TASK: 405,
         },
     ),
@@ -404,9 +404,9 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 302,
-            PARTICIPANT: 200,
+            PARTICIPANT: 500,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
         },
@@ -442,7 +442,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
@@ -458,7 +458,7 @@ API_ACCESS_MATRIX = [
             "run_id": "run-1-example_participant",
         },
         group_to_expected_status_code={
-            ADMIN: 200,
+            ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
@@ -2204,6 +2204,18 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 404,
             ORGANIZER: 404,
             ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/upload-response/<str:dataset_id>/<str:vm_id>",
+        params={"dataset_id": "does-not-exist", "vm_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 500,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now

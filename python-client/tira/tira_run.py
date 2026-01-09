@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional
 
 from tira.check_format import _fmt, log_message
 from tira.io_utils import huggingface_model_mounts
@@ -63,6 +63,87 @@ def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[st
             _fmt.ERROR,
         )
         return
+
+
+def guess_dataset(directory: Path, include_hidden_dirs=True) -> Optional[str]:
+    from tira.check_format import lines_if_valid
+
+    ret = []
+    lines = []
+    try:
+        lines = lines_if_valid(Path(directory), "ir_metadata")
+    except ValueError:
+        pass
+
+    for line in lines:
+        if (
+            line
+            and (include_hidden_dirs or ("name" in line and not line["name"].startswith(".")))
+            and "content" in line
+            and "data" in line["content"]
+            and line["content"]["data"]
+            and "test collection" in line["content"]["data"]
+            and "name" in line["content"]["data"]["test collection"]
+            and isinstance(line["content"]["data"]["test collection"]["name"], str)
+        ):
+            ret.append(line["content"]["data"]["test collection"]["name"])
+
+    ret = list(set(ret))
+    if len(ret) > 1:
+        if include_hidden_dirs:
+            tmp_ret = guess_dataset(directory, False)
+            if tmp_ret is not None:
+                return tmp_ret
+
+        print(f"Dataset definitions are ambiguous, I got {ret}.")
+
+    return None if len(ret) != 1 else ret[0]
+
+
+def guess_system_details(directory, system) -> Dict:
+    if system:
+        return {"tag": system}
+
+    from tira.check_format import lines_if_valid
+
+    lines = []
+    try:
+        lines = lines_if_valid(Path(directory), "ir_metadata")
+    except ValueError:
+        pass
+
+    for line in lines:
+        if (
+            line
+            and "content" in line
+            and "tag" in line["content"]
+            and line["content"]["tag"]
+            and isinstance(line["content"]["tag"], str)
+        ):
+            ret = {"tag": line["content"]["tag"]}
+            if "research goal" in line["content"] and "description" in line["content"]["research goal"]:
+                ret["description"] = line["content"]["research goal"]["description"]
+            if "actor" in line["content"] and "team" in line["content"]["actor"]:
+                ret["team"] = line["content"]["actor"]["team"]
+
+            return ret
+        if (
+            line
+            and "content" in line
+            and "actor" in line["content"]
+            and "team" in line["content"]["actor"]
+            and "method" in line["content"]
+            and "name" in line["content"]["method"]
+            and "description" in line["content"]["method"]
+            and isinstance(line["content"]["method"]["name"], str)
+        ):
+            return {
+                "team": line["content"]["actor"]["team"],
+                "description": line["content"]["method"]["description"],
+                "tag": line["content"]["method"]["name"],
+            }
+
+    return None
 
 
 def parse_args():

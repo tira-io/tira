@@ -31,23 +31,31 @@ software_non_public = "docker-software-1"
 software_public = "docker-software-2"
 software_with_inputs = "docker-software-with_inputs"
 
+from settings_test import TIRA_ROOT
+
 
 def set_up_tira_filesystem():
-    shutil.rmtree(Path("tira-root"), ignore_errors=True)
+    shutil.rmtree(Path(TIRA_ROOT), ignore_errors=True)
 
     call_command("flush", interactive=False)
 
-    Path("tira-root/model/virtual-machines/").mkdir(parents=True, exist_ok=True)
-    Path("tira-root/model/virtual-machine-hosts").mkdir(parents=True, exist_ok=True)
-    Path("tira-root/model/tasks/").mkdir(parents=True, exist_ok=True)
-    Path("tira-root/model/users/").mkdir(parents=True, exist_ok=True)
-    Path("tira-root/data/runs/dataset-1/example_participant/run-1").mkdir(parents=True, exist_ok=True)
-    Path("tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer").mkdir(
+    (Path(TIRA_ROOT) / "model" / "virtual-machines").mkdir(parents=True, exist_ok=True)
+    (Path(TIRA_ROOT) / "model" / "virtual-machine-hosts").mkdir(parents=True, exist_ok=True)
+    (Path(TIRA_ROOT) / "model" / "tasks").mkdir(parents=True, exist_ok=True)
+    (Path(TIRA_ROOT) / "model" / "users").mkdir(parents=True, exist_ok=True)
+    (Path(TIRA_ROOT) / "data" / "runs" / "dataset-1" / "example_participant" / "run-0-example_participant").mkdir(
         parents=True, exist_ok=True
     )
-    open("tira-root/model/virtual-machines/virtual-machines.txt", "w").write("")
-    open("tira-root/model/virtual-machine-hosts/virtual-machine-hosts.txt", "w").write("")
-    open("tira-root/model/users/users.prototext", "w").write("")
+    (Path(TIRA_ROOT) / "data" / "runs" / "dataset-1" / "example_participant" / "run-1").mkdir(
+        parents=True, exist_ok=True
+    )
+    (Path(TIRA_ROOT) / "data" / "runs" / "dataset-of-organizer" / "example_participant" / "run-of-organizer").mkdir(
+        parents=True, exist_ok=True
+    )
+
+    open(Path(TIRA_ROOT) / "model" / "virtual-machines" / "virtual-machines.txt", "w").write("")
+    open(Path(TIRA_ROOT) / "model" / "virtual-machine-hosts" / "virtual-machine-hosts.txt", "w").write("")
+    open(Path(TIRA_ROOT) / "model" / "users" / "users.prototext", "w").write("")
 
 
 def set_up_tira_environment():
@@ -191,8 +199,8 @@ def set_up_tira_environment():
 
         for participant in ["example_participant", "participant-1", "participant-2"]:
             run_id = f"run-{i}-{participant}"
-            Path(f"tira-root/data/runs/dataset-1/{participant}/{run_id}/").mkdir(parents=True, exist_ok=True)
-            with open(f"tira-root/data/runs/dataset-1/{participant}/{run_id}/run.prototext", "w") as f:
+            Path(f"{TIRA_ROOT}/data/runs/dataset-1/{participant}/{run_id}/").mkdir(parents=True, exist_ok=True)
+            with open(f"{TIRA_ROOT}/data/runs/dataset-1/{participant}/{run_id}/run.prototext", "w") as f:
                 f.write(
                     f'\nsoftwareId: "upload"\nrunId: "{run_id}"\ninputDataset:'
                     f' "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n'
@@ -229,7 +237,7 @@ def set_up_tira_environment():
             k_1 -= 0.1
             k_2 += 0.1
 
-    runs_path = Path("tira-root/data/runs/dataset-1/example_participant")
+    runs_path = Path(f"{TIRA_ROOT}/data/runs/dataset-1/example_participant")
     (runs_path / "run-3-example_participant" / "output").mkdir(parents=True, exist_ok=True)
     with (runs_path / "run-3-example_participant" / "output" / "run.txt").open("w") as file:
         file.write(
@@ -245,19 +253,19 @@ def set_up_tira_environment():
             ' "q072210025","text": "recipe spring roll"}}}, "documents": {}, "qrels": {}}'
         )
 
-    Path("tira-root/data/runs/dataset-1/example_participant/run-5-example_participant/output").mkdir(
+    Path(f"{TIRA_ROOT}/data/runs/dataset-1/example_participant/run-5-example_participant/output").mkdir(
         parents=True, exist_ok=True
     )
-    open("tira-root/data/runs/dataset-1/example_participant/run-5-example_participant/output/run.txt", "w").write(
+    open(f"{TIRA_ROOT}/data/runs/dataset-1/example_participant/run-5-example_participant/output/run.txt", "w").write(
         "q072210025 0 doc072207504499 1 16.214817060525405 pl2-baseline\nq072210025 0 doc072212607743 2"
         " 14.878122569655583 pl2-baseline"
     )
 
-    Path("tira-root/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output").mkdir(
+    Path(f"{TIRA_ROOT}/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output").mkdir(
         parents=True, exist_ok=True
     )
     gzip.open(
-        "tira-root/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output/.data-top-10-for-rendering.jsonl.gz",
+        f"{TIRA_ROOT}/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output/.data-top-10-for-rendering.jsonl.gz",
         "wt",
     ).write(
         '{"queries": {"q072210025": {"qid": "q072210025","query": "recipe spring roll","original_query": {"query_id":'
@@ -268,8 +276,8 @@ def set_up_tira_environment():
     for i in range(2):
         for participant in ["participant-1", "participant-2"]:
             run_id = f"run-ds2-{i}-{participant}"
-            Path(f"tira-root/data/runs/dataset-2/{participant}/{run_id}/").mkdir(parents=True, exist_ok=True)
-            with open(f"tira-root/data/runs/dataset-2/{participant}/{run_id}/run.prototext", "w") as f:
+            Path(f"{TIRA_ROOT}/data/runs/dataset-2/{participant}/{run_id}/").mkdir(parents=True, exist_ok=True)
+            with open(f"{TIRA_ROOT}/data/runs/dataset-2/{participant}/{run_id}/run.prototext", "w") as f:
                 f.write(
                     f'\nsoftwareId: "upload"\nrunId: "{run_id}"\ninputDataset: "dataset-2-{now}-test"\ndownloadable:'
                     " true\ndeleted: false\n"
@@ -289,7 +297,9 @@ def set_up_tira_environment():
             k_1 -= 0.1
             k_2 += 0.1
 
-    with open("tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer/run.prototext", "w") as f:
+    with open(
+        f"{TIRA_ROOT}/data/runs/dataset-of-organizer/example_participant/run-of-organizer/run.prototext", "w"
+    ) as f:
         f.write(
             '\nsoftwareId: "upload"\nrunId: "run-of-organizer"\ninputDataset:'
             f' "dataset-of-organizer-{now}-training"\ndownloadable: true\ndeleted: false\n'

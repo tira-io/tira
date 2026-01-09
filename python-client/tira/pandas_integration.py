@@ -1,4 +1,7 @@
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 PANDAS_DTYPES = {
     "docno": str,
@@ -79,7 +82,7 @@ class PandasIntegration:
 
         return pd.concat(df_ret)
 
-    def transform_queries(self, approach: str, dataset: str, format: str = "query-processor"):
+    def transform_queries(self, approach: str, dataset: "Optional[str]", format: str = "query-processor"):
         """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use
         as a PyTerrier query transformation.
 
@@ -102,7 +105,9 @@ class PandasIntegration:
 
         return pd.DataFrame(items)
 
-    def transform_documents(self, approach, dataset, format="document-processor"):
+    def transform_documents(
+        self, approach: str, dataset: "Optional[str]", format: str = "document-processor"
+    ) -> "pd.DataFrame":
         """Load and transform the document processing outputs specified by the approach on the dataset for direct
         re-use as a PyTerrier document transformation.
 

@@ -290,3 +290,4 @@ tira-web/tira-web/lib/
 # TextMate
 frontend/.editorconfig
 python-client/tests/resources/local_cached_zip/extracted_datasets/
+.devcontainer/devfiles/tira-settings.json

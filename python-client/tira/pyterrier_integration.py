@@ -1,34 +1,52 @@
+import gzip
+import json
 import os
+import shutil
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from tira.check_format import report_valid_formats
+from tira.third_party_integrations import temporary_directory
 from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_ARTIFACT_DEBUG_URL
+
+if TYPE_CHECKING:
+    import numpy as np
+    import pandas as pd
+
+    from tira.pyterrier_util import TiraApplyFeatureTransformer, TiraFullRankTransformer
+
+    from .rest_api_client import Client
+
+OUTPUT_FORMAT_TO_PT_FORMAT: Dict[str, str] = {
+    "run.txt": "pt_transformer",
+    "query-processor": "pt_query_transformer",
+    "terrier-index": "pt_index_transformer",
+    "document-processor": "pt_document_transformer",
+}
 
 
 class PyTerrierIntegration:
-    def __init__(self, tira_client):
+    def __init__(self, tira_client: "Client") -> None:
         self.tira_client = tira_client
         self.pd = tira_client.pd
         self.irds_docker_image = "webis/tira-application:0.0.36"
 
-    def retriever(self, approach, dataset=None):
+    def retriever(self, approach: str, dataset: "Optional[str]" = None) -> "TiraFullRankTransformer":
         from tira.pyterrier_util import TiraFullRankTransformer
 
         input_dir = self.ensure_dataset_is_cached(dataset, dataset)
         return TiraFullRankTransformer(approach, self.tira_client, input_dir)
 
-    def ensure_dataset_is_cached(self, irds_dataset_id, dataset):
-        import os
-        from pathlib import Path
-
+    def ensure_dataset_is_cached(self, irds_dataset_id: "Optional[str]", dataset: "Optional[str]" = None) -> Path:
         from tira.io_utils import run_cmd
 
-        cache_dir = self.tira_client.tira_cache_dir + "/pyterrier/" + irds_dataset_id
-        full_rank_data = cache_dir + "/full-rank/"
-        truth_data = cache_dir + "/truth-data/"
-        irds_cache = cache_dir + "/irds-cache/"
+        cache_dir = Path(self.tira_client.tira_cache_dir) / "pyterrier" / str(irds_dataset_id)
+        full_rank_data = cache_dir / "full-rank"
+        truth_data = cache_dir / "truth-data"
+        irds_cache = cache_dir / "irds-cache"
 
-        if os.path.isfile(full_rank_data + "/documents.jsonl"):
+        if os.path.isfile(full_rank_data / "documents.jsonl"):
             return full_rank_data
 
         Path(full_rank_data).mkdir(parents=True, exist_ok=True)
@@ -40,11 +58,11 @@ class PyTerrierIntegration:
                 "docker",
                 "run",
                 "-v",
-                irds_cache + ":/root/.ir_datasets/:rw",
+                f"{irds_cache}:/root/.ir_datasets/:rw",
                 "-v",
-                full_rank_data + ":/output/:rw",
+                f"{full_rank_data}:/output/:rw",
                 "-v",
-                truth_data + ":/truth/:rw",
+                "{truth_data}:/truth/:rw",
                 "--entrypoint",
                 "/irds_cli.sh",
                 self.irds_docker_image,
@@ -57,14 +75,11 @@ class PyTerrierIntegration:
             ]
         )
 
-        return full_rank_data
+        return Path(full_rank_data)
 
-    def create_rerank_file(self, run_df=None, run_file=None, irds_dataset_id=None):
-        import gzip
-        import json
-        import tempfile
-        from pathlib import Path
-
+    def create_rerank_file(
+        self, run_df: "pd.DataFrame" = None, run_file: "Optional[Path]" = None, irds_dataset_id: "Optional[str]" = None
+    ) -> Path:
         from tira.io_utils import run_cmd
         from tira.third_party_integrations import persist_and_normalize_run
 
@@ -74,7 +89,7 @@ class PyTerrierIntegration:
         if run_file is not None:
             return run_file
 
-        run_file = tempfile.TemporaryDirectory("-rerank-run").name
+        run_file = temporary_directory()
         Path(run_file).mkdir(parents=True, exist_ok=True)
 
         if "text" not in run_df.columns and "body" not in run_df.columns:
@@ -92,7 +107,7 @@ class PyTerrierIntegration:
                     "-v",
                     irds_cache + ":/root/.ir_datasets/:rw",
                     "-v",
-                    run_file + ":/output/:rw",
+                    f"{run_file}:/output/:rw",
                     "--entrypoint",
                     "/irds_cli.sh",
                     self.irds_docker_image,
@@ -105,7 +120,7 @@ class PyTerrierIntegration:
                 ]
             )
         else:
-            with gzip.open(run_file + "/rerank.jsonl.gz", "wt") as f:
+            with gzip.open(run_file / "rerank.jsonl.gz", "wt") as f:
                 for _, i in run_df.iterrows():
                     i = i.to_dict()
 
@@ -121,7 +136,7 @@ class PyTerrierIntegration:
 
                     f.write(json.dumps(i) + "\n")
 
-        return run_file
+        return Path(run_file)
 
     def index(self, approach, dataset):
         """
@@ -131,8 +146,8 @@ class PyTerrierIntegration:
 
         from tira.ir_datasets_util import translate_irds_id_to_tirex
 
-        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + "/index"
-        return pt.IndexFactory.of(os.path.abspath(ret))
+        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) / "index"
+        return pt.IndexFactory.of(os.path.abspath(str(ret)))
 
     def from_submission(self, approach, dataset=None, datasets=None, file_to_re_rank=None):
         if self.__is_re_ranker(approach):
@@ -196,10 +211,10 @@ class PyTerrierIntegration:
         return generic(__transform_df)
 
     @staticmethod
-    def _get_features_from_row(row, cols, map_features=None):
+    def _get_features_from_row(row: Any, cols: List[str], map_features: Any = None) -> "np.ndarray":
         import numpy as np
 
-        res = []
+        res: List = []
 
         for c in cols:
             if map_features is not None and c in map_features:
@@ -214,7 +229,9 @@ class PyTerrierIntegration:
 
         return np.array(res)
 
-    def _features_transformer(self, run, id_col, name, feature_selection=None, map_features=None):
+    def _features_transformer(
+        self, run: "pd.DataFrame", id_col: str, name: str, feature_selection: Any = None, map_features: Any = None
+    ) -> "TiraApplyFeatureTransformer":
         from tira.pyterrier_util import TiraApplyFeatureTransformer
 
         cols = [col for col in run.columns if col != id_col]
@@ -226,15 +243,25 @@ class PyTerrierIntegration:
         return TiraApplyFeatureTransformer(mapping, (id_col,), name)
 
     def doc_features(
-        self, approach, dataset, format: str = "document-processor", feature_selection=None, map_features=None
-    ):
+        self,
+        approach: str,
+        dataset: str,
+        format: str = "document-processor",
+        feature_selection: Any = None,
+        map_features: Any = None,
+    ) -> "TiraApplyFeatureTransformer":
         run = self.pd.transform_documents(approach, dataset, format)
 
         return self._features_transformer(run, "docno", "doc_features", feature_selection, map_features)
 
     def query_features(
-        self, approach, dataset=None, format: str = "query-processor", feature_selection=None, map_features=None
-    ):
+        self,
+        approach,
+        dataset: "Optional[str]" = None,
+        format: str = "query-processor",
+        feature_selection: Any = None,
+        map_features: Any = None,
+    ) -> "TiraApplyFeatureTransformer":
         run = self.pd.transform_queries(approach, dataset, format)
 
         return self._features_transformer(run, "qid", "query_features", feature_selection, map_features)
@@ -376,7 +403,10 @@ def pt_transformer(path):
     # TODO hacked for the moment, in reality, we must delegate to the classes above.
 
     original_path = path
-    run_path = os.path.join(path, "output", "run.txt")
+    if Path(os.path.join(path, "output", "run.txt.gz")).exists():
+        run_path = os.path.join(path, "output", "run.txt.gz")
+    else:
+        run_path = os.path.join(path, "output", "run.txt")
     df = pt.io.read_results(run_path)
 
     mode = os.getenv("TIRA_ARTIFACT_ON_COLUMN_MISMATCH", "warn").lower()
@@ -390,8 +420,7 @@ def pt_transformer(path):
     return _add_metadata_support(transformer, original_path)
 
 
-def pt_artifact_entrypoint(url):
-    url = url.netloc + url.path
+def _extract_dataset_team_approach(url: str) -> Tuple[str, str, str, str]:
     dataset_id = None
 
     if len(url) < 5:
@@ -404,17 +433,29 @@ def pt_artifact_entrypoint(url):
             break
 
     if dataset_id is None:
+        from tira.rest_api_client import Client
+
+        tira = Client()
+        for ds in tira.archived_json_response("/v1/datasets/all"):
+            if (
+                not ds
+                or "dataset_id" not in ds
+                or not ds["dataset_id"]
+                or "default_task" not in ds
+                or not ds["default_task"]
+            ):
+                continue
+
+            if url.startswith(ds["dataset_id"] + "/"):
+                url = url.replace(ds["dataset_id"], ds["default_task"])
+                dataset_id = ds["dataset_id"]
+                break
+
+    if dataset_id is None:
         raise ValueError(
             f"Invalid tira url. I expected 'tira:<IR-DATASETS-ID>/<TEAM>/<APPROACH>'. But could not find a ir-dataset."
             f"I got '{url}'. Please see {TIREX_ARTIFACT_DEBUG_URL} for an overview of all available dataset ids."
         )
-
-    import json
-    from pathlib import Path
-
-    from tira.rest_api_client import Client
-
-    tira = Client()
 
     if len(url.split("/")) != 3:
         raise ValueError(
@@ -423,14 +464,18 @@ def pt_artifact_entrypoint(url):
         )
     team, approach = url.split("/")[1:]
 
+    return dataset_id, url, team, approach
+
+
+def _download_artifact_from_tira(url: str) -> Tuple[Path, str]:
+    from tira.rest_api_client import Client
+
+    dataset_id, url, team, approach = _extract_dataset_team_approach(url)
+
+    tira = Client()
+
     all_systems = tira.archived_json_response("/v1/systems/all")
     pt_format = None
-    output_format_to_pt_format = {
-        "run.txt": "pt_transformer",
-        "query-processor": "pt_query_transformer",
-        "terrier-index": "pt_index_transformer",
-        "document-processor": "pt_document_transformer",
-    }
 
     for system in all_systems:
         if team == system["team"] and approach == system["name"]:
@@ -441,7 +486,8 @@ def pt_artifact_entrypoint(url):
                 raise ValueError("Fooo")
 
             for k in system["verified_outputs"][dataset_id]:
-                pt_format = output_format_to_pt_format[k]
+                if k in OUTPUT_FORMAT_TO_PT_FORMAT:
+                    pt_format = OUTPUT_FORMAT_TO_PT_FORMAT[k]
 
     if pt_format is None:
         raise ValueError(
@@ -450,11 +496,38 @@ def pt_artifact_entrypoint(url):
         )
 
     ret = tira.get_run_output(url, dataset_id)
-    ret = Path(ret).parent
+    return Path(ret).parent, pt_format
+
+
+def _local_artifact_from_tira(file_or_directory: Path) -> Tuple[Path, str]:
+    ret = temporary_directory() / "output"
+
+    if file_or_directory.is_file():
+        ret.mkdir()
+        shutil.copy(file_or_directory, ret)
+    else:
+        shutil.copytree(file_or_directory, ret)
+    valid_formats = report_valid_formats(ret)
+    pt_formats = [v for k, v in OUTPUT_FORMAT_TO_PT_FORMAT.items() if k in valid_formats]
+
+    if len(pt_formats) != 1:
+        raise ValueError("I do not know in which format the artifact is.")
+
+    return (ret.parent, pt_formats[0])
+
+
+def pt_artifact_entrypoint(url) -> str:
+    url = url.netloc + url.path
+
+    if url and Path(url).exists():
+        ret, pt_format = _local_artifact_from_tira(Path(url))
+    else:
+        ret, pt_format = _download_artifact_from_tira(url)
 
     if not (ret / "pt_meta.json").is_file():
         with open(ret / "pt_meta.json", "w") as f:
             f.write(json.dumps({"type": "tira", "format": pt_format}))
+
     return str(ret.absolute())
 
 
@@ -471,9 +544,6 @@ def _add_metadata_support(transformer, artifact_path):
         if not hasattr(transformer, "artifact_path") or not transformer.artifact_path:
             print("No artifact_path set for this transformer. Cannot read metadata.")
             return None
-
-        import json
-        from pathlib import Path
 
         meta_path = Path(transformer.artifact_path) / "pt_meta.json"
 
