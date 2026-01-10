@@ -406,29 +406,13 @@ def get_running_software(
 ) -> "HttpResponse":
     context["running_software"] = []
 
-    evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
-    repositories = set(
-        [i["git_repository_id"] for i in evaluators_for_task if i["is_git_runner"] and i["git_repository_id"]]
-    )
-    git_runner = model.get_git_integration(task_id=task_id)
+    from ..model import RunningProcesses
 
-    for git_repository_id in sorted(list(repositories)):
-        context["running_software"] += list(
-            git_runner.yield_all_running_pipelines(
-                int(git_repository_id), user_id, cache, force_cache_refresh=eval(force_cache_refresh)
-            )
-        )
-        context["running_software_last_refresh"] = model.load_refresh_timestamp_for_cache_key(
-            cache, "all-running-pipelines-repo-" + str(git_repository_id)
-        )
-        context["running_software_next_refresh"] = str(
-            context["running_software_last_refresh"] + datetime.timedelta(seconds=15)
-        )
-        context["running_software_last_refresh"] = str(context["running_software_last_refresh"])
-
-    for software in context["running_software"]:
-        if "pipeline" in software:
-            del software["pipeline"]
+    for r in RunningProcesses.objects.filter(task=task_id, vm_id=user_id):
+        try:
+            context["running_software"].append(json.loads(r.details))
+        except:
+            pass
 
     return JsonResponse({"status": 0, "context": context})
 
@@ -704,13 +688,13 @@ def submissions_for_task(
         context["all_uploadgroups"] += [i for i in cloned_submissions if i["type"] == "upload"]
     elif submission_type == "code":
         context["code"] = {"submissions": model.get_docker_softwares(task_id, user_id, return_code_submissions=True)}
-        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
+        context["resources"] = settings.AVAILABLE_RESOURCES
     elif submission_type == "docker":
         context["docker"] = {
             "docker_softwares": model.get_docker_softwares(task_id, user_id, return_code_submissions=False)
         }
         context["docker"]["docker_softwares"] += [i for i in cloned_submissions if i["type"] == "docker"]
-        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
+        context["resources"] = settings.AVAILABLE_RESOURCES
     elif submission_type == "vm":
         context["message"] = (
             "This option is not active for this shared task. "

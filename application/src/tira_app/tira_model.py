@@ -196,7 +196,7 @@ def load_docker_data(
 
     return {
         "docker_images": docker_images,
-        "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
+        "resources": list(settings.AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
         "docker_registry_user": tira_docker_registry_token(docker_software_help)[0],

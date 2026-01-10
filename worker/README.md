@@ -11,5 +11,9 @@ celery -A tira_worker:app worker -Q evaluator --concurrency=1 -l INFO
 ```
 
 ```bash
+celery -A tira_worker:app worker -Q large-resources --concurrency=1 -l INFO
+```
+
+```bash
 celery -A tira_worker:gpu_executor worker -Q small-resources-gpu --concurrency=1 -l INFO
 ```

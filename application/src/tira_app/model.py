@@ -490,3 +490,11 @@ class BackendProcess(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, default=None)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE, null=True, default=None)
     stdout = models.TextField(default="")
+
+
+class RunningProcesses(models.Model):
+    uuid = models.CharField(max_length=150, primary_key=True)
+    task = models.TextField(default="")
+    vm_id = models.TextField(default="")
+    dataset_id = models.TextField(default="")
+    details = models.TextField(default="")

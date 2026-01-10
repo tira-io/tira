@@ -3,29 +3,15 @@
     <v-expansion-panel>
       <v-expansion-panel-title>
         <template v-slot:default="{ expanded }">
-          <div v-if="!expanded">
-            <b>{{ title_of_component }}</b>
-          </div>
-          <div v-if="expanded" class="w-100">
-            <v-row class="mt-3">
-              <v-icon class="mx-2">mdi-transit-connection</v-icon>
-              <b>{{ title_of_component }}</b>
+          <div class="w-100">
+            <v-row>
+              <b class="my-4">{{ title_of_component }}</b>
+              <v-btn class="my-0" variant="text" icon="mdi-refresh" :disabled="poll_in_progress" :loading="poll_in_progress" @click="pollRunningSoftware('True')"/>
             </v-row>
-            <p class="mt-5">
-              Inspect your current runs
-            </p>
           </div>
         </template>
       </v-expansion-panel-title>
       <v-expansion-panel-text>
-        <v-btn variant="outlined" color="blue" class="my-2" :disabled="poll_in_progress" :loading="poll_in_progress"
-          @click="pollRunningSoftware('True')">
-          <v-tooltip activator="parent" location="bottom">
-            Check if some new runs have started
-          </v-tooltip>
-          <v-icon class="mr-2">mdi-refresh</v-icon>
-          Refresh
-        </v-btn>
         <v-card v-if="!loading && running_software.length > 0">
           <loading :loading="loading" />
           <v-card-actions v-if="!loading">
@@ -144,8 +130,6 @@ export default {
     return {
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_task: extractUserFromCurrentUrl(),
-      running_software_last_refresh: 'loading...',
-      running_software_next_refresh: 'loading...',
       running_software: [{
         'run_id': 'loading...',
         'execution': { 'scheduling': 'done', 'execution': 'running', 'evaluation': 'pending' },
@@ -169,7 +153,7 @@ export default {
   },
   computed: {
     title_of_component() {
-      return this.loading ? 'Fetch Running Processes from the Backend ...' : this.running_software.length + ' Running Processes. (Last Refresh: ' + this.running_software_last_refresh + '; Next Refresh: ' + this.running_software_next_refresh + ')'
+      return this.loading ? 'Fetch Running Processes from the Backend ...' : this.running_software.length + ' Running Processes.'
     }
   },
   methods: {

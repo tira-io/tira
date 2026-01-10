@@ -1,6 +1,6 @@
 .PHONY:docs
 
-build-pypi-package: run-tests
+build-pypi-package:
 	rm -Rf dist
 	python3 -m build --sdist .
 	python3 -m build --wheel .

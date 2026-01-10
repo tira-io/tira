@@ -24,6 +24,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
 from tira.io_utils import get_tira_id
 from tira.third_party_integrations import temporary_directory
+from tira_worker import all_workers
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -476,8 +477,10 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
 def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     from tira_worker import evaluate
 
+    job_id = add_job(foo)
+
     evaluator_id = model.get_dataset(dataset)["evaluator_id"]
-    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team], queue="evaluator")
+    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue="evaluator")
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -500,6 +503,7 @@ def run_sandboxed_software(
     docker_resources: str,
     input_runs: str,
     mount_hf_model: "Optional[list[str]]",
+    job_id: str,
 ) -> None:
     from tira_worker import run
 
@@ -507,7 +511,8 @@ def run_sandboxed_software(
         mount_hf_model = [mount_hf_model]
 
     run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model], queue=docker_resources
+        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model, job_id],
+        queue=docker_resources,
     )
 
 
@@ -1405,6 +1410,17 @@ def run_execute_docker_software(
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
+    available_workers = all_workers()
+    if docker_resources not in available_workers:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "No worker queue is registered for the requested resources. This might be a short term hiccup.",
+            }
+        )
+
+    job_id = add_job(docker_resources, docker_software)
+
     run_sandboxed_software(
         task_id,
         dataset_id,
@@ -1415,9 +1431,39 @@ def run_execute_docker_software(
         docker_resources,
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
+        job_id,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
+
+
+def add_job(docker_resources, task_id, vm_id, dataset_id, docker_software=None):
+    job_id = str(uuid.uuid4())
+    from ..model import RunningProcesses
+
+    r = settings.ALL_POSSIBLE_RESOURCES[docker_resources]
+    details = {
+        "run_id": job_id,
+        "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"},
+        "stdOutput": "",
+        "started_at": "pending",
+        "job_config": {
+            "software_name": "software...",
+            "image": docker_software["user_image_name"],
+            "command": docker_software["command"],
+            "cores": str(r["cores"]) + " CPU Cores",
+            "ram": str(r["ram"]) + " GB of RAM",
+            "gpu": str(r["gpu"]) + " GPUs",
+            "data": "?",
+            "dataset_type": "?",
+            "dataset": "tbd dataset",
+            "software_id": "loading software id",
+            "task_id": task_id,
+        },
+    }
+    RunningProcesses.objects.create(
+        uuid=job_id, task=task_id, vm_id=vm_id, dataset_id=dataset_id, details=json.dumps(details)
+    )
 
 
 @check_permissions

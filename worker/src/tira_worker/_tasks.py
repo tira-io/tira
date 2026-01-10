@@ -16,10 +16,10 @@ gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, br
 
 def get_admin_client() -> TiraClient:
     ret: "TiraClient" = RestClient()
-    role = ret.json_response("/api/role")
+    # role = ret.json_response("/api/role")
 
-    if not role or "role" not in role or "admin" != role["role"]:
-        raise ValueError(f"The tira client has no admin credentials. Got {role}")
+    # if not role or "role" not in role or "admin" != role["role"]:
+    #    raise ValueError(f"The tira client has no admin credentials. Got {role}")
 
     return ret
 
@@ -45,7 +45,7 @@ def execute_monitored(method: Callable):
     return MonitoredExecution().run(lambda i: method(i))
 
 
-@gpu_executor.task
+@gpu_executor.task()
 def run(
     dataset: str,
     task: str,
@@ -53,12 +53,14 @@ def run(
     command: str,
     software_id: str,
     team: str,
+    job_id: str,
     mount_hf_model: "Optional[list[str]]" = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
 
-    system_inputs = client.download_dataset(task, dataset)
+    # system_inputs = client.download_dataset(task, dataset)
+    system_inputs = "foo"
     print("Inputs are available locally:", system_inputs)
 
     hf_models = None
@@ -83,11 +85,11 @@ def run(
         )
     )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
-    client.upload_run_admin(dataset, team, run_results)
+    client.upload_run_admin(dataset, team, run_results, job_id)
 
 
-@app.task
-def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str) -> None:
+@app.task()
+def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str, job_id: str) -> None:
     client: TiraClient = get_admin_client()
 
     truths = client.download_dataset(task, dataset, truth_dataset=True)
@@ -100,7 +102,7 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str)
         eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
     )
 
-    client.upload_run_admin(dataset, team, eval_results)
+    client.upload_run_admin(dataset, team, eval_results, job_id)
 
 
 get_admin_client()

@@ -22,13 +22,18 @@ from werkzeug.utils import secure_filename
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
+from ...model import RunningProcesses
 from ..vm_api import _run_evaluation
 
 
 @check_conditional_permissions(restricted=True)
-def upload_response(request: Request, dataset_id: str, vm_id: str) -> Response:
+def upload_response(request: Request, job_id: str) -> Response:
     if request.method != "POST":
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
+
+    job = RunningProcesses.objects.get(uuid=job_id)
+    dataset_id = job.dataset_id
+    vm_id = job.vm_id
 
     if not dataset_id or dataset_id is None or dataset_id == "None":
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Please specify the associated dataset."}))
@@ -67,5 +72,5 @@ def upload_response(request: Request, dataset_id: str, vm_id: str) -> Response:
 
 
 endpoints = [
-    path("upload-response/<str:dataset_id>/<str:vm_id>", upload_response),
+    path("upload-response/<str:job_id>", upload_response),
 ]

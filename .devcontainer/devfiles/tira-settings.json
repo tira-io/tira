@@ -1,1 +1,1 @@
-{ "base_url": "https://nginx:8080/", "base_url_api": "https://nginx:8080/", "Cookie": "", "archive_base_url": "https://nginx:8080", "verify": false, "Host": "127.0.0.1" }
+{ "base_url": "https://nginx:8080/", "base_url_api": "https://nginx:8080/", "Cookie": "authelia_session=8yBc2$2FwqaG%S4wdJX63kB0$2Ztm3Tp", "archive_base_url": "https://nginx:8080", "verify": false, "Host": "127.0.0.1" }

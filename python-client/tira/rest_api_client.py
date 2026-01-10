@@ -22,7 +22,7 @@ from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
 from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
-from tira.third_party_integrations import temporary_directory
+from tira.third_party_integrations import default_tira_cache_dir, temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
     TASKS_WITH_REDIRECT_MERGING,
@@ -54,9 +54,7 @@ class Client(TiraClient):
         self._settings = None
         self.api_key_already_checked = False
         self.logged: "set[str]" = set()
-        self.tira_cache_dir = str(
-            tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
-        )
+        self.tira_cache_dir = default_tira_cache_dir(tira_cache_dir)
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
         self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
@@ -892,13 +890,14 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def authentication_headers(self, url) -> Dict:
+    def authentication_headers(self, url=None) -> Dict:
         ret = {}
 
         if not url or not url.startswith(self.load_settings()["archive_base_url"]):
             if self.api_key != "no-api-key":
                 ret["Api-Key"] = self.api_key
-                self.fail_if_api_key_is_invalid()
+                if url and "api/role" not in url:
+                    self.fail_if_api_key_is_invalid()
             if self.api_user_name != "no-api-key-user":
                 ret["Api-Username"] = self.api_user_name
 
@@ -1012,11 +1011,11 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
 
-    def upload_run_admin(self, dataset: str, team: str, file_path: Path) -> None:
+    def upload_run_admin(self, file_path: Path, job_id: str) -> None:
         from tira.io_utils import zip_dir
 
         zip_file = zip_dir(file_path)
-        self.execute_post_return_json(f"/v1/admin/upload-response/{dataset}/{team}", file_path=zip_file)
+        self.execute_post_return_json(f"/v1/admin/upload-response/{job_id}", file_path=zip_file)
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
@@ -1316,7 +1315,7 @@ class Client(TiraClient):
 
         base_url = base_url if base_url else self.base_url
 
-        headers = self.authentication_headers(base_url)
+        headers = self.authentication_headers(f"{base_url}{endpoint}")
         headers["Accept"] = "application/json"
 
         for _ in range(failsave_retries):

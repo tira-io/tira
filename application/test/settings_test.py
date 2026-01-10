@@ -250,7 +250,7 @@ def logger_config(log_dir: Path):
 
 
 # Git Integration
-GIT_CI_AVAILABLE_RESOURCES = {
+AVAILABLE_RESOURCES = {
     "small-resources": {
         "cores": 1,
         "ram": 10,

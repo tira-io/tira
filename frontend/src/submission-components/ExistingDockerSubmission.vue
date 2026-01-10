@@ -40,7 +40,6 @@
         </span>
         <br>(Branch: {{ docker_software_details.source_code_active_branch }}. Commit: {{ docker_software_details.source_code_commit }}).<br>
         </div>
-
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
         <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
       </v-form>
@@ -52,6 +51,16 @@
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
+
+
+        <v-checkbox label="Custom Environment Variables (Experts Only)" v-model="environment_variables"/>
+
+        <div v-if="environment_variables">
+          Foooo
+          <v-textarea label="Environment Variables"/>
+          <v-text-field label="Description"/>
+        </div>
+        
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
     </v-card>
@@ -84,7 +93,8 @@ export default {
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("gRPC base URL"),
-      userinfo: inject('userinfo') as UserInfo
+      userinfo: inject('userinfo') as UserInfo,
+      environment_variables: false
     }
   },
   methods: {
