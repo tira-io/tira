@@ -3,12 +3,16 @@ import gzip
 import json
 import os
 from base64 import b64encode
+from hashlib import md5
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
 import pandas as pd
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from trectools import TrecRun
+
+from tira.third_party_integrations import default_tira_cache_dir, persist_and_normalize_run, temporary_directory
 
 
 class IrDatasetsLoader(object):
@@ -99,37 +103,39 @@ class IrDatasetsLoader(object):
             self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path / "queries.xml")
 
     def reformat_to_re_rank_dataset(
-        self, run_file: Path, dataset_directory: Path, output_dataset_dir: Path, log_file: Path
+        self, run_file: Path, dataset_directory: Path, output_dataset_dir: Path, log_file: Path, dataset: str = None
     ):
         run_file = Path(run_file).absolute()
         dataset_directory = Path(dataset_directory).absolute()
 
-        if not log_file.exists():
-            with open(log_file, "w") as f:
-                f.write("")
+        if log_file:
+            if not log_file.exists():
+                with open(log_file, "w") as f:
+                    f.write("")
 
-        with open(log_file, "r") as f:
-            for l in f:
-                try:
-                    l = json.loads(l)
-                    if (
-                        l["dataset_directory"] == str(dataset_directory)
-                        and l["re_rank_file"]
-                        and l["run_file"] == str(run_file)
-                    ):
-                        return str(Path(l["re_rank_dataset_directory"]) / "input-data")
-                except:
-                    pass
+            with open(log_file, "r") as f:
+                for l in f:
+                    try:
+                        l = json.loads(l)
+                        if (
+                            l["dataset_directory"] == str(dataset_directory)
+                            and l["re_rank_file"]
+                            and l["run_file"] == str(run_file)
+                        ):
+                            return str(Path(l["re_rank_dataset_directory"]) / "input-data")
+                    except:
+                        pass
 
-        import ir_datasets
+        if not dataset:
+            import ir_datasets
 
-        from tira.ir_datasets_util import static_ir_dataset
+            from tira.ir_datasets_util import static_ir_dataset
 
-        dataset = static_ir_dataset(str(dataset_directory)).load("does-not-matter")
-        ir_datasets.registry.register(dataset.dataset_id, dataset)
+            dataset = static_ir_dataset(str(dataset_directory)).load("does-not-matter")
+            ir_datasets.registry.register(dataset.dataset_id, dataset)
 
         self.load_dataset_for_rerank(
-            dataset.dataset_id,
+            dataset.dataset_id(),
             output_dataset_path=output_dataset_dir / "input-data",
             output_dataset_truth_path=None,
             include_original=False,
@@ -143,8 +149,9 @@ class IrDatasetsLoader(object):
             "re_rank_dataset_directory": str(output_dataset_dir),
         }
 
-        with open(log_file, "a") as f:
-            f.write(json.dumps(ret) + "\n")
+        if log_file:
+            with open(log_file, "a") as f:
+                f.write(json.dumps(ret) + "\n")
 
         return Path(ret["re_rank_dataset_directory"]) / "input-data"
 
@@ -313,3 +320,28 @@ class IrDatasetsLoader(object):
             root.append(copy.deepcopy(line))
         with path.open("wt") as file:
             file.write(soup.prettify())
+
+
+def get_as_re_rank_input(run_file: Path, depth: int, ir_datasets_id: str) -> Path:
+    base_dir = Path(default_tira_cache_dir()) / "extracted_datasets"
+    base_dir = base_dir / "persisted-tira-re-ranking-inputs"
+
+    with open(run_file, "rb") as f:
+        actual_md5 = md5(f.read()).hexdigest()
+
+    target_dir = base_dir / actual_md5 / str(depth)
+
+    if not (target_dir / "input-data" / "rerank.jsonl.gz").is_file():
+        ranking_dir = Path(temporary_directory()) / "run.txt"
+        from tira.third_party_integrations import ir_datasets
+
+        ir_dataset = ir_datasets.load(ir_datasets_id)
+
+        trec_run = TrecRun(run_file).run_data
+        trec_run["qid"] = trec_run["query"]
+        trec_run["docno"] = trec_run["docid"]
+        persist_and_normalize_run(trec_run, output_file=ranking_dir, depth=depth, system_name="ignored")
+        mapper = IrDatasetsLoader()
+        mapper.reformat_to_re_rank_dataset(ranking_dir, "/does-not-exist", target_dir, None, ir_dataset)
+
+    return target_dir / "input-data"

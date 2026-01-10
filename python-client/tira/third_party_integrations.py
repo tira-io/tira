@@ -170,6 +170,7 @@ def persist_and_normalize_run(
 
     if upload_to_tira and tira:
         output_file = output_file + ".gz"
+
     normalize_run(run, system_name, depth).to_csv(output_file, sep=" ", header=False, index=False)
 
     print(f'Done. run file is stored under "{output_file}".')
@@ -198,6 +199,11 @@ def upload_run_anonymous(directory: Path = None, tira_client=None, dataset_id=No
 
     upload_to_tira = tira.get_dataset(dataset_id)
     tira.upload_run_anonymous(directory, upload_to_tira["dataset_id"])
+
+
+def default_tira_cache_dir(ret: Optional[str] = None) -> str:
+    default_ret = os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
+    return ret if ret else default_ret
 
 
 def temporary_directory() -> Path:
