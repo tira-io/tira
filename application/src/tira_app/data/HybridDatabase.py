@@ -278,6 +278,13 @@ class HybridDatabase(object):
             except:
                 pass
 
+        submission_tabs = None
+        if task.submission_tabs:
+            try:
+                submission_tabs = json.loads(task.submission_tabs)
+            except:
+                pass
+
         result = {
             "task_id": task.task_id,
             "task_name": task.task_name,
@@ -308,6 +315,7 @@ class HybridDatabase(object):
             "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
             "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval,
             "aggregated_results": aggregated_results,
+            "submission_tabs": submission_tabs,
         }
 
         if include_dataset_stats:
@@ -1191,6 +1199,81 @@ class HybridDatabase(object):
             {"run_id": i[0], "software_id": i[1], "upload_id": i[2]}
             for i in self.__execute_raw_sql_statement(prepared_statement, params)
         ]
+
+
+    def get_all_uploads_for_vm(self, vm_id: str):
+        prepared_statement = """
+        SELECT
+            tira_upload.display_name, input_run.run_id, input_run.input_dataset_id,
+            tira_run_review.reviewer_id,
+            tira_run_review.published, tira_run_review.blinded, 
+            tira_run_review.no_errors, tira_run_review.has_errors,
+            tira_run_review.has_no_errors, input_run.valid_formats
+        FROM
+            tira_run as input_run
+        INNER JOIN
+             tira_upload ON input_run.upload_id = tira_upload.id
+        LEFT JOIN
+            tira_review as tira_run_review ON input_run.run_id = tira_run_review.run_id
+        WHERE
+            input_run.input_run_id is NULL
+            AND input_run.evaluator_id IS NULL AND input_run.deleted = False
+            AND tira_upload.vm_id = %s
+        ORDER BY
+            input_run.run_id ASC;
+        """
+
+        rows = self.__execute_raw_sql_statement(prepared_statement, [vm_id])
+        keys: dict[str, str] = dict()
+        input_run_to_evaluation: dict[str, dict[str, Any]] = {}
+
+        for (
+            display_name,
+            run_id,
+            dataset_id,
+            reviewer_id,
+            published,
+            blinded,
+            no_errors,
+            has_errors,
+            has_no_errors,
+            valid_formats,
+        ) in rows:
+            if run_id not in input_run_to_evaluation:
+                input_run_to_evaluation[run_id] = {"measures": {}}
+
+            review_state = "no-review"
+            if reviewer_id and reviewer_id != "tira":
+                review_state = "valid" if no_errors and has_no_errors and not has_errors else "invalid"
+
+            input_run_to_evaluation[run_id]["dataset_id"] = dataset_id
+            input_run_to_evaluation[run_id]["vm_id"] = vm_id
+            input_run_to_evaluation[run_id]["input_software_name"] = display_name
+            input_run_to_evaluation[run_id]["run_id"] = run_id
+            input_run_to_evaluation[run_id]["input_run_id"] = run_id
+            input_run_to_evaluation[run_id]["published"] = published
+            input_run_to_evaluation[run_id]["blinded"] = blinded
+            input_run_to_evaluation[run_id]["is_upload"] = True
+            input_run_to_evaluation[run_id]["review_state"] = review_state
+
+            if valid_formats:
+                try:
+                    input_run_to_evaluation[run_id]["valid_formats"] = json.loads(valid_formats)
+                except json.JSONDecodeError:
+                    pass
+
+            # if m_key:
+            #    input_run_to_evaluation[run_id]["measures"][m_key] = m_value
+            #    keys[m_key] = ""
+
+        keylist = list(keys.keys())
+        ret: list[dict[str, Any]] = []
+
+        for i in input_run_to_evaluation.values():
+            #    i["measures"] = [round_if_float(i["measures"].get(k, "-")) for k in keylist]
+            ret += [i]
+
+        return keylist, ret
 
     def get_runs_for_vm(
         self,

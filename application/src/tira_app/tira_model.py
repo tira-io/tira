@@ -347,6 +347,10 @@ def get_docker_software(docker_software_id: int) -> "dict[str, Any]":
     return model.get_docker_software(docker_software_id)
 
 
+def get_all_uploads_for_vm(vm_id: str):
+    return model.get_all_uploads_for_vm(vm_id)
+
+
 def get_runs_for_vm(vm_id: str, docker_software_id: str, upload_id: str) -> "tuple[list[str], list[dict[str, Any]]]":
     dsid: Optional[int] = int(docker_software_id) if docker_software_id else None
     upid: Optional[int] = int(upload_id) if upload_id else None

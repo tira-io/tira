@@ -1015,7 +1015,7 @@ class Client(TiraClient):
         from tira.io_utils import zip_dir
 
         zip_file = zip_dir(file_path)
-        self.execute_post_return_json(f"/v1/admin/upload-response/{job_id}", file_path=zip_file)
+        self.execute_post_return_json(f"/v1/admin/upload-response/anonymous-vm-id/{job_id}", file_path=zip_file)
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
@@ -1253,7 +1253,7 @@ class Client(TiraClient):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
         headers["x-csrftoken"] = csrf
-        headers["Cookie"] = f"csrftoken={csrf}"
+        headers["Cookie"] = ("" if "Cookie" not in headers else headers["Cookie"] + "; ") + f"csrftoken={csrf}"
 
         for _ in range(self.failsave_retries):
             try:

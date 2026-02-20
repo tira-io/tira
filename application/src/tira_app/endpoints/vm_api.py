@@ -477,9 +477,10 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
 def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     from tira_worker import evaluate
 
-    job_id = add_job(foo)
-
     evaluator_id = model.get_dataset(dataset)["evaluator_id"]
+    evaluator = model.get_evaluator(dataset, task)
+    job_id = add_job("evaluator", task, team, dataset, evaluator)
+
     evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue="evaluator")
 
 
@@ -582,6 +583,12 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         from .v1._anonymous import check_format_for_dataset
 
         dataset = Dataset.objects.get(dataset_id=dataset_id)
+
+        if upload_id == "new-submission":
+            upload_id = model.add_upload(task_id, vm_id, None)["id"]
+            model.update_upload_metadata(
+                task_id, vm_id, upload_id, request.POST.get("display_name"), request.POST.get("description"), ""
+            )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
 
@@ -1441,7 +1448,18 @@ def add_job(docker_resources, task_id, vm_id, dataset_id, docker_software=None):
     job_id = str(uuid.uuid4())
     from ..model import RunningProcesses
 
-    r = settings.ALL_POSSIBLE_RESOURCES[docker_resources]
+    if docker_resources in settings.ALL_POSSIBLE_RESOURCES:
+        r = settings.ALL_POSSIBLE_RESOURCES[docker_resources]
+    else:
+        r = {"ram": "10", "cores": "1", "gpu": "0"}
+
+    if docker_software:
+        image = docker_software.get("user_image_name", "")
+        command = docker_software.get("command", "")
+    else:
+        image = ""
+        command = ""
+
     details = {
         "run_id": job_id,
         "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"},
@@ -1449,8 +1467,8 @@ def add_job(docker_resources, task_id, vm_id, dataset_id, docker_software=None):
         "started_at": "pending",
         "job_config": {
             "software_name": "software...",
-            "image": docker_software["user_image_name"],
-            "command": docker_software["command"],
+            "image": image,
+            "command": command,
             "cores": str(r["cores"]) + " CPU Cores",
             "ram": str(r["ram"]) + " GB of RAM",
             "gpu": str(r["gpu"]) + " GPUs",
@@ -1464,6 +1482,8 @@ def add_job(docker_resources, task_id, vm_id, dataset_id, docker_software=None):
     RunningProcesses.objects.create(
         uuid=job_id, task=task_id, vm_id=vm_id, dataset_id=dataset_id, details=json.dumps(details)
     )
+
+    return job_id
 
 
 @check_permissions

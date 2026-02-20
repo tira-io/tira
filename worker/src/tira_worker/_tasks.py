@@ -16,10 +16,10 @@ gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, br
 
 def get_admin_client() -> TiraClient:
     ret: "TiraClient" = RestClient()
-    # role = ret.json_response("/api/role")
+    role = ret.json_response("/api/role")
 
-    # if not role or "role" not in role or "admin" != role["role"]:
-    #    raise ValueError(f"The tira client has no admin credentials. Got {role}")
+    if not role or "role" not in role or "admin" != role["role"]:
+        raise ValueError(f"The tira client has no admin credentials. Got {role}")
 
     return ret
 
@@ -102,7 +102,8 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str,
         eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
     )
 
-    client.upload_run_admin(dataset, team, eval_results, job_id)
+    client.upload_run_admin(eval_results, job_id)
 
 
-get_admin_client()
+if "celery" in sys.argv[0]:
+    get_admin_client()
