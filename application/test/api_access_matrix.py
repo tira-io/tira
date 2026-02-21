@@ -2227,7 +2227,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 405,
             ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 405,
-            ADMIN: 500,
+            ADMIN: 200,
         },
     ),
     route_to_test(
@@ -2239,7 +2239,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 405,
             ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 405,
-            ADMIN: 500,
+            ADMIN: 200,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now
