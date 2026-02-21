@@ -193,7 +193,10 @@ def get_evaluations_by_vm(request: "HttpRequest", context: "Context", task_id: s
             }
         )
 
-    ev_keys, evaluations = model.get_runs_for_vm(vm_id, docker_software_id, upload_id)
+    if upload_id != "all-uploads":
+        ev_keys, evaluations = model.get_runs_for_vm(vm_id, docker_software_id, upload_id)
+    else:
+        ev_keys, evaluations = model.get_all_uploads_for_vm(vm_id)
 
     context["task_id"] = task_id
     context["ev_keys"] = ev_keys

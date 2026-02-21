@@ -42,6 +42,7 @@
             "require_registration": false,
             "restrict_groups": false,
             "software_count": 0,
+            "submission_tabs": null,
             "task_description": "task_description",
             "task_id": "task-of-organizer-1",
             "task_name": "task_name",
