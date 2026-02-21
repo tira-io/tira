@@ -18,7 +18,11 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
     if request.method != "POST":
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
 
-    job = RunningProcesses.objects.get(uuid=job_id)
+    try:
+        job = RunningProcesses.objects.get(uuid=job_id)
+    except:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
+
     dataset_id = job.dataset_id
     vm_id = job.vm_id
 
