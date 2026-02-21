@@ -418,27 +418,6 @@ def _master_vm_eval_call(vm_id: str, dataset_id: str, run_id: str, evaluator: "d
     return response
 
 
-def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
-    """called when the evaluation is done via git runner.
-    This method calls the git utilities in git_runner.py to start the git CI
-    """
-    try:
-        transaction_id = model.get_git_integration(dataset_id=dataset_id).run_evaluate_with_git_workflow(
-            evaluator["task_id"],
-            dataset_id,
-            vm_id,
-            run_id,
-            evaluator["git_runner_image"],
-            evaluator["git_runner_command"],
-            evaluator["git_repository_id"],
-            evaluator["evaluator_id"],
-        )
-    except Exception as e:
-        return JsonResponse({"status": 1, "message": str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    return JsonResponse({"status": 0, "message": transaction_id}, status=HTTPStatus.ACCEPTED)
-
-
 def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
