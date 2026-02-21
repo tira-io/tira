@@ -4,9 +4,12 @@
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
-  <running-processes class="mb-12" ref="running-processes"/>
 
-  <v-tabs v-model="tab" class="d-none d-md-block" v-if="organizer_id != ''" fixed-tabs >
+  <loading :loading="loading" />
+  <div v-if="!loading">
+  <running-processes class="mb-12" ref="running-processes"/>
+  
+  <v-tabs v-model="tab" class="d-none d-md-block"  fixed-tabs >
     <v-tab :value="v.id" v-for="v in all_tabs">
       <v-icon class="mr-4">{{v.icon}}</v-icon> {{v.title}}
     </v-tab>
@@ -14,6 +17,7 @@
   <v-row class="d-md-none">
     <v-col cols="12"><v-select v-model="tab" :items="all_tabs" variant="outlined" block item-title="title" item-value="id" label="Submission"/></v-col>
   </v-row>
+
 
   <v-window v-model="tab" :touch="{left: null, right: null}">
       <v-window-item value="code-submission">
@@ -33,6 +37,7 @@
       </v-window-item>
     </v-window>
     </div>
+    </div>
 </template>
 
 <script>
@@ -45,11 +50,12 @@ import SimplifiedUploadSubmission from './submission-components/SimplifiedUpload
 import UploadModels from "@/submission-components/UploadModels";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'
+import Loading from './components/Loading.vue';
 
 import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError } from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, SimplifiedUploadSubmission, UploadModels, TiraBreadcrumb, CodeSubmission, DockerSubmission, RunningProcesses},
+  components: {UploadSubmission, SimplifiedUploadSubmission, Loading, UploadModels, TiraBreadcrumb, CodeSubmission, DockerSubmission, RunningProcesses},
   data() {
     return {
         tab: extractSubmissionTypeFromCurrentUrl(),
@@ -74,6 +80,7 @@ export default {
             .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   computed: {
+    loading() { return this.organizer == ''},
     all_tabs() {
       const ret = []
       const available_submission_tabs = this.all_available_tabs.reduce((acc, item) => {
@@ -96,7 +103,11 @@ export default {
       for (let i of tabs) {
         ret.push(available_submission_tabs[i])
       }
-      this.tab = tabs[0]
+
+      if (this.tab == null) {
+        this.tab = tabs[0]
+      }
+
       this.updateUrlToSelectedSubmissionType()
 
       return ret
