@@ -36,7 +36,16 @@
         },
         "include_navigation": false,
         "organizer_teams": "[]",
-        "resources": {},
+        "resources": {
+            "small-resources": {
+                "cores": 1,
+                "data": "no",
+                "description": "Small (1 CPU Cores, 10GB of RAM)",
+                "gpu": 0,
+                "key": "small-resources",
+                "ram": 10
+            }
+        },
         "role": "admin",
         "user_id": "ignored-user."
     },
