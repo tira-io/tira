@@ -55,7 +55,7 @@ export default {
           "sortable": false
         }
     ],
-    sort_by: [{"key": "run_id", "order": "desc"}]
+    sort_by: [{"key": "run_id", "order": "desc" as const}]
     }
   },
   methods: {

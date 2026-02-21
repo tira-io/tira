@@ -24,7 +24,6 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
 from tira.io_utils import get_tira_id
 from tira.third_party_integrations import temporary_directory
-from tira_worker import all_workers
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -1417,6 +1416,7 @@ def run_execute_docker_software(
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
+    from tira_worker import all_workers
     available_workers = all_workers()
     if docker_resources not in available_workers:
         return JsonResponse(

@@ -17,7 +17,6 @@ from pathlib import Path
 
 import yaml
 from pyaml_env import parse_config
-from tira_worker import all_workers
 
 from tira_app.util import str2bool
 
@@ -170,7 +169,7 @@ def logger_config(log_dir: Path):
             "ceph_django_info": {
                 "level": "INFO",
                 "class": "logging.FileHandler",
-                "filename": log_dir / "django-info.log",
+                "filename": log_dir / "AVAILABLE_WORKERSdjango-info.log",
                 "formatter": "default",
             },
             "ceph_django_warn": {
@@ -324,7 +323,11 @@ AVAILABLE_RESOURCES = {}
 
 AVAILABLE_WORKERS = set()
 
-AVAILABLE_WORKERS = all_workers()
+try:
+    from tira_worker import all_workers
+    AVAILABLE_WORKERS = all_workers()
+except:
+    pass
 
 AVAILABLE_RESOURCES = {k: v for k, v in ALL_POSSIBLE_RESOURCES.items() if k in AVAILABLE_WORKERS}
 
