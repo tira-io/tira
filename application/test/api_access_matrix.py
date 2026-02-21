@@ -2207,8 +2207,32 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/admin/upload-response/<str:dataset_id>/<str:vm_id>",
-        params={"dataset_id": "does-not-exist", "vm_id": "does-not-exist"},
+        url_pattern="v1/admin/upload-response/<str:vm_id>/<str:job_id>",
+        params={"job_id": "does-not-exist", "vm_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/registered-workers/<str:vm_id>",
+        params={"vm_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/active-jobs/<str:vm_id>/<str:task_id>",
+        params={"vm_id": "does-not-exist", "task_id": "does-not-exist"},
         method="POST",
         group_to_expected_status_code={
             GUEST: 405,
