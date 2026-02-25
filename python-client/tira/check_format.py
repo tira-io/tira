@@ -1411,10 +1411,19 @@ class IrMetadataFormat(FormatBase):
                     pass
 
 
+class ArbitraryFormat(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_format(self, run_output: Path):
+        return [_fmt.OK, "Skip check for arbitrary format."]
+
+
 FORMAT_TO_CHECK = {
     "run.txt": RunFormat,
     "*.jsonl": JsonlFormat,
     "*.tsv": TsvFormat,
+    "arbitrary": ArbitraryFormat,
     "trec-eval-leaderboard": TrecEvalLeaderboard,
     "text-alignment-corpus": TextAlignmentCorpusFormat,
     "text-alignment-features": TextAlignmentFeaturesFormat,

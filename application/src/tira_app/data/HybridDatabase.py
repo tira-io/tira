@@ -2771,7 +2771,7 @@ class HybridDatabase(object):
         irds_re_ranking_resource: str = "",
         aggregated_results: "Optional[List]" = None,
     ):
-
+        aggregated_results_json = None
         if aggregated_results:
             import tempfile
 

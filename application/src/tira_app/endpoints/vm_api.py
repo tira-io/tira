@@ -1405,7 +1405,7 @@ def run_execute_docker_software(
             }
         )
 
-    job_id = add_job(docker_resources, docker_software)
+    job_id = add_job(docker_resources, task_id, vm_id, dataset_id, docker_software)
 
     run_sandboxed_software(
         task_id,
