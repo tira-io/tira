@@ -736,6 +736,10 @@ class TiraClient(ABC):
                     "run_format": baseline_format,
                     "truth_format": truth_format,
                 }
+                for k, v in baseline_config.items():
+                    if k not in eval_config:
+                        eval_config[k] = v
+
                 preds = evaluate(
                     baseline_output,
                     truth_dir,

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Optional
 import docker
 import pandas as pd
 
-from tira.io_utils import openai_api_environment_variables
+from tira.io_utils import environment_variables_to_forward
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 if TYPE_CHECKING:
@@ -405,6 +405,7 @@ class LocalExecutionIntegration:
         cpu_count=None,
         mem_limit=None,
         gpu_device_ids=None,
+        forward_environment_variables=None,
     ):
         previous_stages = []
         original_args = {
@@ -512,11 +513,12 @@ class LocalExecutionIntegration:
             environment["NVIDIA_VISIBLE_DEVICES"] = gpu_device_ids[0]
             environment["CUDA_VISIBLE_DEVICES"] = gpu_device_ids[0]
 
-        openai_env = openai_api_environment_variables()
+        openai_env = environment_variables_to_forward(forward_environment_variables)
         if openai_env is not None and len(openai_env) > 0:
             environment.update(openai_env)
             # TODO: fine-grained ip-tables rules for only access to the URL in the environment variable.
-            allow_network = True
+            if "OPENAI_API_KEY" in environment and "OPENAI_BASE_URL" in environment and "OPENAI_MODEL" in environment:
+                allow_network = True
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
