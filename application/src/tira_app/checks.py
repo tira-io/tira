@@ -262,6 +262,27 @@ def check_conditional_permissions(
                 if public_data_ok and _run_is_public(run_id, vm_id, dataset_id):
                     return func(request, *args, **kwargs)
 
+                run_download = (
+                    request.path_info.endswith(".zip")
+                    and "/user/" in request.path_info
+                    and "/dataset/" in request.path_info
+                    and "download" in request.path_info
+                    and request.path_info.split("/user/")[1].split("/")[1] == "dataset"
+                    and request.path_info.split("/user/")[1].split("/")[3] == "download"
+                    and run_id is not None
+                    and request.path_info.endswith(f"{run_id}.zip")
+                )
+                if run_download:
+                    review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
+                    if (
+                        review
+                        and "published" in review
+                        and "blinded" in review
+                        and review["published"]
+                        and not review["blinded"]
+                    ):
+                        return func(request, *args, **kwargs)
+
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
                     if model.get_task(task_id)["require_registration"]:
                         if not model.user_is_registered(task_id, request):
