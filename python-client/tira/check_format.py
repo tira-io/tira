@@ -1270,7 +1270,7 @@ class TrecRagRuns(FormatBase):
 
         ret = []
         error_lines = 0
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             for l in f:
                 if error_lines > 4:
                     return []
@@ -1308,13 +1308,30 @@ class TrecRagRuns(FormatBase):
                 if "topic_id" in l["metadata"] and "narrative_id" not in l["metadata"]:
                     l["metadata"]["narrative_id"] = l["metadata"]["topic_id"]
 
-                if "topic_id" in l["metadata"] and "narrative_id" in l["metadata"] and l["metadata"]["topic_id"] != l["metadata"]["narrative_id"]:
+                if (
+                    "topic_id" in l["metadata"]
+                    and "narrative_id" in l["metadata"]
+                    and l["metadata"]["topic_id"] != l["metadata"]["narrative_id"]
+                ):
                     raise ValueError(f"Inconsistent metadata: {l['metadata']}")
 
                 l["path"] = str(path.absolute())
                 ret.append(l)
 
         return ret
+
+
+class PanTextWatermarking(FormatBase):
+    def check_format(self, run_output: Path):
+        for d in ["01-watermarking", "02-obfuscation", "03-detection"]:
+            code, message = check_format(run_output / d, "*.jsonl")
+            if code != _fmt.OK:
+                return [
+                    _fmt.ERROR,
+                    "I expected three directories '01-watermarking', '02-obfuscation', and '03-detection' that each contain jsonl files.",
+                ]
+        return [_fmt.OK, "The output is valid for the PAN text watermarking task."]
+
 
 class IrMetadataFormat(FormatBase):
     """Checks if a given output contains valid ir_metadata."""
@@ -1443,6 +1460,7 @@ FORMAT_TO_CHECK = {
     "multi-author-writing-style-analysis-truths": lambda: MultiAuthorWritingStyleAnalysis("truth-problem"),
     "power-and-identification-truths": lambda: PowerAndIdeologyFormat("", "-*-labels"),
     "power-and-identification-predictions": lambda: PowerAndIdeologyFormat("*", "*-predictions"),
+    "pan-text-watermarking": PanTextWatermarking,
     "touche-image-retrieval": ToucheImageRetrieval,
     "ir-dataset-corpus": IrDatasetsCorpus,
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,

@@ -22,7 +22,7 @@ def wrong_watermarking(input_dir, output_dir):
 def pseudo_obfuscation(input_dir, output_dir):
     ret = []
     print("hello world from obfuscation")
-    for l in lines_if_valid(input_dir, "*.jsonl"):
+    for l in lines_if_valid(input_dir / "01-watermarking", "*.jsonl"):
         l["text"] = "obfuscated"
         l["truth_label"] = "sadasd"
         ret.append(json.dumps(l))
@@ -93,13 +93,13 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         ]
         workflow_name = "pan26-text-watermarking"
         workflow_config = {
-            "obfuscation-image": "some-obfuscation-image-01",
-            "obfuscation-command": "some-obfuscation-command",
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "some-obfuscation-command",
         }
         software = {
             "image": "some-image",
-            "watermark-command": "wrong-watermarking-command",
-            "detect-command": "some-detection-command",
+            "watermark_command": "wrong-watermarking-command",
+            "detect_command": "some-detection-command",
         }
         actual = run_worklow(workflow_name, workflow_config, software)
         stderr = actual.run / "stderr.txt"
@@ -136,13 +136,13 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         ]
         workflow_name = "pan26-text-watermarking"
         workflow_config = {
-            "obfuscation-image": "some-obfuscation-image-01",
-            "obfuscation-command": "some-obfuscation-command",
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "some-obfuscation-command",
         }
         software = {
             "image": "some-image",
-            "watermark-command": "some-watermarking-command",
-            "detect-command": "wrong-detection-command",
+            "watermark_command": "some-watermarking-command",
+            "detect_command": "wrong-detection-command",
         }
         actual = run_worklow(workflow_name, workflow_config, software)
         stderr = actual.run / "stderr.txt"
@@ -178,13 +178,13 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         ]
         workflow_name = "pan26-text-watermarking"
         workflow_config = {
-            "obfuscation-image": "some-obfuscation-image-01",
-            "obfuscation-command": "some-obfuscation-command",
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "some-obfuscation-command",
         }
         software = {
             "image": "some-image",
-            "watermark-command": "some-watermarking-command",
-            "detect-command": "some-detection-command",
+            "watermark_command": "some-watermarking-command",
+            "detect_command": "some-detection-command",
         }
         actual = run_worklow(workflow_name, workflow_config, software)
         stderr = actual.run / "stderr.txt"

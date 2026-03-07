@@ -42,8 +42,8 @@ class Pan26TextWatermarking(WorkflowBase):
     def apply_configuration_and_throw_if_invalid(
         self, workflow_configuration: "Optional[Dict[str, Any]]", software: "Optional[Dict[str, Any]]"
     ):
-        workflow_required = ["obfuscation-image", "obfuscation-command"]
-        software_required = ["image", "watermark-command", "detect-command"]
+        workflow_required = ["obfuscation_image", "obfuscation_command"]
+        software_required = ["image", "watermark_command", "detect_command"]
 
         for k in workflow_required:
             if not workflow_configuration or k not in workflow_configuration:
@@ -70,8 +70,8 @@ class Pan26TextWatermarking(WorkflowBase):
         stderr = ret / "stderr.txt"
         stdout = ret / "stdout.txt"
 
-        stderr.write_text(f"# Step 1: Watermarking with {self.software_configuration['watermark-command']}\n\n")
-        stdout.write_text(f"# Step 1: Watermarking with {self.software_configuration['watermark-command']}\n\n")
+        stderr.write_text(f"# Step 1: Watermarking with {self.software_configuration['watermark_command']}\n\n")
+        stdout.write_text(f"# Step 1: Watermarking with {self.software_configuration['watermark_command']}\n\n")
 
         code, msg = check_format(system_inputs, "*.jsonl")
         if code != _fmt.OK:
@@ -80,7 +80,7 @@ class Pan26TextWatermarking(WorkflowBase):
         watermarking_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
                 image=self.software_configuration["image"],
-                command=self.software_configuration["watermark-command"],
+                command=self.software_configuration["watermark_command"],
                 input_dir=system_inputs,
                 output_dir=i,
                 allow_network=allow_network,
@@ -104,15 +104,19 @@ class Pan26TextWatermarking(WorkflowBase):
         if code != _fmt.OK:
             return WorkflowResult(
                 _fmt.ERROR,
-                f"Watermarking the text failed. The command \"{self.software_configuration['watermark-command']}\" did not produce a valid jsonl file.",
+                f"Watermarking the text failed. The command \"{self.software_configuration['watermark_command']}\" did not produce a valid jsonl file.",
                 ret,
             )
 
+        obfuscation_inputs = temporary_directory()
+        copytree(watermarking_results / "output", obfuscation_inputs / "01-watermarking")
+        copytree(system_inputs, obfuscation_inputs / "original")
+
         obfuscation_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
-                image=self.workflow_configuration["obfuscation-image"],
-                command=self.workflow_configuration["obfuscation-command"],
-                input_dir=system_inputs,
+                image=self.workflow_configuration["obfuscation_image"],
+                command=self.workflow_configuration["obfuscation_command"],
+                input_dir=obfuscation_inputs,
                 output_dir=i,
                 allow_network=allow_network,
                 additional_volumes=additional_volumes,
@@ -124,11 +128,11 @@ class Pan26TextWatermarking(WorkflowBase):
 
         stderr_txt = (
             stderr.read_text()
-            + f"\n\n# Step 3: Obfuscation with {self.workflow_configuration['obfuscation-command']}\n\n"
+            + f"\n\n# Step 3: Obfuscation with {self.workflow_configuration['obfuscation_command']}\n\n"
         )
         stdout_txt = (
             stdout.read_text()
-            + f"\n\n# Step 3: Obfuscation with {self.workflow_configuration['obfuscation-command']}\n\n"
+            + f"\n\n# Step 3: Obfuscation with {self.workflow_configuration['obfuscation_command']}\n\n"
         )
 
         stderr_txt += (obfuscation_results / "stderr.txt").read_text()
@@ -146,10 +150,10 @@ class Pan26TextWatermarking(WorkflowBase):
             return WorkflowResult(_fmt.ERROR, "The step 2 (obfuscation) failed. No valid jsonl file was produced.", ret)
 
         stderr_txt = (
-            stderr.read_text() + f"\n\n# Step 5: Detection with {self.software_configuration['detect-command']}\n\n"
+            stderr.read_text() + f"\n\n# Step 5: Detection with {self.software_configuration['detect_command']}\n\n"
         )
         stdout_txt = (
-            stdout.read_text() + f"\n\n# Step 5: Detection with {self.software_configuration['detect-command']}\n\n"
+            stdout.read_text() + f"\n\n# Step 5: Detection with {self.software_configuration['detect_command']}\n\n"
         )
 
         detection_inputs = temporary_directory()
@@ -163,7 +167,7 @@ class Pan26TextWatermarking(WorkflowBase):
         detection_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
                 image=self.software_configuration["image"],
-                command=self.software_configuration["detect-command"],
+                command=self.software_configuration["detect_command"],
                 input_dir=detection_inputs,
                 output_dir=i,
                 allow_network=allow_network,
@@ -188,7 +192,7 @@ class Pan26TextWatermarking(WorkflowBase):
         if code != _fmt.OK:
             return WorkflowResult(
                 _fmt.ERROR,
-                f"The detection step failed. The command \"{self.software_configuration['detect-command']}\" did not produce a valid jsonl file.",
+                f"The detection step failed. The command \"{self.software_configuration['detect_command']}\" did not produce a valid jsonl file.",
                 ret,
             )
 
@@ -237,18 +241,17 @@ def run_workflow(
         return WorkflowResult(_fmt.ERROR, str(e), None)
 
     if not tira:
-        raise ValueError("dsa")
         tira = TiraClient()
 
-    # try:
-    return workflow_impl.run_workflow(
-        system_inputs,
-        allow_network,
-        additional_volumes,
-        cpu_count,
-        mem_limit,
-        gpu_device_ids,
-        tira,
-    )
-    # except Exception as e:
-    #    return WorkflowResult(_fmt.ERROR, str(e), None)
+    try:
+        return workflow_impl.run_workflow(
+            system_inputs,
+            allow_network,
+            additional_volumes,
+            cpu_count,
+            mem_limit,
+            gpu_device_ids,
+            tira,
+        )
+    except Exception as e:
+        return WorkflowResult(_fmt.ERROR, str(e), None)

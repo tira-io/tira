@@ -34,7 +34,7 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         self.assertEqual(expected[1], actual[1])
 
     def test_fails_for_missing_obfuscation_image(self):
-        expected = [_ERROR, "The workflow 'pan26-text-watermarking' requires a configuration for 'obfuscation-image'."]
+        expected = [_ERROR, "The workflow 'pan26-text-watermarking' requires a configuration for 'obfuscation_image'."]
         workflow_name = "pan26-text-watermarking"
         workflow_config = {}
         software = {}
@@ -45,10 +45,10 @@ class TestErrorMessageWorkflows(unittest.TestCase):
     def test_fails_for_missing_obfuscation_command(self):
         expected = [
             _ERROR,
-            "The workflow 'pan26-text-watermarking' requires a configuration for 'obfuscation-command'.",
+            "The workflow 'pan26-text-watermarking' requires a configuration for 'obfuscation_command'.",
         ]
         workflow_name = "pan26-text-watermarking"
-        workflow_config = {"obfuscation-image": "some-obfuscation-image-01"}
+        workflow_config = {"obfuscation_image": "some-obfuscation-image-01"}
         software = {}
         actual = run_worklow(workflow_name, workflow_config, software)
         self.assertEqual(expected[0], actual[0])
@@ -60,7 +60,7 @@ class TestErrorMessageWorkflows(unittest.TestCase):
             "Software executed for 'pan26-text-watermarking' needs a configuration for 'image'.",
         ]
         workflow_name = "pan26-text-watermarking"
-        workflow_config = {"obfuscation-image": "some-obfuscation-image-01", "obfuscation-command": "some-command"}
+        workflow_config = {"obfuscation_image": "some-obfuscation-image-01", "obfuscation_command": "some-command"}
         software = {}
         actual = run_worklow(workflow_name, workflow_config, software)
         self.assertEqual(expected[0], actual[0])
@@ -69,10 +69,10 @@ class TestErrorMessageWorkflows(unittest.TestCase):
     def test_fails_for_missing_watermark_command(self):
         expected = [
             _ERROR,
-            "Software executed for 'pan26-text-watermarking' needs a configuration for 'watermark-command'.",
+            "Software executed for 'pan26-text-watermarking' needs a configuration for 'watermark_command'.",
         ]
         workflow_name = "pan26-text-watermarking"
-        workflow_config = {"obfuscation-image": "some-obfuscation-image-01", "obfuscation-command": "some-command"}
+        workflow_config = {"obfuscation_image": "some-obfuscation-image-01", "obfuscation_command": "some-command"}
         software = {"image": "some-image"}
         actual = run_worklow(workflow_name, workflow_config, software)
         self.assertEqual(expected[0], actual[0])
@@ -81,11 +81,11 @@ class TestErrorMessageWorkflows(unittest.TestCase):
     def test_fails_for_missing_detect_command(self):
         expected = [
             _ERROR,
-            "Software executed for 'pan26-text-watermarking' needs a configuration for 'detect-command'.",
+            "Software executed for 'pan26-text-watermarking' needs a configuration for 'detect_command'.",
         ]
         workflow_name = "pan26-text-watermarking"
-        workflow_config = {"obfuscation-image": "some-obfuscation-image-01", "obfuscation-command": "some-command"}
-        software = {"image": "some-image", "watermark-command": "some-command"}
+        workflow_config = {"obfuscation_image": "some-obfuscation-image-01", "obfuscation_command": "some-command"}
+        software = {"image": "some-image", "watermark_command": "some-command"}
         actual = run_worklow(workflow_name, workflow_config, software)
         self.assertEqual(expected[0], actual[0])
         self.assertEqual(expected[1], actual[1])
