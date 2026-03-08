@@ -66,6 +66,9 @@
 
         <v-card-actions>
           <v-row v-if="!loading">
+            <v-col v-if="errorMessage" cols="12">
+              <v-alert color="error" closable>{{errorMessage}}</v-alert>
+            </v-col>
             <v-col cols="6"><v-btn variant="outlined" @click="isActive.value = false" block>Close</v-btn></v-col>
             <v-col cols="6"><v-btn variant="outlined" color="primary" @click="submitRegistration(isActive)" block>Submit Registration</v-btn></v-col>
           </v-row>
@@ -95,7 +98,8 @@ export default {
       nameRules: [validateTeamName], notEmptyRules: [validateNotEmpty], emailRules: [validateEmail],
       remaining_team_names: [''],
       userinfo: inject('userinfo') as UserInfo,
-      rest_url: inject("REST base URL")
+      rest_url: inject("REST base URL"),
+      errorMessage: '',
     }),
   methods: {
     async submitRegistration (isActive: any) {
@@ -114,9 +118,11 @@ export default {
           isActive.value = false
           this.loading = false
         }).catch(error => {
-          reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: " + error);
+          reportError("Problem while registering", "This might be a short-term hiccup, please try again. We got the following error: " + error);
           this.loading = false
+          console.log(error)
           this.valid = error
+          this.errorMessage = error
         })
       }
     },

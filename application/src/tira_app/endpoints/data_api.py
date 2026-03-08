@@ -483,6 +483,15 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     try:
         data: "dict[str, Any]" = json.loads(request.body)
         data["group"] = slugify(data["group"])
+
+        if model.discourse_api_client().group_exists(data["group"]):
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": f"A team with name '{data['group']}' already exists. Please choose a different name or contact the organizers to add this team to this task",
+                }
+            )
+
         data["initial_owner"] = context["user_id"]
         data["task_id"] = task_id
         model.add_registration(data)
@@ -498,9 +507,7 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     except Exception as e:
         logger.warning(e)
         logger.exception(e)
-        return JsonResponse(
-            {"status": 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-        )
+        return JsonResponse({"status": 1, "message": f"Encountered an exception: {e}"})
 
 
 def expand_links(component: "Any") -> "list[Any]":
