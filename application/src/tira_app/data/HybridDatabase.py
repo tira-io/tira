@@ -350,6 +350,7 @@ class HybridDatabase(object):
         trusted_eval = dataset.get_trusted_evaluation()
         format_configuration = dataset.get_format_configuration()
         truth_format_configuration = dataset.get_truth_format_configuration()
+        workflow_configuration = dataset.get_workflow_configuration()
 
         ret = {
             "display_name": dataset.display_name,
@@ -387,6 +388,7 @@ class HybridDatabase(object):
             "trusted_eval": trusted_eval,
             "format_configuration": format_configuration,
             "truth_format_configuration": truth_format_configuration,
+            "workflow_configuration": workflow_configuration,
         }
 
         if trusted_eval:
@@ -1199,7 +1201,6 @@ class HybridDatabase(object):
             {"run_id": i[0], "software_id": i[1], "upload_id": i[2]}
             for i in self.__execute_raw_sql_statement(prepared_statement, params)
         ]
-
 
     def get_all_uploads_for_vm(self, vm_id: str):
         prepared_statement = """
@@ -2138,6 +2139,7 @@ class HybridDatabase(object):
         truth_format=None,
         format_configuration=None,
         truth_format_configuration=None,
+        workflow_configuration=None,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -2147,6 +2149,14 @@ class HybridDatabase(object):
             raise FileExistsError(f"Dataset with id {dataset_id} already exists")
 
         for_task = modeldb.Task.objects.get(task_id=task_id)
+
+        if workflow_configuration:
+            try:
+                workflow_configuration = json.dumps(json.loads(workflow_configuration))
+            except:
+                workflow_configuration = None
+        else:
+            workflow_configuration = None
 
         ds, _ = modeldb.Dataset.objects.update_or_create(
             dataset_id=dataset_id,
@@ -2168,6 +2178,7 @@ class HybridDatabase(object):
                 "truth_format_configuration": (
                     None if not truth_format_configuration else json.dumps(truth_format_configuration)
                 ),
+                "workflow_configuration": workflow_configuration,
             },
         )
 

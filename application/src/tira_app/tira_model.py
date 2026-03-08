@@ -793,6 +793,7 @@ def add_dataset(
     truth_format: "Optional[str]" = None,
     dataset_format_configuration: "Optional[str]" = None,
     truth_format_configuration: "Optional[str]" = None,
+    workflow_configuration: "Optional[str]" = None,
 ) -> "tuple[dict[str, Any], list[str]]":
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -811,6 +812,7 @@ def add_dataset(
         truth_format=truth_format,
         format_configuration=dataset_format_configuration,
         truth_format_configuration=truth_format_configuration,
+        workflow_configuration=workflow_configuration,
     )
 
 

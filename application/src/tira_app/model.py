@@ -174,6 +174,7 @@ class Dataset(models.Model):
     file_listing = models.TextField(default=None, null=True)
     format_configuration = models.CharField(max_length=300, null=True, default=None)
     truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
+    workflow_configuration = models.TextField(default=None, null=True)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:
@@ -221,6 +222,14 @@ class Dataset(models.Model):
         if self and self.truth_format_configuration:
             try:
                 return json.loads(self.truth_format_configuration)
+            except json.JSONDecodeError:
+                pass
+        return None
+
+    def get_workflow_configuration(self) -> "Optional[Dict[str, Any]]":
+        if self and self.workflow_configuration:
+            try:
+                return json.loads(self.workflow_configuration)
             except json.JSONDecodeError:
                 pass
         return None

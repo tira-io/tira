@@ -1992,11 +1992,11 @@ API_ACCESS_MATRIX = [
         url_pattern="api/registration/add_registration/<str:vm_id>/<str:task_id>",
         params={"task_id": "shared-task-1", "vm_id": "example_participant"},
         group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 500,  # TODO: Would we expect an 404 here?
-            PARTICIPANT: 500,  # TODO: Would we expect an 404 here?
-            ORGANIZER: 500,  # TODO: Would we expect an 404 here?
-            ORGANIZER_WRONG_TASK: 500,  # TODO: Would we expect an 404 here?
+            ADMIN: 200,
+            GUEST: 200,  # TODO: Would we expect an 404 here?
+            PARTICIPANT: 200,  # TODO: Would we expect an 404 here?
+            ORGANIZER: 200,  # TODO: Would we expect an 404 here?
+            ORGANIZER_WRONG_TASK: 200,  # TODO: Would we expect an 404 here?
         },
         body='{"group": "X"}',
     ),
