@@ -484,7 +484,12 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
         data: "dict[str, Any]" = json.loads(request.body)
         data["group"] = slugify(data["group"])
 
-        if model.discourse_api_client().group_exists(data["group"]):
+        disc_api_client = model.discourse_api_client()
+        if (
+            disc_api_client.group_exists(data["group"])
+            or disc_api_client.group_exists("tira_vm_" + data["group"])
+            or disc_api_client.group_exists("vm_" + data["group"])
+        ):
             return JsonResponse(
                 {
                     "status": 1,
