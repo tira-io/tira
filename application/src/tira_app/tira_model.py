@@ -3,6 +3,7 @@ p.stat().st_mtime - change time
 """
 
 import datetime
+import json
 import logging
 import tempfile
 from distutils.dir_util import copy_tree
@@ -664,6 +665,7 @@ def add_docker_software(
     active_branch: "Optional[str]" = None,
     try_run_metadata_uuid: "Optional[str]" = None,
     tira_image_workdir: "Optional[str]" = None,
+    workflow_configuration: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -673,6 +675,12 @@ def add_docker_software(
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
         image, old_tag, new_tag
     )
+
+    if workflow_configuration:
+        try:
+            workflow_configuration = json.dumps(json.loads(workflow_configuration))
+        except json.JSONDecodeError:
+            workflow_configuration = None
 
     input_docker_job: dict[int, str] = {}
     input_upload: dict[int, str] = {}
@@ -698,6 +706,7 @@ def add_docker_software(
         active_branch,
         try_run_metadata_uuid,
         tira_image_workdir,
+        workflow_configuration,
     )
 
 

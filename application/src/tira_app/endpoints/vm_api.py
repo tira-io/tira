@@ -878,6 +878,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             active_branch,
             data.get("try_run_metadata_uuid", None),
             data.get("tira_image_workdir", None),
+            data.get("workflow_configuration", None),
         )
 
         if data.get("mount_hf_model"):
@@ -1396,6 +1397,7 @@ def run_execute_docker_software(
         return JsonResponse({"status": 1, "message": errors[0]})
 
     from tira_worker import all_workers
+
     available_workers = all_workers()
     if docker_resources not in available_workers:
         return JsonResponse(

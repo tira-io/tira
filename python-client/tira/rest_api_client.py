@@ -264,6 +264,7 @@ class Client(TiraClient):
         source_code_commit=None,
         source_code_active_branch=None,
         try_run_metadata_uuid=None,
+        workflow_configuration=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -277,6 +278,9 @@ class Client(TiraClient):
             "code_repository_id": code_repository_id,
             "build_environment": json.dumps(build_environment),
         }
+
+        if workflow_configuration:
+            content["workflow_configuration"] = json.dumps(workflow_configuration)
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages

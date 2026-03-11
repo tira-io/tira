@@ -815,6 +815,8 @@ class HybridDatabase(object):
         except Exception:
             pass
 
+        workflow_configuration = ds.get_workflow_configuration()
+
         if source_code_remotes:
             source_code_remotes = [{"display_name": k, "name": v} for k, v in source_code_remotes.items()]
 
@@ -856,6 +858,7 @@ class HybridDatabase(object):
             "tira_image_workdir": ds.tira_image_workdir,
             "link_code": link_code,
             "mount_hf_model": mount_hf_model,
+            "workflow_configuration": workflow_configuration,
         }
 
     @staticmethod
@@ -2639,6 +2642,7 @@ class HybridDatabase(object):
         active_branch: "Optional[str]" = None,
         try_run_metadata_uuid: "Optional[str]" = None,
         tira_image_workdir: "Optional[str]" = None,
+        workflow_configuration: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2664,6 +2668,7 @@ class HybridDatabase(object):
             source_code_active_branch=active_branch,
             try_run_metadata=try_run_metadata,
             tira_image_workdir=tira_image_workdir,
+            workflow_configuration=workflow_configuration,
         )
 
         additional_inputs = range(

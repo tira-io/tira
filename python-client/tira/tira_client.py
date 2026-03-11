@@ -417,6 +417,7 @@ class TiraClient(ABC):
         dry_run: "Optional[bool]" = False,
         allow_network: "Optional[bool]" = False,
         mount_hf_model: "Optional[list[str]]" = None,
+        workflow_software_configuration: "Optional[list[str]]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -475,6 +476,10 @@ class TiraClient(ABC):
         ):
             raise ValueError("foo")
 
+        workflow_configuration = None
+        if "workflow_configuration" in dataset_handle and dataset_handle["workflow_configuration"] is not None:
+            workflow_configuration = json.loads(dataset_handle["workflow_configuration"])
+
         dataset_path = self.download_dataset(task_id, dataset_id)
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
@@ -491,7 +496,7 @@ class TiraClient(ABC):
             hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
             print(f"The following models from huggingface are mounted: {hf_models}\n\n")
 
-        if command is None:
+        if command is None and workflow_configuration is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
 
         gpu_device_ids = None
@@ -499,15 +504,44 @@ class TiraClient(ABC):
             gpu_device_ids = [os.environ["NVIDIA_VISIBLE_DEVICES"]]
 
         tmp_dir = temporary_directory()
-        self.local_execution.run(
-            image=docker_tag,
-            command=command,
-            input_dir=dataset_path,
-            output_dir=tmp_dir,
-            allow_network=allow_network,
-            additional_volumes=hf_models,
-            gpu_device_ids=gpu_device_ids,
-        )
+        if workflow_configuration is None:
+            self.local_execution.run(
+                image=docker_tag,
+                command=command,
+                input_dir=dataset_path,
+                output_dir=tmp_dir,
+                allow_network=allow_network,
+                additional_volumes=hf_models,
+                gpu_device_ids=gpu_device_ids,
+            )
+        else:
+            from tira.workflows import run_workflow
+
+            if not workflow_software_configuration:
+                workflow_software_configuration = {}
+
+            workflow_software_configuration["image"] = docker_tag
+            workflow_result = run_workflow(
+                dataset_path,
+                workflow_configuration["name"],
+                workflow_configuration,
+                workflow_software_configuration,
+                allow_network=allow_network,
+                additional_volumes=hf_models,
+                gpu_device_ids=gpu_device_ids,
+                tira=self,
+            )
+            if workflow_result.level != _fmt.OK:
+                print_message(workflow_result.message, workflow_result.level)
+                if workflow_result.run:
+                    print(
+                        f"You can expect the output of your software at {workflow_result.run}. The inputs are at {dataset_path}"
+                    )
+
+                raise ValueError(workflow_result.message)
+            del workflow_software_configuration["image"]
+            workflow_software_configuration["workflow_configuration"] = workflow_configuration
+            tmp_dir = workflow_result.run / "output"
 
         format_configuration = (
             None if "format_configuration" not in dataset_handle else dataset_handle["format_configuration"]
@@ -547,6 +581,7 @@ class TiraClient(ABC):
                 source_code_active_branch=active_branch,
                 try_run_metadata_uuid=metadata_uuid,
                 mount_hf_model=mount_hf_model,
+                workflow_configuration=workflow_software_configuration,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
@@ -634,7 +669,16 @@ class TiraClient(ABC):
         input_format = tira_configs["input_format"]["name"]
         input_config = tira_configs["input_format"].get("config", {})
         git_url, subdir = tira_configs["baseline"]["link"].replace("/tree/master/", "/tree/main/").split("/tree/main/")
-        baseline_command = tira_configs["baseline"]["command"]
+
+        if "workflow" in tira_configs:
+            baseline_command = None
+            workflow_config = tira_configs["workflow"]
+            workflow_software_config = tira_configs["baseline"]["workflow_configuration"]
+        else:
+            baseline_command = tira_configs["baseline"]["command"]
+            workflow_software_config = None
+            workflow_config = None
+
         baseline_format = tira_configs["baseline"]["format"]["name"]
         baseline_config = tira_configs["baseline"]["format"].get("config", {})
         if "measures" in tira_configs["evaluator"]:
@@ -706,13 +750,38 @@ class TiraClient(ABC):
 
             print_message(f"The baseline {subdir} is embedded in a Docker image.", _fmt.OK)
 
-            if baseline_command is None:
-                baseline_command = self.local_execution.extract_entrypoint(docker_tag)
+            if "workflow" not in tira_configs:
+                if baseline_command is None:
+                    baseline_command = self.local_execution.extract_entrypoint(docker_tag)
 
-            baseline_output = temporary_directory()
-            self.local_execution.run(
-                image=docker_tag, command=baseline_command, input_dir=inputs_dir, output_dir=baseline_output
-            )
+                baseline_output = temporary_directory()
+                self.local_execution.run(
+                    image=docker_tag, command=baseline_command, input_dir=inputs_dir, output_dir=baseline_output
+                )
+            else:
+                from tira.workflows import run_workflow
+
+                workflow_software_config["image"] = docker_tag
+                workflow_output = run_workflow(
+                    inputs_dir,
+                    workflow_config["name"],
+                    workflow_config,
+                    workflow_software_config,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    self,
+                )
+                if workflow_output.level != _fmt.OK:
+                    log_message(
+                        f"The outputs of the baseline on {inputs_dir} are at {workflow_output.run} and not valid: {workflow_output.message}",
+                        workflow_output.level,
+                    )
+                    return None
+
+                baseline_output = workflow_output.run / "output"
 
             l, m = check_format(baseline_output, baseline_format, baseline_config)
             if l != _fmt.OK:
@@ -796,6 +865,7 @@ class TiraClient(ABC):
                 "format_configuration": json.dumps(baseline_config),
                 "truth_format": truth_format,
                 "truth_format_configuration": json.dumps(truth_config),
+                "workflow_configuration": json.dumps(workflow_config) if workflow_config else None,
             }
 
             if eval_measures is not None:

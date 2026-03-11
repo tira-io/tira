@@ -163,6 +163,13 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         "--dataset", required=False, default=None, help="The dataset on which the code should be tested before upload."
     )
     parser.add_argument(
+        "--set",
+        required=False,
+        action="append",
+        default=[],
+        help="You can specify custom properties of your software. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+    )
+    parser.add_argument(
         "--mount-hf-model",
         nargs="+",
         default=[],
@@ -279,9 +286,12 @@ def code_submission_command(
     dataset: "Optional[str]",
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
+    set: "Optional[list[str]]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
+    set = dict(x.split("=", 1) for x in set if "=" in x) if set else None
+
     client.submit_code(
         Path(path),
         task,
@@ -291,6 +301,7 @@ def code_submission_command(
         dataset_id=dataset,
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
+        workflow_software_configuration=set,
     )
 
     return 0
