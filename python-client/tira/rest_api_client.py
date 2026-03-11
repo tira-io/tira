@@ -283,6 +283,7 @@ class Client(TiraClient):
 
         if workflow_configuration:
             content["workflow_configuration"] = json.dumps(workflow_configuration)
+            content["command"] = "COMMAND-UNUSED-FOR-WORKFLOW-SUBMISSIONS"
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages
