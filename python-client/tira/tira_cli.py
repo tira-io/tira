@@ -170,6 +170,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         help="You can specify custom properties of your software. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
     )
     parser.add_argument(
+        "--external-docker-registry",
+        required=False,
+        default=None,
+        help="In case you do not want to upload your docker image to the docker registry of TIRA, you can specify to which docker registry the image should be uploaded. The image must be publically available in this registry.",
+    )
+    parser.add_argument(
         "--mount-hf-model",
         nargs="+",
         default=[],
@@ -287,6 +293,7 @@ def code_submission_command(
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
     set: "Optional[list[str]]",
+    external_docker_registry: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -302,6 +309,7 @@ def code_submission_command(
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
         workflow_software_configuration=set,
+        external_docker_registry=external_docker_registry,
     )
 
     return 0

@@ -41,7 +41,8 @@
         <br>(Branch: {{ docker_software_details.source_code_active_branch }}. Commit: {{ docker_software_details.source_code_commit }}).<br>
         </div>
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
-        <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
+        <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" v-if="workflow_fields.length == 0" readonly/>
+        <v-text-field :label="w.label" v-model="w.command" readonly v-for="w in workflow_fields"/>
       </v-form>
 
       <v-divider></v-divider>
@@ -51,15 +52,6 @@
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
-
-
-        <v-checkbox label="Custom Environment Variables (Experts Only)" v-model="environment_variables"/>
-
-        <div v-if="environment_variables">
-          Foooo
-          <v-textarea label="Environment Variables"/>
-          <v-text-field label="Description"/>
-        </div>
         
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
@@ -90,11 +82,11 @@ export default {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
         'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
+        'workflow_configuration': {} as { [key: string]: string }
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("gRPC base URL"),
       userinfo: inject('userinfo') as UserInfo,
-      environment_variables: false
     }
   },
   methods: {
@@ -143,6 +135,21 @@ export default {
         ret.push({"resource_id": k, "display_name": this.resources[k]['description']})
       }
       
+      return ret
+    },
+    workflow_fields() {
+      let ret: { label: string; command: string }[] = []
+
+      if (!this.docker_software_details.workflow_configuration) {
+        return ret
+      }
+
+      for (let k of Object.keys(this.docker_software_details.workflow_configuration)) {
+        if (k != "workflow_configuration") {
+          ret.push({"label": k + " (Immutable for Reproducibility)", "command": "" + this.docker_software_details.workflow_configuration[k]})
+        }
+      }
+
       return ret
     }
   },

@@ -418,6 +418,7 @@ class TiraClient(ABC):
         allow_network: "Optional[bool]" = False,
         mount_hf_model: "Optional[list[str]]" = None,
         workflow_software_configuration: "Optional[list[str]]" = None,
+        external_docker_registry: "Optional[str]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -562,10 +563,15 @@ class TiraClient(ABC):
 
             print_message("The meta data is uploaded to TIRA.", _fmt.OK)
 
-            print("Push Docker image to TIRA...")
-            from tira.tira_run import push_image
+            if not external_docker_registry:
+                print("Push Docker image to TIRA...")
+                from tira.tira_run import push_image
 
-            pushed_image = push_image(self, docker_tag, task_id, user_id)
+                pushed_image = push_image(self, docker_tag, task_id, user_id)
+            else:
+                raise ValueError(
+                    "Using an External Docker registry is not yet deployed on the Server side, but we deploy this within the next weeks"
+                )
 
             print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             print("Configure code submission in TIRA...")
@@ -582,6 +588,7 @@ class TiraClient(ABC):
                 try_run_metadata_uuid=metadata_uuid,
                 mount_hf_model=mount_hf_model,
                 workflow_configuration=workflow_software_configuration,
+                external_docker_registry=external_docker_registry is not None,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
