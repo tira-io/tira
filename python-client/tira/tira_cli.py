@@ -167,7 +167,7 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         required=False,
         action="append",
         default=[],
-        help="You can specify custom properties of your software. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+        help="You can specify custom properties of your software in the form --set 'key=value'. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
     )
     parser.add_argument(
         "--external-docker-registry",
@@ -183,6 +183,22 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
             "Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container"
             " during execution. This is intended to remove redundancy so that the models must not be embedded into the"
             " Docker images."
+        ),
+    )
+    parser.add_argument(
+        "--mount-directory",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+        ),
+    )
+    parser.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
