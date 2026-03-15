@@ -490,7 +490,7 @@ def run_sandboxed_software(
         mount_hf_model = [mount_hf_model]
 
     run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model, job_id],
+        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model],
         queue=docker_resources,
     )
 
