@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import html
 import json
 import logging
@@ -9,7 +11,7 @@ import zipfile
 from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping, Optional
 from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
@@ -32,11 +34,6 @@ from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
 from ..util import link_to_discourse_team, reroute_host
 from ..views import add_context
-
-if TYPE_CHECKING:
-    from typing import Any, Mapping, Optional
-
-    from django.http import HttpRequest, HttpResponse
 
 include_navigation = False
 
