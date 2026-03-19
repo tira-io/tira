@@ -3,15 +3,12 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from tira.check_format import SUPPORTED_FORMATS
-
-if TYPE_CHECKING:
-    from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("tira")
 # Transition is powering_on (3), powering_off (4), sandboxing (5), unsandboxing (6), executing (7)
