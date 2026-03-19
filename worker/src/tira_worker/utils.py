@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from celery.app.control import Inspect
+
 
 def gpu_device_ids():
     ret = subprocess.check_output(["nvidia-smi", "-L"]).decode("utf-8")
@@ -14,4 +16,20 @@ def _parse_resource_requirements(nvidia_smi_output: str) -> str:
     if len(ret) != 1:
         raise ValueError(f"I do not know how to process gpus {ret} from {os.environ['NVIDIA_VISIBLE_DEVICES']}.")
 
-    return [ret[0].split(":")[0].split()[-1]]
+    return [os.environ["NVIDIA_VISIBLE_DEVICES"]]
+
+
+def all_workers():
+    ret = set()
+    try:
+        from tira_worker import app, gpu_executor
+
+        for i in [app, gpu_executor]:
+            inspect: Inspect = i.control.inspect()
+
+            for qlist in inspect.active_queues().values():
+                for q in qlist:
+                    ret.add(q["name"])
+    except:
+        pass
+    return ret

@@ -1,34 +1,31 @@
-import html
 import io
 import json
-import logging
 import zipfile
-from pathlib import Path
-from typing import TYPE_CHECKING
 
-import yaml
-from django.conf import settings
-from django.core.cache import cache
-from django.http import FileResponse, HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
-from tira.check_format import _fmt, check_format
-from tira.evaluators import unsandboxed_evaluation_is_allowed
-from tira.io_utils import zip_dir
 from tira.third_party_integrations import temporary_directory
-from werkzeug.utils import secure_filename
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
+from ...model import RunningProcesses
 from ..vm_api import _run_evaluation
 
 
 @check_conditional_permissions(restricted=True)
-def upload_response(request: Request, dataset_id: str, vm_id: str) -> Response:
+def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
     if request.method != "POST":
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
+
+    try:
+        job = RunningProcesses.objects.get(uuid=job_id)
+    except:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
+
+    dataset_id = job.dataset_id
+    vm_id = job.vm_id
 
     if not dataset_id or dataset_id is None or dataset_id == "None":
         return HttpResponseServerError(json.dumps({"status": 1, "message": "Please specify the associated dataset."}))
@@ -63,9 +60,54 @@ def upload_response(request: Request, dataset_id: str, vm_id: str) -> Response:
         if "-evaluates-" not in run_id:
             _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
 
+    RunningProcesses.objects.get(uuid=job_id).delete()
+
     return JsonResponse({"status": 0, "message": "ok"})
 
 
+@check_conditional_permissions(restricted=True)
+def registered_workers(request: Request, vm_id: str) -> Response:
+    ret = []
+    try:
+        from celery.app.control import Inspect
+        from tira_worker import app, evaluate
+
+        inspect: Inspect = app.control.inspect()
+        stats = inspect.stats()
+        workers = inspect.active()
+        active_queues = inspect.active_queues()
+        for name, tasks in workers.items():
+            worker_stats = stats.get(name)
+            worker_queues = active_queues.get(name)
+            running_tasks = []
+            for t in tasks:
+                running_tasks.append({i: t[i] for i in ["id", "name", "args", "kwargs", "time_start"]})
+
+            ret.append(
+                {
+                    "name": name,
+                    "uptime": worker_stats["uptime"],
+                    "tasks": running_tasks,
+                    "queues": json.dumps([i["name"] for i in worker_queues]),
+                    "total": json.dumps(worker_stats["total"]),
+                }
+            )
+    except:
+        pass
+    return JsonResponse({"status": 0, "context": {"active_workers": ret}})
+
+
+@check_conditional_permissions(restricted=True)
+def active_jobs(request: Request, vm_id: str, task_id: str) -> Response:
+    ret = []
+    for i in RunningProcesses.objects.filter(task=task_id):
+        ret.append({"uuid": i.uuid, "task": i.task, "vm_id": i.vm_id, "dataset_id": i.dataset_id, "details": i.details})
+
+    return JsonResponse({"status": 0, "context": {"jobs": ret}})
+
+
 endpoints = [
-    path("upload-response/<str:dataset_id>/<str:vm_id>", upload_response),
+    path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
+    path("registered-workers/<str:vm_id>", registered_workers),
+    path("active-jobs/<str:vm_id>/<str:task_id>", active_jobs),
 ]

@@ -163,6 +163,19 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         "--dataset", required=False, default=None, help="The dataset on which the code should be tested before upload."
     )
     parser.add_argument(
+        "--set",
+        required=False,
+        action="append",
+        default=[],
+        help="You can specify custom properties of your software in the form --set 'key=value'. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+    )
+    parser.add_argument(
+        "--external-docker-registry",
+        required=False,
+        default=None,
+        help="In case you do not want to upload your docker image to the docker registry of TIRA, you can specify to which docker registry the image should be uploaded. The image must be publically available in this registry.",
+    )
+    parser.add_argument(
         "--mount-hf-model",
         nargs="+",
         default=[],
@@ -170,6 +183,22 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
             "Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container"
             " during execution. This is intended to remove redundancy so that the models must not be embedded into the"
             " Docker images."
+        ),
+    )
+    parser.add_argument(
+        "--mount-directory",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+        ),
+    )
+    parser.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
@@ -279,9 +308,13 @@ def code_submission_command(
     dataset: "Optional[str]",
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
+    set: "Optional[list[str]]",
+    external_docker_registry: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
+    set = dict(x.split("=", 1) for x in set if "=" in x) if set else None
+
     client.submit_code(
         Path(path),
         task,
@@ -291,6 +324,8 @@ def code_submission_command(
         dataset_id=dataset,
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
+        workflow_software_configuration=set,
+        external_docker_registry=external_docker_registry,
     )
 
     return 0
@@ -321,13 +356,23 @@ def upload_command(
     anonymous: "Optional[bool]" = False,
     **kwargs,
 ) -> int:
+    if not directory or not Path(directory).is_dir():
+        msg = f"The directory passed via --directory does not exist. Got {directory}"
+        print(fmt_message(msg, _fmt.ERROR))
+        return 1
     client: "RestClient" = RestClient()
     api_key_is_valid = client.api_key_is_valid()
 
     if dataset is None:
         dataset = guess_dataset(directory)
-        if "ENTER_VALUE_HERE" in dataset:
+        if dataset and "ENTER_VALUE_HERE" in dataset:
             msg = f"The value for (data: test collection: name) in the metadata of the directory {directory} is still set to the default value ENTER_VALUE_HERE. Please replace this."
+            print(fmt_message(msg, _fmt.ERROR))
+            return 1
+    else:
+        potential_inconsistent_dataset = guess_dataset(directory)
+        if potential_inconsistent_dataset and dataset != potential_inconsistent_dataset:
+            msg = f"The dataset for the submission is inconsistent. I got {dataset} from the --dataset command line but the metadata of the directory {directory} contains {potential_inconsistent_dataset}. Please fix this."
             print(fmt_message(msg, _fmt.ERROR))
             return 1
 
@@ -339,7 +384,14 @@ def upload_command(
         print(fmt_message(msg, _fmt.ERROR))
         return 1
 
-    if not anonymous and not api_key_is_valid:
+    if tira_vm_id:
+        system_details = guess_system_details(directory, None)
+        if system_details and "tag" in system_details and tira_vm_id != system_details["tag"]:
+            msg = f"The team for which the submission is to be uploaded is inconsistent. I got {tira_vm_id} from the --tira-vm-id command line but the metadata of the directory {directory} contains {system_details['tag']}. Please fix this."
+            print(fmt_message(msg, _fmt.ERROR))
+            return 1
+
+    if not dry_run and not anonymous and not api_key_is_valid:
         msg = "You are not authenticated. Please either pass --anonymous to upload without authentication of run tira-cli login to authenticate."
         print(fmt_message(msg, _fmt.ERROR))
         return 1
@@ -368,13 +420,20 @@ def upload_command(
             )
             return 1
 
-    if not system or not vm_id:
+    if not dry_run and (not system or not vm_id):
         print(
             fmt_message(f"You are not authenticated and no anonymous submissions are allowed for {dataset}", _fmt.ERROR)
         )
         return 1
 
+    if dry_run and not system:
+        system = "vm_id"
+
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
+
+    if dry_run:
+        return 0 if resp else 1
+
     if not resp or "uuid" not in resp or not resp["uuid"]:
         return 1
 

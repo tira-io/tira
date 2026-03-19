@@ -63,22 +63,36 @@ def check_permissions(func):
         ):
             return func(request, *args, **kwargs)
 
-        # Listing runs for ir-lab at CLEF 2024 is public for the moment
-        if (
-            (
-                request.path_info.startswith("task/ir-lab-padua-2024/user/")
-                or request.path_info.startswith("/task/ir-lab-padua-2024/user/")
-                or request.path_info.startswith("task/ir-lab-sose-2024/user/")
-                or request.path_info.startswith("/task/ir-lab-sose-2024/user/")
-            )
-            and request.path_info.endswith(".zip")
+        run_download = (
+            request.path_info.endswith(".zip")
             and "/user/" in request.path_info
             and "/dataset/" in request.path_info
             and "download" in request.path_info
             and request.path_info.split("/user/")[1].split("/")[1] == "dataset"
             and request.path_info.split("/user/")[1].split("/")[3] == "download"
-        ):
+            and run_id is not None
+            and request.path_info.endswith(f"{run_id}.zip")
+        )
+
+        # Listing runs for ir-lab at CLEF 2024 is public for the moment
+        if (
+            request.path_info.startswith("task/ir-lab-padua-2024/user/")
+            or request.path_info.startswith("/task/ir-lab-padua-2024/user/")
+            or request.path_info.startswith("task/ir-lab-sose-2024/user/")
+            or request.path_info.startswith("/task/ir-lab-sose-2024/user/")
+        ) and run_download:
             return func(request, *args, **kwargs)
+
+        if run_download and run_id and vm_id and dataset_id:
+            review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
+            if (
+                review
+                and "published" in review
+                and "blinded" in review
+                and review["published"]
+                and not review["blinded"]
+            ):
+                return func(request, *args, **kwargs)
 
         # SERP endpoint is allowed for runs that are published and unblinded
         if (
@@ -247,6 +261,27 @@ def check_conditional_permissions(
 
                 if public_data_ok and _run_is_public(run_id, vm_id, dataset_id):
                     return func(request, *args, **kwargs)
+
+                run_download = (
+                    request.path_info.endswith(".zip")
+                    and "/user/" in request.path_info
+                    and "/dataset/" in request.path_info
+                    and "download" in request.path_info
+                    and request.path_info.split("/user/")[1].split("/")[1] == "dataset"
+                    and request.path_info.split("/user/")[1].split("/")[3] == "download"
+                    and run_id is not None
+                    and request.path_info.endswith(f"{run_id}.zip")
+                )
+                if run_download:
+                    review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
+                    if (
+                        review
+                        and "published" in review
+                        and "blinded" in review
+                        and review["published"]
+                        and not review["blinded"]
+                    ):
+                        return func(request, *args, **kwargs)
 
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
                     if model.get_task(task_id)["require_registration"]:

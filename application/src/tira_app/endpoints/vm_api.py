@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import html
 import json
 import logging
@@ -9,7 +11,7 @@ import zipfile
 from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping, Optional
 from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
@@ -32,11 +34,6 @@ from ..grpc_client import GrpcClient
 from ..model import EvaluationLog, TransitionLog
 from ..util import link_to_discourse_team, reroute_host
 from ..views import add_context
-
-if TYPE_CHECKING:
-    from typing import Any, Mapping, Optional
-
-    from django.http import HttpRequest, HttpResponse
 
 include_navigation = False
 
@@ -418,27 +415,6 @@ def _master_vm_eval_call(vm_id: str, dataset_id: str, run_id: str, evaluator: "d
     return response
 
 
-def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
-    """called when the evaluation is done via git runner.
-    This method calls the git utilities in git_runner.py to start the git CI
-    """
-    try:
-        transaction_id = model.get_git_integration(dataset_id=dataset_id).run_evaluate_with_git_workflow(
-            evaluator["task_id"],
-            dataset_id,
-            vm_id,
-            run_id,
-            evaluator["git_runner_image"],
-            evaluator["git_runner_command"],
-            evaluator["git_repository_id"],
-            evaluator["evaluator_id"],
-        )
-    except Exception as e:
-        return JsonResponse({"status": 1, "message": str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    return JsonResponse({"status": 0, "message": transaction_id}, status=HTTPStatus.ACCEPTED)
-
-
 def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
@@ -477,7 +453,10 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     from tira_worker import evaluate
 
     evaluator_id = model.get_dataset(dataset)["evaluator_id"]
-    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team], queue="evaluator")
+    evaluator = model.get_evaluator(dataset, task)
+    job_id = add_job("evaluator", task, team, dataset, evaluator)
+
+    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue="evaluator")
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -500,6 +479,7 @@ def run_sandboxed_software(
     docker_resources: str,
     input_runs: str,
     mount_hf_model: "Optional[list[str]]",
+    job_id: str,
 ) -> None:
     from tira_worker import run
 
@@ -507,7 +487,8 @@ def run_sandboxed_software(
         mount_hf_model = [mount_hf_model]
 
     run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, mount_hf_model], queue=docker_resources
+        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model],
+        queue=docker_resources,
     )
 
 
@@ -577,6 +558,12 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         from .v1._anonymous import check_format_for_dataset
 
         dataset = Dataset.objects.get(dataset_id=dataset_id)
+
+        if upload_id == "new-submission":
+            upload_id = model.add_upload(task_id, vm_id, None)["id"]
+            model.update_upload_metadata(
+                task_id, vm_id, upload_id, request.POST.get("display_name"), request.POST.get("description"), ""
+            )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
 
@@ -888,6 +875,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             active_branch,
             data.get("try_run_metadata_uuid", None),
             data.get("tira_image_workdir", None),
+            data.get("workflow_configuration", None),
         )
 
         if data.get("mount_hf_model"):
@@ -1405,6 +1393,19 @@ def run_execute_docker_software(
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
+    from tira_worker import all_workers
+
+    available_workers = all_workers()
+    if docker_resources not in available_workers:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "No worker queue is registered for the requested resources. This might be a short term hiccup.",
+            }
+        )
+
+    job_id = add_job(docker_resources, task_id, vm_id, dataset_id, docker_software)
+
     run_sandboxed_software(
         task_id,
         dataset_id,
@@ -1415,9 +1416,54 @@ def run_execute_docker_software(
         docker_resources,
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
+        job_id,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
+
+
+def add_job(
+    docker_resources: str, task_id: str, vm_id: str, dataset_id: str, docker_software: Optional[dict[str, Any]] = None
+) -> str:
+    job_id = str(uuid.uuid4())
+    from ..model import RunningProcesses
+
+    if docker_resources in settings.ALL_POSSIBLE_RESOURCES:
+        r = settings.ALL_POSSIBLE_RESOURCES[docker_resources]
+    else:
+        r = {"ram": "10", "cores": "1", "gpu": "0"}
+
+    if docker_software:
+        image = docker_software.get("user_image_name", "")
+        command = docker_software.get("command", "")
+    else:
+        image = ""
+        command = ""
+
+    details = {
+        "run_id": job_id,
+        "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"},
+        "stdOutput": "",
+        "started_at": "pending",
+        "job_config": {
+            "software_name": "software...",
+            "image": image,
+            "command": command,
+            "cores": str(r["cores"]) + " CPU Cores",
+            "ram": str(r["ram"]) + " GB of RAM",
+            "gpu": str(r["gpu"]) + " GPUs",
+            "data": "?",
+            "dataset_type": "?",
+            "dataset": "tbd dataset",
+            "software_id": "loading software id",
+            "task_id": task_id,
+        },
+    }
+    RunningProcesses.objects.create(
+        uuid=job_id, task=task_id, vm_id=vm_id, dataset_id=dataset_id, details=json.dumps(details)
+    )
+
+    return job_id
 
 
 @check_permissions

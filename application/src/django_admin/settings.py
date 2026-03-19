@@ -252,8 +252,7 @@ def logger_config(log_dir: Path):
     }
 
 
-# Git Integration
-GIT_CI_AVAILABLE_RESOURCES = {
+ALL_POSSIBLE_RESOURCES = {
     "small-resources": {
         "cores": 1,
         "ram": 10,
@@ -319,6 +318,17 @@ GIT_CI_AVAILABLE_RESOURCES = {
         "key": "a100-resources-gpu",
     },
 }
+
+AVAILABLE_WORKERS = set()
+
+try:
+    from tira_worker import all_workers
+
+    AVAILABLE_WORKERS = all_workers()
+except Exception:
+    pass
+
+AVAILABLE_RESOURCES = {k: v for k, v in ALL_POSSIBLE_RESOURCES.items() if k in AVAILABLE_WORKERS}
 
 DEFAULT_GIT_INTEGRATION_URL = "https://git.webis.de/code-research/tira"
 

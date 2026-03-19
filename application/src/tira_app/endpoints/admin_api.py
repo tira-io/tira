@@ -274,6 +274,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         command = data.get("evaluator_command", "")
         working_directory = data.get("evaluator_working_directory", "")
         measures = data.get("evaluation_measures", "")
+        workflow_configuration = data.get("workflow_configuration", None)
 
         is_git_runner = data.get("is_git_runner", False)
         git_runner_image = data.get("git_runner_image", "")
@@ -345,9 +346,6 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             else:
                 truth_data = None
 
-        if not data.get("use_existing_repository", True):
-            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
-
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
         if not model.task_exists(task_id):
@@ -373,6 +371,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     truth_format,
                     dataset_format_configuration,
                     truth_format_configuration,
+                    workflow_configuration,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -391,6 +390,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     truth_format,
                     dataset_format_configuration,
                     truth_format_configuration,
+                    workflow_configuration,
                 )
 
             model.add_evaluator(

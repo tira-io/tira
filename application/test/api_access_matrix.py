@@ -1992,11 +1992,11 @@ API_ACCESS_MATRIX = [
         url_pattern="api/registration/add_registration/<str:vm_id>/<str:task_id>",
         params={"task_id": "shared-task-1", "vm_id": "example_participant"},
         group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 500,  # TODO: Would we expect an 404 here?
-            PARTICIPANT: 500,  # TODO: Would we expect an 404 here?
-            ORGANIZER: 500,  # TODO: Would we expect an 404 here?
-            ORGANIZER_WRONG_TASK: 500,  # TODO: Would we expect an 404 here?
+            ADMIN: 200,
+            GUEST: 200,  # TODO: Would we expect an 404 here?
+            PARTICIPANT: 200,  # TODO: Would we expect an 404 here?
+            ORGANIZER: 200,  # TODO: Would we expect an 404 here?
+            ORGANIZER_WRONG_TASK: 200,  # TODO: Would we expect an 404 here?
         },
         body='{"group": "X"}',
     ),
@@ -2207,8 +2207,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/admin/upload-response/<str:dataset_id>/<str:vm_id>",
-        params={"dataset_id": "does-not-exist", "vm_id": "does-not-exist"},
+        url_pattern="v1/admin/upload-response/<str:vm_id>/<str:job_id>",
+        params={"job_id": "does-not-exist", "vm_id": "does-not-exist"},
         method="POST",
         group_to_expected_status_code={
             GUEST: 405,
@@ -2216,6 +2216,30 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 405,
             ADMIN: 500,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/registered-workers/<str:vm_id>",
+        params={"vm_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/active-jobs/<str:vm_id>/<str:task_id>",
+        params={"vm_id": "does-not-exist", "task_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 200,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now

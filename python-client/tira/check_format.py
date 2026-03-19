@@ -408,17 +408,20 @@ class TrecEvalLeaderboard(FormatBase):
             if not i.is_file():
                 continue
 
-            for l in super().yield_next_entry(i):
-                if not l.strip():
-                    continue
+            try:
+                for l in super().yield_next_entry(i):
+                    if not l.strip():
+                        continue
 
-                if not self.parse_line_failsave(l):
-                    break
+                    if not self.parse_line_failsave(l):
+                        break
 
-                if valid_lines > self.minimum_lines:
-                    ret.append(Path(i))
-                    break
-                valid_lines += 1
+                    if valid_lines > self.minimum_lines:
+                        ret.append(Path(i))
+                        break
+                    valid_lines += 1
+            except:
+                continue
 
         return ret
 
@@ -1237,6 +1240,99 @@ class TerrierIndex(FormatBase):
         pass
 
 
+class TrecRagRuns(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_format(self, run_output: Path):
+        actual_rag_responses = self.all_lines(run_output)
+        if len(actual_rag_responses) <= 2:
+            msg = "No trec-rag-runs were found, "
+            if Path(run_output).is_dir():
+                msg += f"only the files {os.listdir(run_output)}."
+            else:
+                msg += f"only the file {run_output}."
+            return [_fmt.ERROR, msg]
+        return [_fmt.OK, "Valid trec-rag runs."]
+
+    def yield_next_entry(self, f: Path):
+        for f in [f] + glob(f"{f}/*") + glob(f"{f}/runs/*"):
+            try:
+                run = self.load_run_failsave(Path(f))
+            except:
+                continue
+            for i in run:
+                yield i
+
+    def load_run_failsave(self, path: Path):
+        if not path or not path.exists() or not path.is_file():
+            return []
+
+        ret = []
+        error_lines = 0
+        with open(path, "r") as f:
+            for l in f:
+                if error_lines > 4:
+                    return []
+
+                try:
+                    l = json.loads(l)
+                except:
+                    error_lines += 1
+                    continue
+
+                if not isinstance(l, dict):
+                    error_lines += 1
+                    continue
+
+                if "responses" in l and "answer" not in l:
+                    l["answer"] = l["responses"]
+                if "answer" in l and "responses" not in l:
+                    l["responses"] = l["answer"]
+
+                if "metadata" not in l or not isinstance(l["metadata"], dict):
+                    error_lines += 1
+                    continue
+
+                if "responses" not in l:
+                    error_lines += 1
+                    continue
+
+                if "answer" not in l:
+                    error_lines += 1
+                    continue
+
+                if "narrative_id" in l["metadata"] and "topic_id" not in l["metadata"]:
+                    l["metadata"]["topic_id"] = l["metadata"]["narrative_id"]
+
+                if "topic_id" in l["metadata"] and "narrative_id" not in l["metadata"]:
+                    l["metadata"]["narrative_id"] = l["metadata"]["topic_id"]
+
+                if (
+                    "topic_id" in l["metadata"]
+                    and "narrative_id" in l["metadata"]
+                    and l["metadata"]["topic_id"] != l["metadata"]["narrative_id"]
+                ):
+                    raise ValueError(f"Inconsistent metadata: {l['metadata']}")
+
+                l["path"] = str(path.absolute())
+                ret.append(l)
+
+        return ret
+
+
+class PanTextWatermarking(FormatBase):
+    def check_format(self, run_output: Path):
+        for d in ["01-watermarking", "02-obfuscation", "03-detection"]:
+            code, message = check_format(run_output / d, "*.jsonl")
+            if code != _fmt.OK:
+                return [
+                    _fmt.ERROR,
+                    "I expected three directories '01-watermarking', '02-obfuscation', and '03-detection' that each contain jsonl files.",
+                ]
+        return [_fmt.OK, "The output is valid for the PAN text watermarking task."]
+
+
 class IrMetadataFormat(FormatBase):
     """Checks if a given output contains valid ir_metadata."""
 
@@ -1332,10 +1428,19 @@ class IrMetadataFormat(FormatBase):
                     pass
 
 
+class ArbitraryFormat(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_format(self, run_output: Path):
+        return [_fmt.OK, "Skip check for arbitrary format."]
+
+
 FORMAT_TO_CHECK = {
     "run.txt": RunFormat,
     "*.jsonl": JsonlFormat,
     "*.tsv": TsvFormat,
+    "arbitrary": ArbitraryFormat,
     "trec-eval-leaderboard": TrecEvalLeaderboard,
     "text-alignment-corpus": TextAlignmentCorpusFormat,
     "text-alignment-features": TextAlignmentFeaturesFormat,
@@ -1355,11 +1460,13 @@ FORMAT_TO_CHECK = {
     "multi-author-writing-style-analysis-truths": lambda: MultiAuthorWritingStyleAnalysis("truth-problem"),
     "power-and-identification-truths": lambda: PowerAndIdeologyFormat("", "-*-labels"),
     "power-and-identification-predictions": lambda: PowerAndIdeologyFormat("*", "*-predictions"),
+    "pan-text-watermarking": PanTextWatermarking,
     "touche-image-retrieval": ToucheImageRetrieval,
     "ir-dataset-corpus": IrDatasetsCorpus,
     "lightning-ir-document-embeddings": LightningIrDocumentEmbeddings,
     "lightning-ir-query-embeddings": LightningIrQueryEmbeddings,
     "aggregated-results.json": AggregatedResults,
+    "trec-rag-runs": TrecRagRuns,
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))

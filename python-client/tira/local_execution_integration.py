@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Optional
 import docker
 import pandas as pd
 
+from tira.io_utils import environment_variables_to_forward
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 if TYPE_CHECKING:
@@ -334,7 +335,7 @@ class LocalExecutionIntegration:
             help_response = client.containers.run(
                 image,
                 entrypoint="sh",
-                command="-c './tracked --help'",
+                command="-c '/tracked --help'",
                 volumes=volumes,
                 detach=False,
                 remove=True,
@@ -404,6 +405,7 @@ class LocalExecutionIntegration:
         cpu_count=None,
         mem_limit=None,
         gpu_device_ids=None,
+        forward_environment_variables=None,
     ):
         previous_stages = []
         original_args = {
@@ -508,6 +510,15 @@ class LocalExecutionIntegration:
             device_requests = [
                 docker.types.DeviceRequest(device_ids=[str(i)], capabilities=[["gpu"]]) for i in gpu_device_ids
             ]
+            environment["NVIDIA_VISIBLE_DEVICES"] = gpu_device_ids[0]
+            environment["CUDA_VISIBLE_DEVICES"] = gpu_device_ids[0]
+
+        openai_env = environment_variables_to_forward(forward_environment_variables)
+        if openai_env is not None and len(openai_env) > 0:
+            environment.update(openai_env)
+            # TODO: fine-grained ip-tables rules for only access to the URL in the environment variable.
+            if "OPENAI_API_KEY" in environment and "OPENAI_BASE_URL" in environment and "OPENAI_MODEL" in environment:
+                allow_network = True
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
@@ -519,7 +530,7 @@ class LocalExecutionIntegration:
         container = client.containers.run(
             image,
             entrypoint=entrypoint,
-            command=f'{entrypoint_flags} "{command}; sleep .1"',
+            command=f'{entrypoint_flags} "sleep .1; {command}"',
             environment=environment,
             volumes=volumes,
             detach=True,
@@ -533,6 +544,9 @@ class LocalExecutionIntegration:
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode("utf-8"))
+
+        return_code = container.wait()
+        # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
 
         if evaluate:
             self.evaluate(eval_dir, output_dir, allow_network, client)

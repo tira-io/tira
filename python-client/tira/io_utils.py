@@ -568,6 +568,29 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
+def environment_variables_to_forward(required_variables=None):
+    ret = {}
+    if not required_variables or len(required_variables) == 0:
+        return ret
+
+    for k, v in os.environ.items():
+        if k in required_variables:
+            ret[k] = v
+
+    errors = []
+
+    for k in required_variables:
+        if k not in ret:
+            errors.append(f"\n\t- Please pass the environment variable {k}  E.g., run export {k}=YOUR-VALUE")
+
+    if len(errors) > 0:
+        msg = "Some environment variables are missing and can not be forwarded. " + ("".join(errors))
+        log_message(msg, _fmt.ERROR)
+        raise ValueError(msg)
+
+    return ret
+
+
 def extract_volume_mounts(v):
     v_modified = v.replace(":\\", "XYZ__________XYZ")
     volume_dir, volume_bind, volume_mode = v_modified.split(":")

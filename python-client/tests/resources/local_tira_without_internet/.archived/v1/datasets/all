@@ -1,0 +1,22 @@
+[
+  {
+    "id": "dataset-does-not-exist-20241201-training",
+    "dataset_id": "dataset-does-not-exist-20241201-training",
+    "default_task": "task-does-not-exist",
+    "default_task_name": "task-does-not-exist",
+    "display_name": "Display Name",
+    "is_confidential": false,
+    "is_deprecated": false,
+    "format": ["run-with-metadata"]
+  },
+  {
+    "id": "some-test-collection",
+    "dataset_id": "some-test-collection",
+    "default_task": "task-does-not-exist",
+    "default_task_name": "task-does-not-exist",
+    "display_name": "Display Name",
+    "is_confidential": false,
+    "is_deprecated": false,
+    "format": ["run-with-metadata"]
+  }
+]

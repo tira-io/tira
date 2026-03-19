@@ -1,15 +1,14 @@
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from tira.check_format import SUPPORTED_FORMATS
-
-if TYPE_CHECKING:
-    from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("tira")
 # Transition is powering_on (3), powering_off (4), sandboxing (5), unsandboxing (6), executing (7)
@@ -120,6 +119,7 @@ class Task(models.Model):
     irds_re_ranking_command = models.CharField(max_length=150, default="")
     irds_re_ranking_resource = models.CharField(max_length=150, default="")
     aggregated_results = models.TextField(default=None, null=True)
+    submission_tabs = models.TextField(default=None, null=True)
 
 
 class AllowedServer(models.Model):
@@ -173,6 +173,7 @@ class Dataset(models.Model):
     file_listing = models.TextField(default=None, null=True)
     format_configuration = models.CharField(max_length=300, null=True, default=None)
     truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
+    workflow_configuration = models.TextField(default=None, null=True)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:
@@ -220,6 +221,14 @@ class Dataset(models.Model):
         if self and self.truth_format_configuration:
             try:
                 return json.loads(self.truth_format_configuration)
+            except json.JSONDecodeError:
+                pass
+        return None
+
+    def get_workflow_configuration(self) -> "Optional[Dict[str, Any]]":
+        if self and self.workflow_configuration:
+            try:
+                return json.loads(self.workflow_configuration)
             except json.JSONDecodeError:
                 pass
         return None
@@ -331,6 +340,15 @@ class DockerSoftware(models.Model):
     source_code_commit = models.TextField(default=None, null=True)
     source_code_active_branch = models.TextField(default=None, null=True)
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
+    workflow_configuration = models.TextField(default=None, null=True)
+
+    def get_workflow_configuration(self) -> Optional[Any]:
+        if not self.workflow_configuration:
+            return None
+        try:
+            return json.loads(self.workflow_configuration)
+        except json.JSONDecodeError:
+            return None
 
 
 class DockerSoftwareHasAdditionalInput(models.Model):
@@ -490,3 +508,11 @@ class BackendProcess(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, default=None)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE, null=True, default=None)
     stdout = models.TextField(default="")
+
+
+class RunningProcesses(models.Model):
+    uuid = models.CharField(max_length=150, primary_key=True)
+    task = models.TextField(default="")
+    vm_id = models.TextField(default="")
+    dataset_id = models.TextField(default="")
+    details = models.TextField(default="")

@@ -3,6 +3,7 @@ p.stat().st_mtime - change time
 """
 
 import datetime
+import json
 import logging
 import tempfile
 from distutils.dir_util import copy_tree
@@ -196,7 +197,7 @@ def load_docker_data(
 
     return {
         "docker_images": docker_images,
-        "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
+        "resources": list(settings.AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
         "docker_registry_user": tira_docker_registry_token(docker_software_help)[0],
@@ -345,6 +346,10 @@ def get_docker_software(docker_software_id: int) -> "dict[str, Any]":
     {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
     """
     return model.get_docker_software(docker_software_id)
+
+
+def get_all_uploads_for_vm(vm_id: str):
+    return model.get_all_uploads_for_vm(vm_id)
 
 
 def get_runs_for_vm(vm_id: str, docker_software_id: str, upload_id: str) -> "tuple[list[str], list[dict[str, Any]]]":
@@ -660,6 +665,7 @@ def add_docker_software(
     active_branch: "Optional[str]" = None,
     try_run_metadata_uuid: "Optional[str]" = None,
     tira_image_workdir: "Optional[str]" = None,
+    workflow_configuration: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -669,6 +675,12 @@ def add_docker_software(
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
         image, old_tag, new_tag
     )
+
+    if workflow_configuration:
+        try:
+            workflow_configuration = json.dumps(json.loads(workflow_configuration))
+        except json.JSONDecodeError:
+            workflow_configuration = None
 
     input_docker_job: dict[int, str] = {}
     input_upload: dict[int, str] = {}
@@ -694,6 +706,7 @@ def add_docker_software(
         active_branch,
         try_run_metadata_uuid,
         tira_image_workdir,
+        workflow_configuration,
     )
 
 
@@ -789,6 +802,7 @@ def add_dataset(
     truth_format: "Optional[str]" = None,
     dataset_format_configuration: "Optional[str]" = None,
     truth_format_configuration: "Optional[str]" = None,
+    workflow_configuration: "Optional[str]" = None,
 ) -> "tuple[dict[str, Any], list[str]]":
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -807,6 +821,7 @@ def add_dataset(
         truth_format=truth_format,
         format_configuration=dataset_format_configuration,
         truth_format_configuration=truth_format_configuration,
+        workflow_configuration=workflow_configuration,
     )
 
 

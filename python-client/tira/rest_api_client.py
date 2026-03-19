@@ -22,7 +22,7 @@ from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
 from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
-from tira.third_party_integrations import temporary_directory
+from tira.third_party_integrations import default_tira_cache_dir, temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
     TASKS_WITH_REDIRECT_MERGING,
@@ -52,10 +52,9 @@ class Client(TiraClient):
         base_url_api: str = None,
     ):
         self._settings = None
+        self.api_key_already_checked = False
         self.logged: "set[str]" = set()
-        self.tira_cache_dir = (
-            tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
-        )
+        self.tira_cache_dir = default_tira_cache_dir(tira_cache_dir)
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
         self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
@@ -73,8 +72,7 @@ class Client(TiraClient):
             self.api_user_name = api_user_name
 
         self.failsave_retries = 1
-        if self.api_key != "no-api-key":
-            self.fail_if_api_key_is_invalid()
+
         self.failsave_retries = failsave_retries
         self.pd: PandasIntegration = PandasIntegration(self)
         self.pt: PyTerrierIntegration = PyTerrierIntegration(self)
@@ -107,7 +105,7 @@ class Client(TiraClient):
             if "base_url_api" not in self._settings:
                 self._settings["base_url_api"] = "https://api.tira.io"
             if "archive_base_url" not in self._settings:
-                self._settings["archive_base_url"] = "https://tira.io"
+                self._settings["archive_base_url"] = "https://archive.tira.io"
 
             if "verify" not in self._settings:
                 self._settings["verify"] = True
@@ -266,6 +264,8 @@ class Client(TiraClient):
         source_code_commit=None,
         source_code_active_branch=None,
         try_run_metadata_uuid=None,
+        workflow_configuration=None,
+        external_docker_registry=False,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -278,7 +278,12 @@ class Client(TiraClient):
             "command": command,
             "code_repository_id": code_repository_id,
             "build_environment": json.dumps(build_environment),
+            "external_docker_registry": external_docker_registry,
         }
+
+        if workflow_configuration:
+            content["workflow_configuration"] = json.dumps(workflow_configuration)
+            content["command"] = "COMMAND-UNUSED-FOR-WORKFLOW-SUBMISSIONS"
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages
@@ -892,12 +897,16 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def authentication_headers(self) -> Dict:
+    def authentication_headers(self, url=None) -> Dict:
         ret = {}
-        if self.api_key != "no-api-key":
-            ret["Api-Key"] = self.api_key
-        if self.api_user_name != "no-api-key-user":
-            ret["Api-Username"] = self.api_user_name
+
+        if not url or not url.startswith(self.load_settings()["archive_base_url"]):
+            if self.api_key != "no-api-key":
+                ret["Api-Key"] = self.api_key
+                if url and "api/role" not in url:
+                    self.fail_if_api_key_is_invalid()
+            if self.api_user_name != "no-api-key-user":
+                ret["Api-Username"] = self.api_user_name
 
         if "Header" in self.load_settings():
             for k, v in self.load_settings()["Header"].items():
@@ -1009,11 +1018,11 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
 
-    def upload_run_admin(self, dataset: str, team: str, file_path: Path) -> None:
+    def upload_run_admin(self, file_path: Path, job_id: str) -> None:
         from tira.io_utils import zip_dir
 
         zip_file = zip_dir(file_path)
-        self.execute_post_return_json(f"/v1/admin/upload-response/{dataset}/{team}", file_path=zip_file)
+        self.execute_post_return_json(f"/v1/admin/upload-response/anonymous-vm-id/{job_id}", file_path=zip_file)
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
@@ -1062,7 +1071,7 @@ class Client(TiraClient):
                 "\nResult:\n\t"
                 + fmt_message("The run is valid. I skip upload to TIRA as --dry-run was passed.", _fmt.OK)
             )
-            return
+            return True
 
         zip_file = zip_dir(file_path)
         print("\n", flush=True)
@@ -1251,7 +1260,7 @@ class Client(TiraClient):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
         headers["x-csrftoken"] = csrf
-        headers["Cookie"] = f"csrftoken={csrf}"
+        headers["Cookie"] = ("" if "Cookie" not in headers else headers["Cookie"] + "; ") + f"csrftoken={csrf}"
 
         for _ in range(self.failsave_retries):
             try:
@@ -1310,10 +1319,11 @@ class Client(TiraClient):
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
-        headers = self.authentication_headers()
-        headers["Accept"] = "application/json"
 
         base_url = base_url if base_url else self.base_url
+
+        headers = self.authentication_headers(f"{base_url}{endpoint}")
+        headers["Accept"] = "application/json"
 
         for _ in range(failsave_retries):
             try:

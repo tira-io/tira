@@ -60,6 +60,7 @@ class DatasetSerializer(ModelSerializer):
             "truth_format_configuration",
             "truth_format",
             "trusted_eval",
+            "workflow_configuration",
         ]
 
     def get_mirrors(self, obj):
@@ -94,6 +95,9 @@ class DatasetSerializer(ModelSerializer):
             return [obj.ir_datasets_id, obj.ir_datasets_id_2]
         else:
             return obj.ir_datasets_id
+
+    def get_workflow_configuration(self, obj):
+        return obj.get_workflow_configuration()
 
     def get_evaluator(self, obj):
         if (
