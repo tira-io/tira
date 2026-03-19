@@ -1425,7 +1425,9 @@ def run_execute_docker_software(
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
 
 
-def add_job(docker_resources, task_id, vm_id, dataset_id, docker_software=None):
+def add_job(
+    docker_resources: str, task_id: str, vm_id: str, dataset_id: str, docker_software: Optional[dict[str, Any]] = None
+) -> str:
     job_id = str(uuid.uuid4())
     from ..model import RunningProcesses
 

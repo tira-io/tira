@@ -343,7 +343,7 @@ class DockerSoftware(models.Model):
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
 
-    def get_workflow_configuration(self):
+    def get_workflow_configuration(self) -> Optional[Any]:
         if not self.workflow_configuration:
             return None
         try:
