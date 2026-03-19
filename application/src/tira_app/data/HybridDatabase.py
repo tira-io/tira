@@ -4,7 +4,6 @@ import logging
 import os
 import zipfile
 from datetime import datetime as dt
-from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
@@ -12,7 +11,6 @@ import randomname
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
-from tira.check_format import SUPPORTED_FORMATS
 from tira.io_utils import get_tira_id
 
 from .. import model as modeldb
@@ -275,14 +273,14 @@ class HybridDatabase(object):
         if task.aggregated_results:
             try:
                 aggregated_results = json.loads(task.aggregated_results)
-            except:
+            except Exception:
                 pass
 
         submission_tabs = None
         if task.submission_tabs:
             try:
                 submission_tabs = json.loads(task.submission_tabs)
-            except:
+            except Exception:
                 pass
 
         result = {
@@ -2156,7 +2154,7 @@ class HybridDatabase(object):
         if workflow_configuration:
             try:
                 workflow_configuration = json.dumps(json.loads(workflow_configuration))
-            except:
+            except Exception:
                 workflow_configuration = None
         else:
             workflow_configuration = None

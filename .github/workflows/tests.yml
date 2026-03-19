@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
-      - trec-auto-judge
   workflow_dispatch: {}
   pull_request: {}
 
@@ -27,13 +25,11 @@ jobs:
         working-directory: ${{github.workspace}}/python-client
         run: |
           # Install tira from the repository since the pip version may not be up-to-date enough.
-          # The install musst be editable (-e) since importing from tira fails otherwise
           pip3 install .[dev,test,ir]
       - name: Install TIRA worker from Repo
         working-directory: ${{github.workspace}}/worker
         run: |
           # Install tira from the repository since the pip version may not be up-to-date enough.
-          # The install musst be editable (-e) since importing from tira fails otherwise
           pip3 install .
       - name: Install dependencies
         working-directory: ${{github.workspace}}/application

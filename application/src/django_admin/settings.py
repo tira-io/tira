@@ -169,7 +169,7 @@ def logger_config(log_dir: Path):
             "ceph_django_info": {
                 "level": "INFO",
                 "class": "logging.FileHandler",
-                "filename": log_dir / "AVAILABLE_WORKERSdjango-info.log",
+                "filename": log_dir / "django-info.log",
                 "formatter": "default",
             },
             "ceph_django_warn": {
@@ -319,14 +319,12 @@ ALL_POSSIBLE_RESOURCES = {
     },
 }
 
-AVAILABLE_RESOURCES = {}
-
 AVAILABLE_WORKERS = set()
 
 try:
     from tira_worker import all_workers
     AVAILABLE_WORKERS = all_workers()
-except:
+except Exception:
     pass
 
 AVAILABLE_RESOURCES = {k: v for k, v in ALL_POSSIBLE_RESOURCES.items() if k in AVAILABLE_WORKERS}
