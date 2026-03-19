@@ -354,17 +354,19 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
 
         if os.environ.get("OFFLINE", False):
             evaluate.config.HF_EVALUATE_OFFLINE = True
-        if 're_map' in config:
-            self.re_map = config['re_map']
+        if "re_map" in config:
+            self.re_map = config["re_map"]
         else:
             self.re_map = None
 
     def _eval(self, run_data: List[dict], truth_data: List[dict]) -> dict:
         run_data = [{"id": i[self.run_id_column], "prediction": i[self.run_label_column]} for i in run_data]
         truth_data = [{"id": i[self.truth_id_column], "truth": i[self.truth_label_column]} for i in truth_data]
-        
+
         if self.re_map:
-            run_data = [{"id": i["id"], "prediction": self.re_map.get(i["prediction"], i["prediction"])} for i in run_data]
+            run_data = [
+                {"id": i["id"], "prediction": self.re_map.get(i["prediction"], i["prediction"])} for i in run_data
+            ]
             truth_data = [{"id": i["id"], "truth": self.re_map.get(i["truth"], i["truth"])} for i in truth_data]
 
         import evaluate

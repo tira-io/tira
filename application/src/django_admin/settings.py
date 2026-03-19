@@ -323,6 +323,7 @@ AVAILABLE_WORKERS = set()
 
 try:
     from tira_worker import all_workers
+
     AVAILABLE_WORKERS = all_workers()
 except Exception:
     pass
