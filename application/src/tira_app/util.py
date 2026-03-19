@@ -42,13 +42,6 @@ def extract_year_from_dataset_id(dataset_id: str) -> str:
         return ""
 
 
-def reroute_host(hostname: str) -> str:
-    """If we use a local deployment and use a local (mock) host, we need to change all hostnames to localhost.
-    Otherwise we may contact the real vm-hosts while developing.
-    """
-    return "localhost" if settings.GRPC_HOST == "local" else hostname
-
-
 def auto_reviewer(review_path: Path, run_id: str) -> "Message":
     """Do standard checks for reviews so we do not need to wait for a reviewer to check for:
     - failed runs (

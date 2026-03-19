@@ -24,9 +24,6 @@ from github import Github
 from slugify import slugify
 from tqdm import tqdm
 
-from .grpc_client import new_transaction
-from .model import EvaluationLog, TransactionLog
-
 if TYPE_CHECKING:
     from typing import Optional
 

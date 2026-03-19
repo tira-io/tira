@@ -22,7 +22,6 @@ Demo Deployment
             restart: unless-stopped
             environment:
                 TIRA_REST_BASE_URL: https://api.tira.local
-                TIRA_GRPC_BASE_URL: https://api.tira.local
             external_links:
                 - "nginx:api.tira.local"
         tira-worker-1:
