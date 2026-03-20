@@ -12,7 +12,7 @@ aha_exec = os.path.abspath(__file__).replace("stdout_beautifier.py", "aha")
 logger = logging.getLogger("tira")
 
 
-def is_start_of_ansi_code(txt: str, pos: int) -> bool:
+def __is_start_of_ansi_code(txt: str, pos: int) -> bool:
     if txt[pos] != "[":
         return False
 
@@ -25,7 +25,7 @@ def beautify_ansi_text(txt: str) -> str:
     #    try:
     ret = ""
     for i in range(len(txt)):
-        if is_start_of_ansi_code(txt, i):
+        if __is_start_of_ansi_code(txt, i):
             ret += "\033["
         else:
             ret += txt[i]

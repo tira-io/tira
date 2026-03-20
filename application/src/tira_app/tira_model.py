@@ -28,8 +28,6 @@ if TYPE_CHECKING:
     from django.core.files.uploadedfile import UploadedFile
     from django.http import HttpRequest
 
-    from . import model as modeldb
-
 logger = logging.getLogger("tira")
 
 model = HybridDatabase()
@@ -425,44 +423,12 @@ def get_organizer(organizer_id: str) -> "dict[str, Any]":
     return model.get_organizer(organizer_id)
 
 
-def get_host_list() -> list[str]:
-    return model.get_host_list()
-
-
-def get_ova_list() -> list[str]:
-    return model.get_ova_list()
-
-
 def runs(task_id: str, dataset_id: str, vm_id: str, software_id: str) -> "list[dict[str, Any]]":
     return model.runs(task_id, dataset_id, vm_id, software_id)
 
 
 def get_organizer_list() -> "list[dict[str, Any]]":
     return model.get_organizer_list()
-
-
-def get_vm_list() -> list[list[str]]:
-    """load the vm-info file which stores all active vms as such:
-    <hostname>\t<vm_id>[\t<state>]\n
-    ...
-
-    returns a list of tuples (hostname, vm_id, state)
-    """
-    return model.get_vm_list()
-
-
-def get_vms_by_dataset(dataset_id: str) -> list[str]:
-    """return a list of vm_id's that have runs on this dataset"""
-    return model.get_vms_by_dataset(dataset_id)
-
-
-def get_vm_runs_by_dataset(dataset_id: str, vm_id: str, return_deleted: bool = False) -> "list[dict[str, Any]]":
-    return model.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted)
-
-
-def get_vm_runs_by_task(task_id: str, vm_id: str, return_deleted: bool = False) -> list:
-    """returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs)"""
-    return model.get_vm_runs_by_task(task_id, vm_id, return_deleted)
 
 
 def get_vms_with_reviews(dataset_id: str) -> list:
@@ -485,15 +451,6 @@ def get_evaluator(dataset_id: str, task_id: "Optional[str]" = None) -> "dict[str
     working_dir: where to execute the command
     """
     return model.get_evaluator(dataset_id, task_id)
-
-
-def get_vm_evaluations_by_dataset(
-    dataset_id: str, vm_id: str, only_public_results: bool = True
-) -> "dict[str, dict[str, Any]]":
-    """Return a dict of run_id: evaluation_results for the given vm on the given dataset
-    @param only_public_results: only return the measures for published datasets.
-    """
-    return model.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results)
 
 
 def get_evaluations_with_keys_by_dataset(
@@ -531,28 +488,6 @@ def get_count_of_missing_reviews(task_id: str) -> list[dict[str, str]]:
 
 def get_count_of_team_submissions(task_id: str) -> "list[dict[str, Any]]":
     return model.get_count_of_team_submissions(task_id)
-
-
-def get_software_with_runs(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
-    """
-    Construct a dictionary that has the software as a key and as value a list of runs with that software
-    Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
-       (based on the input_run)
-    @return:
-    [{"software": sw, "runs": runs_by_software.get(sw["id"]) } for sw in softwares]
-    """
-    return model.get_software_with_runs(task_id, vm_id)
-
-
-def get_upload_with_runs(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
-    """
-    Construct a dictionary that has the software as a key and as value a list of runs with that software
-    Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
-       (based on the input_run)
-    @return:
-    [{"software": sw, "runs": runs_by_software.get(sw["id"]) } for sw in softwares]
-    """
-    return model.get_upload_with_runs(task_id, vm_id)
 
 
 def get_uploads(task_id: str, user_id: str) -> "list[dict[str, Any]]":
@@ -599,18 +534,9 @@ def get_run_review(dataset_id: "Optional[str]", vm_id: "Optional[str]", run_id: 
     return model.get_run_review(dataset_id, vm_id, run_id)
 
 
-def get_vm_reviews_by_dataset(dataset_id: str, vm_id: str) -> dict:
-    return model.get_vm_reviews_by_dataset(dataset_id, vm_id)
-
-
 def get_software(task_id: str, vm_id: str, software_id: str) -> "dict[str, Any]":
     """Returns the software of a vm on a task in json"""
     return model.get_software(task_id, vm_id, software_id)
-
-
-def get_software_by_task(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
-    """Returns the software of a vm on a task in json"""
-    return model.get_software_by_task(task_id, vm_id)
 
 
 def add_upload(task_id, vm_id, rename_to: "Optional[str]" = None) -> "dict[str, Any]":
@@ -906,25 +832,6 @@ def update_review(
         blinded,
         has_warnings,
     )
-
-
-def update_run(dataset_id, vm_id, run_id, deleted: "Optional[bool]" = None):
-    """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-    Required Parameters are also required in the function"""
-    return model.update_run(dataset_id, vm_id, run_id, deleted)
-
-
-def update_software(
-    task_id,
-    vm_id,
-    software_id,
-    command: "Optional[str]" = None,
-    working_directory: "Optional[str]" = None,
-    dataset: "Optional[str]" = None,
-    run: "Optional[str]" = None,
-    deleted: bool = False,
-):
-    return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset, run, deleted)
 
 
 def edit_task(
@@ -1229,33 +1136,6 @@ def create_re_rank_output_on_dataset(
 
     # return run_cmd_as_documented_background_process(command, vm_id, task_id, 'Create Re-ranking file.',
     #                                                ['Create rerankings.'], register_reranking)
-
-
-def add_input_run_id_to_all_rerank_runs():
-    from tqdm import tqdm
-
-    dataset_to_run_id = {}
-    for reranking_software in tqdm(model.get_reranking_docker_softwares(), "Get input_run_ids"):
-        for dataset in get_datasets_by_task(reranking_software["task_id"]):
-            ls = latest_output_of_software_on_dataset(
-                reranking_software["task_id"],
-                reranking_software["vm_id"],
-                None,
-                reranking_software["docker_software_id"],
-                dataset["dataset_id"],
-                None,
-            )
-
-            if ls:
-                if dataset["dataset_id"] in dataset_to_run_id:
-                    raise ValueError("Ambigious...")
-
-                dataset_to_run_id[dataset["dataset_id"]] = ls["run_id"]
-
-    for i in tqdm(model.get_all_docker_software_rerankers(), "Update input ids"):
-        for run in model.get_runs_for_docker_software(i["docker_software_id"]):
-            if "input_run" not in run or not run["input_run"]:
-                model.update_input_run_id_for_run(run["run_id"], dataset_to_run_id[run["dataset"]])
 
 
 def get_all_reranking_datasets_for_task(task_id: str) -> "list[dict[str, Any]]":
