@@ -7,25 +7,26 @@ from tira.check_format import check_format, lines_if_valid
 from . import _ERROR, _OK, EMPTY_OUTPUT, IR_QUERY_OUTPUT, VALID_RUN_OUTPUT
 
 EXAMPLE_01 = """
-run-01 relstring             	979	'----------'
-run-01 recall_5              	979	0.1
-run-01 recall_10             	979	0.2
-run-01 recall_15             	979	0.3
-run-01 relstring             	all	'----------'
-run-01 recall_5              	all	0.1
-run-01 recall_10             	all	0.2
-run-01 recall_15             	all	0.3
+run-01 979	relstring	'----------'
+run-01 979	recall_5	0.1
+run-01 979	recall_10	0.2
+run-01 979	recall_15	0.3
+run-01 all	relstring       '----------'
+run-01 all	recall_5	0.1
+run-01 all	recall_10	0.2
+run-01 all	recall_15	0.3
 """
 
 EXAMPLE_02 = """
-run-02 relstring             	979	'----------'
-run-02 recall_5              	979	0.3
-run-02 recall_10             	979	0.4
-run-02 recall_15             	979	0.6
-run-02 relstring             	all	'----------'
-run-02 recall_5              	all	0.7
-run-02 recall_10             	all	0.8
-run-02 recall_15             	all	0.9
+run_id	query_id	measure	value
+run-02 979 relstring '----------'
+run-02 979 recall_5 0.3
+run-02 979 recall_10 0.4
+run-02 979 recall_15 0.6
+run-02 all relstring '----------'
+run-02 all recall_5 0.7
+run-02 all recall_10 0.8
+run-02 all recall_15 0.9
 """
 
 
@@ -61,6 +62,15 @@ class TestTrecEvalLeaderbaordFormat(unittest.TestCase):
             actual = check_format(Path(d), "trec-eval-leaderboard")
             self.assertEqual(expected, actual)
 
+    def test_valid_example_recursive_01(self):
+        expected = [_OK, "Valid trec-eval-leaderboard."]
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "dir").mkdir()
+            (Path(d) / "dir" / "trec-leaderboard").write_text(EXAMPLE_01 + EXAMPLE_02)
+            actual = check_format(Path(d), "trec-eval-leaderboard")
+            self.assertEqual(expected, actual)
+
+
     def test_valid_example_02(self):
         expected = [_OK, "Valid trec-eval-leaderboard."]
         with tempfile.TemporaryDirectory() as d:
@@ -87,8 +97,8 @@ class TestTrecEvalLeaderbaordFormat(unittest.TestCase):
     def test_invalid_example_02_missing_all(self):
         leaderboard = (
             """
-run-03 relstring             	979	'----------'
-run-03 recall_5              	979	0.3"""
+run-03              	979 relstring	'----------'
+run-03 979 recall_5              	0.3"""
             + EXAMPLE_02
             + EXAMPLE_01
         )
@@ -105,8 +115,8 @@ run-03 recall_5              	979	0.3"""
 
     def test_invalid_example_03_different_measures(self):
         leaderboard = (
-            "run-01 new-measure             	979	'----------'\n"
-            + "run-01 new-measure             	all	'----------'"
+            "run-01 979 new-measure             	'----------'\n"
+            + "run-01 all new-measure             	'----------'"
             + EXAMPLE_02
             + EXAMPLE_01
         )
@@ -122,7 +132,7 @@ run-03 recall_5              	979	0.3"""
             self.assertIn(expected[1], actual[1])
 
     def test_invalid_example_03_different_query(self):
-        leaderboard = "run-01 relstring             	980	'----------'" + EXAMPLE_02 + EXAMPLE_01
+        leaderboard = "run-01             	980 relstring	'----------'" + EXAMPLE_02 + EXAMPLE_01
 
         expected = [
             _ERROR,

@@ -139,6 +139,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         help="The path used to build the docker image, must be in a clean git repository.",
     )
     parser.add_argument(
+        "--file",
+        required=False,
+        default=None,
+        help="Name of the Dockerfile (default: \"PATH/Dockerfile\")",
+    )
+    parser.add_argument(
         "--command",
         required=False,
         default=None,
@@ -309,6 +315,7 @@ def code_submission_command(
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
     set: "Optional[list[str]]",
+    file: "Optional[Path]",
     external_docker_registry: "Optional[str]",
     **kwargs,
 ) -> int:
@@ -325,6 +332,7 @@ def code_submission_command(
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
         workflow_software_configuration=set,
+        docker_file=file,
         external_docker_registry=external_docker_registry,
     )
 

@@ -467,6 +467,9 @@ class TiraClient(ABC):
             if dataset_id is None:
                 raise ValueError("foo")
 
+        if dataset_id and '/' in dataset_id and len(dataset_id.split("/")) == 2:
+            task_id, dataset_id = dataset_id.split("/")
+
         dataset_handle = self.get_dataset(f"{task_id}/{dataset_id}")
         if (
             not dataset_handle
@@ -750,9 +753,13 @@ class TiraClient(ABC):
         if not skip_baseline:
             git_repo_local = self.clone_git_repository(git_url)
             print_message(f"Repository for the baseline is cloned from {git_url}.", _fmt.OK)
+            docker_file = None
+            if "file" in tira_configs["baseline"]:
+                docker_file = git_repo_local / Path(tira_configs["baseline"]["file"])
+            
 
             docker_tag, _, _, _, _ = self.build_docker_image_from_code(
-                git_repo_local / Path(subdir), log_message, False
+                git_repo_local / Path(subdir), log_message, False, docker_file=docker_file
             )
 
             print_message(f"The baseline {subdir} is embedded in a Docker image.", _fmt.OK)
