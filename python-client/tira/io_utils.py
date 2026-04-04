@@ -12,6 +12,7 @@ from glob import glob
 from pathlib import Path
 from subprocess import check_output
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
+import platform
 
 import pandas as pd
 from tqdm import tqdm
@@ -348,7 +349,6 @@ def __num(input: str) -> "Union[str, int, float]":
         except ValueError:
             return input
 
-
 def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
     import subprocess
 
@@ -621,3 +621,18 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
         return ret
     else:
         return pd.read_json(files, lines=True, orient="records")
+
+def dockerfile_for_architecture():
+    architecture = platform.machine()
+    print("Detected architecture: " + architecture)
+    if 'x86_64' in architecture:
+        return 'Dockerfile'
+    elif 'arm64' in architecture or 'aarch64' in architecture:
+        if os.path.exists('Dockerfile.arm64'):
+            return 'Dockerfile.arm64'
+        else:
+            return 'Dockerfile'
+    else:
+        return 'Dockerfile'
+    
+
