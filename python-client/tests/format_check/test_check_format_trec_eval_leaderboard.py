@@ -70,7 +70,6 @@ class TestTrecEvalLeaderbaordFormat(unittest.TestCase):
             actual = check_format(Path(d), "trec-eval-leaderboard")
             self.assertEqual(expected, actual)
 
-
     def test_valid_example_02(self):
         expected = [_OK, "Valid trec-eval-leaderboard."]
         with tempfile.TemporaryDirectory() as d:

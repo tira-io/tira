@@ -467,7 +467,7 @@ class TiraClient(ABC):
             if dataset_id is None:
                 raise ValueError("foo")
 
-        if dataset_id and '/' in dataset_id and len(dataset_id.split("/")) == 2:
+        if dataset_id and "/" in dataset_id and len(dataset_id.split("/")) == 2:
             task_id, dataset_id = dataset_id.split("/")
 
         dataset_handle = self.get_dataset(f"{task_id}/{dataset_id}")
@@ -756,7 +756,6 @@ class TiraClient(ABC):
             docker_file = None
             if "file" in tira_configs["baseline"]:
                 docker_file = git_repo_local / Path(tira_configs["baseline"]["file"])
-            
 
             docker_tag, _, _, _, _ = self.build_docker_image_from_code(
                 git_repo_local / Path(subdir), log_message, False, docker_file=docker_file

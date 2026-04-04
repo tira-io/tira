@@ -142,7 +142,7 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         "--file",
         required=False,
         default=None,
-        help="Name of the Dockerfile (default: \"PATH/Dockerfile\")",
+        help='Name of the Dockerfile (default: "PATH/Dockerfile")',
     )
     parser.add_argument(
         "--command",
