@@ -626,7 +626,10 @@ def dockerfile_for_architecture():
     architecture = platform.machine()
     print("Detected architecture: " + architecture)
     if 'x86_64' in architecture:
-        return 'Dockerfile'
+        if os.path.exists('Dockerfile.amd64'):
+            return 'Dockerfile.amd64'
+        else:
+            return 'Dockerfile'
     elif 'arm64' in architecture or 'aarch64' in architecture:
         if os.path.exists('Dockerfile.arm64'):
             return 'Dockerfile.arm64'
