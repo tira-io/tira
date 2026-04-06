@@ -85,7 +85,7 @@ def run(
         )
     )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
-    client.upload_run_admin(dataset, team, run_results, job_id)
+    client.upload_run_admin(run_results, job_id)
 
 
 @app.task()

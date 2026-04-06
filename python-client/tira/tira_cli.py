@@ -317,6 +317,7 @@ def code_submission_command(
     set: "Optional[list[str]]",
     file: "Optional[Path]",
     external_docker_registry: "Optional[str]",
+    forward_environment_variable: "Optional[list[str]]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -334,6 +335,7 @@ def code_submission_command(
         workflow_software_configuration=set,
         docker_file=file,
         external_docker_registry=external_docker_registry,
+        forward_environment_variable=forward_environment_variable,
     )
 
     return 0

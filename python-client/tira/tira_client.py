@@ -419,6 +419,7 @@ class TiraClient(ABC):
         mount_hf_model: "Optional[list[str]]" = None,
         workflow_software_configuration: "Optional[list[str]]" = None,
         external_docker_registry: "Optional[str]" = None,
+        forward_environment_variable: "Optional[list[str]]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -517,6 +518,7 @@ class TiraClient(ABC):
                 allow_network=allow_network,
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_device_ids,
+                forward_environment_variables=forward_environment_variable,
             )
         else:
             from tira.workflows import run_workflow
@@ -534,6 +536,7 @@ class TiraClient(ABC):
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_device_ids,
                 tira=self,
+                forward_environment_variables=forward_environment_variable,
             )
             if workflow_result.level != _fmt.OK:
                 print_message(workflow_result.message, workflow_result.level)
