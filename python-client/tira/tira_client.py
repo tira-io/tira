@@ -611,6 +611,46 @@ class TiraClient(ABC):
             "image": docker_tag,
         }
 
+    def admin_verify_token(self, task_name, team):
+        from tira.third_party_integrations import temporary_directory
+        from tira.rest_api_client import Client as RestClient
+        token = self.json_response(f"/api/token/{team}")["context"]["token"]
+
+        team_dir = Path(temporary_directory())
+        tira_dir = team_dir / "tira"
+        docker_dir = team_dir / "docker"
+        tira_dir.mkdir()
+        docker_dir.mkdir()
+
+        assert "DOCKER_CONFIG" not in os.environ
+        (tira_dir / ".tira-settings.json").write_text('{"api_key":"' + token + '"}')
+        os.environ["DOCKER_CONFIG"] = str(docker_dir)  + "/config.json"
+        client: "TiraClient" = RestClient(tira_cache_dir=str(tira_dir))
+        client.fail_if_api_key_is_invalid()
+        role = client.json_response("/api/role")["role"]
+        assert not client.local_execution.docker_client_is_authenticated()
+        client.local_execution.login_docker_client(task_name, team)
+        from tira.tira_run import push_image
+
+        pushed_image = push_image(client, "bash", task_name, team)
+        del os.environ["DOCKER_CONFIG"]
+
+        print(team, role, token, team_dir)
+                
+    def _admin_verify_tokens(self, tasks):
+        for task in tasks:
+            print(task)
+            resp = self.json_response(f"/api/count-of-team-submissions/{task}")["context"]["count_of_team_submissions"]
+            teams = set()
+
+            for team in resp:
+                if "token" not in team or not team["token"]:
+                    continue
+                teams.add(team["team"])
+
+            for team in teams:
+                self.admin_verify_token(task, team)
+
     def submit_dataset(
         self,
         path: Path,

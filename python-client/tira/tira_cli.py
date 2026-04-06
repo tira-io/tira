@@ -130,6 +130,26 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=dataset_submission_command)
 
 
+def admin_verify_tokens(task: list[str], **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    ret = client._admin_verify_tokens(task)
+    return 0
+
+def setup_admin_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    subparsers = parser.add_subparsers(dest="sub-command", required=True)
+    
+    v_parser = subparsers.add_parser("verify-tokens", help="Batch-verify authentication tokens for a task")
+    v_parser.add_argument(
+        "--task",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The task(s) on which all authentications should be verified.",
+    )
+    v_parser.set_defaults(executable=admin_verify_tokens)
+    
+
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
@@ -499,6 +519,9 @@ def parse_args() -> argparse.Namespace:
     )
     setup_dataset_submission_command(
         subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
+    )
+    setup_admin_command(
+        subparsers.add_parser("admin", help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.")
     )
 
     return parser.parse_args()

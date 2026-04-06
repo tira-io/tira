@@ -386,7 +386,9 @@ def update_docker_images(request: "HttpRequest", context: "Context", task_id: st
 @check_resources_exist("json")
 @add_context
 def get_user(request: "HttpRequest", context: "Context", task_id: str, user_id: str) -> "HttpResponse":
-    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
+    force_refresh = request.GET.get('force-refresh') == 'true'
+    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=force_refresh, force_recreate=force_refresh)
+
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
