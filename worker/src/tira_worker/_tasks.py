@@ -59,8 +59,7 @@ def run(
     client: TiraClient = get_admin_client()
     global gpu_devices
 
-    # system_inputs = client.download_dataset(task, dataset)
-    system_inputs = "foo"
+    system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)
 
     hf_models = None
