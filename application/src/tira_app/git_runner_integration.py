@@ -264,7 +264,7 @@ class GitRunner:
         repo = self.existing_repository("tira-user-" + user_name)
         if not repo or force_recreate:
             self.create_user_repository(user_name, force_recreate)
-            return self.help_on_uploading_docker_image(user_name, cache)
+            return self.help_on_uploading_docker_image(user_name, cache, force_cache_refresh)
 
         # Hacky at the moment
         ret = repo.files.get("README.md", ref="main").decode().decode("UTF-8").split("## Create an docker image")[1]
