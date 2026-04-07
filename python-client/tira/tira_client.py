@@ -377,6 +377,7 @@ class TiraClient(ABC):
         if docker_file is None:
             from tira.io_utils import dockerfile_for_architecture
             docker_file_name = dockerfile_for_architecture()
+            print("Dockerfile :" docker_file_name)
             docker_file = path / docker_file_name
 
         docker_file = Path(docker_file)
