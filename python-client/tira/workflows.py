@@ -30,6 +30,7 @@ class WorkflowBase:
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
@@ -66,6 +67,7 @@ class Pan26TextWatermarking(WorkflowBase):
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
     ):
         ret = temporary_directory()
         (ret / "output").mkdir(parents=True, exist_ok=True)
@@ -225,6 +227,7 @@ def run_workflow(
     gpu_device_ids=None,
     tira: "Optional[TiraClient]" = None,
     forward_environment_variables: "Optional[list[str]]" = None,
+    mount_directory: "Optional[dict]" = None,
 ) -> WorkflowResult:
     """Run the specified workflow. Provides debug messages intended for users.
 
@@ -257,6 +260,7 @@ def run_workflow(
             gpu_device_ids,
             tira,
             forward_environment_variables,
+            mount_directory,
         )
     except Exception as e:
         return WorkflowResult(_fmt.ERROR, str(e), None)

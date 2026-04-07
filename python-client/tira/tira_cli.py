@@ -132,13 +132,14 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
 
 def admin_verify_tokens(task: list[str], **kwargs) -> int:
     client: "TiraClient" = RestClient()
-    ret = client._admin_verify_tokens(task)
+    ret = client._admin_verify_tokens(task, skip_without_token=False)
     return 0
+
 
 def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
-    
+
     v_parser = subparsers.add_parser("verify-tokens", help="Batch-verify authentication tokens for a task")
     v_parser.add_argument(
         "--task",
@@ -148,7 +149,7 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="The task(s) on which all authentications should be verified.",
     )
     v_parser.set_defaults(executable=admin_verify_tokens)
-    
+
 
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
@@ -194,6 +195,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         action="append",
         default=[],
         help="You can specify custom properties of your software in the form --set 'key=value'. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+    )
+    parser.add_argument(
+        "--build-args",
+        required=False,
+        default=None,
+        help="You can specify additional build arguments that are forwarded to the docker build process. For instance, '--output type=docker --provenance=false' to force Docker v2 manifest format on Windows.",
     )
     parser.add_argument(
         "--external-docker-registry",
@@ -338,6 +345,8 @@ def code_submission_command(
     file: "Optional[Path]",
     external_docker_registry: "Optional[str]",
     forward_environment_variable: "Optional[list[str]]",
+    build_args: "Optional[str]",
+    mount_directory: "Optional[list[str]]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -356,6 +365,8 @@ def code_submission_command(
         docker_file=file,
         external_docker_registry=external_docker_registry,
         forward_environment_variable=forward_environment_variable,
+        build_args=build_args,
+        mount_directory=mount_directory,
     )
 
     return 0

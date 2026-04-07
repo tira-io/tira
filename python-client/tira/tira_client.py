@@ -350,7 +350,12 @@ class TiraClient(ABC):
         return target_file
 
     def build_docker_image_from_code(
-        self, path: Path, print_message, dry_run: bool, docker_file: "Optional[Path]" = None
+        self,
+        path: Path,
+        print_message,
+        dry_run: bool,
+        docker_file: "Optional[Path]" = None,
+        build_args: "Optional[str]" = None,
     ):
         repo = self._git_repo(path)
 
@@ -401,7 +406,7 @@ class TiraClient(ABC):
         print("Build Docker image...")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
-        self.local_execution.build_docker_image(path, docker_tag, docker_file)
+        self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args)
 
         print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
         return docker_tag, zipped_code, remotes, commit, active_branch
@@ -420,6 +425,8 @@ class TiraClient(ABC):
         workflow_software_configuration: "Optional[list[str]]" = None,
         external_docker_registry: "Optional[str]" = None,
         forward_environment_variable: "Optional[list[str]]" = None,
+        build_args: "Optional[str]" = None,
+        mount_directory: "Optional[list[str]]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -430,6 +437,7 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
+        from tira.io_utils import resolve_mount_directory
         from tira.third_party_integrations import temporary_directory
 
         all_messages = []
@@ -488,8 +496,10 @@ class TiraClient(ABC):
         dataset_path = self.download_dataset(task_id, dataset_id)
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
+        resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
+
         docker_tag, zipped_code, remotes, commit, active_branch = self.build_docker_image_from_code(
-            path, print_message, dry_run, docker_file
+            path, print_message, dry_run, docker_file, build_args
         )
         print("Test Docker image...")
 
@@ -519,6 +529,7 @@ class TiraClient(ABC):
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variable,
+                mount_directory=resolved_mount_directory,
             )
         else:
             from tira.workflows import run_workflow
@@ -537,6 +548,7 @@ class TiraClient(ABC):
                 gpu_device_ids=gpu_device_ids,
                 tira=self,
                 forward_environment_variables=forward_environment_variable,
+                mount_directory=resolved_mount_directory,
             )
             if workflow_result.level != _fmt.OK:
                 print_message(workflow_result.message, workflow_result.level)
@@ -612,8 +624,10 @@ class TiraClient(ABC):
         }
 
     def admin_verify_token(self, task_name, team):
-        from tira.third_party_integrations import temporary_directory
+        print(task_name, team)
         from tira.rest_api_client import Client as RestClient
+        from tira.third_party_integrations import temporary_directory
+
         token = self.json_response(f"/api/token/{team}")["context"]["token"]
 
         team_dir = Path(temporary_directory())
@@ -624,32 +638,66 @@ class TiraClient(ABC):
 
         assert "DOCKER_CONFIG" not in os.environ
         (tira_dir / ".tira-settings.json").write_text('{"api_key":"' + token + '"}')
-        os.environ["DOCKER_CONFIG"] = str(docker_dir)  + "/config.json"
+        os.environ["DOCKER_CONFIG"] = str(docker_dir) + "/config.json"
         client: "TiraClient" = RestClient(tira_cache_dir=str(tira_dir))
         client.fail_if_api_key_is_invalid()
+
         role = client.json_response("/api/role")["role"]
         assert not client.local_execution.docker_client_is_authenticated()
-        client.local_execution.login_docker_client(task_name, team)
+        try:
+            client.local_execution.login_docker_client(task_name, team)
+        except:
+            print("Refresh api token...")
+            print(client.json_response(f"/api/task/{task_name}/user/{team}?force-refresh=true"))
+            print(client.json_response(f"/api/task/{task_name}/user/{team}/refresh-docker-images"))
+            raise ValueError(f"re-run {team}")
         from tira.tira_run import push_image
 
         pushed_image = push_image(client, "bash", task_name, team)
         del os.environ["DOCKER_CONFIG"]
 
-        print(team, role, token, team_dir)
-                
-    def _admin_verify_tokens(self, tasks):
+        return (team, role, token, team_dir)
+
+    def _admin_verify_tokens(self, tasks, skip_without_token):
+        solved = set()
+        target_file = Path(self.tira_cache_dir) / "fooo"
+        if not target_file.exists():
+            target_file.write_text("")
+
+        for l in target_file.read_text().split("\n"):
+            try:
+                l = json.loads(l)
+                solved.add((l["task"], l["team"]))
+            except:
+                pass
+
+        self.local_execution.verify_image("t")
+
+        return
+        manually_checked_teams = set(
+            ["gradiant", "jlp", "chaicoders", "ai-moment", "bedratiuk-lab", "ai-momen", "dteam"]
+        )
+
+        print(f"I have {len(solved)} solved teams in {target_file}.")
         for task in tasks:
-            print(task)
             resp = self.json_response(f"/api/count-of-team-submissions/{task}")["context"]["count_of_team_submissions"]
             teams = set()
 
             for team in resp:
-                if "token" not in team or not team["token"]:
+                if not team["token"]:
                     continue
+                # if not team["token"] and team["team"] not in manually_checked_teams:
+                #    raise ValueError(task, team["team"])
                 teams.add(team["team"])
 
             for team in teams:
+                if (task, team) in solved:
+                    continue
+                if team == "ai-momksnt":
+                    continue
                 self.admin_verify_token(task, team)
+                with open(target_file, "a") as f:
+                    f.write("\n" + json.dumps({"task": task, "team": team}) + "\n")
 
     def submit_dataset(
         self,
