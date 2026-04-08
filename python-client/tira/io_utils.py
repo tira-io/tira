@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import platform
 import sys
 import uuid
 import zipfile
@@ -12,7 +13,6 @@ from glob import glob
 from pathlib import Path
 from subprocess import check_output
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
-import platform
 
 import pandas as pd
 from tqdm import tqdm
@@ -365,6 +365,7 @@ def __num(input: str) -> "Union[str, int, float]":
         except ValueError:
             return input
 
+
 def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
     import subprocess
 
@@ -638,20 +639,21 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
     else:
         return pd.read_json(files, lines=True, orient="records")
 
-def dockerfile_for_architecture():
-    architecture = platform.machine()
-    print("Detected architecture: " + architecture)
-    if 'x86_64' in architecture:
-        if os.path.exists('Dockerfile.amd64'):
-            return 'Dockerfile.amd64'
-        else:
-            return 'Dockerfile'
-    elif 'arm64' in architecture or 'aarch64' in architecture:
-        if os.path.exists('Dockerfile.arm64'):
-            return 'Dockerfile.arm64'
-        else:
-            return 'Dockerfile'
-    else:
-        return 'Dockerfile'
-    
 
+def docker_supported_target_platform():
+    architecture = platform.machine()
+    if "arm64" in architecture or "aarch64" in architecture:
+        return "linux/arm64"
+    else:
+        return "linux/amd64"
+
+
+def dockerfile_for_architecture(base_dir: Path):
+    supported_platform = docker_supported_target_platform()
+
+    if supported_platform == "linux/amd64" and os.path.exists(base_dir / "Dockerfile.amd64"):
+        return str(base_dir / "Dockerfile.amd64")
+    elif supported_platform == "linux/arm64" and os.path.exists(base_dir / "Dockerfile.arm64"):
+        return str(base_dir / "Dockerfile.arm64")
+    else:
+        return str(base_dir / "Dockerfile")

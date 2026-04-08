@@ -381,8 +381,8 @@ class TiraClient(ABC):
 
         if docker_file is None:
             from tira.io_utils import dockerfile_for_architecture
-            docker_file_name = dockerfile_for_architecture()
-            docker_file = path / docker_file_name
+
+            docker_file = dockerfile_for_architecture(path)
 
         docker_file = Path(docker_file)
         if not docker_file.exists():
