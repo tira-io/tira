@@ -402,7 +402,7 @@ class TrecEvalLeaderboard(FormatBase):
 
     def matching_files(self, run_output):
         ret = []
-        for i in [run_output] + glob(f"{run_output.absolute()}/*"):
+        for i in [run_output] + glob(f"{run_output.absolute()}/*") + glob(f"{run_output.absolute()}/*/*"):
             valid_lines = 0
             i = Path(i)
             if not i.is_file():
@@ -427,7 +427,7 @@ class TrecEvalLeaderboard(FormatBase):
 
     def parse_line_failsave(self, l):
         try:
-            run, metric, query, value = l.split()
+            run, query, metric, value = l.split()
             return {"run": run, "metric": metric, "query": query, "value": value}
         except:
             return None
@@ -446,6 +446,9 @@ class TrecEvalLeaderboard(FormatBase):
         try:
             for i in self.yield_next_entry(run_output):
                 lines += 1
+                if i["run"] == "run_id" and i["query"] == "query_id":
+                    continue
+
                 if i["run"] not in run_to_measure_to_queries:
                     run_to_measure_to_queries[i["run"]] = {}
                 if i["metric"] not in run_to_measure_to_queries[i["run"]]:
@@ -1256,7 +1259,7 @@ class TrecRagRuns(FormatBase):
         return [_fmt.OK, "Valid trec-rag runs."]
 
     def yield_next_entry(self, f: Path):
-        for f in [f] + glob(f"{f}/*") + glob(f"{f}/runs/*"):
+        for f in [f] + glob(f"{f}/*") + glob(f"{f}/*/*") + glob(f"{f}/*/*/*"):
             try:
                 run = self.load_run_failsave(Path(f))
             except:

@@ -119,6 +119,22 @@ def verify_tira_installation() -> FormatMsgType:
     return ret
 
 
+def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient", dataset_id: str) -> Optional[dict]:
+    if mount_directory is None or not mount_directory:
+        return None
+
+    ret = {}
+    for d in mount_directory:
+        k, v = d.split("=")
+        k = k.replace("$", "")
+
+        if not v or not Path(v).exists() or not Path(v).is_dir():
+            v = tira_client.get_run_output(v, dataset_id)
+
+        ret[k] = v
+    return ret
+
+
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
     """
     Deseralizes the line using JSON deserialization. Optionally strips the 'original_query' and 'original_document'

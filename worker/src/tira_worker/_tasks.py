@@ -59,8 +59,7 @@ def run(
     client: TiraClient = get_admin_client()
     global gpu_devices
 
-    # system_inputs = client.download_dataset(task, dataset)
-    system_inputs = "foo"
+    system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)
 
     hf_models = None
@@ -85,7 +84,7 @@ def run(
         )
     )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
-    client.upload_run_admin(dataset, team, run_results, job_id)
+    client.upload_run_admin(run_results, job_id)
 
 
 @app.task()

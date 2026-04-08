@@ -167,7 +167,7 @@ def tira_docker_registry_token(docker_software_help: str) -> tuple[str, str]:
 
 
 def load_docker_data(
-    task_id: str, vm_id: str, cache: BaseCache, force_cache_refresh: bool
+    task_id: str, vm_id: str, cache: BaseCache, force_cache_refresh: bool, force_recreate: bool=False
 ) -> "Union[dict[str, Any], Literal[False]]":
     """
     Get the docker data for a particular user (vm_id) from the git registry.
@@ -189,7 +189,7 @@ def load_docker_data(
         if "-tira-docker-software-id-" not in i["image"]
     ]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, "docker-images-in-user-repository-tira-user-" + vm_id)
-    docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh)
+    docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh, force_recreate)
     public_docker_softwares = model.get_public_docker_softwares(task_id)
 
     # removed for the moment as tira-cli uses the above already.

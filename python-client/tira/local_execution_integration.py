@@ -83,15 +83,38 @@ class LocalExecutionIntegration:
             ),
         }
 
-    def build_docker_image(self, path, tag, dockerfile):
-        image_build_code = subprocess.call(["docker", "build", "-f", str(dockerfile), "-t", str(tag), str(path)])
+    def build_docker_image(self, path, tag, dockerfile, build_args: "Optional[str]" = None):
+        target_platform = "linux/amd64"
+        cmd = ["docker", "build", "--platform", target_platform, "-f", str(dockerfile), "-t", str(tag)]
+        if build_args is not None and len(build_args) > 0:
+            cmd += build_args.split()
+        cmd += [str(path)]
+        image_build_code = subprocess.call(cmd)
 
         if image_build_code != 0:
             raise ValueError(
                 f"Building the docker image failed with error code {image_build_code}. See above for details."
             )
 
+        self.verify_image(tag)
         print("\n\n Image build successfully.\n\n")
+
+    def verify_image(self, image):
+        client = self.__docker_client()
+        inspect_result = client.api.inspect_image(image)
+        allowed = set(["linux/amd64"])
+        architecture = "unknow"
+        os = "unknown"
+
+        if inspect_result and "Architecture" in inspect_result:
+            architecture = inspect_result["Architecture"]
+        if inspect_result and "Os" in inspect_result:
+            os = inspect_result["Os"]
+
+        if f"{os}/{architecture}" not in allowed:
+            raise ValueError(
+                f"The platform {os}/{architecture} of the Docker image is not supported in the cluster for the task. Allowed platforms are {allowed}."
+            )
 
     def ensure_image_available_locally(self, image, client=None):
         try:
@@ -406,6 +429,7 @@ class LocalExecutionIntegration:
         mem_limit=None,
         gpu_device_ids=None,
         forward_environment_variables=None,
+        mount_directory=None,
     ):
         previous_stages = []
         original_args = {
@@ -499,6 +523,14 @@ class LocalExecutionIntegration:
             "TIRA_OUTPUT_DIR": "/tira-data/output",
             "TIRA_INPUT_DATASET": "/tira-data/input",
         }
+
+        if mount_directory:
+            additional_paths = 0
+            for k, v in mount_directory.items():
+                target_dir = "/tira-data/mounted/{additional_paths}"
+                additional_paths += 1
+                volumes[v] = {"bind": target_dir, "mode": "ro"}
+                environment[k] = target_dir
 
         if input_run:
             environment["inputRun"] = "/tira-data/input-run"

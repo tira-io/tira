@@ -1,5 +1,7 @@
 import os
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 import ir_datasets
@@ -602,3 +604,15 @@ class TestIRDatasets(unittest.TestCase):
         self.assertEqual(10, len(list(ds.qrels_iter())))
         self.assertEqual(2, len(list(ds.queries_iter())))
         self.assertEqual(5, len(list(ds.docs_iter())))
+
+    def test_loading_dataset_from_local_directory(self):
+        from tira.third_party_integrations import ir_datasets as irds
+
+        zip_file = Path(__file__).parent / "resources" / "example-dataset.zip"
+        with tempfile.TemporaryDirectory() as tmp_dir, zipfile.ZipFile(zip_file, "r") as zip_ref:
+            zip_ref.extractall(tmp_dir)
+
+            ds = irds.load(str(Path(tmp_dir)))
+            self.assertEqual(10, len(list(ds.qrels_iter())))
+            self.assertEqual(2, len(list(ds.queries_iter())))
+            self.assertEqual(5, len(list(ds.docs_iter())))

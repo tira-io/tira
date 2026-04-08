@@ -130,6 +130,27 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=dataset_submission_command)
 
 
+def admin_verify_tokens(task: list[str], **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    ret = client._admin_verify_tokens(task, skip_without_token=False)
+    return 0
+
+
+def setup_admin_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    subparsers = parser.add_subparsers(dest="sub-command", required=True)
+
+    v_parser = subparsers.add_parser("verify-tokens", help="Batch-verify authentication tokens for a task")
+    v_parser.add_argument(
+        "--task",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The task(s) on which all authentications should be verified.",
+    )
+    v_parser.set_defaults(executable=admin_verify_tokens)
+
+
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
@@ -137,6 +158,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         required=True,
         default=None,
         help="The path used to build the docker image, must be in a clean git repository.",
+    )
+    parser.add_argument(
+        "--file",
+        required=False,
+        default=None,
+        help='Name of the Dockerfile (default: "PATH/Dockerfile")',
     )
     parser.add_argument(
         "--command",
@@ -168,6 +195,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         action="append",
         default=[],
         help="You can specify custom properties of your software in the form --set 'key=value'. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+    )
+    parser.add_argument(
+        "--build-args",
+        required=False,
+        default=None,
+        help="You can specify additional build arguments that are forwarded to the docker build process. For instance, '--output type=docker --provenance=false' to force Docker v2 manifest format on Windows.",
     )
     parser.add_argument(
         "--external-docker-registry",
@@ -309,7 +342,11 @@ def code_submission_command(
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
     set: "Optional[list[str]]",
+    file: "Optional[Path]",
     external_docker_registry: "Optional[str]",
+    forward_environment_variable: "Optional[list[str]]",
+    build_args: "Optional[str]",
+    mount_directory: "Optional[list[str]]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -325,7 +362,11 @@ def code_submission_command(
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
         workflow_software_configuration=set,
+        docker_file=file,
         external_docker_registry=external_docker_registry,
+        forward_environment_variable=forward_environment_variable,
+        build_args=build_args,
+        mount_directory=mount_directory,
     )
 
     return 0
@@ -489,6 +530,9 @@ def parse_args() -> argparse.Namespace:
     )
     setup_dataset_submission_command(
         subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
+    )
+    setup_admin_command(
+        subparsers.add_parser("admin", help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.")
     )
 
     return parser.parse_args()
