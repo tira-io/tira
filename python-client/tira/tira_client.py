@@ -380,7 +380,9 @@ class TiraClient(ABC):
         print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
 
         if docker_file is None:
-            docker_file = path / "Dockerfile"
+            from tira.io_utils import dockerfile_for_architecture
+            docker_file_name = dockerfile_for_architecture()
+            docker_file = path / docker_file_name
 
         docker_file = Path(docker_file)
         if not docker_file.exists():
