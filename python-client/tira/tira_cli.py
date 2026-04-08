@@ -235,6 +235,13 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
+    parser.add_argument(
+        "--platform",
+        required=False,
+        default=None,
+        choices=["host", "linux/amd64", "linux/arm64"],
+        help="Detect the platform to build the docker image from the host. Attention, only linux/amd64 will run in tira.",
+    )
 
     parser.set_defaults(executable=code_submission_command)
 
@@ -347,6 +354,7 @@ def code_submission_command(
     forward_environment_variable: "Optional[list[str]]",
     build_args: "Optional[str]",
     mount_directory: "Optional[list[str]]",
+    platform: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -367,6 +375,7 @@ def code_submission_command(
         forward_environment_variable=forward_environment_variable,
         build_args=build_args,
         mount_directory=mount_directory,
+        platform=platform,
     )
 
     return 0

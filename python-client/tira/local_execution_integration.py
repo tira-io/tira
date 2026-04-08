@@ -83,9 +83,8 @@ class LocalExecutionIntegration:
             ),
         }
 
-    def build_docker_image(self, path, tag, dockerfile, build_args: "Optional[str]" = None):
-        target_platform = "linux/amd64"
-        cmd = ["docker", "build", "--platform", target_platform, "-f", str(dockerfile), "-t", str(tag)]
+    def build_docker_image(self, path, tag, dockerfile, build_args: "Optional[str]" = None, platform="linux/amd64"):
+        cmd = ["docker", "build", "--platform", platform, "-f", str(dockerfile), "-t", str(tag)]
         if build_args is not None and len(build_args) > 0:
             cmd += build_args.split()
         cmd += [str(path)]
@@ -93,16 +92,16 @@ class LocalExecutionIntegration:
 
         if image_build_code != 0:
             raise ValueError(
-                f"Building the docker image failed with error code {image_build_code}. See above for details."
+                f"Building the docker image failed with error code {image_build_code}. See above for details.\n\tThe command was {' '.join(cmd)}"
             )
 
-        self.verify_image(tag)
+        self.verify_image(tag, platform)
         print("\n\n Image build successfully.\n\n")
 
-    def verify_image(self, image):
+    def verify_image(self, image, platform):
         client = self.__docker_client()
         inspect_result = client.api.inspect_image(image)
-        allowed = set(["linux/amd64"])
+        allowed = set([platform])
         architecture = "unknow"
         os = "unknown"
 
@@ -430,6 +429,7 @@ class LocalExecutionIntegration:
         gpu_device_ids=None,
         forward_environment_variables=None,
         mount_directory=None,
+        platform="linux/amd64",
     ):
         previous_stages = []
         original_args = {
@@ -572,6 +572,7 @@ class LocalExecutionIntegration:
             mem_limit=mem_limit,
             cpu_count=cpu_count,
             privileged=True,
+            platform=platform,
         )
 
         for line in container.attach(stdout=True, stream=True, logs=True):

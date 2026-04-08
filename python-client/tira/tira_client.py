@@ -356,6 +356,7 @@ class TiraClient(ABC):
         dry_run: bool,
         docker_file: "Optional[Path]" = None,
         build_args: "Optional[str]" = None,
+        platform: str = "linux/amd64",
     ):
         repo = self._git_repo(path)
 
@@ -408,7 +409,7 @@ class TiraClient(ABC):
         print("Build Docker image...")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
-        self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args)
+        self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args, platform)
 
         print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
         return docker_tag, zipped_code, remotes, commit, active_branch
@@ -429,6 +430,7 @@ class TiraClient(ABC):
         forward_environment_variable: "Optional[list[str]]" = None,
         build_args: "Optional[str]" = None,
         mount_directory: "Optional[list[str]]" = None,
+        platform: "Optional[str]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -500,8 +502,15 @@ class TiraClient(ABC):
 
         resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
 
+        if platform is None:
+            platform = "linux/amd64"
+        elif platform == "host":
+            from tira.io_utils import docker_supported_target_platform
+
+            platform = docker_supported_target_platform()
+
         docker_tag, zipped_code, remotes, commit, active_branch = self.build_docker_image_from_code(
-            path, print_message, dry_run, docker_file, build_args
+            path, print_message, dry_run, docker_file, build_args, platform
         )
         print("Test Docker image...")
 
@@ -532,6 +541,7 @@ class TiraClient(ABC):
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variable,
                 mount_directory=resolved_mount_directory,
+                platform=platform,
             )
         else:
             from tira.workflows import run_workflow
