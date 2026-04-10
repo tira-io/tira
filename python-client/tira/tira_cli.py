@@ -234,6 +234,13 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
             "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
         ),
     )
+    parser.add_argument(
+        "--gpus",
+        required=False,
+        default=False,
+        type=str,
+        help='GPU devices to add to the container ("all" or -1 to pass all GPUs, or the number of devices).',
+    )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
     parser.add_argument(
         "--platform",
@@ -355,6 +362,7 @@ def code_submission_command(
     build_args: "Optional[str]",
     mount_directory: "Optional[list[str]]",
     platform: "Optional[str]",
+    gpus: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -376,6 +384,7 @@ def code_submission_command(
         build_args=build_args,
         mount_directory=mount_directory,
         platform=platform,
+        gpus=gpus
     )
 
     return 0

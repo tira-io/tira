@@ -431,6 +431,7 @@ class TiraClient(ABC):
         build_args: "Optional[str]" = None,
         mount_directory: "Optional[list[str]]" = None,
         platform: "Optional[str]" = None,
+        gpus: "Optional[str]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -542,6 +543,7 @@ class TiraClient(ABC):
                 forward_environment_variables=forward_environment_variable,
                 mount_directory=resolved_mount_directory,
                 platform=platform,
+                gpu_device_ids=[gpus],
             )
         else:
             from tira.workflows import run_workflow
