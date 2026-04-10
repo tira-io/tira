@@ -529,6 +529,8 @@ class TiraClient(ABC):
         gpu_device_ids = None
         if "NVIDIA_VISIBLE_DEVICES" in os.environ and os.environ["NVIDIA_VISIBLE_DEVICES"]:
             gpu_device_ids = [os.environ["NVIDIA_VISIBLE_DEVICES"]]
+        elif "CUDA_VISIBLE_DEVICES" in os.environ and os.environ["CUDA_VISIBLE_DEVICES"]:
+            gpu_device_ids = [os.environ["CUDA_VISIBLE_DEVICES"]]
 
         tmp_dir = temporary_directory()
         if workflow_configuration is None:
