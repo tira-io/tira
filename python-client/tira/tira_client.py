@@ -542,8 +542,7 @@ class TiraClient(ABC):
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variable,
                 mount_directory=resolved_mount_directory,
-                platform=platform,
-                gpu_device_ids=[gpus],
+                platform=platform
             )
         else:
             from tira.workflows import run_workflow
