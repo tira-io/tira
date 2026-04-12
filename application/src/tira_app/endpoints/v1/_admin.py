@@ -76,8 +76,13 @@ def update_running_process_output(request: Request, vm_id: str, job_id: str) -> 
     except:
         return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
 
-    if "std_output" not in request.data:
-        return HttpResponseServerError(json.dumps({"status": 1, "message": "Please pass std_output."}))
+    try:
+        data = json.loads(request.body) if request.body else request.POST.dict()
+    except json.JSONDecodeError:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not parse request body as JSON."}))
+
+    if "output" not in data:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "A field output is expected."}))
 
     details = json.loads(job.details) if job.details else {}
 
@@ -85,8 +90,8 @@ def update_running_process_output(request: Request, vm_id: str, job_id: str) -> 
         details["execution"]["scheduling"] = "done"
         details["execution"]["running"] = "running"
         details["started_at"] = strftime("%d.%m. at %H:%M:%S", gmtime())
-        
-    details["stdOutput"] = request.data["output"]
+
+    details["stdOutput"] = data.get("output")
     job.details = json.dumps(details)
     job.save(update_fields=["details"])
 
