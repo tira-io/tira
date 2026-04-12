@@ -229,8 +229,13 @@ def get_discourse_token_for_user(vm_id: str, disraptor_user: str) -> "Optional[s
     if ret:
         return ret
 
-    disraptor_description = disraptor_user + "-repo-" + vm_id
-    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
+    discourse_client = discourse_api_client()
+    members = [i["username"] for i in json.loads(discourse_client._get(f'groups/{vm_id}/members.json').content)["members"]]
+
+    user_for_group = disraptor_user if disraptor_user in members else members[0]
+
+    disraptor_description = user_for_group + "-repo-" + vm_id
+    discourse_api_key = discourse_client.generate_api_key(user_for_group, disraptor_description)
 
     model.create_discourse_token_for_user(vm_id, discourse_api_key)
 
