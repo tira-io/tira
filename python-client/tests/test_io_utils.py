@@ -19,6 +19,24 @@ class TestIoUtils(unittest.TestCase):
     def test_sanitize_text_removes_multiple_non_utf8_code_points(self):
         self.assertEqual("ab€c", sanitize_text("a\ud83db\udc00€c"))
 
+
+    def test_sanitize_text_does_not_remove_umlauts(self):
+        self.assertEqual("here are some umlauts äüÄüöÖ#", sanitize_text("here are some umlauts äüÄüöÖ#"))
+
+    def test_sanitize_text_removes_wrong_minus(self):
+        inp = """e l s e :
+r e l s c o r e = s c o r e s [ 0 ] − 0 . 1 5
+
+5.) Add the recalculated relevance score to the builder to calculate aggregate
+scores"""
+        exp = """e l s e :
+r e l s c o r e = s c o r e s [ 0 ]  0 . 1 5
+
+5.) Add the recalculated relevance score to the builder to calculate aggregate
+scores"""
+
+        self.assertEqual(exp, sanitize_text(inp))
+
     def test_zipping_of_directory_01(self):
         expected = [
             "metadata.yaml",

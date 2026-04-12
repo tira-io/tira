@@ -5,6 +5,7 @@ import logging
 import os
 import platform
 import sys
+import unicodedata
 import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
@@ -618,7 +619,11 @@ def extract_volume_mounts(v):
 
 
 def sanitize_text(text: str) -> str:
-    return text.encode("utf-8", errors="ignore").decode("utf-8")
+    return _remove_unicode_categories(text.encode("utf-8", errors="ignore").decode("utf-8"), {"Sm"})
+
+
+def _remove_unicode_categories(text: str, categories: set[str]) -> str:
+    return "".join(i for i in text if not (ord(i) > 127 and unicodedata.category(i) in categories))
 
 
 def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
