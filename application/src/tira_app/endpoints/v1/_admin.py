@@ -1,6 +1,7 @@
 import io
 import json
 import zipfile
+from time import gmtime, strftime
 
 from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
@@ -66,6 +67,33 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
 
 
 @check_conditional_permissions(restricted=True)
+def update_running_process_output(request: Request, vm_id: str, job_id: str) -> Response:
+    if request.method != "POST":
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
+
+    try:
+        job = RunningProcesses.objects.get(uuid=job_id)
+    except:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
+
+    if "std_output" not in request.data:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Please pass std_output."}))
+
+    details = json.loads(job.details) if job.details else {}
+
+    if "execution" in details and "scheduling" in details["execution"] and details["execution"]["scheduling"] == "running":
+        details["execution"]["scheduling"] = "done"
+        details["execution"]["running"] = "running"
+        details["started_at"] = strftime("%d.%m. at %H:%M:%S", gmtime())
+        
+    details["stdOutput"] = request.data["output"]
+    job.details = json.dumps(details)
+    job.save(update_fields=["details"])
+
+    return JsonResponse({"status": 0, "message": "ok", "killing": job.killing})
+
+
+@check_conditional_permissions(restricted=True)
 def registered_workers(request: Request, vm_id: str) -> Response:
     ret = []
     try:
@@ -108,6 +136,7 @@ def active_jobs(request: Request, vm_id: str, task_id: str) -> Response:
 
 endpoints = [
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
+    path("update-running-process-output/<str:vm_id>/<str:job_id>", update_running_process_output),
     path("registered-workers/<str:vm_id>", registered_workers),
     path("active-jobs/<str:vm_id>/<str:task_id>", active_jobs),
 ]

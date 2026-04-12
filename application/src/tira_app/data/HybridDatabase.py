@@ -11,7 +11,7 @@ import randomname
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
-from tira.io_utils import get_tira_id
+from tira.io_utils import get_tira_id, sanitize_text
 
 from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
@@ -1996,17 +1996,17 @@ class HybridDatabase(object):
         modeldb.Registration.objects.create(
             initial_owner=data["initial_owner"],
             team_name=data["group"],
-            team_members=data["team"],
+            team_members=sanitize_text(data["team"]),
             registered_on_task=task,
             name=data["username"],
             email=data["email"],
-            affiliation=data["affiliation"],
+            affiliation=sanitize_text(data["affiliation"]),
             country=data["country"],
             employment=data["employment"],
             participates_for=data["participation"],
-            instructor_name=data["instructorName"],
+            instructor_name=sanitize_text(data["instructorName"]),
             instructor_email=data["instructorEmail"],
-            questions=data["questions"],
+            questions=sanitize_text(data["questions"]),
         )
 
     def all_registered_teams(self) -> set[str]:

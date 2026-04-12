@@ -1024,6 +1024,12 @@ class Client(TiraClient):
         zip_file = zip_dir(file_path)
         self.execute_post_return_json(f"/v1/admin/upload-response/anonymous-vm-id/{job_id}", file_path=zip_file)
 
+    def update_running_process_output_admin(self, job_id: str, output: str) -> None:
+        return self.execute_post_return_json(
+            f"/v1/admin/update-running-process-output/anonymous-vm-id/{job_id}",
+            json_payload={"output": output},
+        )
+
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
         upload_to_tira = self.get_dataset(dataset_id)

@@ -1,4 +1,5 @@
 import sys
+import threading
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -12,6 +13,7 @@ from .utils import gpu_device_ids
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+MONITORED_EXECUTION_POLL_INTERVAL_SECONDS = 90
 
 
 def get_admin_client() -> TiraClient:
@@ -39,10 +41,53 @@ else:
     gpu_devices = None
 
 
-def execute_monitored(method: Callable):
+def _tail_lines(text: str, line_count: int = 15) -> str:
+    lines = text.splitlines()
+    return "\n".join(lines[-line_count:])
+
+
+def _current_monitored_output(monitored_execution) -> str:
+    stdout = _tail_lines(monitored_execution.stdout.getvalue())
+    stderr = _tail_lines(monitored_execution.stderr.getvalue())
+    ret = []
+
+    if stdout:
+        ret += ["## stdout (Last 15 lines)", stdout]
+    if stderr:
+        ret += ["# stderr (Last 15 lines)", stderr]
+
+    return "\n\n".join(ret)
+
+
+def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, job_id: "Optional[str]" = None):
     from tira.io_utils import MonitoredExecution
 
-    return MonitoredExecution().run(lambda i: method(i))
+    monitored_execution = MonitoredExecution()
+    result = {}
+
+    def run_in_background():
+        result["ret"] = monitored_execution.run(lambda i: method(i))
+
+    thread = threading.Thread(target=run_in_background)
+    thread.start()
+
+    while thread.is_alive():
+        thread.join(timeout=MONITORED_EXECUTION_POLL_INTERVAL_SECONDS)
+
+        if client is not None and job_id is not None:
+            current_output = _current_monitored_output(monitored_execution)
+            try:
+                running_process_response = client.update_running_process_output_admin(job_id, current_output)
+            except:
+                print("Failed to load running processes")
+                running_process_response = None
+
+            if running_process_response and  "killing" in running_process_response and running_process_response["killing"]:
+                print("I will kill all running containers...")
+                client.local_execution.kill_all_running_containers()
+                print("The running containers are killed...")
+
+    return result["ret"]
 
 
 @gpu_executor.task()
@@ -81,7 +126,9 @@ def run(
             cpu_count=CPU_COUNT,
             mem_limit=MEMORY_LIMIT,
             gpu_device_ids=gpu_devices,
-        )
+        ),
+        client=client,
+        job_id=job_id,
     )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     client.upload_run_admin(run_results, job_id)
@@ -96,7 +143,7 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str,
     run_dir = client.download_zip_to_cache_directory(run_id=run_id, dataset=dataset, task=task, team=team)
     print("Run is available locally:", run_dir)
 
-    eval_results = execute_monitored(lambda i: client.evaluate(run_dir, dataset, i))
+    eval_results = execute_monitored(lambda i: client.evaluate(run_dir, dataset, i), client=client, job_id=job_id)
     persist_tira_metadata_for_job(
         eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
     )

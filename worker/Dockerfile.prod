@@ -9,7 +9,9 @@ WORKDIR /tira/
 COPY ./worker ./
 COPY ./python-client ../python-client
 
-RUN pip3 install -q --no-cache-dir ../python-client ./
+RUN pip3 install -q --no-cache-dir ../python-client "./[test]"
+
+RUN TIRA_WORKER_CONFIG=/tira/tira-worker-config.yml PYTHONPATH=/tira/src pytest -q tests
 
 RUN <<EOF
 set -e

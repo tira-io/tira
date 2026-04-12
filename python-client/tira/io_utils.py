@@ -444,23 +444,26 @@ class TqdmUploadFile:
 
 
 class MonitoredExecution:
+    def __init__(self):
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
     def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory
 
         ret = temporary_directory()
         output_dir = ret / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
-        stdout = io.StringIO()
-        stderr = io.StringIO()
+
         exception_text = ""
-        with redirect_stdout(stdout), redirect_stderr(stderr):
+        with redirect_stdout(self.stdout), redirect_stderr(self.stderr):
             try:
                 method(output_dir)
             except Exception as e:
                 exception_text = "\n\n" + str(repr(e))
 
-        (ret / "stdout.txt").write_text(stdout.getvalue() + exception_text)
-        (ret / "stderr.txt").write_text(stderr.getvalue() + exception_text)
+        (ret / "stdout.txt").write_text(self.stdout.getvalue() + exception_text)
+        (ret / "stderr.txt").write_text(self.stderr.getvalue() + exception_text)
 
         return ret
 
@@ -612,6 +615,10 @@ def extract_volume_mounts(v):
     v_modified = v.replace(":\\", "XYZ__________XYZ")
     volume_dir, volume_bind, volume_mode = v_modified.split(":")
     return volume_dir.replace("XYZ__________XYZ", ":\\"), volume_bind, volume_mode
+
+
+def sanitize_text(text: str) -> str:
+    return text.encode("utf-8", errors="ignore").decode("utf-8")
 
 
 def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":

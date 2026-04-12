@@ -14,6 +14,7 @@ from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, JsonResponse
 from slugify import slugify
+from tira.io_utils import sanitize_text
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -386,8 +387,10 @@ def update_docker_images(request: "HttpRequest", context: "Context", task_id: st
 @check_resources_exist("json")
 @add_context
 def get_user(request: "HttpRequest", context: "Context", task_id: str, user_id: str) -> "HttpResponse":
-    force_refresh = request.GET.get('force-refresh') == 'true'
-    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=force_refresh, force_recreate=force_refresh)
+    force_refresh = request.GET.get("force-refresh") == "true"
+    docker = model.load_docker_data(
+        task_id, user_id, cache, force_cache_refresh=force_refresh, force_recreate=force_refresh
+    )
 
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
@@ -484,7 +487,7 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     """get the registration of a user on a task. If there is none"""
     try:
         data: "dict[str, Any]" = json.loads(request.body)
-        data["group"] = slugify(data["group"])
+        data["group"] = sanitize_text(slugify(data["group"]))
 
         disc_api_client = model.discourse_api_client()
         if (

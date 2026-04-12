@@ -516,3 +516,4 @@ class RunningProcesses(models.Model):
     vm_id = models.TextField(default="")
     dataset_id = models.TextField(default="")
     details = models.TextField(default="")
+    killing = models.BooleanField(default=False)

@@ -24,7 +24,7 @@ from grpc import RpcError, StatusCode
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
-from tira.io_utils import get_tira_id
+from tira.io_utils import get_tira_id, sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
@@ -562,7 +562,12 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         if upload_id == "new-submission":
             upload_id = model.add_upload(task_id, vm_id, None)["id"]
             model.update_upload_metadata(
-                task_id, vm_id, upload_id, request.POST.get("display_name"), request.POST.get("description"), ""
+                task_id,
+                vm_id,
+                upload_id,
+                sanitize_text(request.POST.get("display_name")),
+                sanitize_text(request.POST.get("description")),
+                "",
             )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
@@ -901,8 +906,8 @@ def docker_software_save(request: "HttpRequest", task_id: str, vm_id: str, docke
             data = json.loads(request.body)
             model.update_docker_software_metadata(
                 docker_software_id,
-                data.get("display_name"),
-                data.get("description"),
+                sanitize_text(data.get("display_name")),
+                sanitize_text(data.get("description")),
                 data.get("paper_link"),
                 data.get("ir_re_ranker", False),
                 data.get("ir_re_ranking_input", False),
@@ -982,7 +987,12 @@ def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str
         try:
             data = json.loads(request.body)
             model.update_upload_metadata(
-                task_id, vm_id, upload_id, data.get("display_name"), data.get("description"), data.get("paper_link")
+                task_id,
+                vm_id,
+                upload_id,
+                sanitize_text(data.get("display_name")),
+                sanitize_text(data.get("description")),
+                data.get("paper_link"),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
@@ -1452,9 +1462,9 @@ def add_job(
             "cores": str(r["cores"]) + " CPU Cores",
             "ram": str(r["ram"]) + " GB of RAM",
             "gpu": str(r["gpu"]) + " GPUs",
-            "data": "?",
-            "dataset_type": "?",
-            "dataset": "tbd dataset",
+            "data": dataset_id,
+            "dataset_type": "train" if dataset_id and "train" in dataset_id else "test",
+            "dataset": dataset_id,
             "software_id": "loading software id",
             "task_id": task_id,
         },
@@ -1468,18 +1478,23 @@ def add_job(
 
 @check_permissions
 def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run_id: str) -> HttpResponse:
+    from ..model import RunningProcesses
+
     if not request.method == "GET":
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
-    else:
-        datasets = model.get_datasets_by_task(task_id)
-        git_runner = model.get_git_integration(task_id=task_id)
 
-        if not git_runner:
-            return JsonResponse({"status": 1, "message": f"No git integration found for task {task_id}"})
+    try:
+        job = RunningProcesses.objects.get(uuid=run_id)
+    except:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "I could not find the corresponding job. Maybe it is already about to be terminated",
+            }
+        )
 
-        for dataset in datasets:
-            git_runner.stop_job_and_clean_up(
-                model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id, cache
-            )
-
-        return JsonResponse({"status": 0, "message": "Run successfully stopped"})
+    job.killing = True
+    job.save(update_fields=["killing"])
+    return JsonResponse(
+        {"status": 0, "message": "The run is getting stopped. It might take 5 minutes until the proces terminated"}
+    )

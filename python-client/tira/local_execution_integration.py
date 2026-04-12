@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class LocalExecutionIntegration:
     def __init__(self, tira_client=None):
         self.tira_client = tira_client
+        self.running_docker_images = {}
 
     def __normalize_command(self, cmd, evaluator):
         to_normalize = {
@@ -575,11 +576,15 @@ class LocalExecutionIntegration:
             platform=platform,
         )
 
-        for line in container.attach(stdout=True, stream=True, logs=True):
-            print(line.decode("utf-8"))
+        self.running_docker_images[container.id] = container
+        try:
+            for line in container.attach(stdout=True, stream=True, logs=True):
+                print(line.decode("utf-8"))
 
-        return_code = container.wait()
-        # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
+            return_code = container.wait()
+            # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
+        finally:
+            self.running_docker_images.pop(container.id, None)
 
         if evaluate:
             self.evaluate(eval_dir, output_dir, allow_network, client)
@@ -592,6 +597,21 @@ class LocalExecutionIntegration:
         else:
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output
+
+    def stop_run(self, id):
+        if id not in self.running_docker_images:
+            raise ValueError(f"Could not find a running docker image with id {id}.")
+
+        self.running_docker_images[id].kill()
+
+    def kill_all_running_containers(self):
+        for id in list(self.running_docker_images.keys()):
+            try:
+                self.stop_run(id)
+            except Exception as e:
+                msg = f"Could not stop running docker image with id {id}. Got: {e!r}"
+                print(msg)
+                logging.exception(msg)
 
     def docker_image_work_dir(self, image):
         image = self.__docker_client().images.get(image).attrs["Config"]
