@@ -959,7 +959,9 @@ def get_token(request: "HttpRequest", vm_id: str) -> HttpResponse:
         return JsonResponse(
             {"status": 0, "context": {"token": model.get_discourse_token_for_user(vm_id, disraptor_user)}}
         )
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Error while getting discourse token for vm {vm_id}: {e}")
+        logger.exception(e)
         return JsonResponse(
             {"status": 1, "message": "Could not extract the discourse/disraptor user, please authenticate."}
         )
