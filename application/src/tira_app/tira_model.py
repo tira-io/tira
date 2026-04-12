@@ -230,7 +230,7 @@ def get_discourse_token_for_user(vm_id: str, disraptor_user: str) -> "Optional[s
         return ret
 
     discourse_client = discourse_api_client()
-    members = [i["username"] for i in json.loads(discourse_client._get(f'groups/{vm_id}/members.json').content)["members"]]
+    members = [i["username"] for i in json.loads(discourse_client._get(f'groups/tira_vm_{vm_id}/members.json').content)["members"]]
 
     user_for_group = disraptor_user if disraptor_user in members else members[0]
 
