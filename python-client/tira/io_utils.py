@@ -151,11 +151,29 @@ def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "O
         image, required_prefix=registry_prefix, task_name=task, team_name=team
     )
     try:
-        tira.local_execution.verify_image(pushed_image, "linux/amd64", task, team)
+        tira.local_execution.verify_image(pushed_image, "linux/amd64")
     except Exception as e:
         return _fmt.ERROR, f"The image is not in a format supported by TIRA: {repr(e)}"
 
     return _fmt.OK, f"Images can be uploaded for team {team}."
+
+
+def verify_images_are_in_correct_format(task: "Optional[str]" = None, team: "Optional[str]" = None):
+    from tira.rest_api_client import Client
+
+    tira = Client()
+    registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
+    json_payload = {"image": "latest", "repository_name": registry_prefix + "tira-mini"}
+
+    image_details = tira.execute_post_return_json(
+        "/v1/admin/validate-docker-image",
+        json_payload=json_payload
+    )
+
+    if image_details and "context" in image_details and "architecture" in image_details["context"] and "Loading" not in image_details["context"]["architecture"] and "amd64" == image_details["context"]["architecture"]:
+        return _fmt.OK, f"The uploaded image is compatible with the cluster."
+    else:
+        return _fmt.ERROR, f"The uploaded image is compatible with the cluster."
 
 
 def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
@@ -167,6 +185,7 @@ def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]"
         verify_docker_installation,
         verify_tirex_tracker,
         lambda: verify_images_can_be_build_and_pushed(task, team),
+        lambda: verify_images_are_in_correct_format(task, team),
     ]
 
     msgs = []
@@ -179,8 +198,10 @@ def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]"
             ret = _fmt.WARN
 
         msgs.append((msg, status))
+        if ret == _fmt.WARN:
+            break
 
-    if ret == _fmt.OK:
+    if ret == _fmt.OK or ret == _fmt.WARN:
         os.system("cls" if os.name == "nt" else "clear")
         print("tira-cli verify-installation")
         for m in msgs:
