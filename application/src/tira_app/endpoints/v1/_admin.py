@@ -86,7 +86,11 @@ def update_running_process_output(request: Request, vm_id: str, job_id: str) -> 
 
     details = json.loads(job.details) if job.details else {}
 
-    if "execution" in details and "scheduling" in details["execution"] and details["execution"]["scheduling"] == "running":
+    if (
+        "execution" in details
+        and "scheduling" in details["execution"]
+        and details["execution"]["scheduling"] == "running"
+    ):
         details["execution"]["scheduling"] = "done"
         details["execution"]["running"] = "running"
         details["started_at"] = strftime("%d.%m. at %H:%M:%S", gmtime())
@@ -139,9 +143,35 @@ def active_jobs(request: Request, vm_id: str, task_id: str) -> Response:
     return JsonResponse({"status": 0, "context": {"jobs": ret}})
 
 
+def validate_docker_image(request: Request) -> Response:
+    if request.method != "POST":
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
+
+    try:
+        data = json.loads(request.body) if request.body else request.POST.dict()
+    except json.JSONDecodeError:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "Could not parse request body as JSON."}))
+
+    if "image" not in data or not data["image"]:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "A field image is expected."}))
+
+    if "repository_name" not in data or not data["repository_name"]:
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "A field repository_name is expected."}))
+
+    git_runner = model.get_git_integration("webis", None)
+
+    try:
+        ret = git_runner.get_manifest_of_docker_image_image_repository(data["repository_name"], data["image"])
+    except:
+        ret = {}
+
+    return JsonResponse({"status": 0, "message": "ok", "context": ret})
+
+
 endpoints = [
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
     path("update-running-process-output/<str:vm_id>/<str:job_id>", update_running_process_output),
     path("registered-workers/<str:vm_id>", registered_workers),
     path("active-jobs/<str:vm_id>/<str:task_id>", active_jobs),
+    path("validate-docker-image", validate_docker_image),
 ]

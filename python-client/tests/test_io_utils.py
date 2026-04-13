@@ -1,7 +1,11 @@
 import unittest
 import zipfile
+from pathlib import Path
+from subprocess import CalledProcessError
+from unittest.mock import patch
 
-from tira.io_utils import sanitize_text, zip_dir
+from tira.check_format import _fmt
+from tira.io_utils import sanitize_text, verify_tirex_tracker, zip_dir
 
 from .format_check import IR_METADATA_MULTIPLE_VALID
 
@@ -67,3 +71,29 @@ scores"""
         zipped = zip_dir(IR_METADATA_MULTIPLE_VALID / "metadata.yaml")
         actual = zipfile.ZipFile(zipped).namelist()
         self.assertEqual(sorted(expected), sorted(actual))
+
+    @patch("tira.io_utils.find_tirex_tracker_executable_or_none", return_value=Path("/tmp/tracked"))
+    @patch(
+        "tira.io_utils.check_output",
+        return_value=b"Measures runtime, energy, and many other metrics of a specifed command.\n",
+    )
+    def test_verify_tirex_tracker_reports_ok_for_valid_help_output(self, _check_output, _tracker_path):
+        self.assertEqual(
+            (_fmt.OK, "The tirex-tracker works and will track experimental metadata."),
+            verify_tirex_tracker(),
+        )
+
+    @patch("tira.io_utils.find_tirex_tracker_executable_or_none", return_value=None)
+    def test_verify_tirex_tracker_warns_when_tracker_is_missing(self, _tracker_path):
+        self.assertEqual(
+            (_fmt.WARN, "The tirex-tracker is not available. Experimental metadata will not be tracked."),
+            verify_tirex_tracker(),
+        )
+
+    @patch("tira.io_utils.find_tirex_tracker_executable_or_none", return_value=Path("/tmp/tracked"))
+    @patch("tira.io_utils.check_output", side_effect=CalledProcessError(1, ["/tmp/tracked", "--help"]))
+    def test_verify_tirex_tracker_warns_when_tracker_execution_fails(self, _check_output, _tracker_path):
+        self.assertEqual(
+            (_fmt.WARN, "The tirex-tracker is not working. Experimental metadata will not be tracked."),
+            verify_tirex_tracker(),
+        )

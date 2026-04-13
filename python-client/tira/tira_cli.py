@@ -248,6 +248,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
 
 def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
+    parser.add_argument(
+        "--task", required=False, default=None, help="The task for which you want to run the verification."
+    )
+    parser.add_argument(
+        "--team", required=False, default=None, help="The team for which you want to run the verification."
+    )
     parser.set_defaults(executable=verify_installation_command)
 
 
@@ -381,8 +387,8 @@ def code_submission_command(
     return 0
 
 
-def verify_installation_command(**kwards) -> int:
-    status = verify_tira_installation()
+def verify_installation_command(task, team, **kwargs) -> int:
+    status = verify_tira_installation(task, team)
 
     print("\nResult:")
     msg = "Your TIRA installation is valid."

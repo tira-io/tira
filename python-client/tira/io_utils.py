@@ -12,13 +12,14 @@ from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime as dt
 from glob import glob
 from pathlib import Path
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
 
 from tira.check_format import FormatMsgType, _fmt, log_message
+from tira.tirex_tracker import find_tirex_tracker_executable_or_none
 from tira.tira_client import TiraClient
 
 
@@ -101,14 +102,62 @@ def api_key_is_valid():
 
 
 def verify_tirex_tracker():
-    return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+    tracker = find_tirex_tracker_executable_or_none()
+    if tracker is None:
+        return _fmt.WARN, "The tirex-tracker is not available. Experimental metadata will not be tracked."
+
+    try:
+        help_response = check_output([str(tracker), "--help"]).decode("UTF-8")
+    except (CalledProcessError, OSError):
+        return _fmt.WARN, "The tirex-tracker is not working. Experimental metadata will not be tracked."
+
+    if "Measures runtime, energy, and many other" in help_response:
+        return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+
+    return _fmt.WARN, "The tirex-tracker is not working. Experimental metadata will not be tracked."
 
 
-def verify_tira_installation() -> FormatMsgType:
+def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "Optional[str]" = None):
+    if task is None or team is None:
+        return _fmt.WARN, "I can not verify if images can be uploaded.\n\tPlease pass --task TASK and --team TEAM to verify if you can upload correct images."
+
+    if api_key_is_valid()[0] != _fmt.OK or verify_docker_installation()[0] != _fmt.OK:
+        return _fmt.WARN, "Images can not be uploaded (no api key or no docker)"
+
+    from tira.rest_api_client import Client
+    from tira.third_party_integrations import temporary_directory
+    tira = Client()
+    
+    metadata = tira.metadata_for_task(task, team)
+    if not metadata or "status" not in metadata or metadata["status"] != 0:
+        msg = f"The passed task {task} or the passed team {team} do not exist."
+        if metadata and "message" in metadata:
+            msg += "\n  " + str(metadata["message"])
+
+        return _fmt.ERROR, msg
+
+    docker_file = Path(temporary_directory()) / "Dockerfile"
+    (docker_file.parent / "example-file").write_text(str(uuid.uuid4()))
+    docker_file.write_text("FROM bash:alpine3.16\n\nADD example-file /e")
+    image = "tira-mini"
+    tira.local_execution.build_docker_image(docker_file.parent, image, docker_file)
+
+    registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
+    pushed_image = tira.local_execution.push_image(image, required_prefix=registry_prefix, task_name=task, team_name=team)
+    try:
+        tira.local_execution.verify_image(pushed_image, "linux/amd64", task, team)
+    except Exception as e:
+        return _fmt.ERROR, f"The image is not in a format supported by TIRA: {repr(e)}"
+
+    return _fmt.OK, f"Images can be uploaded for team {team}."
+
+
+def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
     ret = _fmt.OK
 
-    checks: List[Callable] = [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]
+    checks: List[Callable] = [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker, lambda: verify_images_can_be_build_and_pushed(task, team)]
 
+    msgs = []
     for i in checks:
         status, msg = i()
         log_message(msg, status)
@@ -116,6 +165,14 @@ def verify_tira_installation() -> FormatMsgType:
             ret = _fmt.ERROR
         if status == _fmt.WARN and ret != _fmt.ERROR:
             ret = _fmt.WARN
+        
+        msgs.append((msg, status))
+
+    if ret == _fmt.OK:
+        os.system("cls" if os.name == "nt" else "clear")
+        print("tira-cli verify-installation")
+        for m in msgs:
+            log_message(m[0], m[1])
 
     return ret
 
