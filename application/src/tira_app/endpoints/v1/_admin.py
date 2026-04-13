@@ -163,7 +163,7 @@ def validate_docker_image(request: Request) -> Response:
     git_runner = model.get_git_integration("webis", None)
 
     try:
-        ret = git_runner.get_manifest_of_docker_image_image_repository(data["repository_name"], data["image"])
+        ret = git_runner.get_manifest_of_docker_image_image_repository(data["repository_name"], data["image"], cache=None, force_cache_refresh=False)
     except Exception as e:
         logger.exception(e)
         logger.warning(f"Could not validate docker image: {e}")
