@@ -643,6 +643,13 @@ class TiraClient(ABC):
         from tira.rest_api_client import Client as RestClient
         from tira.third_party_integrations import temporary_directory
 
+
+        try:
+            self.json_response(f"/groups/tira_vm_{team}/members.json")
+        except:
+            print("Skip non existing team ...")
+            return (team, "None", "None", "None", "None")
+
         token = self.json_response(f"/api/token/{team}")["context"]["token"]
 
         team_dir = Path(temporary_directory())
@@ -657,7 +664,13 @@ class TiraClient(ABC):
         client: "TiraClient" = RestClient(tira_cache_dir=str(tira_dir))
         client.fail_if_api_key_is_invalid()
 
-        role = client.json_response("/api/role")["role"]
+        role = client.json_response("/api/role")
+        admin_teams = ("pan26-gen-maik-test", "clef26-open-web-search", "maik-test-3-30")
+        if role["role"] != "user" and team not in admin_teams:
+            msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
+            print(msg)
+            raise ValueError(msg)
+
         assert not client.local_execution.docker_client_is_authenticated()
         try:
             client.local_execution.login_docker_client(task_name, team)
@@ -671,11 +684,12 @@ class TiraClient(ABC):
         pushed_image = push_image(client, "bash", task_name, team)
         del os.environ["DOCKER_CONFIG"]
 
-        return (team, role, token, team_dir)
+        return (team, role["role"], role["context"]["user_id"], token, str(team_dir))
 
     def _admin_verify_tokens(self, tasks, skip_without_token):
+        from tqdm import tqdm
         solved = set()
-        target_file = Path(self.tira_cache_dir) / "fooo"
+        target_file = Path(self.tira_cache_dir) / "admin-verified-teams.jsonl"
         if not target_file.exists():
             target_file.write_text("")
 
@@ -686,33 +700,27 @@ class TiraClient(ABC):
             except:
                 pass
 
-        self.local_execution.verify_image("t")
+# TODO: Check if torch is installed and cude
+#        self.local_execution.verify_image("t", "")
 
-        return
-        manually_checked_teams = set(
-            ["gradiant", "jlp", "chaicoders", "ai-moment", "bedratiuk-lab", "ai-momen", "dteam"]
-        )
+#        return
 
-        print(f"I have {len(solved)} solved teams in {target_file}.")
+        print(f"There are {len(solved)} already validated teams in {target_file}.")
         for task in tasks:
             resp = self.json_response(f"/api/count-of-team-submissions/{task}")["context"]["count_of_team_submissions"]
             teams = set()
 
             for team in resp:
-                if not team["token"]:
-                    continue
-                # if not team["token"] and team["team"] not in manually_checked_teams:
-                #    raise ValueError(task, team["team"])
                 teams.add(team["team"])
 
-            for team in teams:
+
+            for team in tqdm(sorted(list(teams)), task):
                 if (task, team) in solved:
                     continue
-                if team == "ai-momksnt":
-                    continue
-                self.admin_verify_token(task, team)
+
+                _, role, user_id, token, team_dir = self.admin_verify_token(task, team)
                 with open(target_file, "a") as f:
-                    f.write("\n" + json.dumps({"task": task, "team": team}) + "\n")
+                    f.write(json.dumps({"task": task, "team": team, "role": role, "user": user_id, "token": token, "team_dir": team_dir}) + "\n")
 
     def submit_dataset(
         self,
@@ -927,6 +935,16 @@ class TiraClient(ABC):
                 for k, v in baseline_config.items():
                     if k not in eval_config:
                         eval_config[k] = v
+
+                if "format_configuration" not in eval_config:
+                    eval_config["format_configuration"] = {}
+                    for k, v in baseline_config.items():
+                        eval_config["format_configuration"][k] = v
+
+                if "truth_format_configuration" not in eval_config:
+                    eval_config["truth_format_configuration"] = {}
+                    for k, v in truth_config.items():
+                        eval_config["truth_format_configuration"][k] = v
 
                 preds = evaluate(
                     baseline_output,
