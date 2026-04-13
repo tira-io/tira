@@ -98,7 +98,7 @@ def api_key_is_valid():
         assert Client().api_key_is_valid()
         return _fmt.OK, "You are authenticated against www.tira.io."
     except:
-        return _fmt.WARN, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+        return _fmt.ERROR, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
 
 
 def verify_tirex_tracker():
@@ -120,12 +120,12 @@ def verify_tirex_tracker():
 def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "Optional[str]" = None):
     if task is None or team is None:
         return (
-            _fmt.WARN,
+            _fmt.ERROR,
             "I can not verify if images can be uploaded.\n\tPlease pass --task TASK and --team TEAM to verify if you can upload correct images.",
         )
 
     if api_key_is_valid()[0] != _fmt.OK or verify_docker_installation()[0] != _fmt.OK:
-        return _fmt.WARN, "Images can not be uploaded (no api key or no docker)"
+        return _fmt.ERROR, "Images can not be uploaded (no api key or no docker)"
 
     from tira.rest_api_client import Client
     from tira.third_party_integrations import temporary_directory
@@ -198,7 +198,7 @@ def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]"
             ret = _fmt.WARN
 
         msgs.append((msg, status))
-        if ret == _fmt.WARN:
+        if ret == _fmt.ERROR:
             break
 
     if ret == _fmt.OK or ret == _fmt.WARN:
