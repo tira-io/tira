@@ -3,6 +3,8 @@ import json
 import zipfile
 from time import gmtime, strftime
 
+import logging
+
 from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
 from rest_framework.request import Request
@@ -13,7 +15,7 @@ from ... import tira_model as model
 from ...checks import check_conditional_permissions
 from ...model import RunningProcesses
 from ..vm_api import _run_evaluation
-
+logger = logging.getLogger("tira")
 
 @check_conditional_permissions(restricted=True)
 def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
@@ -162,7 +164,9 @@ def validate_docker_image(request: Request) -> Response:
 
     try:
         ret = git_runner.get_manifest_of_docker_image_image_repository(data["repository_name"], data["image"])
-    except:
+    except Exception as e:
+        logger.exception(e)
+        logger.warning(f"Could not validate docker image: {e}")
         ret = {}
 
     return JsonResponse({"status": 0, "message": "ok", "context": ret})
