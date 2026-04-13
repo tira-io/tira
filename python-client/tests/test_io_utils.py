@@ -23,7 +23,6 @@ class TestIoUtils(unittest.TestCase):
     def test_sanitize_text_removes_multiple_non_utf8_code_points(self):
         self.assertEqual("ab€c", sanitize_text("a\ud83db\udc00€c"))
 
-
     def test_sanitize_text_does_not_remove_umlauts(self):
         self.assertEqual("here are some umlauts äüÄüöÖ#", sanitize_text("here are some umlauts äüÄüöÖ#"))
 

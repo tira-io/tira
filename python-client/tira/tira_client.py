@@ -544,7 +544,7 @@ class TiraClient(ABC):
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variable,
                 mount_directory=resolved_mount_directory,
-                platform=platform
+                platform=platform,
             )
         else:
             from tira.workflows import run_workflow
@@ -643,7 +643,6 @@ class TiraClient(ABC):
         from tira.rest_api_client import Client as RestClient
         from tira.third_party_integrations import temporary_directory
 
-
         try:
             self.json_response(f"/groups/tira_vm_{team}/members.json")
         except:
@@ -688,6 +687,7 @@ class TiraClient(ABC):
 
     def _admin_verify_tokens(self, tasks, skip_without_token):
         from tqdm import tqdm
+
         solved = set()
         target_file = Path(self.tira_cache_dir) / "admin-verified-teams.jsonl"
         if not target_file.exists():
@@ -700,10 +700,10 @@ class TiraClient(ABC):
             except:
                 pass
 
-# TODO: Check if torch is installed and cude
-#        self.local_execution.verify_image("t", "")
+        # TODO: Check if torch is installed and cude
+        #        self.local_execution.verify_image("t", "")
 
-#        return
+        #        return
 
         print(f"There are {len(solved)} already validated teams in {target_file}.")
         for task in tasks:
@@ -713,14 +713,25 @@ class TiraClient(ABC):
             for team in resp:
                 teams.add(team["team"])
 
-
             for team in tqdm(sorted(list(teams)), task):
                 if (task, team) in solved:
                     continue
 
                 _, role, user_id, token, team_dir = self.admin_verify_token(task, team)
                 with open(target_file, "a") as f:
-                    f.write(json.dumps({"task": task, "team": team, "role": role, "user": user_id, "token": token, "team_dir": team_dir}) + "\n")
+                    f.write(
+                        json.dumps(
+                            {
+                                "task": task,
+                                "team": team,
+                                "role": role,
+                                "user": user_id,
+                                "token": token,
+                                "team_dir": team_dir,
+                            }
+                        )
+                        + "\n"
+                    )
 
     def submit_dataset(
         self,

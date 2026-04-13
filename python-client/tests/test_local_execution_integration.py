@@ -1,7 +1,7 @@
 import os
-from io import StringIO
 import tempfile
 import unittest
+from io import StringIO
 from unittest.mock import Mock, patch
 
 from tira.local_execution_integration import LocalExecutionIntegration

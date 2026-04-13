@@ -381,7 +381,7 @@ def code_submission_command(
         forward_environment_variable=forward_environment_variable,
         build_args=build_args,
         mount_directory=mount_directory,
-        platform=platform
+        platform=platform,
     )
 
     return 0
