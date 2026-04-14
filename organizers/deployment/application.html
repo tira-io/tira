@@ -385,16 +385,8 @@ changed using the <code class="docutils literal notranslate"><span class="pre">T
 <span class="c1">##########################################################################################</span>
 <span class="c1"># Deprecated and removed soon (we hope)                                                  #</span>
 <span class="c1">##########################################################################################</span>
-<span class="c1"># grpc_host can be local or remote. If local, it will call localhost (i.e., for testing).</span>
-<span class="c1"># If remote, it will call the vm-host. When developing, set this option to local,</span>
-<span class="c1"># otherwise you might accidentally remote-control the live-vms.</span>
-<span class="nt">grpc_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
-<span class="nt">host_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50051</span>
-<span class="nt">application_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50052</span>
-
 <span class="nt">tira_rest_api</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_API_BASE_URL:https://www.tira.io}</span>
-<span class="w">  </span><span class="nt">grpc_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_GRPC_BASE_URL:https://www.tira.io}</span>
 <span class="w">  </span><span class="nt">archived_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_ARCHIVED_URL:https://archive.tira.io}</span>
 <span class="w">  </span><span class="nt">login_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_LOGIN_URL:https://www.tira.io}</span>
 <span class="w">  </span><span class="nt">logout_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_LOGOUT_URL:https://www.tira.io}</span>

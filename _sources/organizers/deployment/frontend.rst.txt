@@ -12,10 +12,6 @@ The frontend is configured using the following environment variables:
 +======================+==============================================================================================+
 | TIRA_REST_BASE_URL   | The URL at which the backend's REST-API can be reached.                                      |
 +----------------------+----------------------------------------------------------------------------------------------+
-| TIRA_GRPC_BASE_URL   | The URL at which the backend's GRPC-API can be reached. `The GRPC URL only exists for legacy |
-|                      | reasons and will be removed in the future. In the meantime, set TIRA_GRPC_BASE_URL to the    |
-|                      | same value as TIRA_REST_BASE_URL.`                                                           |
-+----------------------+----------------------------------------------------------------------------------------------+
 
 The frontend configured in the official container is fixed to use **port 80**. Using Docker, you can, of course, remap it to any other port you prefer.
 
