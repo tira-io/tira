@@ -91,7 +91,7 @@ class HybridDatabase(object):
         """reload task data from the export format of the model"""
         dbops.reload_tasks(self.tasks_dir_path)
 
-    def _load_softwares(self, task_id: str, vm_id: str) -> "Message":
+    def _load_softwares(self, task_id: str, vm_id: str) -> modelpb.Softwares:
         # Leave this
         softwares_dir = self.softwares_dir_path / task_id / vm_id
         softwares_dir.mkdir(parents=True, exist_ok=True)
@@ -1117,7 +1117,7 @@ class HybridDatabase(object):
         SELECT
             tira_upload.display_name, input_run.run_id, input_run.input_dataset_id,
             tira_run_review.reviewer_id,
-            tira_run_review.published, tira_run_review.blinded, 
+            tira_run_review.published, tira_run_review.blinded,
             tira_run_review.no_errors, tira_run_review.has_errors,
             tira_run_review.has_no_errors, input_run.valid_formats
         FROM
@@ -1779,7 +1779,7 @@ class HybridDatabase(object):
         return self._review_as_dict(review)
 
     @staticmethod
-    def _software_to_dict(software: "Message") -> "dict[str, Any]":
+    def _software_to_dict(software: modeldb.Software) -> "dict[str, Any]":
         return {
             "id": software.software_id,
             "count": software.count,
@@ -1879,8 +1879,10 @@ class HybridDatabase(object):
         task.virtualMachineId = master_vm_id
         task.hostId = organizer_id
         task.web = website
-        task.commandPlaceholder = help_command
-        task.commandDescription = help_text
+        if help_command is not None:
+            task.commandPlaceholder = help_command
+        if help_text is not None:
+            task.commandDescription = help_text
         new_task_file_path.write_text(str(task))
 
     def create_task(
@@ -2069,7 +2071,7 @@ class HybridDatabase(object):
         ev = modelpb.Evaluator()
         ev.evaluatorId = evaluator_id
         ev.command = command
-        ev.workingDirectory = working_directory
+        ev.workingDirectory = str(working_directory)
         ev.measures = str(measures)  # ",".join([x[0].strip('\r') for x in measures])
         # ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
@@ -2548,8 +2550,10 @@ class HybridDatabase(object):
         task.virtualMachineId = master_vm_id
         task.hostId = organizer_id
         task.web = website
-        task.commandPlaceholder = help_command
-        task.commandDescription = help_text
+        if help_command is not None:
+            task.commandPlaceholder = help_command
+        if help_text is not None:
+            task.commandDescription = help_text
         task_file_path.write_text(str(task))
 
     def edit_task(
@@ -2587,7 +2591,7 @@ class HybridDatabase(object):
                         c, _ = check_format(Path(tmp), "aggregated-results.json")
                         if c != _fmt.OK:
                             valid = False
-                except:
+                except Exception:
                     valid = False
             if not valid:
                 aggregated_results_json = None

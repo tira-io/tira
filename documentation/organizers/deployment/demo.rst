@@ -7,7 +7,6 @@ Demo Deployment
 
 .. code:: yaml
 
-    version: "3.8"
     services:
         tira-backend:
             image: ghcr.io/tira-io/tira-backend
@@ -47,6 +46,12 @@ Demo Deployment
             ports:
             - "5672:5672"
             - "15672:15672"
+        s3mock:
+            image: adobe/s3mock
+            restart: unless-stopped
+            ports:
+            - "9090:9090"
+            - "9191:9191"
         nginx:
             image: ghcr
             ports:

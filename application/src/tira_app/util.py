@@ -11,8 +11,6 @@ from .proto import TiraClientWebMessages_pb2 as modelpb
 if TYPE_CHECKING:
     from typing import Any, Callable, Optional
 
-    from google.protobuf.message import Message
-
 logger = logging.getLogger("tira")
 
 
@@ -42,7 +40,7 @@ def extract_year_from_dataset_id(dataset_id: str) -> str:
         return ""
 
 
-def auto_reviewer(review_path: Path, run_id: str) -> "Message":
+def auto_reviewer(review_path: Path, run_id: str) -> modelpb.RunReview:
     """Do standard checks for reviews so we do not need to wait for a reviewer to check for:
     - failed runs (
     """

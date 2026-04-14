@@ -212,8 +212,6 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         from shutil import rmtree
 
-        from tira.evaluators import unsandboxed_evaluation_is_allowed
-
         from ..model import Dataset, Run
         from .v1._anonymous import check_format_for_dataset
 

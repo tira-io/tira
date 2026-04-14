@@ -18,7 +18,7 @@ def token_is_valid(token):
         try:
             tira = Client(api_key=token, tira_cache_dir=tmp_dir)
             return tira.api_key_is_valid()
-        except:
+        except Exception:
             return False
 
 
@@ -35,7 +35,7 @@ def verify_docker_credentials(team, token):
                 continue
             try:
                 docker_credentials = tira.docker_credentials(r.registered_on_task.task_id, team)
-            except:
+            except Exception:
                 return False
             response = requests.get(
                 "https://registry.webis.de/v2/", auth=HTTPBasicAuth(docker_credentials[0], docker_credentials[1])

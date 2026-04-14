@@ -20,6 +20,8 @@ import tira_app.model as modeldb
 from tira_app.authentication import TrustedHeaderAuthentication
 from tira_app.tira_model import model as tira_model
 
+from .settings_test import TIRA_ROOT
+
 auth_backend = TrustedHeaderAuthentication()  # There must be a way to get this from rest_framework right?
 
 # Used for some tests
@@ -30,8 +32,6 @@ dataset_meta = f"meta-dataset-{now}-test"
 software_non_public = "docker-software-1"
 software_public = "docker-software-2"
 software_with_inputs = "docker-software-with_inputs"
-
-from settings_test import TIRA_ROOT
 
 
 def set_up_tira_filesystem():
@@ -433,4 +433,7 @@ def assert_all_url_patterns_are_tested(tested_url_patterns: "Iterable[str]"):
     Asserts that tested_url_patterns is identical or a superset to all the endpoints registered with django.
     """
     untested = set(f"{pre}{pat.pattern}" for pre, pat in get_django_url_patterns()).difference(tested_url_patterns)
+    assert len(untested) == 0, f"{len(untested)} patterns are untested: {untested}; tested: {tested_url_patterns}"
+    assert len(untested) == 0, f"{len(untested)} patterns are untested: {untested}; tested: {tested_url_patterns}"
+    assert len(untested) == 0, f"{len(untested)} patterns are untested: {untested}; tested: {tested_url_patterns}"
     assert len(untested) == 0, f"{len(untested)} patterns are untested: {untested}; tested: {tested_url_patterns}"

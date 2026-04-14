@@ -1,5 +1,4 @@
 import html
-import io
 import json
 import logging
 import zipfile

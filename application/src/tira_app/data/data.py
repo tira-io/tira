@@ -16,8 +16,6 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
-    from google.protobuf.message import Message
-
 logger = logging.getLogger("tira")
 
 
@@ -142,7 +140,7 @@ def _parse_dataset_list(datasets_dir_path: "Path") -> None:
         )
 
 
-def _parse_run(run_id: str, task_id: str, run_proto: "Message", vm: str, dataset: str) -> "modeldb.Run":
+def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, dataset: str) -> modeldb.Run:
     def __get_docker_software() -> "Optional[modeldb.DockerSoftware]":
         if "docker-software-" not in run_proto.softwareId:
             return None

@@ -170,7 +170,7 @@ class GitRunner:
             try:
                 repo.remote().pull(self.user_repository_branch)
                 print("pulled")
-            except:
+            except Exception:
                 pass
             write_to_file(str(tmp_dir) + "/README.md", project_readme)
 

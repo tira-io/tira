@@ -396,7 +396,7 @@ def get_running_software(
     for r in RunningProcesses.objects.filter(task=task_id, vm_id=user_id):
         try:
             context["running_software"].append(json.loads(r.details))
-        except:
+        except Exception:
             pass
 
     return JsonResponse({"status": 0, "context": context})

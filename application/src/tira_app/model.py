@@ -314,7 +314,7 @@ class AnonymousUploads(models.Model):
                 i["name"]: i["content"]
                 for i in lines_if_valid(self.get_path_in_file_system() / metadata_record, "ir_metadata")
             }
-        except:
+        except Exception:
             return {}
 
 
@@ -447,7 +447,7 @@ class Run(models.Model):
                 i["name"]: i["content"]
                 for i in lines_if_valid(self.get_path_in_file_system() / metadata_record, "ir_metadata")
             }
-        except:
+        except Exception:
             return {}
 
 
