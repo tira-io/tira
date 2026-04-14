@@ -1,7 +1,6 @@
 .PHONY: help setup run-develop build-docker clean
 
 VERSION_APPLICATION=0.0.105
-VERSION_GRPC=0.0.105
 
 PYTHON=python3
 
@@ -68,11 +67,6 @@ run-docker:
 		-p 8080:80 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-application:${VERSION_APPLICATION}
-	docker run -td --rm \
-        --name=tira-application-grpc \
-		-p 50052:50052 \
-		-v=/mnt/ceph/tira:/mnt/ceph/tira \
-		webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
@@ -80,7 +74,6 @@ build-docker:
 build-docker-all: build-docker
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir-base -f Dockerfile.application-diffir-base ..
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
-	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 	docker build --tag webis/tira-ir-datasets-starter:${VERSION_APPLICATION}-jupyter -f Dockerfile.application_ir_datasets_jupyter ..
 
 docker-publish:
@@ -90,7 +83,6 @@ docker-publish:
 	docker push webis/tira-application:${VERSION_APPLICATION}-diffir
 	docker tag webis/tira-application:${VERSION_APPLICATION}-diffir webis/tira-ir-datasets-starter:${VERSION_APPLICATION}
 	docker push webis/tira-ir-datasets-starter:${VERSION_APPLICATION}
-	docker push webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker-basis:
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..

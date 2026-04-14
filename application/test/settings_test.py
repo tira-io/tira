@@ -52,9 +52,6 @@ if not TIRA_ROOT.is_dir():
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
-APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
-GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
 TIRA_DB_NAME = custom_settings["database"]["name"]
 TIRA_DB = {
     "ENGINE": custom_settings["database"]["engine"],
@@ -200,23 +197,23 @@ def logger_config(log_dir: Path):
                 "filename": log_dir / "tira-db.log",
                 "formatter": "default",
             },
-            "ceph_grpc_debug": {
+            "ceph_tira_server_debug": {
                 "level": "DEBUG",
                 "class": "logging.FileHandler",
                 "filters": ["require_debug_true"],
-                "filename": log_dir / "grpc-debug.log",
+                "filename": log_dir / "tira-server-debug.log",
                 "formatter": "default",
             },
-            "ceph_grpc_info": {
+            "ceph_tira_server_info": {
                 "level": "INFO",
                 "class": "logging.FileHandler",
-                "filename": log_dir / "grpc-info.log",
+                "filename": log_dir / "tira-server-info.log",
                 "formatter": "default",
             },
-            "ceph_grpc_warn": {
+            "ceph_tira_server_warn": {
                 "level": "WARNING",
                 "class": "logging.FileHandler",
-                "filename": log_dir / "grpc-warning.log",
+                "filename": log_dir / "tira-server-warning.log",
                 "formatter": "default",
             },
         },
@@ -241,8 +238,8 @@ def logger_config(log_dir: Path):
                 "handlers": ["console", "ceph_tira_db"],
                 "propagate": True,
             },
-            "grpc_server": {
-                "handlers": ["console", "ceph_grpc_debug", "ceph_grpc_warn", "ceph_grpc_info"],
+            "tira_server": {
+                "handlers": ["console", "ceph_tira_server_debug", "ceph_tira_server_warn", "ceph_tira_server_info"],
                 "propagate": True,
             },
         },
@@ -333,7 +330,6 @@ S3_BUCKET = "None"
 
 WELL_KNOWN = {
     "api": custom_settings["tira_rest_api"]["base_url"],
-    "grpc": custom_settings["tira_rest_api"]["grpc_url"],
     "archived": custom_settings["tira_rest_api"]["archived_url"],
     "login": custom_settings["tira_rest_api"]["login_url"],
     "logout": custom_settings["tira_rest_api"]["logout_url"],

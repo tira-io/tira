@@ -267,7 +267,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
 
         try:
             assert model.get_task(task_id) is not None
-        except:
+        except Exception:
             return JsonResponse({"status": 1, "message": f"The task {task_id} does not exist."})
 
         upload_name = data.get("upload_name", "predictions.jsonl")

@@ -85,7 +85,7 @@ export default {
         'workflow_configuration': {} as { [key: string]: string }
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
-      rest_url: inject("gRPC base URL"),
+      rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
     }
   },

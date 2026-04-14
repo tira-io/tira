@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from tqdm import tqdm
 
 from tira_app import model as modeldb
 

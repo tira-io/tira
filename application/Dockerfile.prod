@@ -39,8 +39,6 @@ COPY --chown=tira:tira ./worker ../worker
 ########################################################################################################################
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-# For faster build of GRPCIO (TODO: remove when GRPC is not used anymore)
-ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS=16
 
 RUN <<EOF
 apt-get -qq update

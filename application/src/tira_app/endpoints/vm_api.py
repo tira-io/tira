@@ -8,31 +8,25 @@ import shutil
 import threading
 import uuid
 import zipfile
-from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Optional
+from typing import Any, Mapping, Optional
 from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
-from django.db.utils import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, HttpResponseServerError, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from grpc import RpcError, StatusCode
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
-from tira.io_utils import get_tira_id
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
-from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
-from ..grpc_client import GrpcClient
-from ..model import EvaluationLog, TransitionLog
-from ..util import link_to_discourse_team, reroute_host
+from ..model import EvaluationLog
+from ..util import link_to_discourse_team
 from ..views import add_context
 
 include_navigation = False
@@ -41,124 +35,9 @@ logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
 
 
-def _host_call(func):
-    """This is a decorator for methods that connect to a host. It handles all exceptions that can occur
-    in the grpc communication. It also adds a reply consistent with the return status of the grpc call."""
-
-    @wraps(func)
-    def func_wrapper(request, *args, **kwargs):
-        try:
-            response = func(request, *args, **kwargs)
-        except RpcError as e:
-            ex_message = "FAILED"
-            try:
-                logger.exception(f"{request.get_full_path()}: connection failed with {e}")
-                if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                    logger.exception(f"Connection Unavailable: {e.debug_error_string()}")
-                    ex_message = (  # This happens if the GRPC Server is not running
-                        "The requested host is unavailable. If you think this is a mistake, please contact "
-                        "your task organizer."
-                    )
-                if e.code() == StatusCode.INVALID_ARGUMENT:
-                    logger.exception(f"Invalid Argument: {e.debug_error_string()}")
-                    ex_message = f"Response returned with an invalid argument: {e.debug_error_string()}"  #
-            except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-                logger.exception(f"{request.get_full_path()}: Unexpected Exception occurred: {e2}")
-                ex_message = f"An unexpected exception occurred: {e2}"
-            return JsonResponse({"status": "2", "message": ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-        except Exception as e:
-            logger.exception(f"{request.get_full_path()}: Server Error: {e}")
-            return JsonResponse(
-                {"status": "1", "message": f"An unexpected exception occurred: {e}"},
-                status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            )
-
-        if response.status == 0:
-            return JsonResponse({"status": 0, "message": response.transactionId}, status=HTTPStatus.ACCEPTED)
-        if response.status == 2:
-            return JsonResponse(
-                {"status": 2, "message": f"Virtual machine not found on host: {response.message}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
-        if response.status == 3:
-            return JsonResponse(
-                {"status": 1, "message": f"Virtual machine is in the wrong state for your request: {response.message}"},
-                status=HTTPStatus.BAD_REQUEST,
-            )
-        if response.status == 4:
-            return JsonResponse(
-                {"status": 1, "message": f"VM is archived: {response.message}"}, status=HTTPStatus.NOT_FOUND
-            )
-        if response.status == 5:
-            return JsonResponse(
-                {"status": 2, "message": f"VM is not accessible: {response.message}"}, status=HTTPStatus.NOT_FOUND
-            )
-        if response.status == 6:
-            return JsonResponse(
-                {"status": 1, "message": f"Requested input run was not found: {response.message}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
-        if response.status == 7:
-            return JsonResponse(
-                {"status": 1, "message": f"Evaluation failed due to malformed run output: {response.message}"},
-                status=HTTPStatus.BAD_REQUEST,
-            )
-        if response.status == 8:
-            return JsonResponse(
-                {"status": 1, "message": f"Input malformed: {response.message}"}, status=HTTPStatus.BAD_REQUEST
-            )
-        if response.status == 9:
-            return JsonResponse(
-                {"status": 2, "message": f"Host ist busy: {response.message}"}, status=HTTPStatus.SERVICE_UNAVAILABLE
-            )
-
-        return JsonResponse(
-            {"status": 2, "message": f"{response.transactionId} was rejected by the host: {response.message}"},
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
-
-    return func_wrapper
-
-
 # ---------------------------------------------------------------------
 #   VM actions
 # ---------------------------------------------------------------------
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_state(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    try:
-        state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={"vm_state": 0})[0].vm_state
-    except IntegrityError as e:
-        logger.warning(f"failed to read state for vm {vm_id} with {e}")
-        state = 0
-    return JsonResponse({"status": 0, "state": state})
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_running_evaluations(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse({"status": 0, "running_evaluations": True if results else False})
-
-
-@check_permissions
-@check_resources_exist("json")
-def get_running_evaluations(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse(
-        {
-            "status": 0,
-            "running_evaluations": [
-                {"vm_id": r.vm_id, "run_id": r.run_id, "running_on": r.running_on, "last_update": r.last_update}
-                for r in results
-            ],
-        }
-    )
-
-
 @add_context
 @check_permissions
 def docker_software_details(request: "HttpRequest", context, vm_id: str, docker_software_id: str) -> HttpResponse:
@@ -207,214 +86,9 @@ def upload_group_details(request: "HttpRequest", context, task_id: str, vm_id: s
     return JsonResponse({"status": 0, "context": context})
 
 
-@check_conditional_permissions(restricted=True)
-@_host_call
-def vm_create(request: "HttpRequest", hostname: str, vm_id: str, ova_file: str) -> HttpResponse:
-    uid = auth.get_user_id(request)
-    host = reroute_host(hostname)
-    return GrpcClient(host).vm_create(vm_id=vm_id, ova_file=ova_file, user_id=uid, hostname=host)
-
-
-@check_permissions
-@check_resources_exist("json")
-@_host_call
-def vm_start(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    vm = model.get_vm(vm_id)
-    # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    return GrpcClient(reroute_host(vm["host"])).vm_start(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-@_host_call
-def vm_shutdown(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_shutdown(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-@_host_call
-def vm_stop(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_stop(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_info(request: "HttpRequest", vm_id: str) -> HttpResponse:
-    vm = model.get_vm(vm_id)
-    host = reroute_host(vm["host"])
-    if not host:
-        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed, because host is empty")
-        return JsonResponse({"status": "Rejected", "message": "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    try:
-        grpc_client = GrpcClient(host)
-        response_vm_info = grpc_client.vm_info(vm_id=vm_id)
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={"vm_state": response_vm_info.state})
-        del grpc_client
-    except RpcError as e:
-        ex_message = "FAILED"
-        try:
-            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-                ex_message = "Host Unavailable"  # This happens if the GRPC Server is not running
-            if e.code() == StatusCode.INVALID_ARGUMENT:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "VM is archived"  # If there is no VM with the requested name on the host.
-                _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={"vm_state": 8})
-        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-            logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
-        return JsonResponse({"status": 1, "message": ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-        return JsonResponse({"status": 1, "message": "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    return JsonResponse(
-        {
-            "status": 0,
-            "context": {
-                "guestOs": response_vm_info.guestOs,
-                "memorySize": response_vm_info.memorySize,
-                "numberOfCpus": response_vm_info.numberOfCpus,
-                "sshPort": response_vm_info.sshPort,
-                "rdpPort": response_vm_info.rdpPort,
-                "host": response_vm_info.host,
-                "sshPortStatus": response_vm_info.sshPortStatus,
-                "rdpPortStatus": response_vm_info.rdpPortStatus,
-                "state": response_vm_info.state,
-            },
-        }
-    )
-
-
 # ---------------------------------------------------------------------
 #   Software actions
 # ---------------------------------------------------------------------
-@check_permissions
-@check_resources_exist("json")
-def software_add(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse:
-    if request.method == "GET":
-        if not task_id or task_id is None or task_id == "None":
-            return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
-
-        software = model.add_software(task_id, vm_id)
-        if not software:
-            return JsonResponse(
-                {"status": 1, "message": "Failed to create a new Software."}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-            )
-
-        context = {
-            "task": task_id,
-            "vm_id": vm_id,
-            "software": {
-                "id": software["id"],
-                "command": software["command"],
-                "working_dir": software["working_directory"],
-                "dataset": software["dataset"],
-                "creation_date": software["creation_date"],
-                "last_edit": software["last_edit"],
-            },
-        }
-        return JsonResponse({"status": 0, "message": "ok", "context": context})
-    else:
-        return JsonResponse({"status": 1, "message": "POST is not allowed here."})
-
-
-@check_permissions
-@check_resources_exist("json")
-def software_save(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
-    if request.method == "POST":
-        data = json.loads(request.body)
-        new_dataset = data.get("input_dataset")
-        if not model.dataset_exists(new_dataset):
-            return JsonResponse({"status": 1, "message": f"Cannot save, the dataset {new_dataset} does not exist."})
-
-        software = model.update_software(
-            task_id,
-            vm_id,
-            software_id,
-            data.get("command"),
-            data.get("working_dir"),
-            data.get("input_dataset"),
-            data.get("input_run"),
-        )
-
-        message = "failed to save software for an unknown reasons"
-        try:
-            if software:
-                return JsonResponse(
-                    {"status": 0, "message": f"Saved {software_id}", "last_edit": software.lastEditDate},
-                    status=HTTPStatus.ACCEPTED,
-                )
-        except Exception as e:
-            message = str(e)
-
-        return JsonResponse({"status": 1, "message": message}, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
-
-
-@check_permissions
-@check_resources_exist("json")
-def software_delete(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
-    delete_ok = model.delete_software(task_id, vm_id, software_id)
-
-    if delete_ok:
-        return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
-    else:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Cannot delete software, because it has a valid evaluation assigned (or it does not exist.)",
-            },
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
-
-
-@check_permissions
-@check_resources_exist("json")
-@_host_call
-def run_execute(request: "HttpRequest", task_id: str, vm_id: str, software_id: str) -> HttpResponse:
-    vm = model.get_vm(vm_id)
-    software = model.get_software(task_id, vm_id, software_id=software_id)
-    if not model.dataset_exists(software["dataset"]):
-        return JsonResponse({"status": 1, "message": f'The dataset {software["dataset"]} does not exist'})
-    host = reroute_host(vm["host"])
-    future_run_id = get_tira_id()
-    grpc_client = GrpcClient(host)
-    response = grpc_client.run_execute(
-        vm_id=vm_id,
-        dataset_id=software["dataset"],
-        run_id=future_run_id,
-        input_run_vm_id="",
-        input_run_dataset_id="",
-        input_run_run_id=software["run"],
-        optional_parameters="",
-        task_id=task_id,
-        software_id=software_id,
-    )
-    del grpc_client
-    return response
-
-
-@_host_call
-def _master_vm_eval_call(vm_id: str, dataset_id: str, run_id: str, evaluator: "dict[str, Any]") -> HttpResponse:
-    """Called when the evaluation is done via master vm.
-    This method calls the grpc client"""
-    host = reroute_host(evaluator["host"])
-    grpc_client = GrpcClient(host)
-    response = grpc_client.run_eval(
-        vm_id=evaluator["vm_id"],
-        dataset_id=dataset_id,
-        run_id=get_tira_id(),
-        input_run_vm_id=vm_id,
-        input_run_dataset_id=dataset_id,
-        input_run_run_id=run_id,
-        optional_parameters="",
-    )
-    del grpc_client
-    return response
-
-
 def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
     from tira.evaluators import evaluate
     from tira.io_utils import run_prototext
@@ -496,7 +170,7 @@ def run_sandboxed_software(
 @check_resources_exist("json")
 def run_eval(request, vm_id, dataset_id, run_id):
     """Get the evaluator for dataset_id from the model.
-    Then, send a GRPC-call to the host running the evaluator with the run data.
+    Then, enqueue the evaluation job with the run data into the worker queue.
     Then, log vm_id and run_id to the evaluation log as ongoing.
     """
     # check if evaluation already exists
@@ -523,20 +197,6 @@ def run_delete(request, dataset_id, vm_id, run_id):
     )
 
 
-@check_permissions
-@check_resources_exist("json")
-@_host_call
-def run_abort(request, vm_id):
-    """ """
-    vm = model.get_vm(vm_id)
-    host = reroute_host(vm["host"])
-
-    grpc_client = GrpcClient(host)
-    response = grpc_client.run_abort(vm_id=vm_id)
-    del grpc_client
-    return response
-
-
 @csrf_exempt
 @check_permissions
 @check_resources_exist("json")
@@ -551,8 +211,6 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         uploaded_file = request.FILES["file"]
 
         from shutil import rmtree
-
-        from tira.evaluators import unsandboxed_evaluation_is_allowed
 
         from ..model import Dataset, Run
         from .v1._anonymous import check_format_for_dataset

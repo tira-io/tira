@@ -62,7 +62,6 @@ export default function register_app() {
 
   fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
     if (wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase())) {
-      wellKnown.grpc = wellKnown.archived
       wellKnown.api = wellKnown.archived
     }
 
@@ -79,7 +78,6 @@ export default function register_app() {
 
         const app = createApp(App)
 
-        app.provide("gRPC base URL", wellKnown.grpc)
         app.provide("REST base URL", wellKnown.api)
         app.provide("userinfo", userInfo)
         app.provide(".wellKnown", wellKnown)

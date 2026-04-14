@@ -16,26 +16,7 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
-    from google.protobuf.message import Message
-
 logger = logging.getLogger("tira")
-
-
-def index(
-    organizers_file_path: "Path",
-    users_file_path: "Path",
-    vm_dir_path: "Path",
-    tasks_dir_path: "Path",
-    datasets_dir_path: "Path",
-    softwares_dir_path: "Path",
-    runs_dir_path: "Path",
-) -> None:
-    _parse_organizer_list(organizers_file_path)
-    _parse_vm_list(users_file_path, vm_dir_path)
-    _parse_dataset_list(datasets_dir_path)
-    _parse_task_list(tasks_dir_path)
-    _parse_software_list(softwares_dir_path)
-    _parse_runs_evaluations(runs_dir_path)
 
 
 def reload_vms(users_file_path: "Path", vm_dir_path: "Path") -> None:
@@ -48,18 +29,6 @@ def reload_datasets(datasets_dir_path: "Path") -> None:
 
 def reload_tasks(tasks_dir_path: "Path") -> None:
     _parse_task_list(tasks_dir_path)
-
-
-def _parse_organizer_list(organizers_file_path: "Path") -> None:
-    """Parse the PB Database and extract all hosts.
-    :return: a dict {hostId: {"name", "years"}
-    """
-    organizers = modelpb.Hosts()
-    Parse(organizers_file_path.read_bytes(), organizers)
-    for org in organizers.hosts:
-        _, _ = modeldb.Organizer.objects.update_or_create(
-            organizer_id=org.hostId, defaults={"name": org.name, "years": org.years, "web": org.web}
-        )
 
 
 def _parse_vm_list(users_file_path: "Path", vm_dir_path: "Path") -> None:
@@ -150,7 +119,7 @@ def _parse_task_list(tasks_dir_path: "Path") -> None:
 
 
 def _parse_dataset_list(datasets_dir_path: "Path") -> None:
-    """Load all the datasets from the Filedatabase.
+    """Load all the datasets from the database.
     :return: a dict {dataset_id: dataset protobuf object}
     """
     logger.info("loading datasets")
@@ -171,47 +140,7 @@ def _parse_dataset_list(datasets_dir_path: "Path") -> None:
         )
 
 
-def _parse_software_list(softwares_dir_path: "Path") -> None:
-    """extract the software files. We invent a new id for the lookup since software has none:
-      - <task_name>$<user_name>
-    Afterwards sets self.software: a dict with the new key and a list of software objects as value
-    """
-    # software = {}
-    logger.info("loading softwares")
-    for task_dir in softwares_dir_path.glob("*"):
-        for user_dir in task_dir.glob("*"):
-            s = Parse((user_dir / "softwares.prototext").read_bytes(), modelpb.Softwares())
-            for software in s.softwares:
-                vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=user_dir.stem)
-                task, _ = modeldb.Task.objects.get_or_create(task_id=task_dir.stem)
-                dataset, _ = modeldb.Dataset.objects.get_or_create(dataset_id=software.dataset)
-                modeldb.Software.objects.update_or_create(
-                    software_id=software.id,
-                    vm=vm,
-                    task=task,
-                    defaults={
-                        "count": software.count,
-                        "command": software.command,
-                        "working_directory": software.workingDirectory,
-                        "dataset": dataset,
-                        "creation_date": software.creationDate,
-                        "last_edit_date": software.lastEditDate,
-                        "deleted": software.deleted,
-                    },
-                )
-            # software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-            # software[f"{task_dir.stem}${user_dir.stem}"] = software_list
-
-
-def _parse_runs_evaluations(runs_dir_path: "Path") -> None:
-    for dataset_dir in tqdm(runs_dir_path.glob("*")):
-        dataset_id = dataset_dir.stem
-        for vm_dir in tqdm(dataset_dir.glob("*"), desc=f"{dataset_id}"):
-            vm_id = vm_dir.stem
-            parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
-
-
-def _parse_run(run_id: str, task_id: str, run_proto: "Message", vm: str, dataset: str) -> "modeldb.Run":
+def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, dataset: str) -> modeldb.Run:
     def __get_docker_software() -> "Optional[modeldb.DockerSoftware]":
         if "docker-software-" not in run_proto.softwareId:
             return None

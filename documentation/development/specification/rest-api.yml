@@ -474,16 +474,6 @@ paths:
         "200":
           description: TODO
       tags: [legacy]
-  /ova-list:
-    get:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        "200":
-          description: TODO
-      tags: [legacy, "dead?"]
   /organizer-list:
     get:
       summary: Deprecated, use /v1/organizers instead.

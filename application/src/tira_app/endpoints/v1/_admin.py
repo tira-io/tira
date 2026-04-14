@@ -21,7 +21,7 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
 
     try:
         job = RunningProcesses.objects.get(uuid=job_id)
-    except:
+    except Exception:
         return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
 
     dataset_id = job.dataset_id
@@ -70,7 +70,7 @@ def registered_workers(request: Request, vm_id: str) -> Response:
     ret = []
     try:
         from celery.app.control import Inspect
-        from tira_worker import app, evaluate
+        from tira_worker import app
 
         inspect: Inspect = app.control.inspect()
         stats = inspect.stats()
@@ -92,7 +92,7 @@ def registered_workers(request: Request, vm_id: str) -> Response:
                     "total": json.dumps(worker_stats["total"]),
                 }
             )
-    except:
+    except Exception:
         pass
     return JsonResponse({"status": 0, "context": {"active_workers": ret}})
 

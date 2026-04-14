@@ -28,21 +28,7 @@ Run `make` to get an overview of all commands that will setup a self-contained t
 
 ## Docker
 
-You can run tira in a docker container for a simple deployment. 
-
-You need to run two docker containers for a tira-application: `registry.webis.de/code-lib/public-images/tira-application` and `registry.webis.de/code-lib/public-images/tira-application-grpc`. 
-
-   ```bash
-   ~$ docker run -d --rm --name=tira-application \
-		 -p 8080:80 \
-		 -v=/path/to/model:/mnt/ceph/tira \
-		 registry.webis.de/code-lib/public-images/tira-application:latest
-
-   ~$ docker run -d --rm --name=tira-application-grpc \
-		-p 50052:50052 \
-		 -v=/path/to/model:/mnt/ceph/tira \
-		 registry.webis.de/code-lib/public-images/tira-application-grpc:latest
-   ```
+`TODO: update; TIRA application needs only the backend container`
 
 ## Build and Deploy
 
