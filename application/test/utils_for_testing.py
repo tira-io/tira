@@ -16,11 +16,12 @@ from django.http.request import QueryDict
 from django.urls import URLPattern, URLResolver
 from rest_framework.test import APIRequestFactory
 
+# Can't to relative imports since we are not in a parent module. But this basicly is relative.
+from settings_test import TIRA_ROOT
+
 import tira_app.model as modeldb
 from tira_app.authentication import TrustedHeaderAuthentication
 from tira_app.tira_model import model as tira_model
-
-from .settings_test import TIRA_ROOT
 
 auth_backend = TrustedHeaderAuthentication()  # There must be a way to get this from rest_framework right?
 
