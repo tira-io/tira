@@ -1,10 +1,8 @@
 import csv
-import datetime
 import json
 import logging
 import textwrap
 from copy import deepcopy
-from http import HTTPStatus
 from io import StringIO
 from typing import TYPE_CHECKING
 
@@ -271,14 +269,6 @@ def get_evaluations_of_run(request: "HttpRequest", context: "Context", vm_id: st
     return JsonResponse({"status": 0, "context": context})
 
 
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_ova_list(request: "HttpRequest", context: "Context"):
-    context["ova_list"] = model.get_ova_list()
-    return JsonResponse({"status": 0, "context": context})
-
-
 @add_context
 def runs(
     request: "HttpRequest", context: "Context", task_id: str, dataset_id: str, vm_id: str, software_id: str
@@ -288,14 +278,6 @@ def runs(
     if len(runs) > 0:
         context["job_id"] = runs[0]
 
-    return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_host_list(request: "HttpRequest", context: "Context") -> "HttpResponse":
-    context["host_list"] = model.get_host_list()
     return JsonResponse({"status": 0, "context": context})
 
 
@@ -419,7 +401,7 @@ def get_running_software(
     for r in RunningProcesses.objects.filter(task=task_id, vm_id=user_id):
         try:
             context["running_software"].append(json.loads(r.details))
-        except:
+        except Exception:
             pass
 
     return JsonResponse({"status": 0, "context": context})

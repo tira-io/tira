@@ -9,7 +9,7 @@ from .endpoints.stdout_beautifier import beautify_ansi_text
 logger = logging.getLogger("tira")
 
 if TYPE_CHECKING:
-    from typing import Any, Optional, Sequence
+    from typing import Any, Optional
 
 DATA_ROOT = Path(settings.TIRA_ROOT) / "data"
 RUNS_DIR_PATH = DATA_ROOT / "runs"

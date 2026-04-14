@@ -4,7 +4,6 @@ import os
 from functools import wraps
 from typing import TYPE_CHECKING
 
-from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed
 from slugify import slugify
 

@@ -147,7 +147,6 @@ export default {
       selectedRuns: null,
       pollSoftwareInterval: null,
       abortedProcesses: [],
-      grpc_url: inject("gRPC base URL"),
       rest_url: inject("REST base URL")
     }
   },
@@ -160,7 +159,7 @@ export default {
     stopRun(run_id) {
       if (!(this.abortedProcesses.includes(run_id))) {
         this.abortedProcesses.push(run_id)
-        get(this.grpc_url + `/grpc/${this.task_id}/${this.user_id_for_task}/stop_docker_software/${run_id}`)
+        get(this.rest_url + `/grpc/${this.task_id}/${this.user_id_for_task}/stop_docker_software/${run_id}`)
           .then(reportSuccess('Run with the id ' + run_id + " was successfully aborted!"))
           .catch(reportError("Problem while trying to abort the process with id: " + run_id))
       }

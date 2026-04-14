@@ -10,7 +10,6 @@ from typing import Any
 from django.conf import settings
 from django.core.cache import cache
 from django.http import FileResponse, HttpResponseServerError, JsonResponse
-from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 

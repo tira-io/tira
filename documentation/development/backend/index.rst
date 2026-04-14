@@ -31,27 +31,15 @@ Yay, no questions yet.
     ~~~~~~~~~~~
     Frequently used development commands are:
 
-    - Start the application without any grpc server
+    - Start the application
     
     .. code:: bash
         
         application/src~$ python3 manage.py runserver 8080
 
-    - Start only the application's grpc server
-    
-    .. code:: bash
-
-        application/src~$ python3 manage.py grpc_server
-
-    - Start the application and  the application's grpc server. This is used in make run-develop and the container
+    - Start the application. This is used in make run-develop and the container (by now, this is redundant with runserver right?) TODO
     
     .. code:: bash
 
         application/src~$ python3 manage.py run_develop
 
-    - Start the application, the application's grpc server, and a mock host grpc server that will reply to the application
-    with fake commands. This is the simplest way to develop the application.
-    
-    .. code:: bash
-
-        application/src~$ python3 manage.py run_mockup

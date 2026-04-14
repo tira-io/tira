@@ -92,7 +92,6 @@
 							],
 							"env": {
 								"TIRA_API_BASE_URL": "https://127.0.0.1:8080",
-								"TIRA_GRPC_BASE_URL": "https://127.0.0.1:8080",
 								"TIRA_ARCHIVED_URL": "https://127.0.0.1:8080"
 							},
 							"django": true,

@@ -65,7 +65,6 @@ export interface ServerInfo {
 
 export interface WellKnownAPI {
     api: string;
-    grpc: string;
     archived: string;
     login: string;
     logout: string;
