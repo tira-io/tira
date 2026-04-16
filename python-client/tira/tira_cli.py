@@ -49,7 +49,9 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         help="Download the outputs of the specified approach. Usage: --approach <task-id>/<user-id>/<approach-name>",
     )
     parser.add_argument("--dataset", required=True, help="The dataset.")
+    parser.add_argument("--output", required=False, help="The output directory.")
     parser.add_argument("--truths", action="store_true", help="Download truths.")
+    parser.add_argument("--all-submissions", action="store_true", help="Download all submissions to a task.")
     parser.set_defaults(executable=download_command)
 
 
@@ -316,12 +318,17 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, **kwargs) -> int:
+def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, output: "Optional[str]" = None, all_submissions: bool = False, **kwargs) -> int:
     client: "RestClient" = RestClient()
     if approach is not None:
-        print(client.get_run_output(approach, dataset))
+        ret = client.get_run_output(approach, dataset)
+    elif all_submissions:
+        ret = client.download_all_submissions(dataset, output)
     else:
-        print(client.download_dataset(None, dataset, truths))
+        ret = client.download_dataset(None, dataset, truths)
+
+    
+
     return 0
 
 
