@@ -412,11 +412,12 @@ class Client(TiraClient):
             output = temporary_directory()
         
         output = Path(output)
-        dataset = self.get_dataset(dataset_id)
-        task = dataset["default_task_name"]
-        evals = self.evaluations(task, dataset_id)
         raw_output_dir = output / "raw-outputs" / dataset_id
         raw_output_dir.mkdir(parents=True, exist_ok=True)
+        outputs_flat = output / "outputs-flat"
+        shutil.rmtree(outputs_flat, ignore_errors=True)
+        outputs_flat.mkdir(parents=True, exist_ok=True)
+
         existing_runs = {}
         if (output / "metadata.jsonl").exists():
             for l in (output / "metadata.jsonl").read_text().split("\n"):
@@ -424,6 +425,11 @@ class Client(TiraClient):
                     continue
                 l = json.loads(l)
                 existing_runs[l["tira_run_id"]] = l
+
+        dataset = self.get_dataset(dataset_id)
+        task = dataset["default_task_name"]
+        evals = self.evaluations(task, dataset_id)
+
 
         for _, i in tqdm(list(evals.iterrows())):
             i = i.to_dict()
@@ -459,6 +465,22 @@ class Client(TiraClient):
                 metadata = run_id_to_metadata[i["tira_run_id"]]
                 for k, v in metadata.items():
                     i[k] = v
+                f.write(json.dumps(i) + "\n")
+
+        for i in tqdm(existing_runs.values()):
+            inp = output / i["raw-outputs-from-tira"] / "output"
+            inp = glob(f"{inp}/*")
+            assert len(inp) == 1
+            inp = inp[0]
+            expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
+            target_file = outputs_flat / i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+            assert not target_file.exists()
+            shutil.copy(inp, target_file)
+            i["md5sum"] = expected_md5
+            i["flat-outputs"] = "outputs-flat/" + target_file.name
+
+        with open(output / "metadata.jsonl", "w") as f:
+            for i in existing_runs.values():
                 f.write(json.dumps(i) + "\n")
 
     def evaluations(self, task, dataset, join_submissions=True):
