@@ -150,7 +150,27 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         default=[],
         help="The task(s) on which all authentications should be verified.",
     )
-    v_parser.set_defaults(executable=admin_verify_tokens)
+
+    irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
+    irds_parser.add_argument("--ir-datasets-id", required=True)
+    irds_parser.add_argument("--output-dataset-path", required=True)
+    irds_parser.set_defaults(executable=ir_datasets_loader_cli)
+
+
+def ir_datasets_loader_cli(ir_datasets_id, output_dataset_path, **kwargs) -> int:
+    from tira.ir_datasets_loader import IrDatasetsLoader
+
+    irds_loader = IrDatasetsLoader()
+    irds_loader.load_dataset_for_fullrank(
+        ir_datasets_id,
+        Path(output_dataset_path),
+        output_dataset_truth_path=None,
+        include_original=True,
+        skip_documents=False,
+        skip_qrels=False,
+        skip_duplicate_ids=True,
+    )
+    return 0
 
 
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
@@ -318,7 +338,14 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, output: "Optional[str]" = None, all_submissions: bool = False, **kwargs) -> int:
+def download_command(
+    dataset: str,
+    approach: "Optional[str]" = None,
+    truths: bool = False,
+    output: "Optional[str]" = None,
+    all_submissions: bool = False,
+    **kwargs,
+) -> int:
     client: "RestClient" = RestClient()
     if approach is not None:
         ret = client.get_run_output(approach, dataset)
@@ -326,8 +353,6 @@ def download_command(dataset: str, approach: "Optional[str]" = None, truths: boo
         ret = client.download_all_submissions(dataset, output)
     else:
         ret = client.download_dataset(None, dataset, truths)
-
-    
 
     return 0
 
