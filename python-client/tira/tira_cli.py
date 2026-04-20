@@ -5,11 +5,13 @@ from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
-from tira import __version__
-from tira.check_format import fmt_message
-from tira.io_utils import _fmt, log_message, verify_tira_installation
-from tira.rest_api_client import Client as RestClient
-from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
+from . import __version__
+from ._cli.commands.reproduce import reproduce_command
+from ._cli.commands.upload import upload_command
+from .io_utils import _fmt, log_message, verify_tira_installation
+from .rest_api_client import Client as RestClient
+from .check_format import fmt_message
+from .tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient
@@ -264,6 +266,16 @@ def setup_eval_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=evaluate_command)
 
 
+def setup_reproduce_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "metadata",
+        type=argparse.FileType("r"),
+        help="The metadata to load runtime information from.",
+    )
+    parser.set_defaults(executable=reproduce_command)
+
+
 """
 Implementations of each command. They don't all need to be here but if your command is short and sweet and you don't
 don't know, where else to put it, this is a good place.
@@ -487,6 +499,7 @@ def parse_args() -> argparse.Namespace:
     setup_code_submission_command(
         subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
     )
+    setup_reproduce_command(subparsers.add_parser("reproduce", help="Reproduce an experiment based on its metadata."))
     setup_dataset_submission_command(
         subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
     )
