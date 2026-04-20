@@ -501,6 +501,30 @@ class TiraClient(ABC):
         dataset_path = self.download_dataset(task_id, dataset_id)
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
+        if not dry_run:
+            from tira.io_utils import verify_images_can_be_build_and_pushed, verify_images_are_in_correct_format
+
+            specific_help = "\n\n\tIt seems like your installation produces images that are not compatible with the TIRA cluster."
+            specific_help += "\n\tThis might be because you use Docker Desktop with containerd."
+            specific_help += "\n\tPlease see this forum article for details:"
+            specific_help += "\n\thttps://www.tira.io/t/ensure-to-upload-compatible-docker-images"
+            lvl, message = verify_images_can_be_build_and_pushed(task_id, user_id)
+
+            if lvl != _fmt.OK:
+                message += specific_help
+                print(message)
+                raise ValueError(message)
+            else:
+                print_message(message, lvl)
+
+            lvl, message = verify_images_are_in_correct_format(task_id, user_id)
+            if lvl != _fmt.OK:
+                message += specific_help
+                print(message)
+                raise ValueError(message)
+            else:
+                print_message(message, lvl)
+
         resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
 
         if platform is None:
