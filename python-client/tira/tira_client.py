@@ -625,20 +625,19 @@ class TiraClient(ABC):
                 from tira.tira_run import push_image
 
                 pushed_image = push_image(self, docker_tag, task_id, user_id)
+                print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             else:
                 target_docker_tag = external_docker_registry.split(":")[0] + ":" + platform.split("/")[-1] + '-' + commit[:5] + "-" + str(uuid.uuid4())[:5]
                 pushed_image = self.local_execution.push_image_third_party_registry(docker_tag, target_docker_tag)
                 manifest = get_manifest_of_ghcr_docker_image(pushed_image)
+                
+                print_message(f"The image {pushed_image} is pushed.", _fmt.OK)
                 if not manifest:
                     msg = f"The image {pushed_image} is not publically available on ghcr. You likely need to configure that the package is public."
                     
                     print(msg)
                     raise ValueError(msg)
-                raise ValueError(
-                    f"Using an External Docker registry is not yet deployed on the Server side, but we deploy this within the next weeks: {target_docker_tag}"
-                )
 
-            print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             print("Configure code submission in TIRA...")
             upload = self.add_docker_software(
                 pushed_image,
