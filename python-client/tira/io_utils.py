@@ -130,6 +130,7 @@ def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "O
     from tira.rest_api_client import Client
     from tira.third_party_integrations import temporary_directory
 
+    print("I verify that I can build and push images.")
     tira = Client()
 
     metadata = tira.metadata_for_task(task, team)
@@ -161,6 +162,7 @@ def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "O
 def verify_images_are_in_correct_format(task: "Optional[str]" = None, team: "Optional[str]" = None):
     from tira.rest_api_client import Client
 
+    print("I verify that pushed images are in the correct format.")
     tira = Client()
     registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
     json_payload = {"image": "latest", "repository_name": registry_prefix + "tira-mini"}
@@ -749,6 +751,26 @@ def docker_supported_target_platform():
     else:
         return "linux/amd64"
 
+
+def get_manifest_of_ghcr_docker_image(image):
+    import requests
+
+    repo, tag = image.replace("ghcr.io/", "").split(":")
+
+    try:
+        token = requests.get(f"https://ghcr.io/token?service=ghcr.io&scope=repository:{repo}:pull").json()["token"]
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.docker.distribution.manifest.v2+json",
+        }
+        ret = requests.get(f"https://ghcr.io/v2/{repo}/manifests/{tag}", headers=headers).json()
+
+        if "config" not in ret or "layers" not in ret:
+            return None
+        else:
+            return ret
+    except:
+        return None
 
 def dockerfile_for_architecture(base_dir: Path):
     supported_platform = docker_supported_target_platform()

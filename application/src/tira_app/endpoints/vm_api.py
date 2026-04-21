@@ -540,6 +540,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("try_run_metadata_uuid", None),
             data.get("tira_image_workdir", None),
             data.get("workflow_configuration", None),
+            data.get("external_docker_registry", False),
         )
 
         if data.get("mount_hf_model"):

@@ -721,3 +721,18 @@ class LocalExecutionIntegration:
             print(push_response)
             raise ValueError("Could not push image")
         return new_image
+
+    def push_image_third_party_registry(self, image, remote_tag):
+        client = docker.from_env()
+        client.images.get(image).tag(remote_tag)
+
+        tasks = {}
+        push_response = ""
+        for line in client.images.push(remote_tag, stream=True, decode=True):
+            push_response += str(line)
+            self.show_docker_progress(line, tasks)
+
+        if "error" in push_response:
+            print(push_response)
+            raise ValueError("Could not push image")
+        return remote_tag

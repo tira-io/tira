@@ -600,15 +600,20 @@ def add_docker_software(
     try_run_metadata_uuid: "Optional[str]" = None,
     tira_image_workdir: "Optional[str]" = None,
     workflow_configuration: "Optional[str]" = None,
+    external_docker_registry: "Optional[bool]" = False,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
     image, old_tag = image.split(":")
-    new_tag = old_tag + "-tira-docker-software-id-" + randomname.get_name().lower()
 
-    tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
-        image, old_tag, new_tag
-    )
+    if not external_docker_registry:
+        new_tag = old_tag + "-tira-docker-software-id-" + randomname.get_name().lower()
+
+        tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
+            image, old_tag, new_tag
+        )
+    else:
+        tira_image_name = image  + ":" + old_tag
 
     if workflow_configuration:
         try:

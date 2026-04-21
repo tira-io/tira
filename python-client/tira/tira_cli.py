@@ -150,6 +150,7 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         default=[],
         help="The task(s) on which all authentications should be verified.",
     )
+    v_parser.set_defaults(executable=admin_verify_tokens)
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)

@@ -442,7 +442,7 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
-        from tira.io_utils import resolve_mount_directory
+        from tira.io_utils import resolve_mount_directory, get_manifest_of_ghcr_docker_image
         from tira.third_party_integrations import temporary_directory
 
         all_messages = []
@@ -511,7 +511,7 @@ class TiraClient(ABC):
             lvl, message = verify_images_can_be_build_and_pushed(task_id, user_id)
 
             if lvl != _fmt.OK:
-                message += specific_help
+                message += "\n\n\tIt seems like you must run 'tira-cli login --token TOKEN' first"
                 print(message)
                 raise ValueError(message)
             else:
@@ -626,8 +626,16 @@ class TiraClient(ABC):
 
                 pushed_image = push_image(self, docker_tag, task_id, user_id)
             else:
+                target_docker_tag = external_docker_registry.split(":")[0] + ":" + platform.split("/")[-1] + '-' + commit[:5] + "-" + str(uuid.uuid4())[:5]
+                pushed_image = self.local_execution.push_image_third_party_registry(docker_tag, target_docker_tag)
+                manifest = get_manifest_of_ghcr_docker_image(pushed_image)
+                if not manifest:
+                    msg = f"The image {pushed_image} is not publically available on ghcr. You likely need to configure that the package is public."
+                    
+                    print(msg)
+                    raise ValueError(msg)
                 raise ValueError(
-                    "Using an External Docker registry is not yet deployed on the Server side, but we deploy this within the next weeks"
+                    f"Using an External Docker registry is not yet deployed on the Server side, but we deploy this within the next weeks: {target_docker_tag}"
                 )
 
             print_message("The Docker image is pushed to TIRA.", _fmt.OK)
@@ -688,7 +696,7 @@ class TiraClient(ABC):
         client.fail_if_api_key_is_invalid()
 
         role = client.json_response("/api/role")
-        admin_teams = ("pan26-gen-maik-test", "clef26-open-web-search", "maik-test-3-30")
+        admin_teams = ("pan26-gen-maik-test", "clef26-open-web-search", "maik-test-3-30", "devtest", "lightning-ir")
         if role["role"] != "user" and team not in admin_teams:
             msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
             print(msg)
