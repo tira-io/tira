@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import uuid
 import zipfile
+from copy import deepcopy
 from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, overload
@@ -789,7 +790,7 @@ class TiraClient(ABC):
                 log_message(m, l)
 
         if not dry_run:
-            result = verify_tira_installation()
+            result = verify_tira_installation("lsr-benchmark", "lightning-ir")
             if result != _fmt.OK:
                 msg = "Your tira installation is not valid. Please run: tira-cli verify-installation"
                 print_message(msg, _fmt.ERROR)
@@ -847,6 +848,7 @@ class TiraClient(ABC):
 
         baseline_format = tira_configs["baseline"]["format"]["name"]
         baseline_config = tira_configs["baseline"]["format"].get("config", {})
+
         if "measures" in tira_configs["evaluator"]:
             eval_image, eval_command, eval_measures = None, None, tira_configs["evaluator"]["measures"]
         else:
@@ -892,14 +894,14 @@ class TiraClient(ABC):
             target_file.parent.mkdir(exist_ok=True, parents=True)
             copy(data_file, target_file)
 
-        l, m = check_format(inputs_dir, input_format, input_config)
+        l, m = check_format(inputs_dir, input_format, deepcopy(input_config))
         if l != _fmt.OK:
             log_message(m, l)
             return None
 
         print_message("The system inputs are valid.", _fmt.OK)
 
-        l, m = check_format(truth_dir, truth_format, truth_config)
+        l, m = check_format(truth_dir, truth_format, deepcopy(truth_config))
         if l != _fmt.OK:
             log_message(m, l)
             return None
@@ -952,7 +954,8 @@ class TiraClient(ABC):
 
                 baseline_output = workflow_output.run / "output"
 
-            l, m = check_format(baseline_output, baseline_format, baseline_config)
+            l, m = check_format(baseline_output, baseline_format, deepcopy(baseline_config))
+
             if l != _fmt.OK:
                 log_message(
                     f"The outputs of the baseline on {inputs_dir} are at {baseline_output} and not valid: {m}", l
@@ -970,28 +973,28 @@ class TiraClient(ABC):
                 from tira.evaluators import evaluate
 
                 eval_config: Dict = {
-                    "measures": eval_measures,
-                    "run_format": baseline_format,
-                    "truth_format": truth_format,
+                    "measures": deepcopy(eval_measures),
+                    "run_format": deepcopy(baseline_format),
+                    "truth_format": deepcopy(truth_format),
                 }
-                for k, v in baseline_config.items():
+                for k, v in deepcopy(baseline_config).items():
                     if k not in eval_config:
                         eval_config[k] = v
 
                 if "format_configuration" not in eval_config:
                     eval_config["format_configuration"] = {}
-                    for k, v in baseline_config.items():
+                    for k, v in deepcopy(baseline_config).items():
                         eval_config["format_configuration"][k] = v
 
                 if "truth_format_configuration" not in eval_config:
                     eval_config["truth_format_configuration"] = {}
-                    for k, v in truth_config.items():
+                    for k, v in deepcopy(truth_config).items():
                         eval_config["truth_format_configuration"][k] = v
 
                 preds = evaluate(
                     baseline_output,
                     truth_dir,
-                    eval_config,
+                    eval_config.copy(),
                 )
                 print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
 
@@ -1016,6 +1019,7 @@ class TiraClient(ABC):
             dataset_name = path.name
             dataset_id = dataset_name.lower().replace("/", "-").replace(" ", "-").replace("_", "-")
             url = f"{self.base_url}/tira-admin/add-dataset/{task}"
+
             content = {
                 "csrfmiddlewaretoken": csrf_token,
                 "dataset_id": dataset_id,

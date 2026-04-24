@@ -4,6 +4,7 @@ import os
 import re
 import xml.dom.minidom
 from collections.abc import Iterable
+from copy import deepcopy
 from enum import Enum
 from glob import glob
 from pathlib import Path
@@ -1478,6 +1479,8 @@ SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 def check_format_configuration_if_valid(
     format: Union[str, Sequence[str]], configuration: "Optional[dict[str, Any]]" = None
 ) -> "FormatBase":
+    if configuration:
+        configuration = deepcopy(configuration)
     if isinstance(format, str):
         ret = FORMAT_TO_CHECK[format]()
         ret.apply_configuration_and_throw_if_invalid(configuration)
