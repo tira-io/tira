@@ -356,6 +356,8 @@ class HuggingFaceEvaluator(TiraBaseEvaluator):
             evaluate.config.HF_EVALUATE_OFFLINE = True
         if "re_map" in config:
             self.re_map = config["re_map"]
+        if "format_configuration" in config and "re_map" in config["format_configuration"]:
+            self.re_map = config["format_configuration"]["re_map"]
         else:
             self.re_map = None
 
