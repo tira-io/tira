@@ -712,6 +712,7 @@ class TiraClient(ABC):
             raise ValueError(f"re-run {team}")
         from tira.tira_run import push_image
 
+        self.local_execution.ensure_image_available_locally("bash:latest")
         pushed_image = push_image(client, "bash", task_name, team)
         del os.environ["DOCKER_CONFIG"]
 
