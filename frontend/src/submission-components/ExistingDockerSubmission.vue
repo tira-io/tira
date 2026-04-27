@@ -76,7 +76,7 @@ export default {
   components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
   emits: ['refresh_running_submissions', 'deleteDockerImage', 'modifiedSubmissionDetails'],
   props: ['user_id', 'datasets', 're_ranking_datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id', 'is_ir_task'],
-  data() {
+  data: () => ({
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
@@ -88,7 +88,7 @@ export default {
       rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
     }
-  },
+  }),
   methods: {
     deleteDockerImage() {
       this.$emit('deleteDockerImage');
