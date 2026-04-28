@@ -668,6 +668,74 @@ class LongEvalLags(FormatBase):
         return [ret_code, ret_msg]
 
 
+class LongEvalUsimLags(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        if not configuration or "lags" not in configuration or not configuration["lags"]:
+            raise ValueError(
+                'Please pass a configuration "lags" that points out on which lags an dataset should run. '
+                + 'E.g., {"lags": ["lag-1", "lag-2"]}. '
+                + f"I got: {configuration}"
+            )
+
+        self.lags = configuration["lags"]
+
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
+        for lag in self.lags:
+            lag_file = run_output / (lag + ".json")
+            if not lag_file.exists():
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(f"I expected a file {lag}.json in the directory.", _fmt.ERROR)
+                continue
+
+            try:
+                lag_parsed = json.loads(lag_file.read_text())
+            except:
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(f"The file {lag}.json is not a valid json file.", _fmt.ERROR)
+                continue
+            
+            if "meta" not in lag_parsed:
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(f"The file {lag}.json does not contain the required field meta.", _fmt.ERROR)
+                return [ret_code, ret_msg]
+
+            for req in ["run_name", "description", "team_name"]:
+                if req not in lag_parsed["meta"]:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json does not contain the required field {req} in meta.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+
+            for k in lag_parsed.keys():
+                if k == "meta":
+                    continue
+                val = lag_parsed[k]
+                if not isinstance(val, list):
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions of type {type(val)} for query {k}. I expected a list.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+                if len(val) <= 0:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains no predictions for query {k}.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+                if len(val) > 5:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains too many predictions for query {k}.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+                for v in val:
+                    if not isinstance(v, str):
+                        ret_code = _fmt.ERROR
+                        ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions that are no strings for query {k}.", _fmt.ERROR)
+                        return [ret_code, ret_msg]
+
+            if ret_code == _fmt.OK:
+                ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
+
+        return [ret_code, ret_msg]
+
 class PowerAndIdeologyFormat(FormatBase):
     def __init__(self, prefix_pattern, suffix_pattern, languages=None, tasks=None):
         if not languages:
@@ -1457,6 +1525,7 @@ FORMAT_TO_CHECK = {
     "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "LongEvalUsimLags": LongEvalUsimLags,
     "run-with-metadata": RunWithIrMetadata,
     "terrier-index": TerrierIndex,
     "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
