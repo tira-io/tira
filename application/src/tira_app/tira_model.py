@@ -307,11 +307,8 @@ def get_submission_git_repo(
 
 
 def git_pipeline_is_enabled_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False) -> bool:
-    evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
-    git_runners_for_task = [i["is_git_runner"] for i in evaluators_for_task]
-
-    # We enable the docker part only if all evaluators use the docker variant.
-    return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
+    task = get_task(task_id)
+    return task and "featured" in task and task["featured"]
 
 
 def get_evaluators_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False):
