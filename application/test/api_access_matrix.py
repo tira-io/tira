@@ -1922,6 +1922,18 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/admin/update-running-process-output/<str:vm_id>/<str:job_id>",
+        params={"job_id": "does-not-exist", "vm_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 405,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
         url_pattern="v1/admin/registered-workers/<str:vm_id>",
         params={"vm_id": "does-not-exist"},
         method="POST",
@@ -1943,6 +1955,18 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 405,
             ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/validate-docker-image",
+        params={},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER_WRONG_TASK: 500,
+            ORGANIZER: 500,
+            ADMIN: 500,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now

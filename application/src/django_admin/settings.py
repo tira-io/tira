@@ -314,6 +314,14 @@ ALL_POSSIBLE_RESOURCES = {
         "description": "A100 GPU (5 CPU Cores, 50GB of RAM, 1 Nvidia A100 with 40GB)",
         "key": "a100-resources-gpu",
     },
+    "h100-resources-gpu": {
+        "cores": 8,
+        "ram": 95,
+        "gpu": "1-nvidia-h100",
+        "data": "no",
+        "description": "H100 GPU (8 CPU Cores, 95GB of RAM, 1 Nvidia A100 with 95GB)",
+        "key": "h100-resources-gpu",
+    },
 }
 
 AVAILABLE_WORKERS = set()

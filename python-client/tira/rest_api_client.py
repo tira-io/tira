@@ -406,6 +406,83 @@ class Client(TiraClient):
 
         return ret
 
+    def download_all_submissions(self, dataset_id: str, output: "Optional[str]"):
+        if not output:
+            from tira.third_party_integrations import temporary_directory
+            output = temporary_directory()
+        
+        output = Path(output)
+        raw_output_dir = output / "raw-outputs" / dataset_id
+        raw_output_dir.mkdir(parents=True, exist_ok=True)
+        outputs_flat = output / "outputs-flat"
+        shutil.rmtree(outputs_flat, ignore_errors=True)
+        outputs_flat.mkdir(parents=True, exist_ok=True)
+
+        existing_runs = {}
+        if (output / "metadata.jsonl").exists():
+            for l in (output / "metadata.jsonl").read_text().split("\n"):
+                if not l:
+                    continue
+                l = json.loads(l)
+                existing_runs[l["tira_run_id"]] = l
+
+        dataset = self.get_dataset(dataset_id)
+        task = dataset["default_task_name"]
+        evals = self.evaluations(task, dataset_id)
+
+
+        for _, i in tqdm(list(evals.iterrows())):
+            i = i.to_dict()
+            i["tira_run_id"] = i["run_id"]
+
+            run_output = self.download_zip_to_cache_directory(task, dataset_id, i["team"], i["run_id"])
+            if (raw_output_dir / i["run_id"]).exists():
+                shutil.rmtree(raw_output_dir / i["run_id"], ignore_errors=True)
+            shutil.copytree(Path(run_output).parent, raw_output_dir / i["run_id"])
+            i["raw-outputs-from-tira"] = f"raw-outputs/{dataset_id}/{i['run_id']}"
+            existing_runs[i["tira_run_id"]] = i
+
+        run_id_to_metadata = {}
+        for team in tqdm(set(i["team"] for i in existing_runs.values()), "Load metadata"):
+            url = f"/api/submissions-for-task/{task}/{team}/upload"
+            ret = self.json_response(url)
+            for upload_group in ret["context"]["all_uploadgroups"]:
+                url = f"/api/upload-group-details/{task}/{team}/{upload_group['id']}"
+                time.sleep(1)
+                upload_group_details = self.json_response(url)["context"]["upload_group_details"]
+                assert upload_group["id"] ==  upload_group_details["id"]
+                for run in upload_group_details["runs"]:
+                    if run["input_run_id"] == "" and run["run_id"]:
+                        assert run["run_id"] not in run_id_to_metadata
+                        run_id_to_metadata[run["run_id"]] = {
+                            "description": upload_group_details["description"],
+                            "run_display_name": upload_group_details["display_name"],
+                            "internal_data": run
+                        }
+
+        with open(output / "metadata.jsonl", "w") as f:
+            for i in existing_runs.values():
+                metadata = run_id_to_metadata[i["tira_run_id"]]
+                for k, v in metadata.items():
+                    i[k] = v
+                f.write(json.dumps(i) + "\n")
+
+        for i in tqdm(existing_runs.values()):
+            inp = output / i["raw-outputs-from-tira"] / "output"
+            inp = glob(f"{inp}/*")
+            assert len(inp) == 1
+            inp = inp[0]
+            expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
+            target_file = outputs_flat / i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+            assert not target_file.exists()
+            shutil.copy(inp, target_file)
+            i["md5sum"] = expected_md5
+            i["flat-outputs"] = "outputs-flat/" + target_file.name
+
+        with open(output / "metadata.jsonl", "w") as f:
+            for i in existing_runs.values():
+                f.write(json.dumps(i) + "\n")
+
     def evaluations(self, task, dataset, join_submissions=True):
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
@@ -472,11 +549,17 @@ class Client(TiraClient):
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
         return target_file
 
-    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
+    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False, output: "Optional[str]" = None) -> Path:
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
+        if output is not None:
+            ret = self.get_run_output(approach, dataset, allow_without_evaluation)
+            shutil.rmtree(output, ignore_errors=True)
+            shutil.copytree(ret, output)
+            return output
+
         mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
         if mounted_output_in_sandbox:
             return Path(mounted_output_in_sandbox)
@@ -631,7 +714,7 @@ class Client(TiraClient):
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
     def download_dataset(
-        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False, output: "Optional[str]" = None
     ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
@@ -642,6 +725,11 @@ class Client(TiraClient):
             return Path(dataset)
         if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
+        if output is not None:
+            ret = self.download_dataset(task, dataset, truth_dataset, allow_local_dataset)
+            shutil.rmtree(output, ignore_errors=True)
+            shutil.copytree(ret, output)
+            return output
 
         meta_data = self.get_dataset(f"{task}/{dataset}" if task else dataset)
         data_type = "training" if dataset.endswith("-training") else "test"
@@ -1023,6 +1111,12 @@ class Client(TiraClient):
 
         zip_file = zip_dir(file_path)
         self.execute_post_return_json(f"/v1/admin/upload-response/anonymous-vm-id/{job_id}", file_path=zip_file)
+
+    def update_running_process_output_admin(self, job_id: str, output: str) -> None:
+        return self.execute_post_return_json(
+            f"/v1/admin/update-running-process-output/anonymous-vm-id/{job_id}",
+            json_payload={"output": output},
+        )
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")

@@ -1,4 +1,6 @@
+import shutil
 import unittest
+from tempfile import TemporaryDirectory
 
 from tira.check_format import check_format, lines_if_valid
 
@@ -54,4 +56,12 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
         expected = [_OK, "Valid trec-rag runs."]
         actual = check_format(TREC_RAG_RESPONSES_VALID, "trec-rag-runs")
         self.assertEqual(expected[0], actual[0])
+        self.assertEqual(expected[1], actual[1])
+
+    def test_valid_rag_responses_recursive(self):
+        expected = [_OK, "Valid trec-rag runs."]
+        with TemporaryDirectory() as d:
+            shutil.copytree(TREC_RAG_RESPONSES_VALID, f"{d}/sadas")
+            actual = check_format(d, "trec-rag-runs")
+            self.assertEqual(expected[0], actual[0])
         self.assertEqual(expected[1], actual[1])
