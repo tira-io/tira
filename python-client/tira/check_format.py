@@ -709,6 +709,14 @@ class LongEvalUsimLags(FormatBase):
                     ret_msg += "\n\t" + fmt_message(f"The file {lag}.json does not contain the required field {req} in meta.", _fmt.ERROR)
                     return [ret_code, ret_msg]
 
+            expected_queries = set(self.lags[lag])
+
+            for k in self.lags[lag]:
+                if k not in lag_parsed:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json is missing query {k}.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+
             for k in lag_parsed.keys():
                 if k == "meta":
                     continue
@@ -731,8 +739,21 @@ class LongEvalUsimLags(FormatBase):
                         ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions that are no strings for query {k}.", _fmt.ERROR)
                         return [ret_code, ret_msg]
 
+                if k not in expected_queries:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions for the query {k}, but no such query exists.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+
             if ret_code == _fmt.OK:
                 ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
+
+        if ret_code == _fmt.OK:
+            for f in os.listdir(run_output):
+                f = Path(f).name.replace(".json", "")
+                if f not in self.lags and not f.endswith(".yml"):
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {f} is not expected. Please remove it.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
 
         return [ret_code, ret_msg]
 

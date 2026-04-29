@@ -103,6 +103,31 @@ class TestLongEvalFormat(unittest.TestCase):
         self.assertEqual(_ERROR, actual[0])
         self.assertIn("The file some-lag.json does not contain the required field team_name in meta.", actual[1])
 
+    def test_invalid_unexpected_file(self):
+        tmp_dir = temporary_directory()
+        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
+        (tmp_dir / "unexpected").write_text('')
+
+        actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
+        self.assertEqual(_ERROR, actual[0])
+        self.assertIn("The file unexpected is not expected. Please remove it.", actual[1])
+
+    def test_invalid_two_long_eval_lags(self):
+        tmp_dir = temporary_directory()
+        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
+
+        actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
+        self.assertEqual(_ERROR, actual[0])
+        self.assertIn("The file some-lag.json is missing query 3.", actual[1])
+
+    def test_invalid_two_long_eval_lags_too_many_predictions(self):
+        tmp_dir = temporary_directory()
+        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"], "4": ["1"]}')
+
+        actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
+        self.assertEqual(_ERROR, actual[0])
+        self.assertIn("The file some-lag.json contains predictions for the query 4, but no such query exists.", actual[1])
+
     def test_valid_single_long_eval_lags(self):
         tmp_dir = temporary_directory()
         (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
@@ -110,75 +135,9 @@ class TestLongEvalFormat(unittest.TestCase):
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_OK, actual[0])
 
-#
-#    def test_valid_multiple_long_eval_lag(self):
-#        actual = check_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata.yml")
-#        self.assertEqual(_OK, actual[0])
-#
-#    def test_valid_multiple_single_missing_lag(self):
-#        with tempfile.TemporaryDirectory() as d:
-#            persist_run_to_file(Path(d) / "some-lag")
-#            persist_run_to_file(Path(d) / "lag-2")
-#
-#            actual = check_format(Path(d), "LongEvalLags", {"lags": ["some-lag", "lag-2", "lag-3"]})
-#        self.assertEqual(_ERROR, actual[0])
-#        self.assertIn("I expected a file ir-metadata.yml in the directory", actual[1])
-#
-#    def test_valid_single_long_eval_lags_with_wrong_ir_metadata(self):
-#        actual = check_longeval_data(["some-lag"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
-#        self.assertEqual(_ERROR, actual[0])
-#        self.assertIn("is not valid", actual[1])
-#        self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
-#        self.assertIn(
-#            "The required field method.indexing.stopwords still contains the default value ENTER_VALUE_HERE.", actual[1]
-#        )
-#
-#    def test_valid_multiple_long_eval_lag_with_wrong_ir_metadata(self):
-#        actual = check_longeval_data(["some-lag", "lag-2"], "longeval-ir-metadata/ir-metadata-incomplete.yml")
-#        self.assertEqual(_ERROR, actual[0])
-#        self.assertIn("is not valid", actual[1])
-#        self.assertIn("The required field tag still contains the default value ENTER_VALUE_HERE", actual[1])
-#        self.assertIn(
-#            "The required field method.indexing.stopwords still contains the default value ENTER_VALUE_HERE.", actual[1]
-#        )
-#
-#    def test_boolean_value_01(self):
-#        expected = ["The required field foo.automatic is missing."]
-#        actual = IrMetadataFormat().report_missing_fields(
-#            {"foo": True}, {"foo": {"automatic": {"type": bool, "default": "ENTER_VALUE_HERE"}}}
-#        )
-#        self.assertEqual(expected, actual)
-#
-#    def test_boolean_value_02(self):
-#        expected = []
-#        actual = IrMetadataFormat().report_missing_fields(
-#            {"foo": {"automatic": True}}, {"foo": {"automatic": {"type": bool, "default": "ENTER_VALUE_HERE"}}}
-#        )
-#        self.assertEqual(expected, actual)
-#
-#    def test_boolean_value_03(self):
-#        expected = ["The required field foo.automatic still contains the default value ENTER_VALUE_HERE."]
-#        actual = IrMetadataFormat().report_missing_fields(
-#            {"foo": {"automatic": "ENTER_VALUE_HERE"}},
-#            {"foo": {"automatic": {"type": bool, "default": "ENTER_VALUE_HERE"}}},
-#        )
-#        self.assertEqual(len(expected), len(actual))
-#        self.assertEqual(expected[0], actual[0])
-#
-#    def test_boolean_value_04(self):
-#        expected = ["The required field foo still contains the default value ENTER_VALUE_HERE."]
-#        actual = IrMetadataFormat().report_missing_fields(
-#            {"foo": "ENTER_VALUE_HERE"},
-#            {"foo": {"type": bool, "default": "ENTER_VALUE_HERE"}},
-#        )
-#        self.assertEqual(len(expected), len(actual))
-#        self.assertEqual(expected[0], actual[0])
-#
-#    def test_boolean_value_05(self):
-#        expected = ["The required field foo has the wrong type <class 'str'>. I expected <class 'bool'>."]
-#        actual = IrMetadataFormat().report_missing_fields(
-#            {"foo": "foo"},
-#            {"foo": {"type": bool, "default": "ENTER_VALUE_HERE"}},
-#        )
-#        self.assertEqual(len(expected), len(actual))
-#        self.assertEqual(expected[0], actual[0])
+    def test_valid_two_long_eval_lags(self):
+        tmp_dir = temporary_directory()
+        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"]}')
+
+        actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
+        self.assertEqual(_OK, actual[0])
