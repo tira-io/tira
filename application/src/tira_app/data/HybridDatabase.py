@@ -79,18 +79,6 @@ class HybridDatabase(object):
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
         self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
 
-    def reload_vms(self) -> None:
-        """reload VM and user data from the export format of the model"""
-        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
-
-    def reload_datasets(self) -> None:
-        """reload dataset data from the export format of the model"""
-        dbops.reload_datasets(self.datasets_dir_path)
-
-    def reload_tasks(self) -> None:
-        """reload task data from the export format of the model"""
-        dbops.reload_tasks(self.tasks_dir_path)
-
     def _load_softwares(self, task_id: str, vm_id: str) -> modelpb.Softwares:
         # Leave this
         softwares_dir = self.softwares_dir_path / task_id / vm_id

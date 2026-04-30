@@ -33,21 +33,6 @@ logger = logging.getLogger("tira")
 model = HybridDatabase()
 
 
-def reload_vms() -> None:
-    """reload VM and user data from the export format of the model"""
-    model.reload_vms()
-
-
-def reload_datasets() -> None:
-    """reload dataset data from the export format of the model"""
-    model.reload_datasets()
-
-
-def reload_tasks() -> None:
-    """reload task data from the export format of the model"""
-    model.reload_tasks()
-
-
 # get methods are the public interface.
 def get_vm(vm_id: str, create_if_none: bool = False) -> "dict[str, Any]":
     """Returns a vm as dictionary with:

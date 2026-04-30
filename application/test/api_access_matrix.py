@@ -985,61 +985,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/reload/vms",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload/datasets",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload/tasks",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/create-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/modify-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="tira-admin/edit-task/<str:task_id>",
         params={"task_id": "shared-task-1"},
         group_to_expected_status_code={
@@ -1655,18 +1600,6 @@ API_ACCESS_MATRIX = [
             ORGANIZER: 302,  # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             ORGANIZER_WRONG_TASK: 302,
             # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
-        },
-    ),
-    # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
-    route_to_test(
-        url_pattern="tira-admin/archive-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 501,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
