@@ -17,6 +17,7 @@ RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 apt-get -qq update && apt-get -qq install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+apt-get install -y rsync
 EOF
 
 ########################################################################################################################
