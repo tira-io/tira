@@ -17,7 +17,6 @@ RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 apt-get -qq update && apt-get -qq install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
-apt-get install -y rsync
 EOF
 
 ########################################################################################################################
@@ -122,7 +121,7 @@ EOF
 COPY --from=build --chown=tira:tira /tira/src/manage.py /home/tira/manage.py
 
 RUN <<EOF
-apt-get -qq install sudo podman
+apt-get -qq install sudo podman rsync
 useradd -ms /bin/bash tira
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd
