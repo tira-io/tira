@@ -100,6 +100,8 @@ def run(
     team: str,
     job_id: str,
     mount_hf_model: "Optional[list[str]]" = None,
+    task_workflow_configuration: "Optional[dict]" = None,
+    software_workflow_configuration: "Optional[dict]" = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -115,21 +117,37 @@ def run(
         hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
         print(f"The following models from huggingface are mounted: {hf_models}\n\n")
 
-    run_results = execute_monitored(
-        lambda i: client.local_execution.run(
-            image=docker_image,
-            command=command,
-            input_dir=system_inputs,
-            output_dir=i,
-            allow_network=False,
-            additional_volumes=hf_models,
-            cpu_count=CPU_COUNT,
-            mem_limit=MEMORY_LIMIT,
-            gpu_device_ids=gpu_devices,
-        ),
-        client=client,
-        job_id=job_id,
-    )
+    allow_network = False
+
+    if task_workflow_configuration is None and software_workflow_configuration is None:
+        run_results = execute_monitored(
+            lambda i: client.local_execution.run(
+                image=docker_image,
+                command=command,
+                input_dir=system_inputs,
+                output_dir=i,
+                allow_network=allow_network,
+                additional_volumes=hf_models,
+                cpu_count=CPU_COUNT,
+                mem_limit=MEMORY_LIMIT,
+                gpu_device_ids=gpu_devices,
+            ),
+            client=client,
+            job_id=job_id,
+        )
+    else:
+        software_workflow_configuration["image"] = docker_image
+        run_results = execute_monitored(
+            lambda i: run_workflow(
+                system_inputs,
+                task_workflow_configuration["name"],
+                task_workflow_configuration,
+                software_workflow_configuration,
+                allow_network=allow_network,
+                additional_volumes=hf_models,
+                gpu_device_ids=gpu_devices,
+                tira=client
+            )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     client.upload_run_admin(run_results, job_id)
 

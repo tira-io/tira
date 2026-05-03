@@ -127,11 +127,13 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
 def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     from tira_worker import evaluate
 
-    evaluator_id = model.get_dataset(dataset)["evaluator_id"]
+    dataset_configuration = model.get_dataset(dataset)
+    evaluator_id = dataset_configuration["evaluator_id"]
     evaluator = model.get_evaluator(dataset, task)
     job_id = add_job("evaluator", task, team, dataset, evaluator)
+    queue = dataset_configuration.get("queue", "evaluator")
 
-    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue="evaluator")
+    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -157,12 +159,21 @@ def run_sandboxed_software(
     job_id: str,
 ) -> None:
     from tira_worker import run
+    from .. import model as modeldb
+    
+    dataset_config = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    workflow = dataset_config.get_workflow_configuration()
+
+    if workflow is not None:
+        docker_software_id = int(software_id.split("-software-")[1])
+        software_config = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+        software_workflow = software_config.get_workflow_configuration()
 
     if isinstance(mount_hf_model, str):
         mount_hf_model = [mount_hf_model]
 
     run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model],
+        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model, workflow, software_workflow],
         queue=docker_resources,
     )
 
@@ -1089,7 +1100,7 @@ def run_execute_docker_software(
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
         job_id,
-    )
+    )   
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
 
