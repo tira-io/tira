@@ -7,9 +7,12 @@ from celery import Celery
 from tira.io_utils import get_tira_id, persist_tira_metadata_for_job
 from tira.rest_api_client import Client as RestClient
 from tira.rest_api_client import TiraClient
+from tira.workflows import run_workflow
 
 from .settings import CPU_COUNT, MEMORY_LIMIT, QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
 from .utils import gpu_device_ids
+import os
+from shutil import copytree
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
@@ -137,8 +140,8 @@ def run(
         )
     else:
         software_workflow_configuration["image"] = docker_image
-        run_results = execute_monitored(
-            lambda i: run_workflow(
+        def run_tmp(i):
+            run_results = run_workflow(
                 system_inputs,
                 task_workflow_configuration["name"],
                 task_workflow_configuration,
@@ -148,6 +151,23 @@ def run(
                 gpu_device_ids=gpu_devices,
                 tira=client
             )
+            os.rmdir(i)
+            copytree(run_results.run / "output", i)
+            
+            try:
+                print((run_results.run / "stdout.txt").read_text())
+            except:
+                pass
+
+            try:
+                print((run_results.run / "stderr.txt").read_text(), file=sys.stderr)
+            except:
+                pass
+
+        run_results = execute_monitored(
+            run_tmp,
+            client=client,
+            job_id=job_id,
         )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     client.upload_run_admin(run_results, job_id)

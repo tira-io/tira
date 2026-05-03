@@ -174,6 +174,7 @@ class Dataset(models.Model):
     format_configuration = models.CharField(max_length=300, null=True, default=None)
     truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
+    queue = models.CharField(max_length=50, null=True, default=None)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:

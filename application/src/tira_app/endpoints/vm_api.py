@@ -163,6 +163,7 @@ def run_sandboxed_software(
     
     dataset_config = modeldb.Dataset.objects.get(dataset_id=dataset_id)
     workflow = dataset_config.get_workflow_configuration()
+    software_workflow = None
 
     if workflow is not None:
         docker_software_id = int(software_id.split("-software-")[1])
