@@ -148,6 +148,7 @@ def run(
                 gpu_device_ids=gpu_devices,
                 tira=client
             )
+        )
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     client.upload_run_admin(run_results, job_id)
 
