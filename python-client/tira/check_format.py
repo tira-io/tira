@@ -582,6 +582,68 @@ class RunWithIrMetadata(FormatBase):
         return [ret_code, ret_msg]
 
 
+class LongEvalRAG(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_ir_metadata(self, run_output: Path):
+        if not (run_output / "ir-metadata.yml").exists():
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
+            )
+        else:
+            required_fields = {
+                "tag": {"type": str, "default": "ENTER_VALUE_HERE"},
+                "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "research goal": {"description": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "platform": {"software": {"libraries": {"type": list, "default": "ENTER_VALUE_HERE"}}},
+                "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "data": {"training data": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "method": {
+                    "automatic": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    "retrieval": {
+                        "name": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "documents": {"type": int, "default": "ENTER_VALUE_HERE"},
+                        "chunking": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "chunk_ranking": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "single_stage_retrieval": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    },
+                    "generation": {
+                        "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "prompt": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "llm": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "reasoning": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "agents": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    },
+                },
+            }
+            return check_format(
+                run_output / "ir-metadata.yml",
+                "ir_metadata",
+                {"required_fields": required_fields},
+            )
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+
+        if self.check_ir_metadata(run_output)[0] != _fmt.OK:
+            return _fmt.ERROR, ret_msg + "\n\t" + fmt_message(
+                f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + self.check_ir_metadata(run_output)[1],
+                _fmt.ERROR,
+            )
+
+        ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
+
+        rag_eval = TrecRagRuns()
+        lvl, msg = rag_eval.check_format(run_output)
+        if lvl != _fmt.OK:
+            ret_msg += "\n\t" + fmt_message(f"The RAG runs are not valid, errors: {msg}", _fmt.ERROR)
+            return _fmt.ERROR, ret_msg
+
+        ret_msg += "\n\t" + fmt_message("The RAG run is in correct format.", _fmt.OK)
+        return _fmt.OK, ret_msg
+
+
 class LongEvalLags(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
@@ -679,7 +741,6 @@ class LongEvalUsimLags(FormatBase):
 
         self.lags = configuration["lags"]
 
-
     def check_format(self, run_output: Path):
         ret_msg = f"I will check that the data in {run_output} is valid ..."
         ret_code = _fmt.OK
@@ -697,16 +758,20 @@ class LongEvalUsimLags(FormatBase):
                 ret_code = _fmt.ERROR
                 ret_msg += "\n\t" + fmt_message(f"The file {lag}.json is not a valid json file.", _fmt.ERROR)
                 continue
-            
+
             if "meta" not in lag_parsed:
                 ret_code = _fmt.ERROR
-                ret_msg += "\n\t" + fmt_message(f"The file {lag}.json does not contain the required field meta.", _fmt.ERROR)
+                ret_msg += "\n\t" + fmt_message(
+                    f"The file {lag}.json does not contain the required field meta.", _fmt.ERROR
+                )
                 return [ret_code, ret_msg]
 
             for req in ["run_name", "description", "team_name"]:
                 if req not in lag_parsed["meta"]:
                     ret_code = _fmt.ERROR
-                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json does not contain the required field {req} in meta.", _fmt.ERROR)
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json does not contain the required field {req} in meta.", _fmt.ERROR
+                    )
                     return [ret_code, ret_msg]
 
             expected_queries = set(self.lags[lag])
@@ -723,25 +788,37 @@ class LongEvalUsimLags(FormatBase):
                 val = lag_parsed[k]
                 if not isinstance(val, list):
                     ret_code = _fmt.ERROR
-                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions of type {type(val)} for query {k}. I expected a list.", _fmt.ERROR)
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains predictions of type {type(val)} for query {k}. I expected a list.",
+                        _fmt.ERROR,
+                    )
                     return [ret_code, ret_msg]
                 if len(val) <= 0:
                     ret_code = _fmt.ERROR
-                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains no predictions for query {k}.", _fmt.ERROR)
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains no predictions for query {k}.", _fmt.ERROR
+                    )
                     return [ret_code, ret_msg]
                 if len(val) > 5:
                     ret_code = _fmt.ERROR
-                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains too many predictions for query {k}.", _fmt.ERROR)
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains too many predictions for query {k}.", _fmt.ERROR
+                    )
                     return [ret_code, ret_msg]
                 for v in val:
                     if not isinstance(v, str):
                         ret_code = _fmt.ERROR
-                        ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions that are no strings for query {k}.", _fmt.ERROR)
+                        ret_msg += "\n\t" + fmt_message(
+                            f"The file {lag}.json contains predictions that are no strings for query {k}.", _fmt.ERROR
+                        )
                         return [ret_code, ret_msg]
 
                 if k not in expected_queries:
                     ret_code = _fmt.ERROR
-                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json contains predictions for the query {k}, but no such query exists.", _fmt.ERROR)
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains predictions for the query {k}, but no such query exists.",
+                        _fmt.ERROR,
+                    )
                     return [ret_code, ret_msg]
 
             if ret_code == _fmt.OK:
@@ -756,6 +833,7 @@ class LongEvalUsimLags(FormatBase):
                     return [ret_code, ret_msg]
 
         return [ret_code, ret_msg]
+
 
 class PowerAndIdeologyFormat(FormatBase):
     def __init__(self, prefix_pattern, suffix_pattern, languages=None, tasks=None):
@@ -1546,6 +1624,7 @@ FORMAT_TO_CHECK = {
     "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "LongEvalRAG": LongEvalRAG,
     "LongEvalUsimLags": LongEvalUsimLags,
     "run-with-metadata": RunWithIrMetadata,
     "terrier-index": TerrierIndex,

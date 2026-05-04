@@ -1,0 +1,93 @@
+# We use the ir-metadata standard to describe and process runs.
+# The fields below are mandatory, you can add additional metadata if you like.
+# There are two libraries that automate and simplify tracking of experimental metadata that you can use optionally:
+#
+#   - The metadata module of [repro_eval](https://www.ir-metadata.org/software/):
+#     Tracks the platform and implementation of your experiments.
+#
+#   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
+#     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
+#
+# See https://www.ir-metadata.org for more details.
+
+tag: some-tag
+
+actor:
+  # The name of the team
+  team: some-team
+
+# Please provide a short description of your system.
+research goal:
+  description: |
+    here is my description
+    over multiple lines
+
+platform:
+  software:
+    # Which software and tools did you use for training, tunning and running your system?
+    # You can maintain the software that you used manually.
+    # Alternatively, you can use repro_eval or the tirex_tracker to track this.
+    libraries:
+      - pyterrier
+      - ir-datasets
+
+implementation:
+  source:
+    # Please provide a reference to your code if possible.
+    # If you can not share your code, you can delete the implementation section.
+    # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
+    repository: my-repository
+
+data:
+  # Please describe which training data your system used, e.g., longeval-sci-2026, longeval-web, MS MARCO, etc.
+  training data:
+    - name: longeval-sci-2026
+    - name: some-data-from-huggingface
+
+method:
+  # Boolean value indicating if it is a automatic (true) or manual (false) run
+  automatic: true 
+ 
+  retrieval:
+    - # Which ranking approach do you use? E.g., bm25
+      name: my-retrieval
+
+      # How many documents/chunks did you used in generation? Please put a number here, e.g., 10 or 1000
+      documents: 111
+
+      ##################################################
+      # Yes/No Questions
+      ##################################################
+
+      # Did you use any document chunking? (please enter: true/false)
+      chunking: false 
+  
+      # Did you retrieve/re-rank chunks? (please enter: true/false)
+      chunk_ranking: false
+
+      # Did you use more than a single retrieval/ranking model? (please enter: true/false)
+      single_stage_retrieval: true
+      
+  generation:
+    # Please provide a short description of your generation approach.
+    description: |
+      Some multiline description
+      second line
+
+    # Please provide a prompt use to generate answer.
+    prompt: |
+      Some multiline description
+      second line
+
+    # Which LLM did you use in generation?
+    llm: my own llm 
+
+    ##################################################
+    # Yes/No Questions
+    ##################################################
+
+    # Did you use any reasoning? (please enter: true/false)
+    reasoning: false 
+
+    # Did you use any agentic approach? (please enter: true/false)
+    agents: false
