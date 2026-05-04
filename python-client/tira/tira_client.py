@@ -288,7 +288,8 @@ class TiraClient(ABC):
             print_message(f"The directory {directory} does not exist.", _fmt.ERROR)
             raise ValueError(f"The directory {directory} does not exist.")
 
-        result, msg = check_format(directory, dataset_handle["format"][0])
+        format_config = dataset_handle.get("format_configuration", {})
+        result, msg = check_format(directory, dataset_handle["format"], format_config)
         if result != _fmt.OK:
             log_message(msg, result)
             raise ValueError(msg)
