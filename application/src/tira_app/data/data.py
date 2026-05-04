@@ -38,6 +38,10 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
             return upload
         except modeldb.Upload.DoesNotExist:
             logger.exception(f"Run {run_id} lists an upload software {run_proto.softwareId}, but None exists.")
+        except modeldb.Upload.MultipleObjectsReturned:
+            if run_proto.inputRun is not None:
+                input_run = modeldb.Run.objects.get(run_id=run_proto.inputRun)
+                return input_run.upload
 
         return None
 
