@@ -469,14 +469,17 @@ class Client(TiraClient):
 
         for i in tqdm(existing_runs.values()):
             inp = output / i["raw-outputs-from-tira"] / "output"
-            inp = glob(f"{inp}/*")
-            assert len(inp) == 1
-            inp = inp[0]
-            expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
+            assert len(glob(f"{inp}/*")) > 0
             target_file = outputs_flat / i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
-            assert not target_file.exists()
-            shutil.copy(inp, target_file)
-            i["md5sum"] = expected_md5
+            if len(glob(f"{inp}/*")) == 1:
+                inp = glob(f"{inp}/*")
+                inp = inp[0]
+                expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
+                assert not target_file.exists()
+                shutil.copy(inp, target_file)
+                i["md5sum"] = expected_md5
+            else:
+                shutil.copytree(inp, target_file)
             i["flat-outputs"] = "outputs-flat/" + target_file.name
 
         with open(output / "metadata.jsonl", "w") as f:
