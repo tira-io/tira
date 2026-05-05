@@ -396,6 +396,17 @@ class LocalExecutionIntegration:
             f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
         )
 
+        device_requests = []
+        environment = {}
+        if "NVIDIA_VISIBLE_DEVICES" in os.environ:
+            environment["NVIDIA_VISIBLE_DEVICES"] = os.environ["NVIDIA_VISIBLE_DEVICES"]
+            environment["CUDA_VISIBLE_DEVICES"] = os.environ["NVIDIA_VISIBLE_DEVICES"]
+            device_requests = [
+                docker.types.DeviceRequest(
+                    device_ids=[str(os.environ["NVIDIA_VISIBLE_DEVICES"])], capabilities=[["gpu"]]
+                )
+            ]
+
         container = client.containers.run(
             image,
             entrypoint="sh",
@@ -403,6 +414,8 @@ class LocalExecutionIntegration:
             volumes=evaluation_volumes,
             detach=True,
             remove=True,
+            environment=environment,
+            device_requests=device_requests,
             network_disabled=not allow_network,
         )
 
