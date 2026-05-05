@@ -332,6 +332,7 @@ class HybridDatabase(object):
             "format_configuration": format_configuration,
             "truth_format_configuration": truth_format_configuration,
             "workflow_configuration": workflow_configuration,
+            "queue": dataset.queue,
         }
 
         if trusted_eval:
