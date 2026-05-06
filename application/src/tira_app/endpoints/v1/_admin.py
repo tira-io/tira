@@ -56,17 +56,24 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
             destination.write(chunk)
 
     with zipfile.ZipFile(io.BytesIO((result_dir / "upload.zip").read_bytes())) as archive:
-        run_id = archive.open("run.prototext", "r").read().decode("utf-8").split('runId: "')[1].split('"')[0]
-        target_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id
-        target_directory.mkdir(parents=True, exist_ok=True)
-        archive.extractall(target_directory)
-        model.add_run(dataset_id, vm_id, run_id)
+        try:
+            run_id = archive.open("run.prototext", "r").read().decode("utf-8").split('runId: "')[1].split('"')[0]
+            target_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id
+            target_directory.mkdir(parents=True, exist_ok=True)
+            archive.extractall(target_directory)
+            model.add_run(dataset_id, vm_id, run_id)
+        except Exception as e:
+            logger.exception(e)
+            logger.warning(f"Could not store run: {e}")
+            raise e
+
         if "-evaluates-" not in run_id:
             try:
                 _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
             except Exception as e:
                 logger.exception(e)
-                logger.warning(f"Could not create upload: {e}")
+                logger.warning(f"Could not start evaluator: {e}")
+                raise e
 
     RunningProcesses.objects.get(uuid=job_id).delete()
 
