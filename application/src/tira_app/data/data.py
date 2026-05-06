@@ -31,6 +31,8 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
         return None
 
     def __get_upload() -> "Optional[modeldb.Upload]":
+        if "upload" in run_proto.softwareId and "eval" in run_proto.softwareId:
+            return None
         if "upload" not in run_proto.softwareId:
             return None
         try:
