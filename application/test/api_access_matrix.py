@@ -1863,7 +1863,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 405,
             ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 405,
-            ADMIN: 500,
+            ADMIN: 200,
         },
     ),
     route_to_test(
