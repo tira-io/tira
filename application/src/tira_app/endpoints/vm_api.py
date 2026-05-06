@@ -132,6 +132,8 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     evaluator = model.get_evaluator(dataset, task)
     job_id = add_job("evaluator", task, team, dataset, evaluator)
     queue = dataset_configuration.get("queue", "evaluator")
+    if not queue:
+        queue = "evaluator"
 
     result = evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
     try:
