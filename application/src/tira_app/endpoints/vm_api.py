@@ -133,7 +133,8 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     job_id = add_job("evaluator", task, team, dataset, evaluator)
     queue = dataset_configuration.get("queue", "evaluator")
 
-    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
+    result = evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
+    add_celery_id_to_job(job_id, result.id)
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -159,8 +160,9 @@ def run_sandboxed_software(
     job_id: str,
 ) -> None:
     from tira_worker import run
+
     from .. import model as modeldb
-    
+
     dataset_config = modeldb.Dataset.objects.get(dataset_id=dataset_id)
     workflow = dataset_config.get_workflow_configuration()
     software_workflow = None
@@ -173,10 +175,33 @@ def run_sandboxed_software(
     if isinstance(mount_hf_model, str):
         mount_hf_model = [mount_hf_model]
 
-    run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model, workflow, software_workflow],
+    result = run.apply_async(
+        args=[
+            dataset_id,
+            task_id,
+            docker_image,
+            command,
+            software_id,
+            vm_id,
+            job_id,
+            mount_hf_model,
+            workflow,
+            software_workflow,
+        ],
         queue=docker_resources,
     )
+
+    add_celery_id_to_job(job_id, result.id)
+
+    return result.id
+
+
+def add_celery_id_to_job(job_id, celery_id):
+    from ..model import RunningProcesses
+
+    job = RunningProcesses.objects.get(uuid=job_id)
+    job.celery_id = celery_id
+    job.save()
 
 
 @check_conditional_permissions(private_run_ok=True)
@@ -265,7 +290,7 @@ def _parse_notebook_to_html(notebook_content: str) -> "Optional[str]":
     try:
         notebook = nbformat.reads(notebook_content, as_version=4)  # type: ignore [no-untyped-call]
         html_exporter: HTMLExporter = HTMLExporter(template_name="classic")  # type: ignore [no-untyped-call]
-        (body, _) = html_exporter.from_notebook_node(notebook)
+        body, _ = html_exporter.from_notebook_node(notebook)
         return body
     except Exception:
         pass
@@ -748,9 +773,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "is a  non-factoid quesiton answering dataset based on the questions and "
             + "answers of Yahoo! Webscope L6."
         )
-        bib_references[
-            "dataset"
-        ] = """@inproceedings{Hashemi2020Antique,
+        bib_references["dataset"] = """@inproceedings{Hashemi2020Antique,
   title        = {ANTIQUE: A Non-Factoid Question Answering Benchmark},
   author       = {Helia Hashemi and Mohammad Aliannejadi and Hamed Zamani and Bruce Croft},
   booktitle    = {ECIR},
@@ -763,9 +786,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "respectively [TIREx](https://webis.de/publications#froebe_2023e) "
             + "is used to enable reprodicible and blinded experiments."
         )
-        bib_references[
-            "task"
-        ] = """@InProceedings{froebe:2023b,
+        bib_references["task"] = """@InProceedings{froebe:2023b,
   address =                  {Berlin Heidelberg New York},
   author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
   booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
@@ -798,9 +819,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in"
             " [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
         )
-        bib_references[
-            "run"
-        ] = """@article{DBLP:journals/corr/abs-2101-05667,
+        bib_references["run"] = """@article{DBLP:journals/corr/abs-2101-05667,
   author       = {Ronak Pradeep and Rodrigo Frassetto Nogueira and Jimmy Lin},
   title        = {The Expando-Mono-Duo Design Pattern for Text Ranking with Pretrained Sequence-to-Sequence Models},
   journal      = {CoRR},
@@ -834,9 +853,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in"
             " [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
         )
-        bib_references[
-            "run"
-        ] = """@inproceedings{amati-2006-frequentist,
+        bib_references["run"] = """@inproceedings{amati-2006-frequentist,
   author    = {Giambattista Amati},
   editor    = {Mounia Lalmas and Andy MacFarlane and Stefan M. R{\"{u}}ger and Anastasios Tombros and Theodora Tsikrika and Alexei Yavlinsky},
   title     = {Frequentist and Bayesian Approach to Information Retrieval},
@@ -1101,7 +1118,7 @@ def run_execute_docker_software(
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
         job_id,
-    )   
+    )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
 

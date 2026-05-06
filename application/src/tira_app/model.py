@@ -518,3 +518,4 @@ class RunningProcesses(models.Model):
     dataset_id = models.TextField(default="")
     details = models.TextField(default="")
     killing = models.BooleanField(default=False)
+    celery_id = models.CharField(max_length=150, null=True, default=None)
