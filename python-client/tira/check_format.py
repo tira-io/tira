@@ -4,6 +4,7 @@ import os
 import re
 import xml.dom.minidom
 from collections.abc import Iterable
+from copy import deepcopy
 from enum import Enum
 from glob import glob
 from pathlib import Path
@@ -402,7 +403,7 @@ class TrecEvalLeaderboard(FormatBase):
 
     def matching_files(self, run_output):
         ret = []
-        for i in [run_output] + glob(f"{run_output.absolute()}/*"):
+        for i in [run_output] + glob(f"{run_output.absolute()}/*") + glob(f"{run_output.absolute()}/*/*"):
             valid_lines = 0
             i = Path(i)
             if not i.is_file():
@@ -427,7 +428,7 @@ class TrecEvalLeaderboard(FormatBase):
 
     def parse_line_failsave(self, l):
         try:
-            run, metric, query, value = l.split()
+            run, query, metric, value = l.split()
             return {"run": run, "metric": metric, "query": query, "value": value}
         except:
             return None
@@ -446,6 +447,9 @@ class TrecEvalLeaderboard(FormatBase):
         try:
             for i in self.yield_next_entry(run_output):
                 lines += 1
+                if i["run"] == "run_id" and i["query"] == "query_id":
+                    continue
+
                 if i["run"] not in run_to_measure_to_queries:
                     run_to_measure_to_queries[i["run"]] = {}
                 if i["metric"] not in run_to_measure_to_queries[i["run"]]:
@@ -578,6 +582,68 @@ class RunWithIrMetadata(FormatBase):
         return [ret_code, ret_msg]
 
 
+class LongEvalRAG(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration):
+        pass
+
+    def check_ir_metadata(self, run_output: Path):
+        if not (run_output / "ir-metadata.yml").exists():
+            return _fmt.ERROR, "\n\t" + fmt_message(
+                f"I expected a file ir-metadata.yml in the directory {run_output} but did not find one.", _fmt.ERROR
+            )
+        else:
+            required_fields = {
+                "tag": {"type": str, "default": "ENTER_VALUE_HERE"},
+                "actor": {"team": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "research goal": {"description": {"type": str, "default": "ENTER_VALUE_HERE"}},
+                "platform": {"software": {"libraries": {"type": list, "default": "ENTER_VALUE_HERE"}}},
+                "implementation": {"source": {"repository": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "data": {"training data": {"name": {"type": str, "default": "ENTER_VALUE_HERE"}}},
+                "method": {
+                    "automatic": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    "retrieval": {
+                        "name": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "documents": {"type": int, "default": "ENTER_VALUE_HERE"},
+                        "chunking": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "chunk_ranking": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "single_stage_retrieval": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    },
+                    "generation": {
+                        "description": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "prompt": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "llm": {"type": str, "default": "ENTER_VALUE_HERE"},
+                        "reasoning": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                        "agents": {"type": bool, "default": "ENTER_VALUE_HERE"},
+                    },
+                },
+            }
+            return check_format(
+                run_output / "ir-metadata.yml",
+                "ir_metadata",
+                {"required_fields": required_fields},
+            )
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+
+        if self.check_ir_metadata(run_output)[0] != _fmt.OK:
+            return _fmt.ERROR, ret_msg + "\n\t" + fmt_message(
+                f"The file {run_output}/ir-metadata.yml is not valid. Errors: " + self.check_ir_metadata(run_output)[1],
+                _fmt.ERROR,
+            )
+
+        ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
+
+        rag_eval = TrecRagRuns()
+        lvl, msg = rag_eval.check_format(run_output)
+        if lvl != _fmt.OK:
+            ret_msg += "\n\t" + fmt_message(f"The RAG runs are not valid, errors: {msg}", _fmt.ERROR)
+            return _fmt.ERROR, ret_msg
+
+        ret_msg += "\n\t" + fmt_message("The RAG run is in correct format.", _fmt.OK)
+        return _fmt.OK, ret_msg
+
+
 class LongEvalLags(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         if not configuration or "lags" not in configuration or not configuration["lags"]:
@@ -660,6 +726,111 @@ class LongEvalLags(FormatBase):
                 ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
 
         ret_msg += "\n\t" + fmt_message("The file ir-metadata.yml is valid.", _fmt.OK)
+
+        return [ret_code, ret_msg]
+
+
+class LongEvalUsimLags(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        if not configuration or "lags" not in configuration or not configuration["lags"]:
+            raise ValueError(
+                'Please pass a configuration "lags" that points out on which lags an dataset should run. '
+                + 'E.g., {"lags": ["lag-1", "lag-2"]}. '
+                + f"I got: {configuration}"
+            )
+
+        self.lags = configuration["lags"]
+
+    def check_format(self, run_output: Path):
+        ret_msg = f"I will check that the data in {run_output} is valid ..."
+        ret_code = _fmt.OK
+
+        for lag in self.lags:
+            lag_file = run_output / (lag + ".json")
+            if not lag_file.exists():
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(f"I expected a file {lag}.json in the directory.", _fmt.ERROR)
+                continue
+
+            try:
+                lag_parsed = json.loads(lag_file.read_text())
+            except:
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(f"The file {lag}.json is not a valid json file.", _fmt.ERROR)
+                continue
+
+            if "meta" not in lag_parsed:
+                ret_code = _fmt.ERROR
+                ret_msg += "\n\t" + fmt_message(
+                    f"The file {lag}.json does not contain the required field meta.", _fmt.ERROR
+                )
+                return [ret_code, ret_msg]
+
+            for req in ["run_name", "description", "team_name"]:
+                if req not in lag_parsed["meta"]:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json does not contain the required field {req} in meta.", _fmt.ERROR
+                    )
+                    return [ret_code, ret_msg]
+
+            expected_queries = set(self.lags[lag])
+
+            for k in self.lags[lag]:
+                if k not in lag_parsed:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {lag}.json is missing query {k}.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
+
+            for k in lag_parsed.keys():
+                if k == "meta":
+                    continue
+                val = lag_parsed[k]
+                if not isinstance(val, list):
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains predictions of type {type(val)} for query {k}. I expected a list.",
+                        _fmt.ERROR,
+                    )
+                    return [ret_code, ret_msg]
+                if len(val) <= 0:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains no predictions for query {k}.", _fmt.ERROR
+                    )
+                    return [ret_code, ret_msg]
+                if len(val) > 5:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains too many predictions for query {k}.", _fmt.ERROR
+                    )
+                    return [ret_code, ret_msg]
+                for v in val:
+                    if not isinstance(v, str):
+                        ret_code = _fmt.ERROR
+                        ret_msg += "\n\t" + fmt_message(
+                            f"The file {lag}.json contains predictions that are no strings for query {k}.", _fmt.ERROR
+                        )
+                        return [ret_code, ret_msg]
+
+                if k not in expected_queries:
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(
+                        f"The file {lag}.json contains predictions for the query {k}, but no such query exists.",
+                        _fmt.ERROR,
+                    )
+                    return [ret_code, ret_msg]
+
+            if ret_code == _fmt.OK:
+                ret_msg += "\n\t" + fmt_message(f"The run in subdirectory {lag} is valid.", _fmt.OK)
+
+        if ret_code == _fmt.OK:
+            for f in os.listdir(run_output):
+                f = Path(f).name.replace(".json", "")
+                if f not in self.lags and not f.endswith(".yml"):
+                    ret_code = _fmt.ERROR
+                    ret_msg += "\n\t" + fmt_message(f"The file {f} is not expected. Please remove it.", _fmt.ERROR)
+                    return [ret_code, ret_msg]
 
         return [ret_code, ret_msg]
 
@@ -1256,7 +1427,7 @@ class TrecRagRuns(FormatBase):
         return [_fmt.OK, "Valid trec-rag runs."]
 
     def yield_next_entry(self, f: Path):
-        for f in [f] + glob(f"{f}/*") + glob(f"{f}/runs/*"):
+        for f in [f] + glob(f"{f}/*") + glob(f"{f}/*/*") + glob(f"{f}/*/*/*"):
             try:
                 run = self.load_run_failsave(Path(f))
             except:
@@ -1453,6 +1624,8 @@ FORMAT_TO_CHECK = {
     "lsr-benchmark-inputs": LearnedSparseRetrievalInputs,
     "qrels.txt": QrelFormat,
     "LongEvalLags": LongEvalLags,
+    "LongEvalRAG": LongEvalRAG,
+    "LongEvalUsimLags": LongEvalUsimLags,
     "run-with-metadata": RunWithIrMetadata,
     "terrier-index": TerrierIndex,
     "multi-author-writing-style-analysis-problems": lambda: MultiAuthorWritingStyleAnalysis("problem"),
@@ -1475,6 +1648,8 @@ SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 def check_format_configuration_if_valid(
     format: Union[str, Sequence[str]], configuration: "Optional[dict[str, Any]]" = None
 ) -> "FormatBase":
+    if configuration:
+        configuration = deepcopy(configuration)
     if isinstance(format, str):
         ret = FORMAT_TO_CHECK[format]()
         ret.apply_configuration_and_throw_if_invalid(configuration)

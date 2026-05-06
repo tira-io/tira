@@ -121,7 +121,7 @@ EOF
 COPY --from=build --chown=tira:tira /tira/src/manage.py /home/tira/manage.py
 
 RUN <<EOF
-apt-get -qq install sudo podman
+apt-get -qq install sudo podman rsync
 useradd -ms /bin/bash tira
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd

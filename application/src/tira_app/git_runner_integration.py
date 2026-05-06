@@ -235,7 +235,7 @@ class GitRunner:
 
         return ret
 
-    def help_on_uploading_docker_image(self, user_name, cache=None, force_cache_refresh=False):
+    def help_on_uploading_docker_image(self, user_name, cache=None, force_cache_refresh=False, force_recreate=False):
         """TODO
         Each user repository has a readme.md , that contains instructions on
         how to upload images to the repository.
@@ -259,9 +259,9 @@ class GitRunner:
                 return ret
 
         repo = self.existing_repository("tira-user-" + user_name)
-        if not repo:
-            self.create_user_repository(user_name)
-            return self.help_on_uploading_docker_image(user_name, cache)
+        if not repo or force_recreate:
+            self.create_user_repository(user_name, force_recreate)
+            return self.help_on_uploading_docker_image(user_name, cache, force_cache_refresh)
 
         # Hacky at the moment
         ret = repo.files.get("README.md", ref="main").decode().decode("UTF-8").split("## Create an docker image")[1]

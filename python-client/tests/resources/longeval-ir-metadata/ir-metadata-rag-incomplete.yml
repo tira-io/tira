@@ -1,0 +1,102 @@
+# We use the ir-metadata standard to describe and process runs.
+# The fields below are mandatory, you can add additional metadata if you like.
+# There are two libraries that automate and simplify tracking of experimental metadata that you can use optionally:
+#
+#   - The metadata module of [repro_eval](https://www.ir-metadata.org/software/):
+#     Tracks the platform and implementation of your experiments.
+#
+#   - The [tirex_tracker](https://github.com/tira-io/tirex-tracker/):
+#     Tracks the platform, implementation, and resources (e.g., CPU, GPU, RAM, emissions, etc.) of your experiments.
+#
+# See https://www.ir-metadata.org for more details.
+
+tag: ENTER_VALUE_HERE
+
+actor:
+  # The name of the team
+  team: ENTER_VALUE_HERE
+
+# Please provide a short description of your system.
+research goal:
+  description: |
+    ENTER_VALUE_HERE
+    ...
+    This is a multi line string
+    ...
+    ENTER_VALUE_HERE
+
+platform:
+  software:
+    # Which software and tools did you use for training, tunning and running your system?
+    # You can maintain the software that you used manually.
+    # Alternatively, you can use repro_eval or the tirex_tracker to track this.
+    libraries:
+      - ENTER_VALUE_HERE
+      - ENTER_VALUE_HERE
+
+implementation:
+  source:
+    # Please provide a reference to your code if possible.
+    # If you can not share your code, you can delete the implementation section.
+    # The repro_eval and/or tirex_tracker tools can track this automatically, including commits, branches, etc.
+    repository: ENTER_VALUE_HERE
+
+data:
+  # Please describe which training data your system used, e.g., longeval-sci-2026, longeval-web, MS MARCO, etc.
+  training data:
+    - name: longeval-sci-2026
+    - name: ENTER_VALUE_HERE
+
+method:
+  # Boolean value indicating if it is a automatic (true) or manual (false) run
+  automatic: ENTER_VALUE_HERE 
+ 
+  retrieval:
+    - # Which ranking approach do you use? E.g., bm25
+      name: ENTER_VALUE_HERE
+
+      # How many documents/chunks did you used in generation? Please put a number here, e.g., 10 or 1000
+      documents: ENTER_VALUE_HERE
+
+      ##################################################
+      # Yes/No Questions
+      ##################################################
+
+      # Did you use any document chunking? (please enter: true/false)
+      chunking: ENTER_VALUE_HERE 
+  
+      # Did you retrieve/re-rank chunks? (please enter: true/false)
+      chunk_ranking: ENTER_VALUE_HERE
+
+      # Did you use more than a single retrieval/ranking model? (please enter: true/false)
+      single_stage_retrieval: ENTER_VALUE_HERE
+      
+  generation:
+    # Please provide a short description of your generation approach.
+    description: |
+      ENTER_VALUE_HERE
+      ...
+      This is a multi line string
+      ...
+      ENTER_VALUE_HERE
+
+    # Please provide a prompt use to generate answer.
+    prompt: |
+      ENTER_VALUE_HERE
+      ...
+      This is a multi line string
+      ...
+      ENTER_VALUE_HERE
+
+    # Which LLM did you use in generation?
+    llm: ENTER_VALUE_HERE 
+
+    ##################################################
+    # Yes/No Questions
+    ##################################################
+
+    # Did you use any reasoning? (please enter: true/false)
+    reasoning: ENTER_VALUE_HERE 
+
+    # Did you use any agentic approach? (please enter: true/false)
+    agents: ENTER_VALUE_HERE

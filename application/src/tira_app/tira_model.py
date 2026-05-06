@@ -33,21 +33,6 @@ logger = logging.getLogger("tira")
 model = HybridDatabase()
 
 
-def reload_vms() -> None:
-    """reload VM and user data from the export format of the model"""
-    model.reload_vms()
-
-
-def reload_datasets() -> None:
-    """reload dataset data from the export format of the model"""
-    model.reload_datasets()
-
-
-def reload_tasks() -> None:
-    """reload task data from the export format of the model"""
-    model.reload_tasks()
-
-
 # get methods are the public interface.
 def get_vm(vm_id: str, create_if_none: bool = False) -> "dict[str, Any]":
     """Returns a vm as dictionary with:
@@ -165,7 +150,7 @@ def tira_docker_registry_token(docker_software_help: str) -> tuple[str, str]:
 
 
 def load_docker_data(
-    task_id: str, vm_id: str, cache: BaseCache, force_cache_refresh: bool
+    task_id: str, vm_id: str, cache: BaseCache, force_cache_refresh: bool, force_recreate: bool = False
 ) -> "Union[dict[str, Any], Literal[False]]":
     """
     Get the docker data for a particular user (vm_id) from the git registry.
@@ -187,7 +172,7 @@ def load_docker_data(
         if "-tira-docker-software-id-" not in i["image"]
     ]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, "docker-images-in-user-repository-tira-user-" + vm_id)
-    docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh)
+    docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh, force_recreate)
     public_docker_softwares = model.get_public_docker_softwares(task_id)
 
     # removed for the moment as tira-cli uses the above already.
@@ -227,8 +212,16 @@ def get_discourse_token_for_user(vm_id: str, disraptor_user: str) -> "Optional[s
     if ret:
         return ret
 
-    disraptor_description = disraptor_user + "-repo-" + vm_id
-    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
+    discourse_client = discourse_api_client()
+    members = [
+        i["username"]
+        for i in json.loads(discourse_client._get(f"groups/tira_vm_{vm_id}/members.json").content)["members"]
+    ]
+
+    user_for_group = disraptor_user if disraptor_user in members else members[0]
+
+    disraptor_description = user_for_group + "-repo-" + vm_id
+    discourse_api_key = discourse_client.generate_api_key(user_for_group, disraptor_description)
 
     model.create_discourse_token_for_user(vm_id, discourse_api_key)
 
@@ -299,11 +292,8 @@ def get_submission_git_repo(
 
 
 def git_pipeline_is_enabled_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False) -> bool:
-    evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
-    git_runners_for_task = [i["is_git_runner"] for i in evaluators_for_task]
-
-    # We enable the docker part only if all evaluators use the docker variant.
-    return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
+    task = get_task(task_id)
+    return task and "featured" in task and task["featured"]
 
 
 def get_evaluators_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False):
@@ -592,15 +582,20 @@ def add_docker_software(
     try_run_metadata_uuid: "Optional[str]" = None,
     tira_image_workdir: "Optional[str]" = None,
     workflow_configuration: "Optional[str]" = None,
+    external_docker_registry: "Optional[bool]" = False,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
     image, old_tag = image.split(":")
-    new_tag = old_tag + "-tira-docker-software-id-" + randomname.get_name().lower()
 
-    tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
-        image, old_tag, new_tag
-    )
+    if not external_docker_registry:
+        new_tag = old_tag + "-tira-docker-software-id-" + randomname.get_name().lower()
+
+        tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(
+            image, old_tag, new_tag
+        )
+    else:
+        tira_image_name = image  + ":" + old_tag
 
     if workflow_configuration:
         try:

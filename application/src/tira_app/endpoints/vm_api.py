@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
+from tira.io_utils import get_tira_id, sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
@@ -126,11 +127,20 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
 def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     from tira_worker import evaluate
 
-    evaluator_id = model.get_dataset(dataset)["evaluator_id"]
+    dataset_configuration = model.get_dataset(dataset)
+    evaluator_id = dataset_configuration["evaluator_id"]
     evaluator = model.get_evaluator(dataset, task)
     job_id = add_job("evaluator", task, team, dataset, evaluator)
+    queue = dataset_configuration.get("queue", "evaluator")
+    if not queue:
+        queue = "evaluator"
 
-    evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue="evaluator")
+    result = evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
+    try:
+        add_celery_id_to_job(job_id, result.id)
+    except Exception as e:
+        logger.exception(e)
+        logger.warning(f"Could not add add_celery_id_to_job for evaluation {e}")
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -157,13 +167,47 @@ def run_sandboxed_software(
 ) -> None:
     from tira_worker import run
 
+    from .. import model as modeldb
+
+    dataset_config = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    workflow = dataset_config.get_workflow_configuration()
+    software_workflow = None
+
+    if workflow is not None:
+        docker_software_id = int(software_id.split("-software-")[1])
+        software_config = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+        software_workflow = software_config.get_workflow_configuration()
+
     if isinstance(mount_hf_model, str):
         mount_hf_model = [mount_hf_model]
 
-    run.apply_async(
-        args=[dataset_id, task_id, docker_image, command, software_id, vm_id, job_id, mount_hf_model],
+    result = run.apply_async(
+        args=[
+            dataset_id,
+            task_id,
+            docker_image,
+            command,
+            software_id,
+            vm_id,
+            job_id,
+            mount_hf_model,
+            workflow,
+            software_workflow,
+        ],
         queue=docker_resources,
     )
+
+    add_celery_id_to_job(job_id, result.id)
+
+    return result.id
+
+
+def add_celery_id_to_job(job_id, celery_id):
+    from ..model import RunningProcesses
+
+    job = RunningProcesses.objects.get(uuid=job_id)
+    job.celery_id = celery_id
+    job.save()
 
 
 @check_conditional_permissions(private_run_ok=True)
@@ -220,7 +264,12 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         if upload_id == "new-submission":
             upload_id = model.add_upload(task_id, vm_id, None)["id"]
             model.update_upload_metadata(
-                task_id, vm_id, upload_id, request.POST.get("display_name"), request.POST.get("description"), ""
+                task_id,
+                vm_id,
+                upload_id,
+                sanitize_text(request.POST.get("display_name")),
+                sanitize_text(request.POST.get("description")),
+                "",
             )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
@@ -247,7 +296,7 @@ def _parse_notebook_to_html(notebook_content: str) -> "Optional[str]":
     try:
         notebook = nbformat.reads(notebook_content, as_version=4)  # type: ignore [no-untyped-call]
         html_exporter: HTMLExporter = HTMLExporter(template_name="classic")  # type: ignore [no-untyped-call]
-        (body, _) = html_exporter.from_notebook_node(notebook)
+        body, _ = html_exporter.from_notebook_node(notebook)
         return body
     except Exception:
         pass
@@ -534,6 +583,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("try_run_metadata_uuid", None),
             data.get("tira_image_workdir", None),
             data.get("workflow_configuration", None),
+            data.get("external_docker_registry", False),
         )
 
         if data.get("mount_hf_model"):
@@ -559,8 +609,8 @@ def docker_software_save(request: "HttpRequest", task_id: str, vm_id: str, docke
             data = json.loads(request.body)
             model.update_docker_software_metadata(
                 docker_software_id,
-                data.get("display_name"),
-                data.get("description"),
+                sanitize_text(data.get("display_name")),
+                sanitize_text(data.get("description")),
                 data.get("paper_link"),
                 data.get("ir_re_ranker", False),
                 data.get("ir_re_ranking_input", False),
@@ -612,7 +662,9 @@ def get_token(request: "HttpRequest", vm_id: str) -> HttpResponse:
         return JsonResponse(
             {"status": 0, "context": {"token": model.get_discourse_token_for_user(vm_id, disraptor_user)}}
         )
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Error while getting discourse token for vm {vm_id}: {e}")
+        logger.exception(e)
         return JsonResponse(
             {"status": 1, "message": "Could not extract the discourse/disraptor user, please authenticate."}
         )
@@ -640,7 +692,12 @@ def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str
         try:
             data = json.loads(request.body)
             model.update_upload_metadata(
-                task_id, vm_id, upload_id, data.get("display_name"), data.get("description"), data.get("paper_link")
+                task_id,
+                vm_id,
+                upload_id,
+                sanitize_text(data.get("display_name")),
+                sanitize_text(data.get("description")),
+                data.get("paper_link"),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
@@ -722,9 +779,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "is a  non-factoid quesiton answering dataset based on the questions and "
             + "answers of Yahoo! Webscope L6."
         )
-        bib_references[
-            "dataset"
-        ] = """@inproceedings{Hashemi2020Antique,
+        bib_references["dataset"] = """@inproceedings{Hashemi2020Antique,
   title        = {ANTIQUE: A Non-Factoid Question Answering Benchmark},
   author       = {Helia Hashemi and Mohammad Aliannejadi and Hamed Zamani and Bruce Croft},
   booktitle    = {ECIR},
@@ -737,9 +792,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "respectively [TIREx](https://webis.de/publications#froebe_2023e) "
             + "is used to enable reprodicible and blinded experiments."
         )
-        bib_references[
-            "task"
-        ] = """@InProceedings{froebe:2023b,
+        bib_references["task"] = """@InProceedings{froebe:2023b,
   address =                  {Berlin Heidelberg New York},
   author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
   booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
@@ -772,9 +825,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in"
             " [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
         )
-        bib_references[
-            "run"
-        ] = """@article{DBLP:journals/corr/abs-2101-05667,
+        bib_references["run"] = """@article{DBLP:journals/corr/abs-2101-05667,
   author       = {Ronak Pradeep and Rodrigo Frassetto Nogueira and Jimmy Lin},
   title        = {The Expando-Mono-Duo Design Pattern for Text Ranking with Pretrained Sequence-to-Sequence Models},
   journal      = {CoRR},
@@ -808,9 +859,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in"
             " [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
         )
-        bib_references[
-            "run"
-        ] = """@inproceedings{amati-2006-frequentist,
+        bib_references["run"] = """@inproceedings{amati-2006-frequentist,
   author    = {Giambattista Amati},
   editor    = {Mounia Lalmas and Andy MacFarlane and Stefan M. R{\"{u}}ger and Anastasios Tombros and Theodora Tsikrika and Alexei Yavlinsky},
   title     = {Frequentist and Bayesian Approach to Information Retrieval},
@@ -1110,9 +1159,9 @@ def add_job(
             "cores": str(r["cores"]) + " CPU Cores",
             "ram": str(r["ram"]) + " GB of RAM",
             "gpu": str(r["gpu"]) + " GPUs",
-            "data": "?",
-            "dataset_type": "?",
-            "dataset": "tbd dataset",
+            "data": dataset_id,
+            "dataset_type": "train" if dataset_id and "train" in dataset_id else "test",
+            "dataset": dataset_id,
             "software_id": "loading software id",
             "task_id": task_id,
         },
@@ -1126,18 +1175,31 @@ def add_job(
 
 @check_permissions
 def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run_id: str) -> HttpResponse:
+    from ..model import RunningProcesses
+
     if not request.method == "GET":
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
-    else:
-        datasets = model.get_datasets_by_task(task_id)
-        git_runner = model.get_git_integration(task_id=task_id)
 
-        if not git_runner:
-            return JsonResponse({"status": 1, "message": f"No git integration found for task {task_id}"})
+    try:
+        job = RunningProcesses.objects.get(uuid=run_id)
+    except:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "I could not find the corresponding job. Maybe it is already about to be terminated",
+            }
+        )
 
-        for dataset in datasets:
-            git_runner.stop_job_and_clean_up(
-                model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id, cache
-            )
+    job.killing = True
+    job.save(update_fields=["killing"])
 
-        return JsonResponse({"status": 0, "message": "Run successfully stopped"})
+    if job.celery_id:
+        from tira_worker import app
+
+        app.control.revoke(job.celery_id, terminate=True)
+        app.control.revoke(job.celery_id, terminate=True)
+
+        job.delete()
+    return JsonResponse(
+        {"status": 0, "message": "The run is getting stopped. It might take 5 minutes until the proces terminated"}
+    )

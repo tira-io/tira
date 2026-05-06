@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import uuid
 import zipfile
+from copy import deepcopy
 from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, overload
@@ -287,7 +288,8 @@ class TiraClient(ABC):
             print_message(f"The directory {directory} does not exist.", _fmt.ERROR)
             raise ValueError(f"The directory {directory} does not exist.")
 
-        result, msg = check_format(directory, dataset_handle["format"][0])
+        format_config = dataset_handle.get("format_configuration", {})
+        result, msg = check_format(directory, dataset_handle["format"], format_config)
         if result != _fmt.OK:
             log_message(msg, result)
             raise ValueError(msg)
@@ -350,7 +352,13 @@ class TiraClient(ABC):
         return target_file
 
     def build_docker_image_from_code(
-        self, path: Path, print_message, dry_run: bool, docker_file: "Optional[Path]" = None
+        self,
+        path: Path,
+        print_message,
+        dry_run: bool,
+        docker_file: "Optional[Path]" = None,
+        build_args: "Optional[str]" = None,
+        platform: str = "linux/amd64",
     ):
         repo = self._git_repo(path)
 
@@ -375,7 +383,9 @@ class TiraClient(ABC):
         print_message(f"The code is in a git repository {repo.working_tree_dir}.", _fmt.OK)
 
         if docker_file is None:
-            docker_file = path / "Dockerfile"
+            from tira.io_utils import dockerfile_for_architecture
+
+            docker_file = dockerfile_for_architecture(path)
 
         docker_file = Path(docker_file)
         if not docker_file.exists():
@@ -401,7 +411,7 @@ class TiraClient(ABC):
         print("Build Docker image...")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
-        self.local_execution.build_docker_image(path, docker_tag, docker_file)
+        self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args, platform)
 
         print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
         return docker_tag, zipped_code, remotes, commit, active_branch
@@ -419,6 +429,11 @@ class TiraClient(ABC):
         mount_hf_model: "Optional[list[str]]" = None,
         workflow_software_configuration: "Optional[list[str]]" = None,
         external_docker_registry: "Optional[str]" = None,
+        forward_environment_variable: "Optional[list[str]]" = None,
+        build_args: "Optional[str]" = None,
+        mount_directory: "Optional[list[str]]" = None,
+        platform: "Optional[str]" = None,
+        gpus: "Optional[str]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -429,6 +444,7 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
+        from tira.io_utils import resolve_mount_directory, get_manifest_of_ghcr_docker_image
         from tira.third_party_integrations import temporary_directory
 
         all_messages = []
@@ -467,6 +483,9 @@ class TiraClient(ABC):
             if dataset_id is None:
                 raise ValueError("foo")
 
+        if dataset_id and "/" in dataset_id and len(dataset_id.split("/")) == 2:
+            task_id, dataset_id = dataset_id.split("/")
+
         dataset_handle = self.get_dataset(f"{task_id}/{dataset_id}")
         if (
             not dataset_handle
@@ -484,8 +503,41 @@ class TiraClient(ABC):
         dataset_path = self.download_dataset(task_id, dataset_id)
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
+        if not dry_run:
+            from tira.io_utils import verify_images_can_be_build_and_pushed, verify_images_are_in_correct_format
+
+            specific_help = "\n\n\tIt seems like your installation produces images that are not compatible with the TIRA cluster."
+            specific_help += "\n\tThis might be because you use Docker Desktop with containerd."
+            specific_help += "\n\tPlease see this forum article for details:"
+            specific_help += "\n\thttps://www.tira.io/t/ensure-to-upload-compatible-docker-images"
+            lvl, message = verify_images_can_be_build_and_pushed(task_id, user_id)
+
+            if lvl != _fmt.OK:
+                message += "\n\n\tIt seems like you must run 'tira-cli login --token TOKEN' first"
+                print(message)
+                raise ValueError(message)
+            else:
+                print_message(message, lvl)
+
+            lvl, message = verify_images_are_in_correct_format(task_id, user_id)
+            if lvl != _fmt.OK:
+                message += specific_help
+                print(message)
+                raise ValueError(message)
+            else:
+                print_message(message, lvl)
+
+        resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
+
+        if platform is None:
+            platform = "linux/amd64"
+        elif platform == "host":
+            from tira.io_utils import docker_supported_target_platform
+
+            platform = docker_supported_target_platform()
+
         docker_tag, zipped_code, remotes, commit, active_branch = self.build_docker_image_from_code(
-            path, print_message, dry_run, docker_file
+            path, print_message, dry_run, docker_file, build_args, platform
         )
         print("Test Docker image...")
 
@@ -503,6 +555,8 @@ class TiraClient(ABC):
         gpu_device_ids = None
         if "NVIDIA_VISIBLE_DEVICES" in os.environ and os.environ["NVIDIA_VISIBLE_DEVICES"]:
             gpu_device_ids = [os.environ["NVIDIA_VISIBLE_DEVICES"]]
+        elif "CUDA_VISIBLE_DEVICES" in os.environ and os.environ["CUDA_VISIBLE_DEVICES"]:
+            gpu_device_ids = [os.environ["CUDA_VISIBLE_DEVICES"]]
 
         tmp_dir = temporary_directory()
         if workflow_configuration is None:
@@ -514,6 +568,9 @@ class TiraClient(ABC):
                 allow_network=allow_network,
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_device_ids,
+                forward_environment_variables=forward_environment_variable,
+                mount_directory=resolved_mount_directory,
+                platform=platform,
             )
         else:
             from tira.workflows import run_workflow
@@ -531,6 +588,8 @@ class TiraClient(ABC):
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_device_ids,
                 tira=self,
+                forward_environment_variables=forward_environment_variable,
+                mount_directory=resolved_mount_directory,
             )
             if workflow_result.level != _fmt.OK:
                 print_message(workflow_result.message, workflow_result.level)
@@ -568,12 +627,19 @@ class TiraClient(ABC):
                 from tira.tira_run import push_image
 
                 pushed_image = push_image(self, docker_tag, task_id, user_id)
+                print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             else:
-                raise ValueError(
-                    "Using an External Docker registry is not yet deployed on the Server side, but we deploy this within the next weeks"
-                )
+                target_docker_tag = external_docker_registry.split(":")[0] + ":" + platform.split("/")[-1] + '-' + commit[:5] + "-" + str(uuid.uuid4())[:5]
+                pushed_image = self.local_execution.push_image_third_party_registry(docker_tag, target_docker_tag)
+                manifest = get_manifest_of_ghcr_docker_image(pushed_image)
+                
+                print_message(f"The image {pushed_image} is pushed.", _fmt.OK)
+                if not manifest:
+                    msg = f"The image {pushed_image} is not publically available on ghcr. You likely need to configure that the package is public."
+                    
+                    print(msg)
+                    raise ValueError(msg)
 
-            print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             print("Configure code submission in TIRA...")
             upload = self.add_docker_software(
                 pushed_image,
@@ -605,6 +671,102 @@ class TiraClient(ABC):
             "image": docker_tag,
         }
 
+    def admin_verify_token(self, task_name, team):
+        print(task_name, team)
+        from tira.rest_api_client import Client as RestClient
+        from tira.third_party_integrations import temporary_directory
+
+        try:
+            self.json_response(f"/groups/tira_vm_{team}/members.json")
+        except:
+            print("Skip non existing team ...")
+            return (team, "None", "None", "None", "None")
+
+        token = self.json_response(f"/api/token/{team}")["context"]["token"]
+
+        team_dir = Path(temporary_directory())
+        tira_dir = team_dir / "tira"
+        docker_dir = team_dir / "docker"
+        tira_dir.mkdir()
+        docker_dir.mkdir()
+
+        assert "DOCKER_CONFIG" not in os.environ
+        (tira_dir / ".tira-settings.json").write_text('{"api_key":"' + token + '"}')
+        os.environ["DOCKER_CONFIG"] = str(docker_dir) + "/config.json"
+        client: "TiraClient" = RestClient(tira_cache_dir=str(tira_dir))
+        client.fail_if_api_key_is_invalid()
+
+        role = client.json_response("/api/role")
+        admin_teams = ("pan26-gen-maik-test", "clef26-open-web-search", "maik-test-3-30", "devtest", "lightning-ir")
+        if role["role"] != "user" and team not in admin_teams:
+            msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
+            print(msg)
+            raise ValueError(msg)
+
+        assert not client.local_execution.docker_client_is_authenticated()
+        try:
+            client.local_execution.login_docker_client(task_name, team)
+        except:
+            print("Refresh api token...")
+            print(client.json_response(f"/api/task/{task_name}/user/{team}?force-refresh=true"))
+            print(client.json_response(f"/api/task/{task_name}/user/{team}/refresh-docker-images"))
+            raise ValueError(f"re-run {team}")
+        from tira.tira_run import push_image
+
+        self.local_execution.ensure_image_available_locally("bash:latest")
+        pushed_image = push_image(client, "bash", task_name, team)
+        del os.environ["DOCKER_CONFIG"]
+
+        return (team, role["role"], role["context"]["user_id"], token, str(team_dir))
+
+    def _admin_verify_tokens(self, tasks, skip_without_token):
+        from tqdm import tqdm
+
+        solved = set()
+        target_file = Path(self.tira_cache_dir) / "admin-verified-teams.jsonl"
+        if not target_file.exists():
+            target_file.write_text("")
+
+        for l in target_file.read_text().split("\n"):
+            try:
+                l = json.loads(l)
+                solved.add((l["task"], l["team"]))
+            except:
+                pass
+
+        # TODO: Check if torch is installed and cude
+        #        self.local_execution.verify_image("t", "")
+
+        #        return
+
+        print(f"There are {len(solved)} already validated teams in {target_file}.")
+        for task in tasks:
+            resp = self.json_response(f"/api/count-of-team-submissions/{task}")["context"]["count_of_team_submissions"]
+            teams = set()
+
+            for team in resp:
+                teams.add(team["team"])
+
+            for team in tqdm(sorted(list(teams)), task):
+                if (task, team) in solved:
+                    continue
+
+                _, role, user_id, token, team_dir = self.admin_verify_token(task, team)
+                with open(target_file, "a") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "task": task,
+                                "team": team,
+                                "role": role,
+                                "user": user_id,
+                                "token": token,
+                                "team_dir": team_dir,
+                            }
+                        )
+                        + "\n"
+                    )
+
     def submit_dataset(
         self,
         path: Path,
@@ -630,7 +792,7 @@ class TiraClient(ABC):
                 log_message(m, l)
 
         if not dry_run:
-            result = verify_tira_installation()
+            result = verify_tira_installation("lsr-benchmark", "lightning-ir")
             if result != _fmt.OK:
                 msg = "Your tira installation is not valid. Please run: tira-cli verify-installation"
                 print_message(msg, _fmt.ERROR)
@@ -688,6 +850,7 @@ class TiraClient(ABC):
 
         baseline_format = tira_configs["baseline"]["format"]["name"]
         baseline_config = tira_configs["baseline"]["format"].get("config", {})
+
         if "measures" in tira_configs["evaluator"]:
             eval_image, eval_command, eval_measures = None, None, tira_configs["evaluator"]["measures"]
         else:
@@ -733,14 +896,14 @@ class TiraClient(ABC):
             target_file.parent.mkdir(exist_ok=True, parents=True)
             copy(data_file, target_file)
 
-        l, m = check_format(inputs_dir, input_format, input_config)
+        l, m = check_format(inputs_dir, input_format, deepcopy(input_config))
         if l != _fmt.OK:
             log_message(m, l)
             return None
 
         print_message("The system inputs are valid.", _fmt.OK)
 
-        l, m = check_format(truth_dir, truth_format, truth_config)
+        l, m = check_format(truth_dir, truth_format, deepcopy(truth_config))
         if l != _fmt.OK:
             log_message(m, l)
             return None
@@ -750,9 +913,12 @@ class TiraClient(ABC):
         if not skip_baseline:
             git_repo_local = self.clone_git_repository(git_url)
             print_message(f"Repository for the baseline is cloned from {git_url}.", _fmt.OK)
+            docker_file = None
+            if "file" in tira_configs["baseline"]:
+                docker_file = git_repo_local / Path(tira_configs["baseline"]["file"])
 
             docker_tag, _, _, _, _ = self.build_docker_image_from_code(
-                git_repo_local / Path(subdir), log_message, False
+                git_repo_local / Path(subdir), log_message, False, docker_file=docker_file
             )
 
             print_message(f"The baseline {subdir} is embedded in a Docker image.", _fmt.OK)
@@ -790,7 +956,8 @@ class TiraClient(ABC):
 
                 baseline_output = workflow_output.run / "output"
 
-            l, m = check_format(baseline_output, baseline_format, baseline_config)
+            l, m = check_format(baseline_output, baseline_format, deepcopy(baseline_config))
+
             if l != _fmt.OK:
                 log_message(
                     f"The outputs of the baseline on {inputs_dir} are at {baseline_output} and not valid: {m}", l
@@ -808,18 +975,28 @@ class TiraClient(ABC):
                 from tira.evaluators import evaluate
 
                 eval_config: Dict = {
-                    "measures": eval_measures,
-                    "run_format": baseline_format,
-                    "truth_format": truth_format,
+                    "measures": deepcopy(eval_measures),
+                    "run_format": deepcopy(baseline_format),
+                    "truth_format": deepcopy(truth_format),
                 }
-                for k, v in baseline_config.items():
+                for k, v in deepcopy(baseline_config).items():
                     if k not in eval_config:
                         eval_config[k] = v
+
+                if "format_configuration" not in eval_config:
+                    eval_config["format_configuration"] = {}
+                    for k, v in deepcopy(baseline_config).items():
+                        eval_config["format_configuration"][k] = v
+
+                if "truth_format_configuration" not in eval_config:
+                    eval_config["truth_format_configuration"] = {}
+                    for k, v in deepcopy(truth_config).items():
+                        eval_config["truth_format_configuration"][k] = v
 
                 preds = evaluate(
                     baseline_output,
                     truth_dir,
-                    eval_config,
+                    eval_config.copy(),
                 )
                 print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
 
@@ -844,6 +1021,7 @@ class TiraClient(ABC):
             dataset_name = path.name
             dataset_id = dataset_name.lower().replace("/", "-").replace(" ", "-").replace("_", "-")
             url = f"{self.base_url}/tira-admin/add-dataset/{task}"
+
             content = {
                 "csrfmiddlewaretoken": csrf_token,
                 "dataset_id": dataset_id,

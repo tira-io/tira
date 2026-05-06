@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class LocalExecutionIntegration:
     def __init__(self, tira_client=None):
         self.tira_client = tira_client
+        self.running_docker_images = {}
 
     def __normalize_command(self, cmd, evaluator):
         to_normalize = {
@@ -83,15 +84,37 @@ class LocalExecutionIntegration:
             ),
         }
 
-    def build_docker_image(self, path, tag, dockerfile):
-        image_build_code = subprocess.call(["docker", "build", "-f", str(dockerfile), "-t", str(tag), str(path)])
+    def build_docker_image(self, path, tag, dockerfile, build_args: "Optional[str]" = None, platform="linux/amd64"):
+        cmd = ["docker", "build", "--platform", platform, "-f", str(dockerfile), "-t", str(tag)]
+        if build_args is not None and len(build_args) > 0:
+            cmd += build_args.split()
+        cmd += [str(path)]
+        image_build_code = subprocess.call(cmd)
 
         if image_build_code != 0:
             raise ValueError(
-                f"Building the docker image failed with error code {image_build_code}. See above for details."
+                f"Building the docker image failed with error code {image_build_code}. See above for details.\n\tThe command was {' '.join(cmd)}"
             )
 
+        self.verify_image(tag, platform)
         print("\n\n Image build successfully.\n\n")
+
+    def verify_image(self, image, platform):
+        client = self.__docker_client()
+        inspect_result = client.api.inspect_image(image)
+        allowed = set([platform])
+        architecture = "unknow"
+        os = "unknown"
+
+        if inspect_result and "Architecture" in inspect_result:
+            architecture = inspect_result["Architecture"]
+        if inspect_result and "Os" in inspect_result:
+            os = inspect_result["Os"]
+
+        if f"{os}/{architecture}" not in allowed:
+            raise ValueError(
+                f"The platform {os}/{architecture} of the Docker image is not supported in the cluster for the task. Allowed platforms are {allowed}."
+            )
 
     def ensure_image_available_locally(self, image, client=None):
         try:
@@ -373,6 +396,17 @@ class LocalExecutionIntegration:
             f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
         )
 
+        device_requests = []
+        environment = {}
+        if "NVIDIA_VISIBLE_DEVICES" in os.environ:
+            environment["NVIDIA_VISIBLE_DEVICES"] = os.environ["NVIDIA_VISIBLE_DEVICES"]
+            environment["CUDA_VISIBLE_DEVICES"] = os.environ["NVIDIA_VISIBLE_DEVICES"]
+            device_requests = [
+                docker.types.DeviceRequest(
+                    device_ids=[str(os.environ["NVIDIA_VISIBLE_DEVICES"])], capabilities=[["gpu"]]
+                )
+            ]
+
         container = client.containers.run(
             image,
             entrypoint="sh",
@@ -380,6 +414,8 @@ class LocalExecutionIntegration:
             volumes=evaluation_volumes,
             detach=True,
             remove=True,
+            environment=environment,
+            device_requests=device_requests,
             network_disabled=not allow_network,
         )
 
@@ -406,6 +442,8 @@ class LocalExecutionIntegration:
         mem_limit=None,
         gpu_device_ids=None,
         forward_environment_variables=None,
+        mount_directory=None,
+        platform="linux/amd64",
     ):
         previous_stages = []
         original_args = {
@@ -500,6 +538,14 @@ class LocalExecutionIntegration:
             "TIRA_INPUT_DATASET": "/tira-data/input",
         }
 
+        if mount_directory:
+            additional_paths = 0
+            for k, v in mount_directory.items():
+                target_dir = "/tira-data/mounted/{additional_paths}"
+                additional_paths += 1
+                volumes[v] = {"bind": target_dir, "mode": "ro"}
+                environment[k] = target_dir
+
         if input_run:
             environment["inputRun"] = "/tira-data/input-run"
 
@@ -540,13 +586,18 @@ class LocalExecutionIntegration:
             mem_limit=mem_limit,
             cpu_count=cpu_count,
             privileged=True,
+            platform=platform,
         )
 
-        for line in container.attach(stdout=True, stream=True, logs=True):
-            print(line.decode("utf-8"))
+        self.running_docker_images[container.id] = container
+        try:
+            for line in container.attach(stdout=True, stream=True, logs=True):
+                print(line.decode("utf-8"))
 
-        return_code = container.wait()
-        # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
+            return_code = container.wait()
+            # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
+        finally:
+            self.running_docker_images.pop(container.id, None)
 
         if evaluate:
             self.evaluate(eval_dir, output_dir, allow_network, client)
@@ -559,6 +610,21 @@ class LocalExecutionIntegration:
         else:
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output
+
+    def stop_run(self, id):
+        if id not in self.running_docker_images:
+            raise ValueError(f"Could not find a running docker image with id {id}.")
+
+        self.running_docker_images[id].kill()
+
+    def kill_all_running_containers(self):
+        for id in list(self.running_docker_images.keys()):
+            try:
+                self.stop_run(id)
+            except Exception as e:
+                msg = f"Could not stop running docker image with id {id}. Got: {e!r}"
+                print(msg)
+                logging.exception(msg)
 
     def docker_image_work_dir(self, image):
         image = self.__docker_client().images.get(image).attrs["Config"]
@@ -668,3 +734,18 @@ class LocalExecutionIntegration:
             print(push_response)
             raise ValueError("Could not push image")
         return new_image
+
+    def push_image_third_party_registry(self, image, remote_tag):
+        client = docker.from_env()
+        client.images.get(image).tag(remote_tag)
+
+        tasks = {}
+        push_response = ""
+        for line in client.images.push(remote_tag, stream=True, decode=True):
+            push_response += str(line)
+            self.show_docker_progress(line, tasks)
+
+        if "error" in push_response:
+            print(push_response)
+            raise ValueError("Could not push image")
+        return remote_tag

@@ -2,10 +2,19 @@
 
 This is a python client for [TIRA.io](https://tira.io). Please find the [documentation online](https://tira-io.github.io/tira/nightly).
 
+
 ## Setup REST Client to Access Non-Public Endpoints
 
-To access non-public endpoints, you will need an authentication via an API key to ensure that you have the correct access credentials.
-Please generate your API key online at [tira.io/admin/api/keys](https://www.tira.io/admin/api/keys) and login your tira client:
+To get your API key, please navigate to the task for which you want to submit, click on "Submit" -> "Code Submission" or "Docker Submission" and the UI will show you your access token. With this, you can login:
+
+```
+tira-cli login --token YOUR-TOKEN-HERE
+```
+
+## Admin-Only: Setup REST Client to Access Non-Public Endpoints
+
+For admin-access to non-public endpoints, you will need an authentication via an API key to ensure that you have the correct access credentials.
+Please generate your admin API key online at [tira.io/admin/api/keys](https://www.tira.io/admin/api/keys) and login your tira client:
 
 ```
 tira-cli login --token YOUR-TOKEN-HERE

@@ -49,7 +49,9 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         help="Download the outputs of the specified approach. Usage: --approach <task-id>/<user-id>/<approach-name>",
     )
     parser.add_argument("--dataset", required=True, help="The dataset.")
+    parser.add_argument("--output", required=False, help="The output directory.")
     parser.add_argument("--truths", action="store_true", help="Download truths.")
+    parser.add_argument("--all-submissions", action="store_true", help="Download all submissions to a task.")
     parser.set_defaults(executable=download_command)
 
 
@@ -130,6 +132,48 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=dataset_submission_command)
 
 
+def admin_verify_tokens(task: list[str], **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    ret = client._admin_verify_tokens(task, skip_without_token=False)
+    return 0
+
+
+def setup_admin_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    subparsers = parser.add_subparsers(dest="sub-command", required=True)
+
+    v_parser = subparsers.add_parser("verify-tokens", help="Batch-verify authentication tokens for a task")
+    v_parser.add_argument(
+        "--task",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The task(s) on which all authentications should be verified.",
+    )
+    v_parser.set_defaults(executable=admin_verify_tokens)
+
+    irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
+    irds_parser.add_argument("--ir-datasets-id", required=True)
+    irds_parser.add_argument("--output-dataset-path", required=True)
+    irds_parser.set_defaults(executable=ir_datasets_loader_cli)
+
+
+def ir_datasets_loader_cli(ir_datasets_id, output_dataset_path, **kwargs) -> int:
+    from tira.ir_datasets_loader import IrDatasetsLoader
+
+    irds_loader = IrDatasetsLoader()
+    irds_loader.load_dataset_for_fullrank(
+        ir_datasets_id,
+        Path(output_dataset_path),
+        output_dataset_truth_path=None,
+        include_original=True,
+        skip_documents=False,
+        skip_qrels=False,
+        skip_duplicate_ids=True,
+    )
+    return 0
+
+
 def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
@@ -137,6 +181,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         required=True,
         default=None,
         help="The path used to build the docker image, must be in a clean git repository.",
+    )
+    parser.add_argument(
+        "--file",
+        required=False,
+        default=None,
+        help='Name of the Dockerfile (default: "PATH/Dockerfile")',
     )
     parser.add_argument(
         "--command",
@@ -168,6 +218,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         action="append",
         default=[],
         help="You can specify custom properties of your software in the form --set 'key=value'. This is needed for software submissions that need to run in a workflow and can not be captured within a single command. Only few tasks make use of this in TIRA (e.g., TREC AutoJudge and PAN Watermarking).",
+    )
+    parser.add_argument(
+        "--build-args",
+        required=False,
+        default=None,
+        help="You can specify additional build arguments that are forwarded to the docker build process. For instance, '--output type=docker --provenance=false' to force Docker v2 manifest format on Windows.",
     )
     parser.add_argument(
         "--external-docker-registry",
@@ -202,12 +258,25 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
+    parser.add_argument(
+        "--platform",
+        required=False,
+        default=None,
+        choices=["host", "linux/amd64", "linux/arm64"],
+        help="Detect the platform to build the docker image from the host. Attention, only linux/amd64 will run in tira.",
+    )
 
     parser.set_defaults(executable=code_submission_command)
 
 
 def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
+    parser.add_argument(
+        "--task", required=False, default=None, help="The task for which you want to run the verification."
+    )
+    parser.add_argument(
+        "--team", required=False, default=None, help="The team for which you want to run the verification."
+    )
     parser.set_defaults(executable=verify_installation_command)
 
 
@@ -270,12 +339,22 @@ don't know, where else to put it, this is a good place.
 """
 
 
-def download_command(dataset: str, approach: "Optional[str]" = None, truths: bool = False, **kwargs) -> int:
+def download_command(
+    dataset: str,
+    approach: "Optional[str]" = None,
+    truths: bool = False,
+    output: "Optional[str]" = None,
+    all_submissions: bool = False,
+    **kwargs,
+) -> int:
     client: "RestClient" = RestClient()
     if approach is not None:
-        print(client.get_run_output(approach, dataset))
+        ret = client.get_run_output(approach, dataset)
+    elif all_submissions:
+        ret = client.download_all_submissions(dataset, output)
     else:
-        print(client.download_dataset(None, dataset, truths))
+        ret = client.download_dataset(None, dataset, truths)
+
     return 0
 
 
@@ -309,7 +388,12 @@ def code_submission_command(
     mount_hf_model: "Optional[list[str]]",
     tira_vm_id: "Optional[str]",
     set: "Optional[list[str]]",
+    file: "Optional[Path]",
     external_docker_registry: "Optional[str]",
+    forward_environment_variable: "Optional[list[str]]",
+    build_args: "Optional[str]",
+    mount_directory: "Optional[list[str]]",
+    platform: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -325,14 +409,19 @@ def code_submission_command(
         mount_hf_model=mount_hf_model,
         user_id=tira_vm_id,
         workflow_software_configuration=set,
+        docker_file=file,
         external_docker_registry=external_docker_registry,
+        forward_environment_variable=forward_environment_variable,
+        build_args=build_args,
+        mount_directory=mount_directory,
+        platform=platform,
     )
 
     return 0
 
 
-def verify_installation_command(**kwards) -> int:
-    status = verify_tira_installation()
+def verify_installation_command(task, team, **kwargs) -> int:
+    status = verify_tira_installation(task, team)
 
     print("\nResult:")
     msg = "Your TIRA installation is valid."
@@ -489,6 +578,9 @@ def parse_args() -> argparse.Namespace:
     )
     setup_dataset_submission_command(
         subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
+    )
+    setup_admin_command(
+        subparsers.add_parser("admin", help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.")
     )
 
     return parser.parse_args()

@@ -174,6 +174,7 @@ class Dataset(models.Model):
     format_configuration = models.CharField(max_length=300, null=True, default=None)
     truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
+    queue = models.CharField(max_length=50, null=True, default=None)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:
@@ -516,3 +517,5 @@ class RunningProcesses(models.Model):
     vm_id = models.TextField(default="")
     dataset_id = models.TextField(default="")
     details = models.TextField(default="")
+    killing = models.BooleanField(default=False)
+    celery_id = models.CharField(max_length=150, null=True, default=None)

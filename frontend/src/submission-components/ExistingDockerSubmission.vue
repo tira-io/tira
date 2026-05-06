@@ -76,8 +76,8 @@ export default {
   components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
   emits: ['refresh_running_submissions', 'deleteDockerImage', 'modifiedSubmissionDetails'],
   props: ['user_id', 'datasets', 're_ranking_datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id', 'is_ir_task'],
-  data() {
-    return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
+  data: () => ({
+      loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
@@ -87,8 +87,7 @@ export default {
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
-    }
-  },
+  }),
   methods: {
     deleteDockerImage() {
       this.$emit('deleteDockerImage');
@@ -96,6 +95,7 @@ export default {
     async runSoftware() {
       const { valid } = await (this.$refs.form as any).validate()
       console.log(this.selectedResource)
+      console.log(this.rest_url)
 
       if (valid) {
         this.runSoftwareInProgress = true

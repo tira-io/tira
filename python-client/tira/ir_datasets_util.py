@@ -382,10 +382,16 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
             try:
                 return original_ir_datasets_load(dataset_id)
             except Exception:
-                logging.info(f'Load ir_dataset "{dataset_id}" from tira.')
-                docs = self.lazy_docs(lambda: get_download_dir_from_tira(dataset_id, False), None, True)
-                queries = self.lazy_queries(lambda: get_download_dir_from_tira(dataset_id, True), None)
-                qrels = self.lazy_qrels(lambda: get_download_dir_from_tira(dataset_id, True), None)
+                if dataset_id and Path(dataset_id).is_dir() and (Path(dataset_id) / "queries.jsonl").is_file():
+                    logging.info(f'Load ir_dataset from local directory "{dataset_id}".')
+                    docs = self.lazy_docs(lambda: Path(dataset_id), None, True)
+                    queries = self.lazy_queries(lambda: Path(dataset_id), None)
+                    qrels = self.lazy_qrels(lambda: Path(dataset_id), None)
+                else:
+                    logging.info(f'Load ir_dataset "{dataset_id}" from tira.')
+                    docs = self.lazy_docs(lambda: get_download_dir_from_tira(dataset_id, False), None, True)
+                    queries = self.lazy_queries(lambda: get_download_dir_from_tira(dataset_id, True), None)
+                    qrels = self.lazy_qrels(lambda: get_download_dir_from_tira(dataset_id, True), None)
 
                 ret = Dataset(docs, queries, qrels)
                 ret.dataset_id = lambda: dataset_id
