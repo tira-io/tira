@@ -88,7 +88,7 @@ def update_running_process_output(request: Request, vm_id: str, job_id: str) -> 
     try:
         job = RunningProcesses.objects.get(uuid=job_id)
     except:
-        return HttpResponseServerError(json.dumps({"status": 1, "message": "Job does not exist."}))
+        return JsonResponse({"status": 0, "message": "ok", "killing": True})
 
     try:
         data = json.loads(request.body) if request.body else request.POST.dict()
