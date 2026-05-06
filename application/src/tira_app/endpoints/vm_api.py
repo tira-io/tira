@@ -134,7 +134,11 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     queue = dataset_configuration.get("queue", "evaluator")
 
     result = evaluate.apply_async(args=[run_id, dataset, evaluator_id, task, team, job_id], queue=queue)
-    add_celery_id_to_job(job_id, result.id)
+    try:
+        add_celery_id_to_job(job_id, result.id)
+    except Exception as e:
+        logger.exception(e)
+        logger.warning(f"Could not add add_celery_id_to_job for evaluation {e}")
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -1186,6 +1190,14 @@ def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run
 
     job.killing = True
     job.save(update_fields=["killing"])
+
+    if job.celery_id:
+        from tira_worker import app
+
+        app.control.revoke(job.celery_id, terminate=True)
+        app.control.revoke(job.celery_id, terminate=True)
+
+        job.delete()
     return JsonResponse(
         {"status": 0, "message": "The run is getting stopped. It might take 5 minutes until the proces terminated"}
     )

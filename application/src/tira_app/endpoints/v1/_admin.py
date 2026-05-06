@@ -1,9 +1,8 @@
 import io
 import json
+import logging
 import zipfile
 from time import gmtime, strftime
-
-import logging
 
 from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
@@ -15,7 +14,9 @@ from ... import tira_model as model
 from ...checks import check_conditional_permissions
 from ...model import RunningProcesses
 from ..vm_api import _run_evaluation
+
 logger = logging.getLogger("tira")
+
 
 @check_conditional_permissions(restricted=True)
 def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
@@ -61,7 +62,11 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
         archive.extractall(target_directory)
         model.add_run(dataset_id, vm_id, run_id)
         if "-evaluates-" not in run_id:
-            _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
+            try:
+                _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
+            except Exception as e:
+                logger.exception(e)
+                logger.warning(f"Could not create upload: {e}")
 
     RunningProcesses.objects.get(uuid=job_id).delete()
 
@@ -163,7 +168,9 @@ def validate_docker_image(request: Request) -> Response:
     git_runner = model.get_git_integration("webis", None)
 
     try:
-        ret = git_runner.get_manifest_of_docker_image_image_repository(data["repository_name"], data["image"], cache=None, force_cache_refresh=False)
+        ret = git_runner.get_manifest_of_docker_image_image_repository(
+            data["repository_name"], data["image"], cache=None, force_cache_refresh=False
+        )
     except Exception as e:
         logger.exception(e)
         logger.warning(f"Could not validate docker image: {e}")
