@@ -1007,34 +1007,19 @@ class Client(TiraClient):
 
     def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None):
         task, team, software = approach.split("/")
-        authentication_cookie = self.get_authentication_cookie(
-            self.load_settings()["user"], self.load_settings()["password"]
-        )
-
         if not software_id:
             software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
         url = (
-            f"{self.base_url}/grpc/{task}/{team}/run_execute/docker/"
-            "{dataset}/{software_id}/{resources}/{rerank_dataset}"
+            f"/grpc/{task}/{team}/run_execute/docker/" +
+            f"{dataset}/{software_id}/{resources}/{rerank_dataset}"
         )
         logging.info(f"Start software...\n\t{url}\n")
 
-        csrf_token = self.get_csrf_token()
-        headers = {
-            # 'Api-Key': self.api_key,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Cookie": authentication_cookie,
-            "x-csrftoken": csrf_token,
-        }
-
-        ret = requests.post(url, headers=headers, json={"csrfmiddlewaretoken": csrf_token, "action": "post"})
-        ret = ret.content.decode("utf8")
+        ret = self.execute_post_return_json(url, json_payload={})
         logging.info(ret)
-        ret = json.loads(ret)
         assert ret["status"] == 0
 
     def review_run(
@@ -1120,6 +1105,9 @@ class Client(TiraClient):
             f"/v1/admin/update-running-process-output/anonymous-vm-id/{job_id}",
             json_payload={"output": output},
         )
+
+    def running_jobs(self, task: str):
+        return self.json_response(f"/v1/admin/active-jobs/admin/{task}")["context"]["jobs"]
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")

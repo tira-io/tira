@@ -20,6 +20,13 @@ Please generate your admin API key online at [tira.io/admin/api/keys](https://ww
 tira-cli login --token YOUR-TOKEN-HERE
 ```
 
+## Admin-Only: Batch-Execution of jobs
+
+To execute all approaches that have a positive review on one dataset on all datasets of a task, please run:
+```
+tira-cli admin batch-execution --task TASK
+```
+
 ## Download The results of some Submission
 
 You can download runs of published and unblinded submissions via:

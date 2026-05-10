@@ -138,6 +138,42 @@ def admin_verify_tokens(task: list[str], **kwargs) -> int:
     return 0
 
 
+def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
+    from tqdm import tqdm
+    import time
+    client: "TiraClient" = RestClient()
+    datasets = client.datasets(task, True)
+    running_jobs = client.running_jobs(task)
+    running_vms = set([i["vm_id"] for i in running_jobs])
+
+    print(running_vms)
+    docker_id_to_execution = {}
+    valid_softwares = {}
+    for dataset in datasets:
+        print(dataset)
+        submissions = client.submissions(task, dataset)
+        for _, i in submissions.iterrows():
+            if i["is_evaluation"] or not i["is_docker"] or not i["docker_software_id"]:
+                continue
+            if i["vm"] in running_vms:
+                continue
+            docker_software_id = int(i["docker_software_id"])
+            if docker_software_id not in docker_id_to_execution:
+                docker_id_to_execution[docker_software_id] = set()
+            docker_id_to_execution[docker_software_id].add(i["dataset"])
+            if i["review_hasNoErrors"] and i["review_noErrors"]:
+                valid_softwares[docker_software_id] = i["team"]
+
+    for i, team in tqdm(valid_softwares.items()):
+        for ds in datasets:
+            if ds in docker_id_to_execution[i]:
+                continue
+
+            client.run_software(f"{task}/{team}/ignore", ds, resources, software_id=str(i))
+            time.sleep(3)
+
+    return 0
+
 def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
@@ -156,6 +192,12 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     irds_parser.add_argument("--ir-datasets-id", required=True)
     irds_parser.add_argument("--output-dataset-path", required=True)
     irds_parser.set_defaults(executable=ir_datasets_loader_cli)
+
+    irds_parser = subparsers.add_parser("batch-execution", help="Run approaches via a batch execution for a task.")
+    irds_parser.add_argument("--task", required=True)
+    irds_parser.add_argument("--resources", default="a100-resources-gpu")
+    irds_parser.set_defaults(executable=admin_batch_execution)
+    
 
 
 def ir_datasets_loader_cli(ir_datasets_id, output_dataset_path, **kwargs) -> int:
