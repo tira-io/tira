@@ -27,7 +27,7 @@ export default {
     task_id: extractTaskFromCurrentUrl(),
     submissions_of_user: [{'task_id': 'loading', 'title': 'loading', 'type': 'loading', 'id': 'loading'}],
     selectedImport: undefined, user_id_for_submission: extractUserFromCurrentUrl(),
-    rest_base_url = inject("REST base URL"),
+    rest_base_url: inject("REST base URL"),
   }},
   computed: {
     items() {
