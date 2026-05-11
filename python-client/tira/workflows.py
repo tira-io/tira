@@ -117,6 +117,17 @@ class Pan26TextWatermarking(WorkflowBase):
         copytree(watermarking_results / "output", obfuscation_inputs / "01-watermarking")
         copytree(system_inputs, obfuscation_inputs / "original")
 
+        models_obfuscator = None
+        if "obfuscation_models" in self.workflow_configuration:
+            from tira.io_utils import huggingface_model_mounts
+
+            models_obfuscator = huggingface_model_mounts(self.workflow_configuration["obfuscation_models"])
+            models_obfuscator = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in models_obfuscator.items()]
+            if not additional_volumes:
+                additional_volumes = []
+            additional_volumes += models_obfuscator
+            print(f"The following models from huggingface are mounted: {additional_volumes}\n\n")
+
         obfuscation_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
                 image=self.workflow_configuration["obfuscation_image"],
