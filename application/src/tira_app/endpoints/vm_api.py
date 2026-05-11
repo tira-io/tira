@@ -179,7 +179,7 @@ def run_sandboxed_software(
         software_workflow = software_config.get_workflow_configuration()
 
     if isinstance(mount_hf_model, str):
-        mount_hf_model = [mount_hf_model]
+        mount_hf_model = mount_hf_model.split()
 
     result = run.apply_async(
         args=[
