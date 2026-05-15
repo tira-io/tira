@@ -389,6 +389,21 @@ class JsonlFormat(KeyValueFormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{line}".')
 
 
+class SisapFormat(FormatBase):
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(configuration)
+
+    def check_format(self, run_output: Path):
+        matches = glob(f"{run_output}/*.h5")
+
+        if len(matches) != 1:
+            msg = "I expected an *.h5 file, but there was no such file. "
+            msg += str(os.listdir(run_output)) + " were available."
+            return [_fmt.ERROR, msg]
+
+        return [_fmt.OK, "A valid *.h5 file exists."]
+
+
 class TrecEvalLeaderboard(FormatBase):
     def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
         super().apply_configuration_and_throw_if_invalid(configuration)
@@ -1610,6 +1625,7 @@ class ArbitraryFormat(FormatBase):
 FORMAT_TO_CHECK = {
     "run.txt": RunFormat,
     "*.jsonl": JsonlFormat,
+    "sisap-predictions": SisapFormat,
     "*.tsv": TsvFormat,
     "arbitrary": ArbitraryFormat,
     "trec-eval-leaderboard": TrecEvalLeaderboard,
