@@ -539,10 +539,8 @@ class LocalExecutionIntegration:
         }
 
         if mount_directory:
-            additional_paths = 0
-            for k, v in mount_directory.items():
-                target_dir = "/tira-data/mounted/{additional_paths}"
-                additional_paths += 1
+            for i, (k, v) in enumerate(mount_directory.items()):
+                target_dir = f"/tira-data/mounted/{i}"
                 volumes[v] = {"bind": target_dir, "mode": "ro"}
                 environment[k] = target_dir
 
