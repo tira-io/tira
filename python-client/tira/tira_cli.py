@@ -6,6 +6,7 @@ from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
 from tira import __version__
+from tira.admin_rag_export import export_rag_responses
 from tira.check_format import fmt_message
 from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
@@ -174,6 +175,31 @@ def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
 
     return 0
 
+def admin_batch_unblind(task: str, **kwargs) -> int:
+    from tqdm import tqdm
+    import time
+    client: "TiraClient" = RestClient()
+    datasets = client.datasets(task, True)
+
+    for dataset in datasets:
+        submissions = [i for _, i in client.submissions(task, dataset).iterrows()]
+
+        for i in tqdm(submissions, f"unblind {dataset}"):
+            if not i["review_blinded"]:
+                continue
+
+            client.unblind_run(i["run_id"], dataset, i["team"])
+            time.sleep(0.5)
+
+    return 0
+
+
+def admin_export_rag_responses(runs: str, evals: str, output: str, **kwargs) -> int:
+    output_file = export_rag_responses(Path(runs), Path(evals), Path(output))
+    print(fmt_message(f"Wrote {output_file}.", _fmt.OK))
+    return 0
+
+
 def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
@@ -193,11 +219,23 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     irds_parser.add_argument("--output-dataset-path", required=True)
     irds_parser.set_defaults(executable=ir_datasets_loader_cli)
 
-    irds_parser = subparsers.add_parser("batch-execution", help="Run approaches via a batch execution for a task.")
-    irds_parser.add_argument("--task", required=True)
-    irds_parser.add_argument("--resources", default="a100-resources-gpu")
-    irds_parser.set_defaults(executable=admin_batch_execution)
-    
+    batch_exec = subparsers.add_parser("batch-execution", help="Run approaches via a batch execution for a task.")
+    batch_exec.add_argument("--task", required=True)
+    batch_exec.add_argument("--resources", default="a100-resources-gpu")
+    batch_exec.set_defaults(executable=admin_batch_execution)
+
+    batch_unblind = subparsers.add_parser("batch-unblind", help="Unblind all executions for a task.")
+    batch_unblind.add_argument("--task", required=True)
+    batch_unblind.set_defaults(executable=admin_batch_unblind)
+
+    export_parser = subparsers.add_parser(
+        "export-rag-responses",
+        help="Export RAG runs and ALL evaluation scores as aggregated-results.json.",
+    )
+    export_parser.add_argument("--runs", required=True, help="Directory containing trec-rag-runs.")
+    export_parser.add_argument("--evals", required=True, help="Directory containing trec-eval leaderboard files.")
+    export_parser.add_argument("--output", required=True, help="Directory that receives aggregated-results.json.")
+    export_parser.set_defaults(executable=admin_export_rag_responses)
 
 
 def ir_datasets_loader_cli(ir_datasets_id, output_dataset_path, **kwargs) -> int:

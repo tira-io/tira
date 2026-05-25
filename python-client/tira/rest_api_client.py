@@ -427,7 +427,7 @@ class Client(TiraClient):
                 existing_runs[l["tira_run_id"]] = l
 
         dataset = self.get_dataset(dataset_id)
-        task = dataset["default_task_name"]
+        task = dataset["default_task"]
         evals = self.evaluations(task, dataset_id)
 
 
@@ -462,20 +462,28 @@ class Client(TiraClient):
 
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
-                metadata = run_id_to_metadata[i["tira_run_id"]]
+                metadata = run_id_to_metadata.get(i["tira_run_id"], {})
+                if not metadata:
+                    logging.warning(f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment.")
                 for k, v in metadata.items():
                     i[k] = v
+                if "run_display_name" not in i:
+                    i["run_display_name"] = i["tira_run_id"]
                 f.write(json.dumps(i) + "\n")
 
         for i in tqdm(existing_runs.values()):
             inp = output / i["raw-outputs-from-tira"] / "output"
             assert len(glob(f"{inp}/*")) > 0
-            target_file = outputs_flat / i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+            base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+            target_file = outputs_flat / base_name
+            suffix = 2
+            while target_file.exists():
+                target_file = outputs_flat / f"{base_name}-{suffix}"
+                suffix += 1
             if len(glob(f"{inp}/*")) == 1:
                 inp = glob(f"{inp}/*")
                 inp = inp[0]
                 expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
-                assert not target_file.exists()
                 shutil.copy(inp, target_file)
                 i["md5sum"] = expected_md5
             else:
@@ -487,6 +495,7 @@ class Client(TiraClient):
                 f.write(json.dumps(i) + "\n")
 
     def evaluations(self, task, dataset, join_submissions=True):
+        print(task)
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
         evaluation_keys = response["ev_keys"]
