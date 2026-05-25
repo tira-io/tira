@@ -71,7 +71,9 @@ def __normalize_run(
         i[v] = i[k]
         del i[k]
 
-    if is_admin or i["published"] or is_training_dataset:
+    i["owned_by_user"] = is_admin or i["vm_id"] in user_vms_for_task
+
+    if is_admin or i["published"] or is_training_dataset or (i["owned_by_user"] and not i["blinded"]):
         for j in range(len(ev_keys)):
             try:
                 i[ev_keys[j]] = i["measures"][j]
@@ -82,7 +84,6 @@ def __normalize_run(
         del i[k]
 
     i["selectable"] = False
-    i["owned_by_user"] = is_admin or i["vm_id"] in user_vms_for_task
 
     if not i["blinded"] and (i["owned_by_user"] or i["published"] or is_training_dataset):
         i["link_results_download"] = (
@@ -587,12 +588,10 @@ def get_snippet_to_run_components(request: "HttpRequest") -> "HttpResponse":
 
     component = TIREX_ID_TO_COMPONENT[component_key]
     component_type = component["type"]
-    dataset_initialization = textwrap.dedent(
-        """
+    dataset_initialization = textwrap.dedent("""
     # You can replace Robust04 with other datasets
     dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")
-    """
-    ).strip()
+    """).strip()
     snippet = ""
 
     if component_type == "dataset":
