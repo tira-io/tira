@@ -13,7 +13,7 @@ Demo Deployment
             restart: unless-stopped
             environment:
                 TIRA_BROKER_URL: "amqp://broker.tira.local"
-                TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
+                TIRA_RESULTS_BACKEND_URL: "redis://results.tira.local:6379/0"
             external_links:
                 - "broker:broker.tira.local"
         tira-frontend:
@@ -28,7 +28,7 @@ Demo Deployment
             restart: unless-stopped
             environment:
                 TIRA_BROKER_URL: "amqp://broker.tira.local"
-                TIRA_RESULTS_BACKEND_URL: "rpc://broker.tira.local"
+                TIRA_RESULTS_BACKEND_URL: "redis://results.tira.local:6379/0"
                 TIRA_API_KEY: "so-secret"
                 TIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
             external_links:
@@ -45,7 +45,11 @@ Demo Deployment
             restart: unless-stopped
             ports:
             - "5672:5672"
-            - "15672:15672"
+        results-backend:
+            image: redis:8-alpine
+            restart: unless-stopped
+            ports:
+            - "6379:6379"
         s3mock:
             image: adobe/s3mock
             restart: unless-stopped
