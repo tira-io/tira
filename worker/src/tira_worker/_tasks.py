@@ -15,7 +15,13 @@ import os
 from shutil import copytree
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+app.conf.control_queue_exclusive = True
+app.conf.control_queue_durable = False
+
 gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+app.conf.control_queue_exclusive = True
+app.conf.control_queue_durable = False
+
 MONITORED_EXECUTION_POLL_INTERVAL_SECONDS = 90
 
 
