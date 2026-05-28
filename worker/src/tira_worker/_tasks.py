@@ -15,7 +15,13 @@ import os
 from shutil import copytree
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+app.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
+app.conf.control_queue_durable = False  # Not required after celery 5.7 is released
+
 gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
+gpu_executor.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
+gpu_executor.conf.control_queue_durable = False  # Not required after celery 5.7 is released
+
 MONITORED_EXECUTION_POLL_INTERVAL_SECONDS = 90
 
 
@@ -85,7 +91,11 @@ def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, j
                 print("Failed to load running processes")
                 running_process_response = None
 
-            if running_process_response and  "killing" in running_process_response and running_process_response["killing"]:
+            if (
+                running_process_response
+                and "killing" in running_process_response
+                and running_process_response["killing"]
+            ):
                 print("I will kill all running containers...")
                 client.local_execution.kill_all_running_containers()
                 print("The running containers are killed...")
@@ -140,6 +150,7 @@ def run(
         )
     else:
         software_workflow_configuration["image"] = docker_image
+
         def run_tmp(i):
             run_results = run_workflow(
                 system_inputs,
@@ -149,11 +160,11 @@ def run(
                 allow_network=allow_network,
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_devices,
-                tira=client
+                tira=client,
             )
             os.rmdir(i)
             copytree(run_results.run / "output", i)
-            
+
             try:
                 print((run_results.run / "stdout.txt").read_text())
             except:
