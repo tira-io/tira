@@ -406,7 +406,7 @@ class Client(TiraClient):
 
         return ret
 
-    def download_all_submissions(self, dataset_id: str, output: "Optional[str]"):
+    def download_all_submissions(self, dataset_id: str, output: "Optional[str]", repackage: bool):
         if not output:
             from tira.third_party_integrations import temporary_directory
             output = temporary_directory()
@@ -442,23 +442,26 @@ class Client(TiraClient):
             i["raw-outputs-from-tira"] = f"raw-outputs/{dataset_id}/{i['run_id']}"
             existing_runs[i["tira_run_id"]] = i
 
-        run_id_to_metadata = {}
-        for team in tqdm(set(i["team"] for i in existing_runs.values()), "Load metadata"):
-            url = f"/api/submissions-for-task/{task}/{team}/upload"
-            ret = self.json_response(url)
-            for upload_group in ret["context"]["all_uploadgroups"]:
-                url = f"/api/upload-group-details/{task}/{team}/{upload_group['id']}"
-                time.sleep(1)
-                upload_group_details = self.json_response(url)["context"]["upload_group_details"]
-                assert upload_group["id"] ==  upload_group_details["id"]
-                for run in upload_group_details["runs"]:
-                    if run["input_run_id"] == "" and run["run_id"]:
-                        assert run["run_id"] not in run_id_to_metadata
-                        run_id_to_metadata[run["run_id"]] = {
-                            "description": upload_group_details["description"],
-                            "run_display_name": upload_group_details["display_name"],
-                            "internal_data": run
-                        }
+        if repackage:
+            run_id_to_metadata = {}
+            for team in tqdm(set(i["team"] for i in existing_runs.values()), "Load metadata"):
+                url = f"/api/submissions-for-task/{task}/{team}/upload"
+                ret = self.json_response(url)
+                for upload_group in ret["context"]["all_uploadgroups"]:
+                    url = f"/api/upload-group-details/{task}/{team}/{upload_group['id']}"
+                    time.sleep(1)
+                    upload_group_details = self.json_response(url)["context"]["upload_group_details"]
+                    assert upload_group["id"] ==  upload_group_details["id"]
+                    for run in upload_group_details["runs"]:
+                        if run["input_run_id"] == "" and run["run_id"]:
+                            assert run["run_id"] not in run_id_to_metadata
+                            run_id_to_metadata[run["run_id"]] = {
+                                "description": upload_group_details["description"],
+                                "run_display_name": upload_group_details["display_name"],
+                                "internal_data": run
+                            }
+        else:
+            run_id_to_metadata = {}
 
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
@@ -536,6 +539,32 @@ class Client(TiraClient):
 
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
+
+    def export_registrations(self, task):
+        import csv
+        from io import StringIO
+
+        url = f"tira-admin/export-participants/{task}.csv"
+        headers = self.authentication_headers(url)
+        headers["Accept"] = "application/csv"
+
+        resp = requests.get(url=f"https://www.tira.io/{url}", headers=headers, verify=self.verify)
+        resp = resp.content.decode("utf-8")
+        
+        headers["Accept"] = "application/json"
+        reader = csv.DictReader(StringIO(resp))
+        ret = set()
+        for row in reader:
+            ret.add(row["email"])
+            url = "https://www.tira.io/u/" + row["initial_owner"] + "/emails.json?context=%2Fu%2F" + row["initial_owner"] + "%2Fsummary"
+            tmp = requests.get(url=url, headers=headers, verify=self.verify)
+            time.sleep(0.5)
+            tmp = json.loads(tmp.content.decode("utf-8"))
+            if not "email" in tmp:
+                print("skip ", row["initial_owner"])
+            else:
+                ret.add(tmp["email"])
+        return ret
 
     def load_resource(self, resource: str):
         """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional

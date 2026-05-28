@@ -396,12 +396,12 @@ class SisapFormat(FormatBase):
     def check_format(self, run_output: Path):
         matches = glob(f"{run_output}/*.h5")
 
-        if len(matches) != 1:
-            msg = "I expected an *.h5 file, but there was no such file. "
+        if len(matches) == 0:
+            msg = "I expected one or more *.h5 file(s), but there were none. "
             msg += str(os.listdir(run_output)) + " were available."
             return [_fmt.ERROR, msg]
 
-        return [_fmt.OK, "A valid *.h5 file exists."]
+        return [_fmt.OK, "Valid *.h5 file(s) exists."]
 
 
 class TrecEvalLeaderboard(FormatBase):

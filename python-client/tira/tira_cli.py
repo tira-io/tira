@@ -139,6 +139,20 @@ def admin_verify_tokens(task: list[str], **kwargs) -> int:
     return 0
 
 
+def admin_export_registrations(task: list[str], **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    ret = set()
+    for i in task:
+        regs = 0
+        for m in client.export_registrations(i):
+            ret.add(m)
+            regs += 1
+        print(i, regs)
+    print(", ".join(ret))
+    return 0
+
+
+
 def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
     from tqdm import tqdm
     import time
@@ -213,6 +227,16 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="The task(s) on which all authentications should be verified.",
     )
     v_parser.set_defaults(executable=admin_verify_tokens)
+
+    export_registrations = subparsers.add_parser("export-registrations", help="export all registrations")
+    export_registrations.add_argument(
+        "--task",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The task(s) for which all registrations should be exported.",
+    )
+    export_registrations.set_defaults(executable=admin_export_registrations)
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)
@@ -431,7 +455,7 @@ def download_command(
     if approach is not None:
         ret = client.get_run_output(approach, dataset)
     elif all_submissions:
-        ret = client.download_all_submissions(dataset, output)
+        ret = client.download_all_submissions(dataset, output, kwargs.get("repackage", True))
     else:
         ret = client.download_dataset(None, dataset, truths)
 
