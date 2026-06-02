@@ -103,6 +103,26 @@ def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, j
     return result["ret"]
 
 
+def download_hf_model(model: str) -> None:
+    from huggingface_hub import snapshot_download
+
+    snapshot_download(repo_id=model.replace("--", "/"))
+
+
+def resolve_hf_models(mount_hf_model: "Optional[list[str]]"):
+    ret = None
+    if mount_hf_model:
+        from tira.io_utils import huggingface_model_mounts
+
+        for model in mount_hf_model:
+            download_hf_model(model)
+
+        hf_models = huggingface_model_mounts(mount_hf_model)
+        ret = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
+        print(f"The following models from huggingface are mounted: {ret}\n\n")
+
+    return ret
+
 @gpu_executor.task()
 def run(
     dataset: str,
@@ -122,13 +142,7 @@ def run(
     system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)
 
-    hf_models = None
-    if mount_hf_model:
-        from tira.io_utils import huggingface_model_mounts
-
-        hf_models = huggingface_model_mounts(mount_hf_model)
-        hf_models = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in hf_models.items()]
-        print(f"The following models from huggingface are mounted: {hf_models}\n\n")
+    hf_models = resolve_hf_models(mount_hf_model)
 
     allow_network = False
 

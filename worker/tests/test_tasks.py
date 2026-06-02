@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 os.environ["TIRA_WORKER_CONFIG"] = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "tira-worker-config.yml")
@@ -42,3 +42,31 @@ class TestExecuteMonitored(unittest.TestCase):
     def test_execute_monitored_without_client_still_returns_result(self):
         ret = _tasks.execute_monitored(lambda output_dir: output_dir.mkdir(exist_ok=True))
         self.assertTrue((ret / "output").exists())
+
+    @patch("tira.io_utils.huggingface_model_mounts")
+    @patch.object(_tasks, "download_hf_model")
+    def test_resolve_hf_models_downloads_each_model_before_mounting(self, download_hf_model, huggingface_model_mounts):
+        huggingface_model_mounts.return_value = {
+            "/cache/models--openai-community--gpt2": {
+                "bind": "/root/.cache/huggingface/hub/models--openai-community--gpt2",
+                "mode": "ro",
+            },
+            "/cache/models--openai-community--gpt2-large": {
+                "bind": "/root/.cache/huggingface/hub/models--openai-community--gpt2-large",
+                "mode": "ro",
+            },
+        }
+
+        actual = _tasks.resolve_hf_models(["openai-community/gpt2", "openai-community/gpt2-large"])
+
+        self.assertEqual(
+            [
+                "/cache/models--openai-community--gpt2:/root/.cache/huggingface/hub/models--openai-community--gpt2:ro",
+                "/cache/models--openai-community--gpt2-large:/root/.cache/huggingface/hub/models--openai-community--gpt2-large:ro",
+            ],
+            actual,
+        )
+        download_hf_model.assert_has_calls(
+            [call("openai-community/gpt2"), call("openai-community/gpt2-large")]
+        )
+        huggingface_model_mounts.assert_called_once_with(["openai-community/gpt2", "openai-community/gpt2-large"])

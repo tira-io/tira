@@ -697,7 +697,7 @@ class TiraClient(ABC):
         client.fail_if_api_key_is_invalid()
 
         role = client.json_response("/api/role")
-        admin_teams = ("pan26-gen-maik-test", "maik-test-07-05", "clef26-team-09", "clef26-open-web-search", "maik-test-3-30", "devtest", "lightning-ir", "baseline", "baselineavengers")
+        admin_teams = ("pan26-gen-maik-test", "maik-test-07-05", "clef26-team-09", "clef26-open-web-search", "maik-test-3-30", "devtest", "lightning-ir", "baseline", "baselineavengers", "basel1nerz")
         if role["role"] != "user" and team not in admin_teams:
             msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
             print(msg)
