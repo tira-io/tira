@@ -2314,8 +2314,7 @@ class HybridDatabase(object):
         modeldb.HuggingFaceModelsOfSoftware.objects.create(
             docker_software=docker_software,
             hf_home=mounts["HF_HOME"],
-            mount_hf_model=mounts["MOUNT_HF_MODEL"],
-            models_scan=mounts["HF_CACHE_SCAN"],
+            mount_hf_model=mounts["MOUNT_HF_MODEL"]
         )
 
     def add_docker_software(
