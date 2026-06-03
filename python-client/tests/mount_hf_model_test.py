@@ -1,6 +1,7 @@
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tira.io_utils import _ln_huggingface_model_mounts, huggingface_model_mounts
 
@@ -20,6 +21,30 @@ class MountHfModelTest(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             huggingface_model_mounts(["model-does-not-exist"])
         self.assertTrue("model-does-not-exist" in str(context.exception))
+
+    @patch("tira.third_party_integrations.is_public_huggingface_model", return_value=True)
+    def test_lazy_mounts_for_public_model_without_local_cache(self, is_public_huggingface_model):
+        actual = huggingface_model_mounts(["openai-community/gpt2"], lazy=True)
+        actual = {str(k).split("/")[-1]: v for k, v in actual.items()}
+
+        self.assertEqual(
+            {
+                "models--openai-community--gpt2": {
+                    "bind": "/root/.cache/huggingface/hub/models--openai-community--gpt2",
+                    "mode": "ro",
+                }
+            },
+            actual,
+        )
+        is_public_huggingface_model.assert_called_once_with("openai-community/gpt2")
+
+    @patch("tira.third_party_integrations.is_public_huggingface_model", return_value=False)
+    def test_lazy_still_raises_for_non_public_model_without_local_cache(self, is_public_huggingface_model):
+        with self.assertRaises(Exception) as context:
+            huggingface_model_mounts(["model-does-not-exist"], lazy=True)
+
+        self.assertTrue("model-does-not-exist" in str(context.exception))
+        is_public_huggingface_model.assert_called_once_with("model-does-not-exist")
 
     def test_mounts_for_single_existing_model(self):
         expected = {

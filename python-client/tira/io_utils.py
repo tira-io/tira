@@ -167,12 +167,15 @@ def verify_images_are_in_correct_format(task: "Optional[str]" = None, team: "Opt
     registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
     json_payload = {"image": "latest", "repository_name": registry_prefix + "tira-mini"}
 
-    image_details = tira.execute_post_return_json(
-        "/v1/admin/validate-docker-image",
-        json_payload=json_payload
-    )
+    image_details = tira.execute_post_return_json("/v1/admin/validate-docker-image", json_payload=json_payload)
 
-    if image_details and "context" in image_details and "architecture" in image_details["context"] and "Loading" not in image_details["context"]["architecture"] and "amd64" == image_details["context"]["architecture"]:
+    if (
+        image_details
+        and "context" in image_details
+        and "architecture" in image_details["context"]
+        and "Loading" not in image_details["context"]["architecture"]
+        and "amd64" == image_details["context"]["architecture"]
+    ):
         return _fmt.OK, f"The uploaded image is compatible with the cluster."
     else:
         return _fmt.ERROR, f"The uploaded image is compatible with the cluster."
@@ -320,30 +323,44 @@ def stream_all_lines(
         yield parse_jsonl_line(line, load_default_text)
 
 
-def huggingface_model_mounts(models: "Iterable[str]") -> dict:
+def hf_cache_dir():
+    ret = Path(os.path.expanduser("~/.cache/huggingface/hub"))
+    if "HF_HUB_CACHE" in os.environ:
+        ret = Path(os.environ["HF_HUB_CACHE"])
+    elif "HF_HOME" in os.environ:
+        ret = Path(os.environ["HF_HOME"]) / "hub"
+    return ret
+
+
+def huggingface_model_mounts(models: "Iterable[str]", lazy: bool = False) -> dict:
     """Determine the mounts to make the described huggingface models available in the container. The models must
-    already exist in the local huggingface cache of the host.
+    already exist in the local huggingface cache of the host unless lazy mode is enabled for publicly available
+    models.
 
     Args:
         models (Iterable[str]): A list of huggingface models that you want to mount, e.g., ["openai-community/gpt2"].
+        lazy (bool): If True, also accept publicly available models that are not yet present in the local cache.
 
     Returns:
         dict: The mounts required to make the specified models available in the container.
     """
-    hf_cache = Path(os.path.expanduser("~/.cache/huggingface/hub"))
-    if "HF_HUB_CACHE" in os.environ:
-        hf_cache = Path(os.environ["HF_HUB_CACHE"])
-    elif "HF_HOME" in os.environ:
-        hf_cache = Path(os.environ["HF_HOME"]) / "hub"
+
     ret = {}
     if not models:
         return ret
 
-    hf_cache = hf_cache.absolute()
+    hf_cache = hf_cache_dir().absolute()
     for model in models:
         model_in_fs = ("models/" + str(model)).replace("/", "--")
         model_path = hf_cache / model_in_fs
+        bind_path = f"/root/.cache/huggingface/hub/{model_in_fs}"
         if not model_path.exists():
+            if lazy:
+                from tira.third_party_integrations import is_public_huggingface_model
+
+                if is_public_huggingface_model(model):
+                    ret[str(model_path)] = {"bind": bind_path, "mode": "ro"}
+                    continue
             msg = (
                 f"Model {model} does not in HF_HUB_CACHE = '{hf_cache}'. Expected a directory '{model_path}' to exist."
                 " Please ensure that the model is available via your preferred way to download it."
@@ -351,7 +368,7 @@ def huggingface_model_mounts(models: "Iterable[str]") -> dict:
             print(msg)
             raise ValueError(msg)
         else:
-            ret[str(model_path)] = {"bind": f"/root/.cache/huggingface/hub/{model_in_fs}", "mode": "ro"}
+            ret[str(model_path)] = {"bind": bind_path, "mode": "ro"}
 
     return ret
 
@@ -771,6 +788,7 @@ def get_manifest_of_ghcr_docker_image(image):
             return ret
     except:
         return None
+
 
 def dockerfile_for_architecture(base_dir: Path):
     supported_platform = docker_supported_target_platform()

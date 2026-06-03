@@ -1,7 +1,9 @@
 import os
 import sys
 import time
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, call, patch
 
 os.environ["TIRA_WORKER_CONFIG"] = os.path.abspath(
@@ -43,7 +45,7 @@ class TestExecuteMonitored(unittest.TestCase):
         ret = _tasks.execute_monitored(lambda output_dir: output_dir.mkdir(exist_ok=True))
         self.assertTrue((ret / "output").exists())
 
-    @patch("tira.io_utils.huggingface_model_mounts")
+    @patch.object(_tasks, "huggingface_model_mounts")
     @patch.object(_tasks, "download_hf_model")
     def test_resolve_hf_models_downloads_each_model_before_mounting(self, download_hf_model, huggingface_model_mounts):
         huggingface_model_mounts.return_value = {
@@ -70,3 +72,38 @@ class TestExecuteMonitored(unittest.TestCase):
             [call("openai-community/gpt2"), call("openai-community/gpt2-large")]
         )
         huggingface_model_mounts.assert_called_once_with(["openai-community/gpt2", "openai-community/gpt2-large"])
+
+    @patch.object(_tasks, "check_output")
+    def test_rsync_from_local_or_fail_runs_fast_rsync_for_existing_dir(self, check_output):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            src_dir = tmpdir / "src"
+            target_dir = tmpdir / "nested" / "target"
+            src_dir.mkdir()
+
+            _tasks.rsync_from_local_or_fail(src_dir, target_dir)
+
+            self.assertTrue(target_dir.parent.is_dir())
+            check_output.assert_called_once_with(
+                [
+                    "rsync",
+                    "-a",
+                    "--size-only",
+                    "--ignore-existing",
+                    f"{src_dir}/",
+                    f"{target_dir}/",
+                ]
+            )
+
+    @patch.object(_tasks, "check_output")
+    def test_rsync_from_local_or_fail_raises_for_missing_dir(self, check_output):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            src_dir = tmpdir / "missing"
+            target_dir = tmpdir / "target"
+
+            with self.assertRaises(ValueError) as context:
+                _tasks.rsync_from_local_or_fail(src_dir, target_dir)
+
+            self.assertIn(str(src_dir), str(context.exception))
+            check_output.assert_not_called()

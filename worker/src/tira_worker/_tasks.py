@@ -1,18 +1,20 @@
+import os
 import sys
 import threading
 from pathlib import Path
+from shutil import copytree
+from subprocess import check_output
 from typing import Callable, Optional
 
 from celery import Celery
-from tira.io_utils import get_tira_id, persist_tira_metadata_for_job
+from tira.io_utils import get_tira_id, hf_cache_dir, huggingface_model_mounts, persist_tira_metadata_for_job
 from tira.rest_api_client import Client as RestClient
 from tira.rest_api_client import TiraClient
+from tira.third_party_integrations import is_public_huggingface_model
 from tira.workflows import run_workflow
 
 from .settings import CPU_COUNT, MEMORY_LIMIT, QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
 from .utils import gpu_device_ids
-import os
-from shutil import copytree
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 app.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
@@ -103,17 +105,41 @@ def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, j
     return result["ret"]
 
 
+def rsync_from_local_or_fail(src_dir: Path, target_dir: Path):
+    if not src_dir.is_dir():
+        raise ValueError(f"Expected local directory '{src_dir}' to exist for rsync.")
+
+    target_dir.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "rsync",
+        "-a",
+        "--size-only",
+        "--ignore-existing",
+        f"{str(src_dir).rstrip('/')}/",
+        f"{str(target_dir).rstrip('/')}/",
+    ]
+    print(" ".join(cmd))
+    check_output(cmd)
+
+
 def download_hf_model(model: str) -> None:
     from huggingface_hub import snapshot_download
 
-    snapshot_download(repo_id=model.replace("--", "/"))
+    repo_id = model.replace("--", "/")
+    if is_public_huggingface_model(repo_id):
+        snapshot_download(repo_id=repo_id)
+    else:
+        model_in_fs = ("models/" + str(model)).replace("/", "--")
+
+        src_dir = Path("/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/hub") / model_in_fs
+        target_dir = hf_cache_dir() / model_in_fs
+
+        rsync_from_local_or_fail(src_dir, target_dir)
 
 
 def resolve_hf_models(mount_hf_model: "Optional[list[str]]"):
     ret = None
     if mount_hf_model:
-        from tira.io_utils import huggingface_model_mounts
-
         for model in mount_hf_model:
             download_hf_model(model)
 
@@ -122,6 +148,7 @@ def resolve_hf_models(mount_hf_model: "Optional[list[str]]"):
         print(f"The following models from huggingface are mounted: {ret}\n\n")
 
     return ret
+
 
 @gpu_executor.task()
 def run(
