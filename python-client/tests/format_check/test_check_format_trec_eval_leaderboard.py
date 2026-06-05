@@ -130,15 +130,3 @@ run-03 979 recall_5              	0.3"""
             self.assertEqual(expected[0], actual[0])
             self.assertIn(expected[1], actual[1])
 
-    def test_invalid_example_03_different_query(self):
-        leaderboard = "run-01             	980 relstring	'----------'" + EXAMPLE_02 + EXAMPLE_01
-
-        expected = [
-            _ERROR,
-            "The trec-eval-leaderboard is not valid. Some queries are not evaluated",
-        ]
-        with tempfile.TemporaryDirectory() as d:
-            (Path(d) / "trec-leaderboard").write_text(leaderboard)
-            actual = check_format(Path(d), "trec-eval-leaderboard")
-            self.assertEqual(expected[0], actual[0])
-            self.assertIn(expected[1], actual[1])

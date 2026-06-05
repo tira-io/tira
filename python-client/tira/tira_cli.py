@@ -53,6 +53,7 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--output", required=False, help="The output directory.")
     parser.add_argument("--truths", action="store_true", help="Download truths.")
     parser.add_argument("--all-submissions", action="store_true", help="Download all submissions to a task.")
+    parser.add_argument("--repackage", action="store_true", help="Repackage everything.")
     parser.set_defaults(executable=download_command)
 
 

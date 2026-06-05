@@ -555,6 +555,7 @@ class Client(TiraClient):
         reader = csv.DictReader(StringIO(resp))
         ret = set()
         for row in reader:
+            emails = [row["email"]]
             ret.add(row["email"])
             url = "https://www.tira.io/u/" + row["initial_owner"] + "/emails.json?context=%2Fu%2F" + row["initial_owner"] + "%2Fsummary"
             tmp = requests.get(url=url, headers=headers, verify=self.verify)
@@ -564,6 +565,8 @@ class Client(TiraClient):
                 print("skip ", row["initial_owner"])
             else:
                 ret.add(tmp["email"])
+                emails += [tmp["email"]]
+            print(json.dumps({"team": row["team_name"], "name": row["name"], "affiliation": row["affiliation"], "mails": list(set(emails))}))
         return ret
 
     def load_resource(self, resource: str):

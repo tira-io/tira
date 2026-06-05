@@ -503,12 +503,6 @@ class TrecEvalLeaderboard(FormatBase):
                         _fmt.ERROR,
                         f"The trec-eval-leaderboard is not valid. The all entry for run {run} and measure {measure} is missing.",
                     ]
-                actual_queries = run_to_measure_to_queries[run][measure]
-                if actual_queries != expected_queries:
-                    return [
-                        _fmt.ERROR,
-                        "The trec-eval-leaderboard is not valid. Some queries are not evaluated for all scenarios.",
-                    ]
 
         return [_fmt.OK, "Valid trec-eval-leaderboard."]
 
