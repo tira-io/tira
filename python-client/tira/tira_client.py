@@ -655,6 +655,7 @@ class TiraClient(ABC):
                 mount_hf_model=mount_hf_model,
                 workflow_configuration=workflow_software_configuration,
                 external_docker_registry=external_docker_registry is not None,
+                forward_environment_variable=forward_environment_variable if forward_environment_variable else None
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")

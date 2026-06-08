@@ -583,6 +583,7 @@ def add_docker_software(
     tira_image_workdir: "Optional[str]" = None,
     workflow_configuration: "Optional[str]" = None,
     external_docker_registry: "Optional[bool]" = False,
+    forward_environment_variable: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -602,6 +603,12 @@ def add_docker_software(
             workflow_configuration = json.dumps(json.loads(workflow_configuration))
         except json.JSONDecodeError:
             workflow_configuration = None
+
+    if forward_environment_variable:
+        try:
+            forward_environment_variable = json.dumps(json.loads(forward_environment_variable))
+        except json.JSONDecodeError:
+            forward_environment_variable = None
 
     input_docker_job: dict[int, str] = {}
     input_upload: dict[int, str] = {}
@@ -628,6 +635,7 @@ def add_docker_software(
         try_run_metadata_uuid,
         tira_image_workdir,
         workflow_configuration,
+        forward_environment_variable
     )
 
 

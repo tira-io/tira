@@ -266,6 +266,7 @@ class Client(TiraClient):
         try_run_metadata_uuid=None,
         workflow_configuration=None,
         external_docker_registry=False,
+        forward_environment_variable=None
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -284,6 +285,9 @@ class Client(TiraClient):
         if workflow_configuration:
             content["workflow_configuration"] = json.dumps(workflow_configuration)
             content["command"] = "COMMAND-UNUSED-FOR-WORKFLOW-SUBMISSIONS"
+
+        if forward_environment_variable:
+            content["forward_environment_variable"] = json.dumps(forward_environment_variable)
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages

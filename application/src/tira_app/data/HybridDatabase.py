@@ -2334,6 +2334,7 @@ class HybridDatabase(object):
         try_run_metadata_uuid: "Optional[str]" = None,
         tira_image_workdir: "Optional[str]" = None,
         workflow_configuration: "Optional[str]" = None,
+        forward_environment_variable: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2360,6 +2361,7 @@ class HybridDatabase(object):
             try_run_metadata=try_run_metadata,
             tira_image_workdir=tira_image_workdir,
             workflow_configuration=workflow_configuration,
+            forward_environment_variable=forward_environment_variable
         )
 
         additional_inputs = range(

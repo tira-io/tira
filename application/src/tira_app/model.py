@@ -342,12 +342,21 @@ class DockerSoftware(models.Model):
     source_code_active_branch = models.TextField(default=None, null=True)
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
+    forward_environment_variable = models.TextField(default=None, null=True)
 
     def get_workflow_configuration(self) -> Optional[Any]:
         if not self.workflow_configuration:
             return None
         try:
             return json.loads(self.workflow_configuration)
+        except json.JSONDecodeError:
+            return None
+
+    def get_forward_environment_variable(self) -> Optional[Any]:
+        if not self.forward_environment_variable:
+            return None
+        try:
+            return json.loads(self.forward_environment_variable)
         except json.JSONDecodeError:
             return None
 
