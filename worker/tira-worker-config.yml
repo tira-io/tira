@@ -14,3 +14,7 @@ debug: !ENV ${TIRA_DEBUG:false}
 # See also: https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html
 queue_broker_url: !ENV ${TIRA_BROKER_URL:amqp://localhost"}
 queue_results_backend_url: !ENV ${TIRA_RESULTS_BACKEND_URL:redis://localhost:6379/0}
+
+memory_limit: !ENV ${memory_limit:60g}
+cpu_count: !ENV ${cpu_count:3}
+execution_limit: !ENV ${execution_limit:-1}
