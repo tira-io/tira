@@ -1,10 +1,12 @@
 import gzip
+import hashlib
 import io
 import json
 import logging
 import os
 import platform
 import sys
+import tempfile
 import unicodedata
 import uuid
 import zipfile
@@ -16,6 +18,7 @@ from subprocess import CalledProcessError, check_output
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
+import requests
 from tqdm import tqdm
 
 from tira.check_format import FormatMsgType, _fmt, log_message
@@ -229,6 +232,70 @@ def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient
 
         ret[k] = v
     return ret
+
+
+def _md5_of_file(file_path: Path) -> str:
+    digest = hashlib.md5()
+
+    with open(file_path, "rb") as file_handle:
+        for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+
+    return digest.hexdigest()
+
+
+def _download_file_with_md5(url: str, target_file: Path, expected_md5: str) -> None:
+    response = requests.get(url, stream=True)
+    status_code = response.status_code
+
+    if status_code < 200 or status_code >= 300:
+        raise ValueError(f"Got non 200 status code {status_code} for {url}.")
+
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+    actual_md5 = hashlib.md5()
+
+    with tempfile.NamedTemporaryFile(delete=False, dir=target_file.parent) as tmp_file:
+        tmp_path = Path(tmp_file.name)
+
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if not chunk:
+                continue
+
+            tmp_file.write(chunk)
+            actual_md5.update(chunk)
+
+    actual_md5 = actual_md5.hexdigest()
+
+    if actual_md5 != expected_md5:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        raise ValueError(f'MD5 is unexpected: I expected "{expected_md5}" but got "{actual_md5}" for URL "{url}".')
+
+    tmp_path.replace(target_file)
+
+
+def resolve_mirrored_resources(directory: Union[str, Path]) -> Path:
+    directory = Path(directory)
+    mirrored_resources = directory / ".mirrored-resources.json"
+
+    if not mirrored_resources.exists():
+        return directory
+
+    parsed_mirrored_resources = json.loads(mirrored_resources.read_text(encoding="utf-8"))
+    for relative_path, resource in parsed_mirrored_resources.items():
+        if not isinstance(resource, dict):
+            raise ValueError(f'Expected mirrored resource "{relative_path}" to be a dictionary.')
+
+        if "url" not in resource or "md5" not in resource:
+            raise ValueError(f'Mirrored resource "{relative_path}" must define "url" and "md5".')
+
+        target_file = directory / relative_path
+        expected_md5 = resource["md5"]
+
+        if not target_file.exists() or _md5_of_file(target_file) != expected_md5:
+            _download_file_with_md5(resource["url"], target_file, expected_md5)
+
+    return directory
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
@@ -770,8 +837,6 @@ def docker_supported_target_platform():
 
 
 def get_manifest_of_ghcr_docker_image(image):
-    import requests
-
     repo, tag = image.replace("ghcr.io/", "").split(":")
 
     try:

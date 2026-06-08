@@ -16,6 +16,9 @@ QUEUE_RESULTS_BACKEND_URL = _config["queue_results_backend_url"]
 
 MEMORY_LIMIT = _config.get("memory_limit", "60g")
 CPU_COUNT = int(_config.get("cpu_count", "3"))
+EXECUTION_LIMIT = int(_config.get("execution_limit", -1))
+
+print(f"Use MEMORY_LIMIT={MEMORY_LIMIT}. CPU_COUNT={CPU_COUNT}. EXECUTION_LIMIT={EXECUTION_LIMIT}")
 
 # Delete the remaining config
 del _config
