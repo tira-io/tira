@@ -164,6 +164,7 @@ def run_sandboxed_software(
     input_runs: str,
     mount_hf_model: "Optional[list[str]]",
     job_id: str,
+    env_to_forward: "Optional[dict]" = None,
 ) -> None:
     from tira_worker import run
 
@@ -193,6 +194,7 @@ def run_sandboxed_software(
             mount_hf_model,
             workflow,
             software_workflow,
+            env_to_forward
         ],
         queue=docker_resources,
     )
@@ -1039,6 +1041,22 @@ def run_execute_docker_software(
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
+    env_to_forward = None
+    if docker_software["forward_environment_variable"]:
+        required_env_vars = set(docker_software["forward_environment_variable"] + ["TIRA_RUN_TAG"])
+        try:
+            raw_env = json.loads(request.body)["forward_environment_variable"]
+            env_to_forward = {k: v for k, v in raw_env.items() if k in required_env_vars}
+        except Exception as e:
+            msg = f"Error forwarding environment variables. {e}"
+            logger.exception(e)
+            logger.warning(msg)
+            return JsonResponse({"status": 1, "message": msg})
+
+        for k in required_env_vars:
+            if k not in env_to_forward:
+                return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
+
     input_run = None
     if (
         "ir_re_ranker" in docker_software
@@ -1125,6 +1143,7 @@ def run_execute_docker_software(
         input_run if input_run else input_runs,
         docker_software.get("mount_hf_model", None),
         job_id,
+        env_to_forward,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)

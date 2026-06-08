@@ -1,6 +1,7 @@
 import os
 import sys
 import threading
+from os import environ
 from pathlib import Path
 from shutil import copytree
 from subprocess import check_output
@@ -162,6 +163,7 @@ def run(
     mount_hf_model: "Optional[list[str]]" = None,
     task_workflow_configuration: "Optional[dict]" = None,
     software_workflow_configuration: "Optional[dict]" = None,
+    env_to_forward: "Optional[dict]" = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -172,6 +174,12 @@ def run(
     hf_models = resolve_hf_models(mount_hf_model)
 
     allow_network = False
+    forward_environment_variables = None
+    if env_to_forward:
+        forward_environment_variables = list(set(env_to_forward.keys()))
+        for k, v in env_to_forward.items():
+            environ[k] = v
+
 
     if task_workflow_configuration is None and software_workflow_configuration is None:
         run_results = execute_monitored(
@@ -185,6 +193,7 @@ def run(
                 cpu_count=CPU_COUNT,
                 mem_limit=MEMORY_LIMIT,
                 gpu_device_ids=gpu_devices,
+                forward_environment_variables=forward_environment_variables
             ),
             client=client,
             job_id=job_id,
@@ -221,6 +230,14 @@ def run(
             client=client,
             job_id=job_id,
         )
+
+    if forward_environment_variables:
+        for k in forward_environment_variables:
+            try:
+                del environ[k]
+            except:
+                pass
+
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     client.upload_run_admin(run_results, job_id)
 

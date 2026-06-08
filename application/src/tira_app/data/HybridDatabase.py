@@ -706,6 +706,7 @@ class HybridDatabase(object):
             pass
 
         workflow_configuration = ds.get_workflow_configuration()
+        forward_environment_variable = ds.get_forward_environment_variable()
 
         if source_code_remotes:
             source_code_remotes = [{"display_name": k, "name": v} for k, v in source_code_remotes.items()]
@@ -749,6 +750,7 @@ class HybridDatabase(object):
             "link_code": link_code,
             "mount_hf_model": mount_hf_model,
             "workflow_configuration": workflow_configuration,
+            "forward_environment_variable": forward_environment_variable,
         }
 
     @staticmethod
