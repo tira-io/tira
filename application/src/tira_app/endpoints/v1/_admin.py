@@ -8,6 +8,7 @@ from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
 from rest_framework.request import Request
 from rest_framework.response import Response
+
 from tira.third_party_integrations import temporary_directory
 
 from ... import tira_model as model
@@ -63,17 +64,15 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
             archive.extractall(target_directory)
             model.add_run(dataset_id, vm_id, run_id)
         except Exception as e:
-            logger.exception(e)
-            logger.warning(f"Could not store run: {e}")
-            raise e
+            logger.exception("Could not store run", exc_info=e)
+            raise
 
         if "-evaluates-" not in run_id:
             try:
                 _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
             except Exception as e:
-                logger.exception(e)
-                logger.warning(f"Could not start evaluator: {e}")
-                raise e
+                logger.exception("Could not start evaluator", exc_info=e)
+                raise
 
     RunningProcesses.objects.get(uuid=job_id).delete()
 
@@ -87,7 +86,7 @@ def update_running_process_output(request: Request, vm_id: str, job_id: str) -> 
 
     try:
         job = RunningProcesses.objects.get(uuid=job_id)
-    except:
+    except Exception:
         return JsonResponse({"status": 0, "message": "ok", "killing": True})
 
     try:
@@ -152,7 +151,15 @@ def registered_workers(request: Request, vm_id: str) -> Response:
 def active_jobs(request: Request, vm_id: str, task_id: str) -> Response:
     ret = []
     for i in RunningProcesses.objects.filter(task=task_id):
-        ret.append({"uuid": i.uuid, "task": i.task, "vm_id": i.vm_id, "dataset_id": i.dataset_id, "details": i.details})
+        ret.append(
+            {
+                "uuid": i.uuid,
+                "task": i.task,
+                "vm_id": i.vm_id,
+                "dataset_id": i.dataset_id,
+                "details": i.details,
+            }
+        )
 
     return JsonResponse({"status": 0, "context": {"jobs": ret}})
 
@@ -176,11 +183,13 @@ def validate_docker_image(request: Request) -> Response:
 
     try:
         ret = git_runner.get_manifest_of_docker_image_image_repository(
-            data["repository_name"], data["image"], cache=None, force_cache_refresh=False
+            data["repository_name"],
+            data["image"],
+            cache=None,
+            force_cache_refresh=False,
         )
     except Exception as e:
-        logger.exception(e)
-        logger.warning(f"Could not validate docker image: {e}")
+        logger.warning("Could not validate docker image", exc_info=e)
         ret = {}
 
     return JsonResponse({"status": 0, "message": "ok", "context": ret})
@@ -188,7 +197,10 @@ def validate_docker_image(request: Request) -> Response:
 
 endpoints = [
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
-    path("update-running-process-output/<str:vm_id>/<str:job_id>", update_running_process_output),
+    path(
+        "update-running-process-output/<str:vm_id>/<str:job_id>",
+        update_running_process_output,
+    ),
     path("registered-workers/<str:vm_id>", registered_workers),
     path("active-jobs/<str:vm_id>/<str:task_id>", active_jobs),
     path("validate-docker-image", validate_docker_image),

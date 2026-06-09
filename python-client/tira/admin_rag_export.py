@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
 
 from tira.check_format import _fmt, check_format, lines_if_valid
 
@@ -10,7 +13,7 @@ def _sanitize_key(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", value).strip("_").lower()
 
 
-def _parse_score(value: str):
+def _parse_score(value: str) -> "int | float | None":
     try:
         numeric_value = float(value)
     except ValueError:
@@ -22,7 +25,7 @@ def _parse_score(value: str):
     return numeric_value
 
 
-def _display_name_and_key_prefix(eval_directory: Path, eval_root: Path) -> Tuple[str, str]:
+def _display_name_and_key_prefix(eval_directory: Path, eval_root: Path) -> tuple[str, str]:
     parts = [part for part in eval_directory.relative_to(eval_root).parts if part != "results"]
     if not parts:
         parts = [eval_directory.name]
@@ -30,7 +33,7 @@ def _display_name_and_key_prefix(eval_directory: Path, eval_root: Path) -> Tuple
     return " / ".join(parts), "__".join(_sanitize_key(part) for part in parts)
 
 
-def discover_trec_eval_directories(evals_directory: Path) -> List[Path]:
+def discover_trec_eval_directories(evals_directory: Path) -> list[Path]:
     if not evals_directory.exists() or not evals_directory.is_dir():
         raise ValueError(f"The evaluations directory does not exist: {evals_directory}")
 
@@ -41,6 +44,7 @@ def discover_trec_eval_directories(evals_directory: Path) -> List[Path]:
         if check_format(path, "trec-eval-leaderboard")[0] == _fmt.OK:
             ret.add(path)
 
+    # Keep only the deepest matching directories: a parent is excluded when any other candidate is nested inside it.
     ret = {path for path in ret if not any(other != path and path in other.parents for other in ret)}
 
     if not ret:
@@ -49,7 +53,7 @@ def discover_trec_eval_directories(evals_directory: Path) -> List[Path]:
     return sorted(ret)
 
 
-def load_rag_runs(runs_directory: Path) -> List[Dict[str, str]]:
+def load_rag_runs(runs_directory: Path) -> list[dict[str, str]]:
     if not runs_directory.exists() or not runs_directory.is_dir():
         raise ValueError(f"The runs directory does not exist: {runs_directory}")
 
@@ -75,25 +79,27 @@ def load_rag_runs(runs_directory: Path) -> List[Dict[str, str]]:
     return [runs[run_id] for run_id in sorted(runs)]
 
 
-def _load_all_query_scores(eval_directory: Path, expected_run_ids: Iterable[str]) -> Dict[str, Any]:
-    run_ids = set(expected_run_ids)
-    measures = []
-    run_to_scores = {}
+def _collect_scores(eval_directory: Path) -> tuple[list[str], dict[str, dict[str, Any]]]:
+    """Parse the trec-eval leaderboard file and return (ordered_measures, run_to_scores) for ALL queries."""
+    measures: list[str] = []
+    run_to_scores: dict[str, dict[str, Any]] = {}
 
     for line in lines_if_valid(eval_directory, "trec-eval-leaderboard"):
         if line["run"] == "run_id" or str(line["query"]).lower() != "all":
             continue
-
         score = _parse_score(line["value"])
         if score is None:
             continue
-
         if line["metric"] not in measures:
             measures.append(line["metric"])
+        run_to_scores.setdefault(line["run"], {})[line["metric"]] = score
 
-        if line["run"] not in run_to_scores:
-            run_to_scores[line["run"]] = {}
-        run_to_scores[line["run"]][line["metric"]] = score
+    return measures, run_to_scores
+
+
+def _load_all_query_scores(eval_directory: Path, expected_run_ids: Iterable[str]) -> dict[str, Any]:
+    run_ids = set(expected_run_ids)
+    measures, run_to_scores = _collect_scores(eval_directory)
 
     if not measures:
         raise ValueError(f"The evaluation directory {eval_directory} does not contain numeric ALL scores.")
@@ -119,13 +125,16 @@ def _load_all_query_scores(eval_directory: Path, expected_run_ids: Iterable[str]
     return {"measures": measures, "run_to_scores": run_to_scores}
 
 
-def build_rag_responses_aggregated_results(runs_directory: Path, evals_directory: Path) -> Dict[str, Any]:
+def build_rag_responses_aggregated_results(runs_directory: Path, evals_directory: Path) -> dict[str, Any]:
     runs = load_rag_runs(runs_directory)
     run_ids = [run["run_id"] for run in runs]
 
     evaluations = []
     ev_keys = []
-    table_headers = [{"title": "Team", "key": "team_id"}, {"title": "Run", "key": "run_id"}]
+    table_headers = [
+        {"title": "Team", "key": "team_id"},
+        {"title": "Run", "key": "run_id"},
+    ]
 
     for eval_directory in discover_trec_eval_directories(evals_directory):
         display_name, key_prefix = _display_name_and_key_prefix(eval_directory, evals_directory)

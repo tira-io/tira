@@ -84,8 +84,24 @@ class LocalExecutionIntegration:
             ),
         }
 
-    def build_docker_image(self, path, tag, dockerfile, build_args: "Optional[str]" = None, platform="linux/amd64"):
-        cmd = ["docker", "build", "--platform", platform, "-f", str(dockerfile), "-t", str(tag)]
+    def build_docker_image(
+        self,
+        path,
+        tag,
+        dockerfile,
+        build_args: "Optional[str]" = None,
+        platform="linux/amd64",
+    ):
+        cmd = [
+            "docker",
+            "build",
+            "--platform",
+            platform,
+            "-f",
+            str(dockerfile),
+            "-t",
+            str(tag),
+        ]
         if build_args is not None and len(build_args) > 0:
             cmd += build_args.split()
         cmd += [str(path)]
@@ -103,17 +119,17 @@ class LocalExecutionIntegration:
         client = self.__docker_client()
         inspect_result = client.api.inspect_image(image)
         allowed = set([platform])
-        architecture = "unknow"
-        os = "unknown"
+        architecture = "unknown"
+        image_os = "unknown"
 
         if inspect_result and "Architecture" in inspect_result:
             architecture = inspect_result["Architecture"]
         if inspect_result and "Os" in inspect_result:
-            os = inspect_result["Os"]
+            image_os = inspect_result["Os"]
 
-        if f"{os}/{architecture}" not in allowed:
+        if f"{image_os}/{architecture}" not in allowed:
             raise ValueError(
-                f"The platform {os}/{architecture} of the Docker image is not supported in the cluster for the task. Allowed platforms are {allowed}."
+                f"The platform {image_os}/{architecture} of the Docker image is not supported in the cluster for the task. Allowed platforms are {allowed}."
             )
 
     def ensure_image_available_locally(self, image, client=None):
@@ -172,7 +188,9 @@ class LocalExecutionIntegration:
         return self.make_command_absolute(image_name, " ".join(ret))
 
     def make_command_absolute(self, image_name, command):
-        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        from tira.third_party_integrations import (
+            extract_to_be_executed_notebook_from_command_or_none,
+        )
 
         executable = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -185,7 +203,10 @@ class LocalExecutionIntegration:
             )
 
     def __docker_linux_sockets(self):
-        ret = [os.path.expanduser("~/.docker/desktop/docker.sock"), "/run/podman/podman.sock"]
+        ret = [
+            os.path.expanduser("~/.docker/desktop/docker.sock"),
+            "/run/podman/podman.sock",
+        ]
 
         try:
             ret += ["/run/user/" + str(os.getuid()) + "/podman/podman.sock"]
@@ -339,7 +360,10 @@ class LocalExecutionIntegration:
         )
 
         if (output_dir / ".tracking-results.yml").exists():
-            shutil.move(output_dir / ".tracking-results.yml", output_dir.parent / ".tracking-results.yml")
+            shutil.move(
+                output_dir / ".tracking-results.yml",
+                output_dir.parent / ".tracking-results.yml",
+            )
 
         with open(log_file, "a") as f:
             f.write(json.dumps(ret) + "\n")
@@ -369,15 +393,28 @@ class LocalExecutionIntegration:
 
         return "Measures runtime, energy, and many other" in help_response
 
-    def evaluate(self, eval_dir: Path, output_dir: Path, allow_network: bool, evaluate: dict, client=None):
+    def evaluate(
+        self,
+        eval_dir: Path,
+        output_dir: Path,
+        allow_network: bool,
+        evaluate: dict,
+        client=None,
+    ):
         if not client:
             client = self.__docker_client()
 
         evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
 
         if type(evaluate) is dict and evaluate["evaluator_id"]:
-            evaluation_volumes[str(evaluate["truth_directory"])] = {"bind": "/tira-data/input_truth", "mode": "ro"}
-            evaluation_volumes[str(output_dir)] = {"bind": "/tira-data/input-run", "mode": "ro"}
+            evaluation_volumes[str(evaluate["truth_directory"])] = {
+                "bind": "/tira-data/input_truth",
+                "mode": "ro",
+            }
+            evaluation_volumes[str(output_dir)] = {
+                "bind": "/tira-data/input-run",
+                "mode": "ro",
+            }
 
             evaluate, image, command = (
                 None,
@@ -403,7 +440,8 @@ class LocalExecutionIntegration:
             environment["CUDA_VISIBLE_DEVICES"] = os.environ["NVIDIA_VISIBLE_DEVICES"]
             device_requests = [
                 docker.types.DeviceRequest(
-                    device_ids=[str(os.environ["NVIDIA_VISIBLE_DEVICES"])], capabilities=[["gpu"]]
+                    device_ids=[str(os.environ["NVIDIA_VISIBLE_DEVICES"])],
+                    capabilities=[["gpu"]],
                 )
             ]
 
@@ -517,7 +555,10 @@ class LocalExecutionIntegration:
             volumes[str(input_run)] = {"bind": "/tira-data/input-run", "mode": "ro"}
 
         for k, v in docker_software_id_to_output.items():
-            volumes[str(os.path.abspath(v))] = {"bind": "/tira-data/input-run", "mode": "ro"}
+            volumes[str(os.path.abspath(v))] = {
+                "bind": "/tira-data/input-run",
+                "mode": "ro",
+            }
 
         if additional_volumes:
             for v in additional_volumes:
@@ -655,7 +696,10 @@ class LocalExecutionIntegration:
 
     def export_submission_from_jupyter_notebook(self, notebook):
         if not os.path.isfile(notebook):
-            print(f"The notebook {notebook} does not exist. I can not continue.", file=sys.stderr)
+            print(
+                f"The notebook {notebook} does not exist. I can not continue.",
+                file=sys.stderr,
+            )
 
             if "/" in notebook:
                 try:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 import threading
@@ -8,13 +10,24 @@ from subprocess import check_output
 from typing import Callable, Optional
 
 from celery import Celery
-from tira.io_utils import get_tira_id, hf_cache_dir, huggingface_model_mounts, persist_tira_metadata_for_job
+
+from tira.io_utils import (
+    get_tira_id,
+    hf_cache_dir,
+    huggingface_model_mounts,
+    persist_tira_metadata_for_job,
+)
 from tira.rest_api_client import Client as RestClient
-from tira.rest_api_client import TiraClient
 from tira.third_party_integrations import is_public_huggingface_model
+from tira.tira_client import TiraClient
 from tira.workflows import run_workflow
 
-from .settings import CPU_COUNT, MEMORY_LIMIT, QUEUE_BROKER_URL, QUEUE_RESULTS_BACKEND_URL
+from .settings import (
+    CPU_COUNT,
+    MEMORY_LIMIT,
+    QUEUE_BROKER_URL,
+    QUEUE_RESULTS_BACKEND_URL,
+)
 from .utils import gpu_device_ids
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
@@ -25,11 +38,12 @@ gpu_executor = Celery("tira-gpu-executor", backend=QUEUE_RESULTS_BACKEND_URL, br
 gpu_executor.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
 gpu_executor.conf.control_queue_durable = False  # Not required after celery 5.7 is released
 
+# Poll every 90 seconds (TODO: make me configurable?)
 MONITORED_EXECUTION_POLL_INTERVAL_SECONDS = 90
 
 
 def get_admin_client() -> TiraClient:
-    ret: "TiraClient" = RestClient()
+    ret: TiraClient = RestClient()
     role = ret.json_response("/api/role")
 
     if not role or "role" not in role or "admin" != role["role"]:
@@ -61,17 +75,17 @@ def _tail_lines(text: str, line_count: int = 15) -> str:
 def _current_monitored_output(monitored_execution) -> str:
     stdout = _tail_lines(monitored_execution.stdout.getvalue())
     stderr = _tail_lines(monitored_execution.stderr.getvalue())
-    ret = []
+    ret: list[str] = []
 
     if stdout:
-        ret += ["## stdout (Last 15 lines)", stdout]
+        ret.extend(("## stdout (Last 15 lines)", stdout))
     if stderr:
-        ret += ["# stderr (Last 15 lines)", stderr]
+        ret.extend(("## stderr (Last 15 lines)", stderr))
 
     return "\n\n".join(ret)
 
 
-def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, job_id: "Optional[str]" = None):
+def execute_monitored(method: Callable, client: Optional[TiraClient] = None, job_id: Optional[str] = None) -> Path:
     from tira.io_utils import MonitoredExecution
 
     monitored_execution = MonitoredExecution()
@@ -90,7 +104,7 @@ def execute_monitored(method: Callable, client: "Optional[TiraClient]" = None, j
             current_output = _current_monitored_output(monitored_execution)
             try:
                 running_process_response = client.update_running_process_output_admin(job_id, current_output)
-            except:
+            except Exception:
                 print("Failed to load running processes")
                 running_process_response = None
 
@@ -138,7 +152,7 @@ def download_hf_model(model: str) -> None:
         rsync_from_local_or_fail(src_dir, target_dir)
 
 
-def resolve_hf_models(mount_hf_model: "Optional[list[str]]"):
+def resolve_hf_models(mount_hf_model: Optional[list[str]]) -> Optional[list[str]]:
     ret = None
     if mount_hf_model:
         for model in mount_hf_model:
@@ -160,10 +174,10 @@ def run(
     software_id: str,
     team: str,
     job_id: str,
-    mount_hf_model: "Optional[list[str]]" = None,
-    task_workflow_configuration: "Optional[dict]" = None,
-    software_workflow_configuration: "Optional[dict]" = None,
-    env_to_forward: "Optional[dict]" = None,
+    mount_hf_model: Optional[list[str]] = None,
+    task_workflow_configuration: Optional[dict] = None,
+    software_workflow_configuration: Optional[dict] = None,
+    env_to_forward: Optional[dict] = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -180,7 +194,6 @@ def run(
         for k, v in env_to_forward.items():
             environ[k] = v
 
-
     if task_workflow_configuration is None and software_workflow_configuration is None:
         run_results = execute_monitored(
             lambda i: client.local_execution.run(
@@ -193,7 +206,7 @@ def run(
                 cpu_count=CPU_COUNT,
                 mem_limit=MEMORY_LIMIT,
                 gpu_device_ids=gpu_devices,
-                forward_environment_variables=forward_environment_variables
+                forward_environment_variables=forward_environment_variables,
             ),
             client=client,
             job_id=job_id,
@@ -217,12 +230,12 @@ def run(
 
             try:
                 print((run_results.run / "stdout.txt").read_text())
-            except:
+            except Exception:
                 pass
 
             try:
                 print((run_results.run / "stderr.txt").read_text(), file=sys.stderr)
-            except:
+            except Exception:
                 pass
 
         run_results = execute_monitored(
@@ -235,7 +248,7 @@ def run(
         for k in forward_environment_variables:
             try:
                 del environ[k]
-            except:
+            except Exception:
                 pass
 
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
@@ -253,7 +266,12 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str,
 
     eval_results = execute_monitored(lambda i: client.evaluate(run_dir, dataset, i), client=client, job_id=job_id)
     persist_tira_metadata_for_job(
-        eval_results, f"{get_tira_id()}-evaluates-{run_id}", run_id, evaluator_id, dataset, task
+        eval_results,
+        f"{get_tira_id()}-evaluates-{run_id}",
+        run_id,
+        evaluator_id,
+        dataset,
+        task,
     )
 
     client.upload_run_admin(eval_results, job_id)

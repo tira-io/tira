@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import gzip
 import hashlib
 import io
@@ -15,7 +17,17 @@ from datetime import datetime as dt
 from glob import glob
 from pathlib import Path
 from subprocess import CalledProcessError, check_output
-from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import pandas as pd
 import requests
@@ -27,7 +39,9 @@ from tira.tirex_tracker import find_tirex_tracker_executable_or_none
 
 
 def dataset_as_dataframe(
-    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+    dataset_id_or_path: "Union[str, Path]",
+    dataset_format: str,
+    tira_client: "Optional[TiraClient]" = None,
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -46,7 +60,9 @@ def dataset_as_dataframe(
 
 
 def dataset_as_iterator(
-    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+    dataset_id_or_path: "Union[str, Path]",
+    dataset_format: str,
+    tira_client: "Optional[TiraClient]" = None,
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -81,7 +97,10 @@ def verify_docker_installation() -> Tuple[FormatMsgType, str]:
         assert local_execution.docker_is_installed_failsave()
         return _fmt.OK, "Docker/Podman is installed."
     except:
-        return _fmt.ERROR, "Docker/Podman is not installed. You can not run dockerized TIRA submissions."
+        return (
+            _fmt.ERROR,
+            "Docker/Podman is not installed. You can not run dockerized TIRA submissions.",
+        )
 
 
 def tira_home_exists():
@@ -91,7 +110,10 @@ def tira_home_exists():
         assert Path(Client().tira_cache_dir).exists()
         return _fmt.OK, "TIRA home is writable."
     except:
-        return _fmt.ERROR, "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable."
+        return (
+            _fmt.ERROR,
+            "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable.",
+        )
 
 
 def api_key_is_valid():
@@ -101,26 +123,40 @@ def api_key_is_valid():
         assert Client().api_key_is_valid()
         return _fmt.OK, "You are authenticated against www.tira.io."
     except:
-        return _fmt.ERROR, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+        return (
+            _fmt.ERROR,
+            "Your TIRA client is not authenticated. Please run 'tira-cli login'.",
+        )
 
 
 def verify_tirex_tracker():
     tracker = find_tirex_tracker_executable_or_none()
     if tracker is None:
-        return _fmt.WARN, "The tirex-tracker is not available. Experimental metadata will not be tracked."
+        return (
+            _fmt.WARN,
+            "The tirex-tracker is not available. Experimental metadata will not be tracked.",
+        )
 
     try:
         help_response = check_output([str(tracker), "--help"]).decode("UTF-8")
     except (CalledProcessError, OSError):
-        return _fmt.WARN, "The tirex-tracker is not working. Experimental metadata will not be tracked."
+        return (
+            _fmt.WARN,
+            "The tirex-tracker is not working. Experimental metadata will not be tracked.",
+        )
 
     if "Measures runtime, energy, and many other" in help_response:
         return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
 
-    return _fmt.WARN, "The tirex-tracker is not working. Experimental metadata will not be tracked."
+    return (
+        _fmt.WARN,
+        "The tirex-tracker is not working. Experimental metadata will not be tracked.",
+    )
 
 
-def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "Optional[str]" = None):
+def verify_images_can_be_build_and_pushed(
+    task: "Optional[str]" = None, team: "Optional[str]" = None
+) -> tuple[FormatMsgType, str]:
     if task is None or team is None:
         return (
             _fmt.ERROR,
@@ -162,7 +198,9 @@ def verify_images_can_be_build_and_pushed(task: "Optional[str]" = None, team: "O
     return _fmt.OK, f"Images can be uploaded for team {team}."
 
 
-def verify_images_are_in_correct_format(task: "Optional[str]" = None, team: "Optional[str]" = None):
+def verify_images_are_in_correct_format(
+    task: "Optional[str]" = None, team: "Optional[str]" = None
+) -> tuple[FormatMsgType, str]:
     from tira.rest_api_client import Client
 
     print("I verify that pushed images are in the correct format.")
@@ -179,15 +217,15 @@ def verify_images_are_in_correct_format(task: "Optional[str]" = None, team: "Opt
         and "Loading" not in image_details["context"]["architecture"]
         and "amd64" == image_details["context"]["architecture"]
     ):
-        return _fmt.OK, f"The uploaded image is compatible with the cluster."
+        return _fmt.OK, "The uploaded image is compatible with the cluster."
     else:
-        return _fmt.ERROR, f"The uploaded image is compatible with the cluster."
+        return _fmt.ERROR, "The uploaded image is incompatible with the cluster."
 
 
 def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
     ret = _fmt.OK
 
-    checks: List[Callable] = [
+    checks: list[Callable] = [
         api_key_is_valid,
         tira_home_exists,
         verify_docker_installation,
@@ -390,7 +428,7 @@ def stream_all_lines(
         yield parse_jsonl_line(line, load_default_text)
 
 
-def hf_cache_dir():
+def hf_cache_dir() -> Path:
     ret = Path(os.path.expanduser("~/.cache/huggingface/hub"))
     if "HF_HUB_CACHE" in os.environ:
         ret = Path(os.environ["HF_HUB_CACHE"])
@@ -571,7 +609,11 @@ def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, da
 
 def create_tira_size_txt(run_dir):
     ret = check_output(
-        ["bash", "-c", '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1']
+        [
+            "bash",
+            "-c",
+            '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1',
+        ]
     )
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f -exec cat {} + | wc -l'])
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f | wc -l'])
@@ -828,7 +870,7 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
         return pd.read_json(files, lines=True, orient="records")
 
 
-def docker_supported_target_platform():
+def docker_supported_target_platform() -> str:
     architecture = platform.machine()
     if "arm64" in architecture or "aarch64" in architecture:
         return "linux/arm64"
@@ -836,7 +878,7 @@ def docker_supported_target_platform():
         return "linux/amd64"
 
 
-def get_manifest_of_ghcr_docker_image(image):
+def get_manifest_of_ghcr_docker_image(image: str) -> Optional[dict]:
     repo, tag = image.replace("ghcr.io/", "").split(":")
 
     try:
@@ -851,11 +893,11 @@ def get_manifest_of_ghcr_docker_image(image):
             return None
         else:
             return ret
-    except:
+    except Exception:
         return None
 
 
-def dockerfile_for_architecture(base_dir: Path):
+def dockerfile_for_architecture(base_dir: Path) -> str:
     supported_platform = docker_supported_target_platform()
 
     if supported_platform == "linux/amd64" and os.path.exists(base_dir / "Dockerfile.amd64"):

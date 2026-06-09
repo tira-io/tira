@@ -16,16 +16,27 @@ from uuid import uuid4
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, HttpResponseServerError, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseNotAllowed,
+    HttpResponseServerError,
+    JsonResponse,
+)
 from django.views.decorators.csrf import csrf_exempt
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
+
 from tira.check_format import _fmt, check_format
 from tira.io_utils import get_tira_id, sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
-from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
+from ..checks import (
+    check_conditional_permissions,
+    check_permissions,
+    check_resources_exist,
+)
 from ..model import EvaluationLog
 from ..util import link_to_discourse_team
 from ..views import add_context
@@ -56,7 +67,10 @@ def docker_software_details(request: "HttpRequest", context, vm_id: str, docker_
 
 @check_permissions
 def huggingface_model_mounts(request: "HttpRequest", vm_id: str, hf_model: str) -> HttpResponse:
-    from ..huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
+    from ..huggingface_hub_integration import (
+        huggingface_model_mounts,
+        snapshot_download_hf_model,
+    )
 
     context = {"hf_model_available": False, "hf_model_for_vm": vm_id}
 
@@ -114,9 +128,20 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
             eval_run_id = str(uuid4()) + "-evaluates-" + run_id
 
             with open(os.path.join(eval_result, "run.prototext"), "w") as f:
-                f.write(run_prototext(eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id))
+                f.write(
+                    run_prototext(
+                        eval_run_id,
+                        run_id,
+                        dataset["evaluator_id"],
+                        dataset_id,
+                        task_id,
+                    )
+                )
 
-            shutil.move(src=eval_result, dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
+            shutil.move(
+                src=eval_result,
+                dst=model.model.runs_dir_path / dataset_id / vm_id / eval_run_id,
+            )
             print(model.model.runs_dir_path / dataset_id / vm_id / eval_run_id)
 
             model.add_run(dataset_id, vm_id, eval_run_id)
@@ -139,8 +164,7 @@ def run_sandboxed_eval(run_id: str, dataset: str, task: str, team: str) -> None:
     try:
         add_celery_id_to_job(job_id, result.id)
     except Exception as e:
-        logger.exception(e)
-        logger.warning(f"Could not add add_celery_id_to_job for evaluation {e}")
+        logger.exception("Could not add celery id to evaluation job", exc_info=e)
 
 
 def _run_evaluation(vm_id: str, task_id: str, run_id: str, dataset_id: str):
@@ -223,7 +247,8 @@ def run_eval(request, vm_id, dataset_id, run_id):
     existing_evaluations = EvaluationLog.objects.filter(run_id=run_id)
     if existing_evaluations and len(existing_evaluations) > 5:
         return JsonResponse(
-            {"status": "1", "message": "An evaluation is already in progress."}, status=HTTPStatus.PRECONDITION_FAILED
+            {"status": "1", "message": "An evaluation is already in progress."},
+            status=HTTPStatus.PRECONDITION_FAILED,
         )
 
     ds = model.get_dataset(dataset_id)
@@ -238,7 +263,10 @@ def run_delete(request, dataset_id, vm_id, run_id):
     if delete_ok:
         return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
     return JsonResponse(
-        {"status": 1, "message": f"Can not delete run {run_id} since it is used as an input run."},
+        {
+            "status": 1,
+            "message": f"Can not delete run {run_id} since it is used as an input run.",
+        },
         status=HTTPStatus.ACCEPTED,
     )
 
@@ -286,7 +314,14 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         _run_evaluation(vm_id, task_id, new_run["run"]["run_id"], dataset_id)
 
-        return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
+        return JsonResponse(
+            {
+                "status": 0,
+                "message": "ok",
+                "new_run": new_run,
+                "started_evaluation": False,
+            }
+        )
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
@@ -399,7 +434,12 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
         try:
             if not dataset_id or dataset_id is None or dataset_id == "None":
                 return HttpResponseServerError(
-                    json.dumps({"status": 1, "message": "Please specify the associated dataset."})
+                    json.dumps(
+                        {
+                            "status": 1,
+                            "message": "Please specify the associated dataset.",
+                        }
+                    )
                 )
 
             dataset = model.get_dataset(dataset_id)
@@ -412,7 +452,10 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
             ):
                 return HttpResponseServerError(
                     json.dumps(
-                        {"status": 1, "message": f"Uploads are not allowed for the dataset {html.escape(dataset_id)}."}
+                        {
+                            "status": 1,
+                            "message": f"Uploads are not allowed for the dataset {html.escape(dataset_id)}.",
+                        }
                     )
                 )
 
@@ -509,7 +552,8 @@ def add_upload(request: "HttpRequest", task_id: str, vm_id: str) -> HttpResponse
         upload = model.add_upload(task_id, vm_id, rename_to)
         if not upload:
             return JsonResponse(
-                {"status": 1, "message": "Failed to create a new Upload."}, status=HTTPStatus.INTERNAL_SERVER_ERROR
+                {"status": 1, "message": "Failed to create a new Upload."},
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
 
         context = {"task": task_id, "vm_id": vm_id, "upload": upload}
@@ -531,7 +575,12 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             return JsonResponse({"status": 1, "message": "Please specify the associated docker image."})
 
         if not data.get("command"):
-            return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": "Please specify the associated docker command.",
+                }
+            )
 
         source_code_remotes = data.get("source_code_remotes")
         commit = data.get("source_code_commit")
@@ -561,12 +610,18 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
 
             if not submission_git_repo:
                 return JsonResponse(
-                    {"status": 1, "message": f"The code repository '{data.get('code_repository_id'):}' does not exist."}
+                    {
+                        "status": 1,
+                        "message": f"The code repository '{data.get('code_repository_id'):}' does not exist.",
+                    }
                 )
 
             if not data.get("build_environment"):
                 return JsonResponse(
-                    {"status": 1, "message": "Please specify the build_environment for linking the code."}
+                    {
+                        "status": 1,
+                        "message": "Please specify the build_environment for linking the code.",
+                    }
                 )
 
             build_environment = json.dumps(data.get("build_environment"))
@@ -640,7 +695,10 @@ def add_software_submission_git_repository(request: "HttpRequest", task_id: str,
 
         if not model.github_user_exists(external_owner):
             return JsonResponse(
-                {"status": 1, "message": f"The user '{external_owner}' does not exist on Github, maybe a typo?"}
+                {
+                    "status": 1,
+                    "message": f"The user '{external_owner}' does not exist on Github, maybe a typo?",
+                }
             )
 
         software_submission_git_repo = model.get_submission_git_repo(
@@ -663,13 +721,18 @@ def get_token(request: "HttpRequest", vm_id: str) -> HttpResponse:
 
     try:
         return JsonResponse(
-            {"status": 0, "context": {"token": model.get_discourse_token_for_user(vm_id, disraptor_user)}}
+            {
+                "status": 0,
+                "context": {"token": model.get_discourse_token_for_user(vm_id, disraptor_user)},
+            }
         )
     except Exception as e:
-        logger.exception(f"Error while getting discourse token for vm {vm_id}: {e}")
-        logger.exception(e)
+        logger.exception(f"Error while getting discourse token for vm {vm_id}", exc_info=e)
         return JsonResponse(
-            {"status": 1, "message": "Could not extract the discourse/disraptor user, please authenticate."}
+            {
+                "status": 1,
+                "message": "Could not extract the discourse/disraptor user, please authenticate.",
+            }
         )
 
 
@@ -774,7 +837,11 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "@Comment {No bib entry specified for the dataset, please contact the organizers for clarification.}"
         ),
     }
-    markdown_references: dict[str, Optional[str]] = {"run": None, "task": None, "dataset": None}
+    markdown_references: dict[str, Optional[str]] = {
+        "run": None,
+        "task": None,
+        "dataset": None,
+    }
 
     if run["dataset"] == "antique-test-20230107-training":
         markdown_references["dataset"] = (
@@ -782,7 +849,9 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "is a  non-factoid quesiton answering dataset based on the questions and "
             + "answers of Yahoo! Webscope L6."
         )
-        bib_references["dataset"] = """@inproceedings{Hashemi2020Antique,
+        bib_references[
+            "dataset"
+        ] = """@inproceedings{Hashemi2020Antique,
   title        = {ANTIQUE: A Non-Factoid Question Answering Benchmark},
   author       = {Helia Hashemi and Mohammad Aliannejadi and Hamed Zamani and Bruce Croft},
   booktitle    = {ECIR},
@@ -795,7 +864,9 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "respectively [TIREx](https://webis.de/publications#froebe_2023e) "
             + "is used to enable reprodicible and blinded experiments."
         )
-        bib_references["task"] = """@InProceedings{froebe:2023b,
+        bib_references[
+            "task"
+        ] = """@InProceedings{froebe:2023b,
   address =                  {Berlin Heidelberg New York},
   author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
   booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
@@ -828,7 +899,9 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in"
             " [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
         )
-        bib_references["run"] = """@article{DBLP:journals/corr/abs-2101-05667,
+        bib_references[
+            "run"
+        ] = """@article{DBLP:journals/corr/abs-2101-05667,
   author       = {Ronak Pradeep and Rodrigo Frassetto Nogueira and Jimmy Lin},
   title        = {The Expando-Mono-Duo Design Pattern for Text Ranking with Pretrained Sequence-to-Sequence Models},
   journal      = {CoRR},
@@ -862,7 +935,9 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in"
             " [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
         )
-        bib_references["run"] = """@inproceedings{amati-2006-frequentist,
+        bib_references[
+            "run"
+        ] = """@inproceedings{amati-2006-frequentist,
   author    = {Giambattista Amati},
   editor    = {Mounia Lalmas and Andy MacFarlane and Stefan M. R{\"{u}}ger and Anastasios Tombros and Theodora Tsikrika and Alexei Yavlinsky},
   title     = {Frequentist and Bayesian Approach to Information Retrieval},
@@ -983,7 +1058,12 @@ def software_details(request: "HttpRequest", task_id: str, vm_id: str, software_
     docker_software = model.get_docker_software_by_name(software_name, vm_id, task_id)
 
     if not docker_software:
-        return JsonResponse({"status": 0, "message": f'Could not find a software with name "{software_name}"'})
+        return JsonResponse(
+            {
+                "status": 0,
+                "message": f'Could not find a software with name "{software_name}"',
+            }
+        )
 
     repro_details: Mapping[str, Optional[str]] = {
         "tira-run-export": None,
@@ -1034,12 +1114,22 @@ def run_execute_docker_software(
         return JsonResponse({"status": 1, "message": "Please specify the associated vm_id."})
 
     if not docker_software_id or docker_software_id is None or docker_software_id == "None":
-        return JsonResponse({"status": 1, "message": "Please specify the associated docker_software_id."})
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Please specify the associated docker_software_id.",
+            }
+        )
 
     docker_software = model.get_docker_software(int(docker_software_id))
 
     if not docker_software:
-        return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": f"There is no docker image with id {docker_software_id}",
+            }
+        )
 
     env_to_forward = None
     if docker_software["forward_environment_variable"]:
@@ -1049,8 +1139,7 @@ def run_execute_docker_software(
             env_to_forward = {k: v for k, v in raw_env.items() if k in required_env_vars}
         except Exception as e:
             msg = f"Error forwarding environment variables. {e}"
-            logger.exception(e)
-            logger.warning(msg)
+            logger.exception("Error forwarding environment variables", exc_info=e)
             return JsonResponse({"status": 1, "message": msg})
 
         for k in required_env_vars:
@@ -1070,7 +1159,11 @@ def run_execute_docker_software(
             background_process = None
             try:
                 background_process = model.create_re_rank_output_on_dataset(
-                    task_id, vm_id, software_id=None, docker_software_id=int(docker_software_id), dataset_id=dataset_id
+                    task_id,
+                    vm_id,
+                    software_id=None,
+                    docker_software_id=int(docker_software_id),
+                    dataset_id=dataset_id,
                 )
             except Exception as e:
                 logger.warning(e)
@@ -1150,7 +1243,11 @@ def run_execute_docker_software(
 
 
 def add_job(
-    docker_resources: str, task_id: str, vm_id: str, dataset_id: str, docker_software: Optional[dict[str, Any]] = None
+    docker_resources: str,
+    task_id: str,
+    vm_id: str,
+    dataset_id: str,
+    docker_software: Optional[dict[str, Any]] = None,
 ) -> str:
     job_id = str(uuid.uuid4())
     from ..model import RunningProcesses
@@ -1169,7 +1266,11 @@ def add_job(
 
     details = {
         "run_id": job_id,
-        "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"},
+        "execution": {
+            "scheduling": "running",
+            "execution": "pending",
+            "evaluation": "pending",
+        },
         "stdOutput": "",
         "started_at": "pending",
         "job_config": {
@@ -1187,7 +1288,11 @@ def add_job(
         },
     }
     RunningProcesses.objects.create(
-        uuid=job_id, task=task_id, vm_id=vm_id, dataset_id=dataset_id, details=json.dumps(details)
+        uuid=job_id,
+        task=task_id,
+        vm_id=vm_id,
+        dataset_id=dataset_id,
+        details=json.dumps(details),
     )
 
     return job_id
@@ -1217,9 +1322,11 @@ def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run
         from tira_worker import app
 
         app.control.revoke(job.celery_id, terminate=True)
-        app.control.revoke(job.celery_id, terminate=True)
 
         job.delete()
     return JsonResponse(
-        {"status": 0, "message": "The run is getting stopped. It might take 5 minutes until the proces terminated"}
+        {
+            "status": 0,
+            "message": "The run is getting stopped. It might take 5 minutes until the proces terminated",
+        }
     )

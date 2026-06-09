@@ -52,7 +52,11 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dataset", required=True, help="The dataset.")
     parser.add_argument("--output", required=False, help="The output directory.")
     parser.add_argument("--truths", action="store_true", help="Download truths.")
-    parser.add_argument("--all-submissions", action="store_true", help="Download all submissions to a task.")
+    parser.add_argument(
+        "--all-submissions",
+        action="store_true",
+        help="Download all submissions to a task.",
+    )
     parser.add_argument("--repackage", action="store_true", help="Repackage everything.")
     parser.set_defaults(executable=download_command)
 
@@ -73,12 +77,22 @@ def setup_login_command(parser: argparse.ArgumentParser) -> None:
 def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
-        "--predictions", required=True, default=None, help="The directory with the predictions to evaluate."
+        "--predictions",
+        required=True,
+        default=None,
+        help="The directory with the predictions to evaluate.",
     )
     parser.add_argument(
-        "--truths", required=False, default=None, help="The optional truths (use truths from the config if available)."
+        "--truths",
+        required=False,
+        default=None,
+        help="The optional truths (use truths from the config if available).",
     )
-    parser.add_argument("--config", required=True, help="The dataset for which the predictions are made.")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="The dataset for which the predictions are made.",
+    )
     parser.set_defaults(executable=evaluate_command)
 
 
@@ -136,7 +150,7 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
 
 def admin_verify_tokens(task: list[str], **kwargs) -> int:
     client: "TiraClient" = RestClient()
-    ret = client._admin_verify_tokens(task, skip_without_token=False)
+    _ = client._admin_verify_tokens(task, skip_without_token=False)
     return 0
 
 
@@ -262,8 +276,16 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="Export RAG runs and ALL evaluation scores as aggregated-results.json.",
     )
     export_parser.add_argument("--runs", required=True, help="Directory containing trec-rag-runs.")
-    export_parser.add_argument("--evals", required=True, help="Directory containing trec-eval leaderboard files.")
-    export_parser.add_argument("--output", required=True, help="Directory that receives aggregated-results.json.")
+    export_parser.add_argument(
+        "--evals",
+        required=True,
+        help="Directory containing trec-eval leaderboard files.",
+    )
+    export_parser.add_argument(
+        "--output",
+        required=True,
+        help="Directory that receives aggregated-results.json.",
+    )
     export_parser.set_defaults(executable=admin_export_rag_responses)
 
 
@@ -317,9 +339,17 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
     )
-    parser.add_argument("--task", required=True, default=None, help="The task to which the code should be submitted.")
     parser.add_argument(
-        "--dataset", required=False, default=None, help="The dataset on which the code should be tested before upload."
+        "--task",
+        required=True,
+        default=None,
+        help="The task to which the code should be submitted.",
+    )
+    parser.add_argument(
+        "--dataset",
+        required=False,
+        default=None,
+        help="The dataset on which the code should be tested before upload.",
     )
     parser.add_argument(
         "--set",
@@ -381,10 +411,16 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
 def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
-        "--task", required=False, default=None, help="The task for which you want to run the verification."
+        "--task",
+        required=False,
+        default=None,
+        help="The task for which you want to run the verification.",
     )
     parser.add_argument(
-        "--team", required=False, default=None, help="The team for which you want to run the verification."
+        "--team",
+        required=False,
+        default=None,
+        help="The team for which you want to run the verification.",
     )
     parser.set_defaults(executable=verify_installation_command)
 
@@ -392,7 +428,10 @@ def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
 def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.add_argument(
-        "--directory", required=True, default=None, help="The directory with the predictions to upload."
+        "--directory",
+        required=True,
+        default=None,
+        help="The directory with the predictions to upload.",
     )
     parser.add_argument(
         "--dataset",
@@ -415,7 +454,10 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
         help="Upload anonymous without authentication. You get an code to later claim your submission.",
     )
     parser.add_argument(
-        "--system", required=False, default=None, help="The system name under which the run should be uploaded."
+        "--system",
+        required=False,
+        default=None,
+        help="The system name under which the run should be uploaded.",
     )
 
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
@@ -438,7 +480,11 @@ def setup_eval_command(parser: argparse.ArgumentParser) -> None:
         help="Optional: the path that contains the truths (use the dataset from the dataset otherwise).",
     )
 
-    parser.add_argument("--dataset", required=False, help="The dataset for which the predictions are made.")
+    parser.add_argument(
+        "--dataset",
+        required=False,
+        help="The dataset for which the predictions are made.",
+    )
     parser.set_defaults(executable=evaluate_command)
 
 
@@ -454,16 +500,18 @@ def download_command(
     truths: bool = False,
     output: "Optional[str]" = None,
     all_submissions: bool = False,
+    repackage: bool = False,
     **kwargs,
 ) -> int:
     client: "RestClient" = RestClient()
     if approach is not None:
         ret = client.get_run_output(approach, dataset)
     elif all_submissions:
-        ret = client.download_all_submissions(dataset, output, kwargs.get("repackage", True))
+        ret = client.download_all_submissions(dataset, output, repackage)
     else:
         ret = client.download_dataset(None, dataset, truths)
 
+    print(ret)
     return 0
 
 
@@ -620,7 +668,10 @@ def upload_command(
 
     if not dry_run and (not system or not vm_id):
         print(
-            fmt_message(f"You are not authenticated and no anonymous submissions are allowed for {dataset}", _fmt.ERROR)
+            fmt_message(
+                f"You are not authenticated and no anonymous submissions are allowed for {dataset}",
+                _fmt.ERROR,
+            )
         )
         return 1
 
@@ -653,7 +704,12 @@ def upload_command(
             default_task,
         )
         if "status" not in resp or "0" != resp["status"]:
-            print(fmt_message(f"There was an error with the upload: {resp}.\n\nPlease try again...", _fmt.ERROR))
+            print(
+                fmt_message(
+                    f"There was an error with the upload: {resp}.\n\nPlease try again...",
+                    _fmt.ERROR,
+                )
+            )
             return 1
         msg = (
             f"Done. Your run is available as {system_details['tag']} "
@@ -680,16 +736,25 @@ def parse_args() -> argparse.Namespace:
     setup_eval_command(subparsers.add_parser("evaluate", help="Evaluate runs locally."))
     setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
     setup_verify_installation(
-        subparsers.add_parser("verify-installation", help="Verify that your local TIRA client is correctly installed.")
+        subparsers.add_parser(
+            "verify-installation",
+            help="Verify that your local TIRA client is correctly installed.",
+        )
     )
     setup_code_submission_command(
-        subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
+        subparsers.add_parser(
+            "code-submission",
+            help="Make a code submission via Docker from a git repository.",
+        )
     )
     setup_dataset_submission_command(
         subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
     )
     setup_admin_command(
-        subparsers.add_parser("admin", help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.")
+        subparsers.add_parser(
+            "admin",
+            help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.",
+        )
     )
 
     return parser.parse_args()
@@ -714,7 +779,13 @@ def main() -> int:
     else:
         if not hasattr(args, "verbose"):
             args.verbose = 0
-        verbosity_levels = [logging.CRITICAL, logging.ERROR, logging.WARN, logging.INFO, logging.DEBUG]
+        verbosity_levels = [
+            logging.CRITICAL,
+            logging.ERROR,
+            logging.WARN,
+            logging.INFO,
+            logging.DEBUG,
+        ]
         default_verbosity = verbosity_levels.index(logging.INFO)
         verbosity = verbosity_levels[min(default_verbosity + args.verbose, len(verbosity_levels) - 1)]
         logging.basicConfig(level=verbosity)
