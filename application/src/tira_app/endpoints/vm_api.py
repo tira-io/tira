@@ -1043,7 +1043,7 @@ def run_execute_docker_software(
 
     env_to_forward = None
     if docker_software["forward_environment_variable"]:
-        required_env_vars = set(docker_software["forward_environment_variable"] + ["TIRA_RUN_TAG"])
+        required_env_vars = set(docker_software["forward_environment_variable"])
         try:
             raw_env = json.loads(request.body)["forward_environment_variable"]
             env_to_forward = {k: v for k, v in raw_env.items() if k in required_env_vars}
