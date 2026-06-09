@@ -596,7 +596,7 @@ def add_docker_software(
             image, old_tag, new_tag
         )
     else:
-        tira_image_name = image  + ":" + old_tag
+        tira_image_name = image + ":" + old_tag
 
     if workflow_configuration:
         try:
@@ -635,7 +635,7 @@ def add_docker_software(
         try_run_metadata_uuid,
         tira_image_workdir,
         workflow_configuration,
-        forward_environment_variable
+        forward_environment_variable,
     )
 
 

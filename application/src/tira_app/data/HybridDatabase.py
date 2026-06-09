@@ -2314,9 +2314,7 @@ class HybridDatabase(object):
     def add_docker_software_mounts(self, docker_software: "dict[str, Any]", mounts):
         docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software["docker_software_id"])
         modeldb.HuggingFaceModelsOfSoftware.objects.create(
-            docker_software=docker_software,
-            hf_home=mounts["HF_HOME"],
-            mount_hf_model=mounts["MOUNT_HF_MODEL"]
+            docker_software=docker_software, hf_home=mounts["HF_HOME"], mount_hf_model=mounts["MOUNT_HF_MODEL"]
         )
 
     def add_docker_software(
@@ -2363,7 +2361,7 @@ class HybridDatabase(object):
             try_run_metadata=try_run_metadata,
             tira_image_workdir=tira_image_workdir,
             workflow_configuration=workflow_configuration,
-            forward_environment_variable=forward_environment_variable
+            forward_environment_variable=forward_environment_variable,
         )
 
         additional_inputs = range(

@@ -126,7 +126,9 @@ scores"""
             original_example_file = (resource_dir / "example-file").read_bytes()
             target_file = resource_dir / "truths.zip"
 
-            with patch("tira.io_utils._download_file_with_md5", side_effect=self._download_to(target_file)) as download_file:
+            with patch(
+                "tira.io_utils._download_file_with_md5", side_effect=self._download_to(target_file)
+            ) as download_file:
                 resolve_mirrored_resources(resource_dir)
 
             download_file.assert_called_once_with(TRUTHS_ZIP_URL, target_file, TRUTHS_ZIP_MD5)
@@ -142,7 +144,9 @@ scores"""
 
             with (
                 patch("tira.io_utils._md5_of_file", return_value="does-not-match"),
-                patch("tira.io_utils._download_file_with_md5", side_effect=self._download_to(target_file)) as download_file,
+                patch(
+                    "tira.io_utils._download_file_with_md5", side_effect=self._download_to(target_file)
+                ) as download_file,
             ):
                 resolve_mirrored_resources(resource_dir)
 
@@ -175,7 +179,6 @@ scores"""
             self.assertEqual(md5_truth_file, _md5_of_file(resource_dir / "truths.zip"))
             self.assertEqual(md5_example_file, _md5_of_file(resource_dir / "example-file"))
 
-
     def test_resolve_mirrored_resources_example_02(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             resource_dir = self._copy_resource_directory(tmp_dir)
@@ -188,7 +191,9 @@ scores"""
             self.assertEqual(md5_truth_file, _md5_of_file(resource_dir / "truths.zip"))
             self.assertEqual(md5_example_file, _md5_of_file(resource_dir / "example-file"))
 
-            with patch("tira.io_utils._download_file_with_md5", side_effect=ValueError("MD5 is unexpected")) as download_file:
+            with patch(
+                "tira.io_utils._download_file_with_md5", side_effect=ValueError("MD5 is unexpected")
+            ) as download_file:
                 resolve_mirrored_resources(resource_dir)
                 self.assertTrue((resource_dir / "truths.zip").exists())
                 self.assertEqual(md5_truth_file, _md5_of_file(resource_dir / "truths.zip"))
@@ -200,7 +205,9 @@ scores"""
         target_dir = Path(tmp_dir) / "resource-loading-from-webis"
         shutil.copytree(RESOURCE_LOADING_FROM_WEBIS, target_dir)
         self.assertEqual(
-            ast.literal_eval((target_dir / ".mirrored-resources.json").read_text(encoding="utf-8"))["truths.zip"]["url"],
+            ast.literal_eval((target_dir / ".mirrored-resources.json").read_text(encoding="utf-8"))["truths.zip"][
+                "url"
+            ],
             TRUTHS_ZIP_URL,
         )
         return target_dir

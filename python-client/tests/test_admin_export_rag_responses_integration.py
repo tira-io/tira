@@ -16,7 +16,9 @@ class TestAdminExportRagResponsesIntegration(unittest.TestCase):
         )
 
         self.assertEqual(4, len(aggregated_results["lines"]))
-        self.assertEqual(["teamA", "teamB", "teamC", "teamD"], [line["team_id"] for line in aggregated_results["lines"]])
+        self.assertEqual(
+            ["teamA", "teamB", "teamC", "teamD"], [line["team_id"] for line in aggregated_results["lines"]]
+        )
         self.assertEqual(["run1", "run2", "run3", "run4"], [line["run_id"] for line in aggregated_results["lines"]])
 
         run1 = aggregated_results["lines"][0]

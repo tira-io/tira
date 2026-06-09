@@ -17,7 +17,9 @@ def write_run(run_file: Path, team_id: str, run_id: str, topics):
                     {
                         "metadata": {"team_id": team_id, "run_id": run_id, "topic_id": topic_id},
                         "responses": [{"text": f"response for {topic_id}", "citations": ["doc-1"]}],
-                        "documents": {"doc-1": {"id": "doc-1", "text": "doc", "title": "Doc", "url": "https://example.org"}},
+                        "documents": {
+                            "doc-1": {"id": "doc-1", "text": "doc", "title": "Doc", "url": "https://example.org"}
+                        },
                     }
                 )
                 + "\n"

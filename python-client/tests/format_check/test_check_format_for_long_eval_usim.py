@@ -6,11 +6,9 @@ from shutil import copy
 import pandas as pd
 
 from tira.check_format import check_format
+from tira.third_party_integrations import temporary_directory
 
 from . import _ERROR, _OK, EMPTY_OUTPUT, JSONL_OUTPUT_VALID
-
-
-from tira.third_party_integrations import temporary_directory
 
 
 class TestLongEvalFormat(unittest.TestCase):
@@ -28,10 +26,11 @@ class TestLongEvalFormat(unittest.TestCase):
         self.assertEqual(_ERROR, actual[0])
         self.assertIn("I expected a file some-lag.json in the directory.", actual[1])
 
-
     def test_single_long_eval_lags_with_invalid_json(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {sasa"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {sasa"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_ERROR, actual[0])
@@ -39,15 +38,22 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_single_long_eval_lags_wrong_predictions(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": "[]"}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": "[]"}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("The file some-lag.json contains predictions of type <class 'str'> for query 1. I expected a list.", actual[1])
+        self.assertIn(
+            "The file some-lag.json contains predictions of type <class 'str'> for query 1. I expected a list.",
+            actual[1],
+        )
 
     def test_invalid_single_long_eval_lags_too_few_predictions(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": []}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": []}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_ERROR, actual[0])
@@ -55,7 +61,9 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_single_long_eval_lags_too_many_predictions(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e", "f"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e", "f"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
 
@@ -64,7 +72,9 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_single_long_eval_lags_wrong_data_type(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", 1]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", 1]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
 
@@ -97,7 +107,9 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_no_team_name(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"1": ["a", "b", "c", "d", "e"], "meta": {"run_name": "a", "description": "a"}}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"1": ["a", "b", "c", "d", "e"], "meta": {"run_name": "a", "description": "a"}}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_ERROR, actual[0])
@@ -105,8 +117,10 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_unexpected_file(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
-        (tmp_dir / "unexpected").write_text('')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}'
+        )
+        (tmp_dir / "unexpected").write_text("")
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_ERROR, actual[0])
@@ -114,7 +128,9 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_two_long_eval_lags(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
         self.assertEqual(_ERROR, actual[0])
@@ -122,22 +138,30 @@ class TestLongEvalFormat(unittest.TestCase):
 
     def test_invalid_two_long_eval_lags_too_many_predictions(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"], "4": ["1"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"], "4": ["1"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
         self.assertEqual(_ERROR, actual[0])
-        self.assertIn("The file some-lag.json contains predictions for the query 4, but no such query exists.", actual[1])
+        self.assertIn(
+            "The file some-lag.json contains predictions for the query 4, but no such query exists.", actual[1]
+        )
 
     def test_valid_single_long_eval_lags(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1"]}})
         self.assertEqual(_OK, actual[0])
 
     def test_valid_two_long_eval_lags(self):
         tmp_dir = temporary_directory()
-        (tmp_dir / "some-lag.json").write_text('{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"]}')
+        (tmp_dir / "some-lag.json").write_text(
+            '{"meta": {"team_name": "T1", "description": "descr.", "run_name": "my-run3"}, "1": ["a", "b", "c", "d", "e"], "3": ["a"]}'
+        )
 
         actual = check_format(tmp_dir, "LongEvalUsimLags", {"lags": {"some-lag": ["1", "3"]}})
         self.assertEqual(_OK, actual[0])

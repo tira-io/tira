@@ -4,8 +4,8 @@ import shutil
 import tempfile
 import uuid
 import zipfile
-from copy import deepcopy
 from abc import ABC
+from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, overload
 
@@ -444,7 +444,7 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
-        from tira.io_utils import resolve_mount_directory, get_manifest_of_ghcr_docker_image
+        from tira.io_utils import get_manifest_of_ghcr_docker_image, resolve_mount_directory
         from tira.third_party_integrations import temporary_directory
 
         all_messages = []
@@ -504,9 +504,11 @@ class TiraClient(ABC):
         print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         if not dry_run:
-            from tira.io_utils import verify_images_can_be_build_and_pushed, verify_images_are_in_correct_format
+            from tira.io_utils import verify_images_are_in_correct_format, verify_images_can_be_build_and_pushed
 
-            specific_help = "\n\n\tIt seems like your installation produces images that are not compatible with the TIRA cluster."
+            specific_help = (
+                "\n\n\tIt seems like your installation produces images that are not compatible with the TIRA cluster."
+            )
             specific_help += "\n\tThis might be because you use Docker Desktop with containerd."
             specific_help += "\n\tPlease see this forum article for details:"
             specific_help += "\n\thttps://www.tira.io/t/ensure-to-upload-compatible-docker-images"
@@ -629,14 +631,22 @@ class TiraClient(ABC):
                 pushed_image = push_image(self, docker_tag, task_id, user_id)
                 print_message("The Docker image is pushed to TIRA.", _fmt.OK)
             else:
-                target_docker_tag = external_docker_registry.split(":")[0] + ":" + platform.split("/")[-1] + '-' + commit[:5] + "-" + str(uuid.uuid4())[:5]
+                target_docker_tag = (
+                    external_docker_registry.split(":")[0]
+                    + ":"
+                    + platform.split("/")[-1]
+                    + "-"
+                    + commit[:5]
+                    + "-"
+                    + str(uuid.uuid4())[:5]
+                )
                 pushed_image = self.local_execution.push_image_third_party_registry(docker_tag, target_docker_tag)
                 manifest = get_manifest_of_ghcr_docker_image(pushed_image)
-                
+
                 print_message(f"The image {pushed_image} is pushed.", _fmt.OK)
                 if not manifest:
                     msg = f"The image {pushed_image} is not publically available on ghcr. You likely need to configure that the package is public."
-                    
+
                     print(msg)
                     raise ValueError(msg)
 
@@ -655,7 +665,7 @@ class TiraClient(ABC):
                 mount_hf_model=mount_hf_model,
                 workflow_configuration=workflow_software_configuration,
                 external_docker_registry=external_docker_registry is not None,
-                forward_environment_variable=forward_environment_variable if forward_environment_variable else None
+                forward_environment_variable=forward_environment_variable if forward_environment_variable else None,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
@@ -698,7 +708,19 @@ class TiraClient(ABC):
         client.fail_if_api_key_is_invalid()
 
         role = client.json_response("/api/role")
-        admin_teams = ("pan26-gen-maik-test", "maik-test-07-05", "clef26-team-09", "clef26-open-web-search", "maik-test-3-30", "devtest", "lightning-ir", "baseline", "baselineavengers", "basel1nerz", "webis")
+        admin_teams = (
+            "pan26-gen-maik-test",
+            "maik-test-07-05",
+            "clef26-team-09",
+            "clef26-open-web-search",
+            "maik-test-3-30",
+            "devtest",
+            "lightning-ir",
+            "baseline",
+            "baselineavengers",
+            "basel1nerz",
+            "webis",
+        )
         if role["role"] != "user" and team not in admin_teams:
             msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
             print(msg)

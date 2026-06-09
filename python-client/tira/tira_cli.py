@@ -153,10 +153,11 @@ def admin_export_registrations(task: list[str], **kwargs) -> int:
     return 0
 
 
-
 def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
-    from tqdm import tqdm
     import time
+
+    from tqdm import tqdm
+
     client: "TiraClient" = RestClient()
     datasets = client.datasets(task, True)
     running_jobs = client.running_jobs(task)
@@ -190,9 +191,12 @@ def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
 
     return 0
 
+
 def admin_batch_unblind(task: str, **kwargs) -> int:
-    from tqdm import tqdm
     import time
+
+    from tqdm import tqdm
+
     client: "TiraClient" = RestClient()
     datasets = client.datasets(task, True)
 

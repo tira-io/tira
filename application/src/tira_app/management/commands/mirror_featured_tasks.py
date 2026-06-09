@@ -5,10 +5,11 @@ from subprocess import check_output
 from pathlib import Path
 
 # vim /home/tira/.local/lib/python3.11/site-packages/tira_app/management/commands/mirror_featured_tasks.py
-# sudo apt-get install 
+# sudo apt-get install
 # ./manage.py mirror_featured_tasks
 
 TASKS_TO_SKIP = set(["ir-benchmarks"])
+
 
 class Command(BaseCommand):
     def featured_tasks(self):
@@ -17,18 +18,11 @@ class Command(BaseCommand):
             if not i.featured or i.task_id in TASKS_TO_SKIP:
                 continue
             ret.add(i.task_id)
-        
+
         return ret
 
     def rsync(self, src: str, dst: str):
-        cmd = [
-            "rsync",
-            "-a",
-            "--size-only",
-            "--ignore-existing",
-            f"{src.rstrip('/')}/",
-            f"{dst.rstrip('/')}/"
-        ]
+        cmd = ["rsync", "-a", "--size-only", "--ignore-existing", f"{src.rstrip('/')}/", f"{dst.rstrip('/')}/"]
 
         print(" ".join(cmd))
         check_output(cmd)
@@ -38,7 +32,7 @@ class Command(BaseCommand):
             raise ValueError(f"Unexpected directory {directory}.")
 
         SKIP_LIST = []
-        SKIP_LIST = set([i for i in SKIP_LIST] + [i + '/' for i in SKIP_LIST])
+        SKIP_LIST = set([i for i in SKIP_LIST] + [i + "/" for i in SKIP_LIST])
         if directory in SKIP_LIST:
             print("Skip ", directory)
             return

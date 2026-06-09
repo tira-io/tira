@@ -41,11 +41,7 @@ def discover_trec_eval_directories(evals_directory: Path) -> List[Path]:
         if check_format(path, "trec-eval-leaderboard")[0] == _fmt.OK:
             ret.add(path)
 
-    ret = {
-        path
-        for path in ret
-        if not any(other != path and path in other.parents for other in ret)
-    }
+    ret = {path for path in ret if not any(other != path and path in other.parents for other in ret)}
 
     if not ret:
         raise ValueError(f"No trec-eval leaderboard files were found below {evals_directory}.")
@@ -70,8 +66,7 @@ def load_rag_runs(runs_directory: Path) -> List[Dict[str, str]]:
 
         if runs[run_id]["team_id"] != team_id:
             raise ValueError(
-                f'Run "{run_id}" has inconsistent team ids: '
-                + f'{runs[run_id]["team_id"]} and {team_id}.'
+                f'Run "{run_id}" has inconsistent team ids: ' + f'{runs[run_id]["team_id"]} and {team_id}.'
             )
 
     if not runs:

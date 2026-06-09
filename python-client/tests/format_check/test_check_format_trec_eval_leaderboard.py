@@ -94,13 +94,9 @@ class TestTrecEvalLeaderbaordFormat(unittest.TestCase):
             self.assertEqual(expected[1], actual[1])
 
     def test_invalid_example_02_missing_all(self):
-        leaderboard = (
-            """
+        leaderboard = """
 run-03              	979 relstring	'----------'
-run-03 979 recall_5              	0.3"""
-            + EXAMPLE_02
-            + EXAMPLE_01
-        )
+run-03 979 recall_5              	0.3""" + EXAMPLE_02 + EXAMPLE_01
 
         expected = [
             _ERROR,
@@ -129,4 +125,3 @@ run-03 979 recall_5              	0.3"""
             actual = check_format(Path(d), "trec-eval-leaderboard")
             self.assertEqual(expected[0], actual[0])
             self.assertIn(expected[1], actual[1])
-

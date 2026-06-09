@@ -194,7 +194,7 @@ def run_sandboxed_software(
             mount_hf_model,
             workflow,
             software_workflow,
-            env_to_forward
+            env_to_forward,
         ],
         queue=docker_resources,
     )

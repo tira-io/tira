@@ -18,6 +18,7 @@ class Command(BaseCommand):
     Later this will become a fully fledged cli tool that we use as wrapper in the repository.
     At the moment, we just execute some predefined commands
     """
+
     def archive_docker_software(self, approach, git_runner):
         from ... import model as modeldb
         from ...util import docker_image_details

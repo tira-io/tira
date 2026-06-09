@@ -266,7 +266,7 @@ class Client(TiraClient):
         try_run_metadata_uuid=None,
         workflow_configuration=None,
         external_docker_registry=False,
-        forward_environment_variable=None
+        forward_environment_variable=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -413,8 +413,9 @@ class Client(TiraClient):
     def download_all_submissions(self, dataset_id: str, output: "Optional[str]", repackage: bool):
         if not output:
             from tira.third_party_integrations import temporary_directory
+
             output = temporary_directory()
-        
+
         output = Path(output)
         raw_output_dir = output / "raw-outputs" / dataset_id
         raw_output_dir.mkdir(parents=True, exist_ok=True)
@@ -433,7 +434,6 @@ class Client(TiraClient):
         dataset = self.get_dataset(dataset_id)
         task = dataset["default_task"]
         evals = self.evaluations(task, dataset_id)
-
 
         for _, i in tqdm(list(evals.iterrows())):
             i = i.to_dict()
@@ -455,14 +455,14 @@ class Client(TiraClient):
                     url = f"/api/upload-group-details/{task}/{team}/{upload_group['id']}"
                     time.sleep(1)
                     upload_group_details = self.json_response(url)["context"]["upload_group_details"]
-                    assert upload_group["id"] ==  upload_group_details["id"]
+                    assert upload_group["id"] == upload_group_details["id"]
                     for run in upload_group_details["runs"]:
                         if run["input_run_id"] == "" and run["run_id"]:
                             assert run["run_id"] not in run_id_to_metadata
                             run_id_to_metadata[run["run_id"]] = {
                                 "description": upload_group_details["description"],
                                 "run_display_name": upload_group_details["display_name"],
-                                "internal_data": run
+                                "internal_data": run,
                             }
         else:
             run_id_to_metadata = {}
@@ -471,7 +471,9 @@ class Client(TiraClient):
             for i in existing_runs.values():
                 metadata = run_id_to_metadata.get(i["tira_run_id"], {})
                 if not metadata:
-                    logging.warning(f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment.")
+                    logging.warning(
+                        f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment."
+                    )
                 for k, v in metadata.items():
                     i[k] = v
                 if "run_display_name" not in i:
@@ -490,7 +492,7 @@ class Client(TiraClient):
             if len(glob(f"{inp}/*")) == 1:
                 inp = glob(f"{inp}/*")
                 inp = inp[0]
-                expected_md5 = hashlib.md5(open(inp,'rb').read()).hexdigest()
+                expected_md5 = hashlib.md5(open(inp, "rb").read()).hexdigest()
                 shutil.copy(inp, target_file)
                 i["md5sum"] = expected_md5
             else:
@@ -554,14 +556,20 @@ class Client(TiraClient):
 
         resp = requests.get(url=f"https://www.tira.io/{url}", headers=headers, verify=self.verify)
         resp = resp.content.decode("utf-8")
-        
+
         headers["Accept"] = "application/json"
         reader = csv.DictReader(StringIO(resp))
         ret = set()
         for row in reader:
             emails = [row["email"]]
             ret.add(row["email"])
-            url = "https://www.tira.io/u/" + row["initial_owner"] + "/emails.json?context=%2Fu%2F" + row["initial_owner"] + "%2Fsummary"
+            url = (
+                "https://www.tira.io/u/"
+                + row["initial_owner"]
+                + "/emails.json?context=%2Fu%2F"
+                + row["initial_owner"]
+                + "%2Fsummary"
+            )
             tmp = requests.get(url=url, headers=headers, verify=self.verify)
             time.sleep(0.5)
             tmp = json.loads(tmp.content.decode("utf-8"))
@@ -570,7 +578,16 @@ class Client(TiraClient):
             else:
                 ret.add(tmp["email"])
                 emails += [tmp["email"]]
-            print(json.dumps({"team": row["team_name"], "name": row["name"], "affiliation": row["affiliation"], "mails": list(set(emails))}))
+            print(
+                json.dumps(
+                    {
+                        "team": row["team_name"],
+                        "name": row["name"],
+                        "affiliation": row["affiliation"],
+                        "mails": list(set(emails)),
+                    }
+                )
+            )
         return ret
 
     def load_resource(self, resource: str):
@@ -597,7 +614,9 @@ class Client(TiraClient):
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
         return target_file
 
-    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False, output: "Optional[str]" = None) -> Path:
+    def get_run_output(
+        self, approach: str, dataset: str, allow_without_evaluation: bool = False, output: "Optional[str]" = None
+    ) -> Path:
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
@@ -762,7 +781,12 @@ class Client(TiraClient):
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
     def download_dataset(
-        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False, output: "Optional[str]" = None
+        self,
+        task: Optional[str],
+        dataset: str,
+        truth_dataset: bool = False,
+        allow_local_dataset: bool = False,
+        output: "Optional[str]" = None,
     ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
@@ -1057,10 +1081,7 @@ class Client(TiraClient):
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
-        url = (
-            f"/grpc/{task}/{team}/run_execute/docker/" +
-            f"{dataset}/{software_id}/{resources}/{rerank_dataset}"
-        )
+        url = f"/grpc/{task}/{team}/run_execute/docker/" + f"{dataset}/{software_id}/{resources}/{rerank_dataset}"
         logging.info(f"Start software...\n\t{url}\n")
 
         ret = self.execute_post_return_json(url, json_payload=json_payload)
