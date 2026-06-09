@@ -3,7 +3,6 @@ from __future__ import annotations
 import html
 import json
 import logging
-import os
 import shutil
 import threading
 import uuid
@@ -126,16 +125,9 @@ def run_unsandboxed_eval(vm_id: str, dataset_id: str, run_id: str) -> None:
             print(eval_result)
             eval_run_id = str(uuid4()) + "-evaluates-" + run_id
 
-            with open(os.path.join(eval_result, "run.prototext"), "w") as f:
-                f.write(
-                    run_prototext(
-                        eval_run_id,
-                        run_id,
-                        dataset["evaluator_id"],
-                        dataset_id,
-                        task_id,
-                    )
-                )
+            (eval_result / "run.prototext").write_text(
+                run_prototext(eval_run_id, run_id, dataset["evaluator_id"], dataset_id, task_id)
+            )
 
             shutil.move(
                 src=eval_result,

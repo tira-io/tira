@@ -18,6 +18,7 @@ import requests
 from tqdm import tqdm
 
 from tira.check_format import _fmt, check_format, fmt_message
+from tira.io_utils import _md5_of_file
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
@@ -492,7 +493,7 @@ class Client(TiraClient):
             if len(glob(f"{inp}/*")) == 1:
                 inp = glob(f"{inp}/*")
                 inp = inp[0]
-                expected_md5 = hashlib.md5(open(inp, "rb").read()).hexdigest()
+                expected_md5 = _md5_of_file(Path(inp))
                 shutil.copy(inp, target_file)
                 i["md5sum"] = expected_md5
             else:
