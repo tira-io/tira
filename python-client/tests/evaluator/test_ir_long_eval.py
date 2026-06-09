@@ -8,7 +8,8 @@ from tira.evaluators import evaluate as _eval
 
 def persist_run_to_file(directory: Path):
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "run.txt").write_text("""1 Q0 doc-1 1 10 tag
+    (directory / "run.txt").write_text(
+        """1 Q0 doc-1 1 10 tag
 1 Q0 doc-2 2 9 tag
 3 Q0 doc-3 1 1 tag
 5 Q0 doc-1 1 10 tag
@@ -17,12 +18,14 @@ def persist_run_to_file(directory: Path):
 5 Q0 doc-4 4 7 tag
 5 Q0 doc-5 6 6 tag
 5 Q0 doc-6 7 5 tag
-5 Q0 doc-7 8 4 tag""")
+5 Q0 doc-7 8 4 tag"""
+    )
 
 
 def persist_qrels_to_file(directory: Path):
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "qrels.txt").write_text("""1 0 doc-1 0
+    (directory / "qrels.txt").write_text(
+        """1 0 doc-1 0
 1 0 doc-2 1
 1 0 doc-3 2
 3 0 doc-5 1
@@ -31,12 +34,14 @@ def persist_qrels_to_file(directory: Path):
 5 0 doc-4 0
 5 0 doc-5 0
 5 0 doc-6 0
-5 0 doc-7 0""")
+5 0 doc-7 0"""
+    )
 
 
 def persist_zero_qrels_to_file(directory: Path):
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "qrels.txt").write_text("""1 0 doc-1 0
+    (directory / "qrels.txt").write_text(
+        """1 0 doc-1 0
 1 0 doc-2 0
 1 0 doc-3 0
 3 0 doc-5 0
@@ -45,7 +50,8 @@ def persist_zero_qrels_to_file(directory: Path):
 5 0 doc-4 0
 5 0 doc-5 0
 5 0 doc-6 0
-5 0 doc-7 0""")
+5 0 doc-7 0"""
+    )
 
 
 def evaluate(run: Path, truths: Path, lags: List[str]):

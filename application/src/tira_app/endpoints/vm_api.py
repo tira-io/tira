@@ -26,9 +26,8 @@ from django.http import (
 from django.views.decorators.csrf import csrf_exempt
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
-
 from tira.check_format import _fmt, check_format
-from tira.io_utils import get_tira_id, sanitize_text
+from tira.io_utils import sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
@@ -186,10 +185,10 @@ def run_sandboxed_software(
     software_id: str,
     docker_resources: str,
     input_runs: str,
-    mount_hf_model: "Optional[list[str]]",
+    mount_hf_model: Optional[list[str]],
     job_id: str,
-    env_to_forward: "Optional[dict]" = None,
-) -> None:
+    env_to_forward: Optional[dict] = None,
+) -> str:
     from tira_worker import run
 
     from .. import model as modeldb
@@ -228,7 +227,7 @@ def run_sandboxed_software(
     return result.id
 
 
-def add_celery_id_to_job(job_id, celery_id):
+def add_celery_id_to_job(job_id: str, celery_id: str) -> None:
     from ..model import RunningProcesses
 
     job = RunningProcesses.objects.get(uuid=job_id)
@@ -1307,7 +1306,7 @@ def stop_docker_software(request: "HttpRequest", task_id: str, user_id: str, run
 
     try:
         job = RunningProcesses.objects.get(uuid=run_id)
-    except:
+    except Exception:
         return JsonResponse(
             {
                 "status": 1,

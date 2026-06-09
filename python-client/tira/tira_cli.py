@@ -259,7 +259,7 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)
-    irds_parser.add_argument("--output-dataset-path", required=True)
+    irds_parser.add_argument("--output-dataset-path", required=True, type=Path)
     irds_parser.set_defaults(executable=ir_datasets_loader_cli)
 
     batch_exec = subparsers.add_parser("batch-execution", help="Run approaches via a batch execution for a task.")
@@ -289,13 +289,13 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     export_parser.set_defaults(executable=admin_export_rag_responses)
 
 
-def ir_datasets_loader_cli(ir_datasets_id, output_dataset_path, **kwargs) -> int:
+def ir_datasets_loader_cli(ir_datasets_id: str, output_dataset_path: Path, **kwargs) -> int:
     from tira.ir_datasets_loader import IrDatasetsLoader
 
     irds_loader = IrDatasetsLoader()
     irds_loader.load_dataset_for_fullrank(
         ir_datasets_id,
-        Path(output_dataset_path),
+        output_dataset_path,
         output_dataset_truth_path=None,
         include_original=True,
         skip_documents=False,

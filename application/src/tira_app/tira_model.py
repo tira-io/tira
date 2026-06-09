@@ -293,7 +293,7 @@ def get_submission_git_repo(
 
 def git_pipeline_is_enabled_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False) -> bool:
     task = get_task(task_id)
-    return task and "featured" in task and task["featured"]
+    return bool(task) and "featured" in task and bool(task["featured"])
 
 
 def get_evaluators_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False):

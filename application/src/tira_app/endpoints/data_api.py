@@ -588,10 +588,12 @@ def get_snippet_to_run_components(request: "HttpRequest") -> "HttpResponse":
 
     component = TIREX_ID_TO_COMPONENT[component_key]
     component_type = component["type"]
-    dataset_initialization = textwrap.dedent("""
+    dataset_initialization = textwrap.dedent(
+        """
     # You can replace Robust04 with other datasets
     dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")
-    """).strip()
+    """
+    ).strip()
     snippet = ""
 
     if component_type == "dataset":

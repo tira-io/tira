@@ -10,7 +10,6 @@ from subprocess import check_output
 from typing import Callable, Optional
 
 from celery import Celery
-
 from tira.io_utils import (
     get_tira_id,
     hf_cache_dir,

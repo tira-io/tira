@@ -1,8 +1,10 @@
+from pathlib import Path
+from subprocess import check_output
+
 from django.core.management.base import BaseCommand
+
 from tira_app import model as modeldb
 from tira_app.tira_model import model as db
-from subprocess import check_output
-from pathlib import Path
 
 # vim /home/tira/.local/lib/python3.11/site-packages/tira_app/management/commands/mirror_featured_tasks.py
 # sudo apt-get install

@@ -1,15 +1,16 @@
-import io
+from __future__ import annotations
+
 import json
 import logging
 import zipfile
 from time import gmtime, strftime
+from typing import IO
 
 from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
+from django.views.decorators.http import require_POST
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-from tira.third_party_integrations import temporary_directory
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
@@ -19,14 +20,22 @@ from ..vm_api import _run_evaluation
 logger = logging.getLogger("tira")
 
 
+def _extract_run_from_archive(file: IO[bytes], dataset_id: str, vm_id: str) -> str:
+    with zipfile.ZipFile(file) as archive:
+        with archive.open("run.prototext", "r") as f:
+            run_id = f.read().decode("utf-8").split('runId: "')[1].split('"')[0]
+        target_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id
+        target_directory.mkdir(parents=True, exist_ok=True)
+        archive.extractall(target_directory)
+    model.add_run(dataset_id, vm_id, run_id)
+    return run_id
+
+
+@require_POST
 @check_conditional_permissions(restricted=True)
 def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
-    if request.method != "POST":
-        return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
-
-    try:
-        job = RunningProcesses.objects.get(uuid=job_id)
-    except Exception:
+    job = RunningProcesses.objects.filter(uuid=job_id).first()
+    if job is None:
         return HttpResponseServerError(json.dumps({"status": 1, "message": f"Job with ID {job_id} does not exist."}))
 
     dataset_id = job.dataset_id
@@ -50,39 +59,27 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
             )
         )
 
-    uploaded_file = request.FILES["file"]
-    result_dir = temporary_directory()
-    with open(result_dir / "upload.zip", "wb+") as destination:
-        for chunk in uploaded_file.chunks():
-            destination.write(chunk)
+    try:
+        run_id = _extract_run_from_archive(request.FILES["file"], dataset_id, vm_id)
+    except Exception as e:
+        logger.exception("Could not store run", exc_info=e)
+        raise
 
-    with zipfile.ZipFile(io.BytesIO((result_dir / "upload.zip").read_bytes())) as archive:
+    if "-evaluates-" not in run_id:
         try:
-            run_id = archive.open("run.prototext", "r").read().decode("utf-8").split('runId: "')[1].split('"')[0]
-            target_directory = model.model.runs_dir_path / dataset_id / vm_id / run_id
-            target_directory.mkdir(parents=True, exist_ok=True)
-            archive.extractall(target_directory)
-            model.add_run(dataset_id, vm_id, run_id)
+            _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
         except Exception as e:
-            logger.exception("Could not store run", exc_info=e)
+            logger.exception("Could not start evaluator", exc_info=e)
             raise
-
-        if "-evaluates-" not in run_id:
-            try:
-                _run_evaluation(vm_id, dataset["task"], run_id, dataset_id)
-            except Exception as e:
-                logger.exception("Could not start evaluator", exc_info=e)
-                raise
 
     RunningProcesses.objects.get(uuid=job_id).delete()
 
     return JsonResponse({"status": 0, "message": "ok"})
 
 
+@require_POST
 @check_conditional_permissions(restricted=True)
 def update_running_process_output(request: Request, vm_id: str, job_id: str) -> Response:
-    if request.method != "POST":
-        return HttpResponseServerError(json.dumps({"status": 1, "message": "Only Post allowed."}))
 
     try:
         job = RunningProcesses.objects.get(uuid=job_id)

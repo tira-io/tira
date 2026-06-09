@@ -13,7 +13,7 @@ def _sanitize_key(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", value).strip("_").lower()
 
 
-def _parse_score(value: str) -> "int | float | None":
+def _parse_score(value: str) -> int | float | None:
     try:
         numeric_value = float(value)
     except ValueError:
@@ -131,7 +131,7 @@ def build_rag_responses_aggregated_results(runs_directory: Path, evals_directory
 
     evaluations = []
     ev_keys = []
-    table_headers = [
+    table_headers: list[dict[str, Any]] = [
         {"title": "Team", "key": "team_id"},
         {"title": "Run", "key": "run_id"},
     ]
