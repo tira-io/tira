@@ -33,6 +33,7 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
 
    participants/intro
    participants/participate
+   participants/llms-via-rest-api
    participants/tiracli
    participants/python-client
 

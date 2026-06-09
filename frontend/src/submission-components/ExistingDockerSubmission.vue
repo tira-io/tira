@@ -52,6 +52,13 @@
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
+        <v-text-field
+          v-for="field in forward_environment_variable_fields"
+          :key="field.name"
+          v-model="forward_environment_variable_values[field.name]"
+          :label="field.label"
+          :rules="[v => !!(v && v.length) || `${field.name} is required.`]"
+        />
         
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
@@ -82,8 +89,10 @@ export default {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
         'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
-        'workflow_configuration': {} as { [key: string]: string }
+        'workflow_configuration': {} as { [key: string]: string },
+        'forward_environment_variable': [] as string[]
       },
+      forward_environment_variable_values: {} as Record<string, string>,
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
@@ -94,8 +103,6 @@ export default {
     },
     async runSoftware() {
       const { valid } = await (this.$refs.form as any).validate()
-      console.log(this.selectedResource)
-      console.log(this.rest_url)
 
       if (valid) {
         this.runSoftwareInProgress = true
@@ -111,7 +118,11 @@ export default {
           }
         }
 
-        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {}, this.userinfo)
+        const params = this.forward_environment_variable_fields.length > 0
+          ? {'forward_environment_variable': this.forward_environment_variable_payload}
+          : {}
+
+        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })
@@ -126,6 +137,16 @@ export default {
       this.docker_software_details.paper_link = editedDetails.paper_link
       this.$emit('modifiedSubmissionDetails', editedDetails)
     },
+    initializeForwardEnvironmentVariableValues() {
+      let values: Record<string, string> = {}
+
+      for (const field of this.forward_environment_variable_fields) {
+        const existingValue = this.forward_environment_variable_values[field.name]
+        values[field.name] = existingValue !== undefined ? existingValue : ''
+      }
+
+      this.forward_environment_variable_values = values
+    }
   },
   computed: {
     allResources() {
@@ -151,12 +172,38 @@ export default {
       }
 
       return ret
+    },
+    forward_environment_variable_fields() {
+      let ret: { name: string; label: string }[] = []
+      const envVars = this.docker_software_details.forward_environment_variable
+
+      if (!Array.isArray(envVars) || envVars.length === 0) {
+        return ret
+      }
+
+      for (const envVar of envVars) {
+        ret.push({"name": envVar, "label": envVar})
+      }
+
+      return ret
+    },
+    forward_environment_variable_payload() {
+      let ret: Record<string, string> = {}
+
+      for (const field of this.forward_environment_variable_fields) {
+        ret[field.name] = this.forward_environment_variable_values[field.name]
+      }
+
+      return ret
     }
   },
   beforeMount() {
     this.loading = true
     get(inject("REST base URL")+'/api/docker-softwares-details/' + this.user_id + '/' + this.docker_software_id)
-        .then(inject_response(this, {'loading': false}))
+        .then((message) => {
+          inject_response(this, {'loading': false})(message)
+          this.initializeForwardEnvironmentVariableValues()
+        })
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {

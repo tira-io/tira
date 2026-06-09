@@ -1050,7 +1050,7 @@ class Client(TiraClient):
 
         return ret
 
-    def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None):
+    def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None, json_payload={}):
         task, team, software = approach.split("/")
         if not software_id:
             software_id = self.docker_software_id(approach)
@@ -1063,7 +1063,7 @@ class Client(TiraClient):
         )
         logging.info(f"Start software...\n\t{url}\n")
 
-        ret = self.execute_post_return_json(url, json_payload={})
+        ret = self.execute_post_return_json(url, json_payload=json_payload)
         logging.info(ret)
         assert ret["status"] == 0
 
