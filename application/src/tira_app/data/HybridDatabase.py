@@ -369,7 +369,7 @@ class HybridDatabase(object):
         }
 
     def get_datasets_by_task(
-        self, task_id: str, include_deprecated: bool = False, return_only_names: bool = False
+        self, task_id: str, include_deprecated: bool = False, return_only_names: bool = False, show_only_visible_to_participants: bool = False
     ) -> "list[dict[str, Any]]":
         """return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
@@ -381,6 +381,9 @@ class HybridDatabase(object):
             for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
             if not (d.dataset.is_deprecated and not include_deprecated)
         ]
+
+        if show_only_visible_to_participants:
+            ret = [d for d in ret if d.dataset.is_visible_to_participants]
 
         if return_only_names:
             return [{"dataset_id": d.dataset.dataset_id, "display_name": d.dataset.display_name} for d in ret]

@@ -154,6 +154,7 @@ class Dataset(models.Model):
     display_name = models.CharField(max_length=150, default="")
     evaluator = models.ForeignKey(Evaluator, on_delete=models.CASCADE, null=True, default=None)
     is_confidential = models.BooleanField(default=True)
+    is_visible_to_participants = models.BooleanField(default=True)
     is_deprecated = models.BooleanField(default=False)
     data_server = models.CharField(max_length=150, null=True, default=None)
     released = models.CharField(max_length=30, default="")

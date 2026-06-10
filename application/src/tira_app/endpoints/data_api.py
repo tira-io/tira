@@ -316,10 +316,11 @@ def get_registration_formular(request: "HttpRequest", context: "Context", task_i
 @add_context
 def get_task(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["task"] = model.get_task(task_id)
+    is_admin = context["role"] == "admin"
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     # TODO: remove this when vuetify frontend is active
     context["remaining_team_names"] = []
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True, show_only_visible_to_participants=not is_admin)
     context["datasets"] = sorted(context["datasets"], key=lambda i: i["display_name"])
     for d in context["datasets"]:
         if not d["display_name"]:
