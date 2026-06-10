@@ -200,6 +200,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/participate.html">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../participants/llms-via-rest-api.html">Usage of LLMs via REST API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/tiracli.html">TIRA CLI</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input aria-label="Toggle navigation of Python Client" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/tiraclient.html">TIRA Client</a></li>
@@ -310,7 +311,7 @@
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 <span class="w">        </span><span class="nt">environment</span><span class="p">:</span>
 <span class="w">            </span><span class="nt">TIRA_BROKER_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;amqp://broker.tira.local&quot;</span>
-<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rpc://broker.tira.local&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;redis://results.tira.local:6379/0&quot;</span>
 <span class="w">        </span><span class="nt">external_links</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;broker:broker.tira.local&quot;</span>
 <span class="w">    </span><span class="nt">tira-frontend</span><span class="p">:</span>
@@ -325,7 +326,7 @@
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 <span class="w">        </span><span class="nt">environment</span><span class="p">:</span>
 <span class="w">            </span><span class="nt">TIRA_BROKER_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;amqp://broker.tira.local&quot;</span>
-<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rpc://broker.tira.local&quot;</span>
+<span class="w">            </span><span class="nt">TIRA_RESULTS_BACKEND_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;redis://results.tira.local:6379/0&quot;</span>
 <span class="w">            </span><span class="nt">TIRA_API_KEY</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;so-secret&quot;</span>
 <span class="w">            </span><span class="nt">TIRA_WELLKNOWN_URL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://api.tira.local/.well-known/tira/client&quot;</span>
 <span class="w">        </span><span class="nt">external_links</span><span class="p">:</span>
@@ -342,7 +343,11 @@
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 <span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5672:5672&quot;</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;15672:15672&quot;</span>
+<span class="w">    </span><span class="nt">results-backend</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis:8-alpine</span>
+<span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
+<span class="w">        </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;6379:6379&quot;</span>
 <span class="w">    </span><span class="nt">s3mock</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">adobe/s3mock</span>
 <span class="w">        </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>

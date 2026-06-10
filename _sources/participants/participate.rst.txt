@@ -47,6 +47,8 @@ On a high level, your software is compatible if it can be invoked like this:
    - ``inputDataset``: Points to the POSIX path containing the input dataset. The format and structure of the contents of this directory depend on your task.
    - ``outputDir``:  Points to the POSIX path containing where your software should store its predictions. The expected format structure how your software should store its predictions depends on your task.
 
+If your approach depends on hosted language models, see :doc:`Usage of LLMs via REST API <llms-via-rest-api>`.
+
 .. _PrepareSubmission:
 
 Prepare your Submission
