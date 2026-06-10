@@ -54,54 +54,6 @@ def _handle_get_model_exceptions(func):
 
 
 @check_permissions
-@_handle_get_model_exceptions
-def admin_reload_vms() -> str:
-    model.reload_vms()
-    return "VM data was reloaded successfully"
-
-
-@check_permissions
-@_handle_get_model_exceptions
-def admin_reload_datasets() -> str:
-    model.reload_datasets()
-    return "Dataset data was reloaded successfully"
-
-
-@check_permissions
-@_handle_get_model_exceptions
-def admin_reload_tasks() -> str:
-    model.reload_tasks()
-    return "Task data was reloaded successfully"
-
-
-@check_permissions
-def admin_create_vm(request: "HttpRequest") -> "HttpResponse":  # TODO implement
-    """Hook for create_vm posts. Responds with json objects indicating the state of the create process."""
-
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for vm create"})
-
-
-@check_permissions
-def admin_archive_vm(request: "HttpRequest") -> "HttpResponse":
-    return JsonResponse({"status": 1, "message": "Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
-
-
-@check_permissions
-def admin_modify_vm(request: "HttpRequest") -> "HttpResponse":
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for modify vm"})
-
-
-@check_permissions
 def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpResponse":
     """Create an entry in the model for the task. Use data supplied by a model.
     Return a json status message."""

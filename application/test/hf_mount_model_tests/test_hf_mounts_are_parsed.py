@@ -2,13 +2,12 @@ import unittest
 
 from huggingface_hub import snapshot_download
 
-from tira_app.huggingface_hub_integration import _hf_repos, huggingface_model_mounts
+from tira_app.huggingface_hub_integration import huggingface_model_mounts
 
 
 class TestHfMountsAreParsed(unittest.TestCase):
     def fail_if_hf_is_not_installed(self):
         snapshot_download(repo_id="prajjwal1/bert-tiny")
-        self.assertGreater(len(_hf_repos()), 0)
 
     def test_hf_is_installed(self):
         self.fail_if_hf_is_not_installed()

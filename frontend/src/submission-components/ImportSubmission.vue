@@ -27,6 +27,7 @@ export default {
     task_id: extractTaskFromCurrentUrl(),
     submissions_of_user: [{'task_id': 'loading', 'title': 'loading', 'type': 'loading', 'id': 'loading'}],
     selectedImport: undefined, user_id_for_submission: extractUserFromCurrentUrl(),
+    rest_base_url: inject("REST base URL"),
   }},
   computed: {
     items() {
@@ -35,11 +36,11 @@ export default {
   },
   methods: {
     importDataset() {
-        get(inject("REST base URL")+'/api/import-submission/' + this.task_id + '/' + this.user_id_for_submission + '/' + this.submission_type + '/' + this.selectedImport)
+        get(this.rest_base_url + '/api/import-submission/' + this.task_id + '/' + this.user_id_for_submission + '/' + this.submission_type + '/' + this.selectedImport)
     }
   },
   beforeMount() {
-    get(inject("REST base URL")+'/api/submissions-of-user/' + this.user_id_for_submission)
+    get(this.rest_base_url + '/api/submissions-of-user/' + this.user_id_for_submission)
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading Existing Submissions.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

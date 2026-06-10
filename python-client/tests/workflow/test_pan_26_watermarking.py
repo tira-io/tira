@@ -68,6 +68,7 @@ def mocked_tira_client():
             cpu_count,
             mem_limit,
             gpu_device_ids,
+            forward_environment_variables=None,
         ):
             COMMAND_TO_MOCK[command](input_dir, output_dir)
 

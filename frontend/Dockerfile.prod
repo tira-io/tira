@@ -1,7 +1,7 @@
 ########################
 # Build Container      #
 ########################
-FROM node:latest AS build
+FROM node:25 AS build
 WORKDIR /project
 COPY package.json yarn.lock ./
 RUN yarn

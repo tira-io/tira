@@ -18,6 +18,7 @@ import requests
 from tqdm import tqdm
 
 from tira.check_format import _fmt, check_format, fmt_message
+from tira.io_utils import _md5_of_file
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
@@ -266,6 +267,7 @@ class Client(TiraClient):
         try_run_metadata_uuid=None,
         workflow_configuration=None,
         external_docker_registry=False,
+        forward_environment_variable=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -284,6 +286,9 @@ class Client(TiraClient):
         if workflow_configuration:
             content["workflow_configuration"] = json.dumps(workflow_configuration)
             content["command"] = "COMMAND-UNUSED-FOR-WORKFLOW-SUBMISSIONS"
+
+        if forward_environment_variable:
+            content["forward_environment_variable"] = json.dumps(forward_environment_variable)
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages
@@ -406,7 +411,101 @@ class Client(TiraClient):
 
         return ret
 
+    def download_all_submissions(self, dataset_id: str, output: "Optional[str]", repackage: bool):
+        if not output:
+            from tira.third_party_integrations import temporary_directory
+
+            output = temporary_directory()
+
+        output = Path(output)
+        raw_output_dir = output / "raw-outputs" / dataset_id
+        raw_output_dir.mkdir(parents=True, exist_ok=True)
+        outputs_flat = output / "outputs-flat"
+        shutil.rmtree(outputs_flat, ignore_errors=True)
+        outputs_flat.mkdir(parents=True, exist_ok=True)
+
+        existing_runs = {}
+        if (output / "metadata.jsonl").exists():
+            for l in (output / "metadata.jsonl").read_text().split("\n"):
+                if not l:
+                    continue
+                l = json.loads(l)
+                existing_runs[l["tira_run_id"]] = l
+
+        dataset = self.get_dataset(dataset_id)
+        task = dataset["default_task"]
+        evals = self.evaluations(task, dataset_id)
+
+        for _, i in tqdm(list(evals.iterrows())):
+            i = i.to_dict()
+            i["tira_run_id"] = i["run_id"]
+
+            run_output = self.download_zip_to_cache_directory(task, dataset_id, i["team"], i["run_id"])
+            if (raw_output_dir / i["run_id"]).exists():
+                shutil.rmtree(raw_output_dir / i["run_id"], ignore_errors=True)
+            shutil.copytree(Path(run_output).parent, raw_output_dir / i["run_id"])
+            i["raw-outputs-from-tira"] = f"raw-outputs/{dataset_id}/{i['run_id']}"
+            existing_runs[i["tira_run_id"]] = i
+
+        if repackage:
+            run_id_to_metadata = {}
+            for team in tqdm(set(i["team"] for i in existing_runs.values()), "Load metadata"):
+                url = f"/api/submissions-for-task/{task}/{team}/upload"
+                ret = self.json_response(url)
+                for upload_group in ret["context"]["all_uploadgroups"]:
+                    url = f"/api/upload-group-details/{task}/{team}/{upload_group['id']}"
+                    time.sleep(1)
+                    upload_group_details = self.json_response(url)["context"]["upload_group_details"]
+                    assert upload_group["id"] == upload_group_details["id"]
+                    for run in upload_group_details["runs"]:
+                        if run["input_run_id"] == "" and run["run_id"]:
+                            assert run["run_id"] not in run_id_to_metadata
+                            run_id_to_metadata[run["run_id"]] = {
+                                "description": upload_group_details["description"],
+                                "run_display_name": upload_group_details["display_name"],
+                                "internal_data": run,
+                            }
+        else:
+            run_id_to_metadata = {}
+
+        with open(output / "metadata.jsonl", "w") as f:
+            for i in existing_runs.values():
+                metadata = run_id_to_metadata.get(i["tira_run_id"], {})
+                if not metadata:
+                    logging.warning(
+                        f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment."
+                    )
+                for k, v in metadata.items():
+                    i[k] = v
+                if "run_display_name" not in i:
+                    i["run_display_name"] = i["tira_run_id"]
+                f.write(json.dumps(i) + "\n")
+
+        for i in tqdm(existing_runs.values()):
+            inp = output / i["raw-outputs-from-tira"] / "output"
+            assert len(glob(f"{inp}/*")) > 0
+            base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+            target_file = outputs_flat / base_name
+            suffix = 2
+            while target_file.exists():
+                target_file = outputs_flat / f"{base_name}-{suffix}"
+                suffix += 1
+            if len(glob(f"{inp}/*")) == 1:
+                inp = glob(f"{inp}/*")
+                inp = inp[0]
+                expected_md5 = _md5_of_file(Path(inp))
+                shutil.copy(inp, target_file)
+                i["md5sum"] = expected_md5
+            else:
+                shutil.copytree(inp, target_file)
+            i["flat-outputs"] = "outputs-flat/" + target_file.name
+
+        with open(output / "metadata.jsonl", "w") as f:
+            for i in existing_runs.values():
+                f.write(json.dumps(i) + "\n")
+
     def evaluations(self, task, dataset, join_submissions=True):
+        print(task)
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
         evaluation_keys = response["ev_keys"]
@@ -448,6 +547,50 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def export_registrations(self, task):
+        import csv
+        from io import StringIO
+
+        url = f"tira-admin/export-participants/{task}.csv"
+        headers = self.authentication_headers(url)
+        headers["Accept"] = "application/csv"
+
+        resp = requests.get(url=f"https://www.tira.io/{url}", headers=headers, verify=self.verify)
+        resp = resp.content.decode("utf-8")
+
+        headers["Accept"] = "application/json"
+        reader = csv.DictReader(StringIO(resp))
+        ret = set()
+        for row in reader:
+            emails = [row["email"]]
+            ret.add(row["email"])
+            url = (
+                "https://www.tira.io/u/"
+                + row["initial_owner"]
+                + "/emails.json?context=%2Fu%2F"
+                + row["initial_owner"]
+                + "%2Fsummary"
+            )
+            tmp = requests.get(url=url, headers=headers, verify=self.verify)
+            time.sleep(0.5)
+            tmp = json.loads(tmp.content.decode("utf-8"))
+            if not "email" in tmp:
+                print("skip ", row["initial_owner"])
+            else:
+                ret.add(tmp["email"])
+                emails += [tmp["email"]]
+            print(
+                json.dumps(
+                    {
+                        "team": row["team_name"],
+                        "name": row["name"],
+                        "affiliation": row["affiliation"],
+                        "mails": list(set(emails)),
+                    }
+                )
+            )
+        return ret
+
     def load_resource(self, resource: str):
         """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional
         resources must be loaded.
@@ -472,11 +615,19 @@ class Client(TiraClient):
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
         return target_file
 
-    def get_run_output(self, approach: str, dataset: str, allow_without_evaluation: bool = False) -> Path:
+    def get_run_output(
+        self, approach: str, dataset: str, allow_without_evaluation: bool = False, output: "Optional[str]" = None
+    ) -> Path:
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
+        if output is not None:
+            ret = self.get_run_output(approach, dataset, allow_without_evaluation)
+            shutil.rmtree(output, ignore_errors=True)
+            shutil.copytree(ret, output)
+            return output
+
         mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
         if mounted_output_in_sandbox:
             return Path(mounted_output_in_sandbox)
@@ -631,7 +782,12 @@ class Client(TiraClient):
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
     def download_dataset(
-        self, task: Optional[str], dataset: str, truth_dataset: bool = False, allow_local_dataset: bool = False
+        self,
+        task: Optional[str],
+        dataset: str,
+        truth_dataset: bool = False,
+        allow_local_dataset: bool = False,
+        output: "Optional[str]" = None,
     ) -> Path:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
@@ -642,6 +798,11 @@ class Client(TiraClient):
             return Path(dataset)
         if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
+        if output is not None:
+            ret = self.download_dataset(task, dataset, truth_dataset, allow_local_dataset)
+            shutil.rmtree(output, ignore_errors=True)
+            shutil.copytree(ret, output)
+            return output
 
         meta_data = self.get_dataset(f"{task}/{dataset}" if task else dataset)
         data_type = "training" if dataset.endswith("-training") else "test"
@@ -914,36 +1075,18 @@ class Client(TiraClient):
 
         return ret
 
-    def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None):
+    def run_software(self, approach, dataset, resources, rerank_dataset="none", software_id=None, json_payload={}):
         task, team, software = approach.split("/")
-        authentication_cookie = self.get_authentication_cookie(
-            self.load_settings()["user"], self.load_settings()["password"]
-        )
-
         if not software_id:
             software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
-        url = (
-            f"{self.base_url}/grpc/{task}/{team}/run_execute/docker/"
-            "{dataset}/{software_id}/{resources}/{rerank_dataset}"
-        )
+        url = f"/grpc/{task}/{team}/run_execute/docker/" + f"{dataset}/{software_id}/{resources}/{rerank_dataset}"
         logging.info(f"Start software...\n\t{url}\n")
 
-        csrf_token = self.get_csrf_token()
-        headers = {
-            # 'Api-Key': self.api_key,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Cookie": authentication_cookie,
-            "x-csrftoken": csrf_token,
-        }
-
-        ret = requests.post(url, headers=headers, json={"csrfmiddlewaretoken": csrf_token, "action": "post"})
-        ret = ret.content.decode("utf8")
+        ret = self.execute_post_return_json(url, json_payload=json_payload)
         logging.info(ret)
-        ret = json.loads(ret)
         assert ret["status"] == 0
 
     def review_run(
@@ -1023,6 +1166,15 @@ class Client(TiraClient):
 
         zip_file = zip_dir(file_path)
         self.execute_post_return_json(f"/v1/admin/upload-response/anonymous-vm-id/{job_id}", file_path=zip_file)
+
+    def update_running_process_output_admin(self, job_id: str, output: str) -> None:
+        return self.execute_post_return_json(
+            f"/v1/admin/update-running-process-output/anonymous-vm-id/{job_id}",
+            json_payload={"output": output},
+        )
+
+    def running_jobs(self, task: str):
+        return self.json_response(f"/v1/admin/active-jobs/admin/{task}")["context"]["jobs"]
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")

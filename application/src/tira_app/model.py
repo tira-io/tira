@@ -174,6 +174,7 @@ class Dataset(models.Model):
     format_configuration = models.CharField(max_length=300, null=True, default=None)
     truth_format_configuration = models.CharField(max_length=300, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
+    queue = models.CharField(max_length=50, null=True, default=None)
 
     def get_format(self) -> "Optional[List[str]]":
         if self and self.format:
@@ -341,12 +342,21 @@ class DockerSoftware(models.Model):
     source_code_active_branch = models.TextField(default=None, null=True)
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
+    forward_environment_variable = models.TextField(default=None, null=True)
 
     def get_workflow_configuration(self) -> Optional[Any]:
         if not self.workflow_configuration:
             return None
         try:
             return json.loads(self.workflow_configuration)
+        except json.JSONDecodeError:
+            return None
+
+    def get_forward_environment_variable(self) -> Optional[Any]:
+        if not self.forward_environment_variable:
+            return None
+        try:
+            return json.loads(self.forward_environment_variable)
         except json.JSONDecodeError:
             return None
 
@@ -516,3 +526,5 @@ class RunningProcesses(models.Model):
     vm_id = models.TextField(default="")
     dataset_id = models.TextField(default="")
     details = models.TextField(default="")
+    killing = models.BooleanField(default=False)
+    celery_id = models.CharField(max_length=150, null=True, default=None)

@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, JsonResponse
 from slugify import slugify
+from tira.io_utils import sanitize_text
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -70,7 +71,9 @@ def __normalize_run(
         i[v] = i[k]
         del i[k]
 
-    if is_admin or i["published"] or is_training_dataset:
+    i["owned_by_user"] = is_admin or i["vm_id"] in user_vms_for_task
+
+    if is_admin or i["published"] or is_training_dataset or (i["owned_by_user"] and not i["blinded"]):
         for j in range(len(ev_keys)):
             try:
                 i[ev_keys[j]] = i["measures"][j]
@@ -81,7 +84,6 @@ def __normalize_run(
         del i[k]
 
     i["selectable"] = False
-    i["owned_by_user"] = is_admin or i["vm_id"] in user_vms_for_task
 
     if not i["blinded"] and (i["owned_by_user"] or i["published"] or is_training_dataset):
         i["link_results_download"] = (
@@ -368,7 +370,11 @@ def update_docker_images(request: "HttpRequest", context: "Context", task_id: st
 @check_resources_exist("json")
 @add_context
 def get_user(request: "HttpRequest", context: "Context", task_id: str, user_id: str) -> "HttpResponse":
-    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
+    force_refresh = request.GET.get("force-refresh") == "true"
+    docker = model.load_docker_data(
+        task_id, user_id, cache, force_cache_refresh=force_refresh, force_recreate=force_refresh
+    )
+
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
@@ -464,7 +470,7 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     """get the registration of a user on a task. If there is none"""
     try:
         data: "dict[str, Any]" = json.loads(request.body)
-        data["group"] = slugify(data["group"])
+        data["group"] = sanitize_text(slugify(data["group"]))
 
         disc_api_client = model.discourse_api_client()
         if (

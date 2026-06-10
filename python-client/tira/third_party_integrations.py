@@ -12,6 +12,22 @@ if TYPE_CHECKING:
     from .rest_api_client import Client
 
 
+def is_public_huggingface_model(model: str) -> bool:
+    from huggingface_hub import HfApi
+    from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
+
+    try:
+        info = HfApi(token=False).model_info(model.replace("--", "/"), token=False)
+        return not bool(getattr(info, "private", False) or getattr(info, "gated", False))
+    except RepositoryNotFoundError:
+        return False
+    except HfHubHTTPError as error:
+        status_code = getattr(getattr(error, "response", None), "status_code", None)
+        if status_code in (401, 403, 404):
+            return False
+        raise
+
+
 def ensure_pyterrier_is_loaded(
     boot_packages=(("com.github.terrierteam", "terrier-prf", "-SNAPSHOT"),),
     packages=(),

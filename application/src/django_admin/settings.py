@@ -274,6 +274,14 @@ ALL_POSSIBLE_RESOURCES = {
         "description": "Large (4 CPU Cores, 40GB of RAM)",
         "key": "large-resources",
     },
+    "sisap": {
+        "cores": 8,
+        "ram": 24,
+        "gpu": 0,
+        "data": "no",
+        "description": "SISAP (8 CPU Cores, 24GB of RAM)",
+        "key": "sisap",
+    },
     "small-resources-gpu": {
         "cores": 1,
         "ram": 10,
@@ -313,6 +321,14 @@ ALL_POSSIBLE_RESOURCES = {
         "data": "no",
         "description": "A100 GPU (5 CPU Cores, 50GB of RAM, 1 Nvidia A100 with 40GB)",
         "key": "a100-resources-gpu",
+    },
+    "h100-resources-gpu": {
+        "cores": 8,
+        "ram": 95,
+        "gpu": "1-nvidia-h100",
+        "data": "no",
+        "description": "H100 GPU (8 CPU Cores, 95GB of RAM, 1 Nvidia A100 with 95GB)",
+        "key": "h100-resources-gpu",
     },
 }
 

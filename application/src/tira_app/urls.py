@@ -71,12 +71,6 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         vm_api.stop_docker_software,
         name="stop_docker_software",
     ),
-    path("tira-admin/reload/vms", admin_api.admin_reload_vms, name="tira-admin-reload-vms"),
-    path("tira-admin/reload/datasets", admin_api.admin_reload_datasets, name="tira-admin-reload-datasets"),
-    path("tira-admin/reload/tasks", admin_api.admin_reload_tasks, name="tira-admin-reload-tasks"),
-    path("tira-admin/create-vm", admin_api.admin_create_vm, name="tira-admin-create-vm"),
-    path("tira-admin/archive-vm", admin_api.admin_archive_vm, name="tira-admin-archive-vm"),
-    path("tira-admin/modify-vm", admin_api.admin_modify_vm, name="tira-admin-modify-vm"),
     path(
         "tira-admin/export-participants/<str:task_id>.csv", data_api.export_registrations, name="export_registrations"
     ),

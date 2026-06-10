@@ -1,0 +1,18 @@
+name: default
+create_nuggets: false
+create_qrels: true
+judge: true
+llm_model: gpt-4o-mini
+timestamp: '2026-05-16T10:05:55.856921+00:00'
+git:
+  commit: 85e453b4ccdd76f3e786c0d557d09dde2e956d5e
+  dirty: unknown
+  remote: git@github.com:trec-auto-judge/auto-judge-starter-kit.git
+settings:
+  filebase: ir_axioms
+nugget_settings:
+  filebase: ir_axioms
+judge_settings:
+  filebase: ir_axioms
+qrels_settings:
+  filebase: ir_axioms

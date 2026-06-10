@@ -19,127 +19,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tira")
 
 
-def reload_vms(users_file_path: "Path", vm_dir_path: "Path") -> None:
-    _parse_vm_list(users_file_path, vm_dir_path)
-
-
-def reload_datasets(datasets_dir_path: "Path") -> None:
-    _parse_dataset_list(datasets_dir_path)
-
-
-def reload_tasks(tasks_dir_path: "Path") -> None:
-    _parse_task_list(tasks_dir_path)
-
-
-def _parse_vm_list(users_file_path: "Path", vm_dir_path: "Path") -> None:
-    users = Parse(users_file_path.read_text(), modelpb.Users())
-
-    for user in users.users:
-        try:
-            vm = Parse(open(vm_dir_path / f"{user.userName}.prototext").read(), modelpb.VirtualMachine())
-            vm2, _ = modeldb.VirtualMachine.objects.update_or_create(
-                vm_id=user.userName,
-                defaults={
-                    "user_password": user.userPw,
-                    "roles": user.roles,
-                    "host": vm.host,
-                    "admin_name": vm.adminName,
-                    "admin_pw": vm.adminPw,
-                    "ip": vm.ip,
-                    "ssh": vm.portSsh,
-                    "rdp": vm.portRdp,
-                },
-            )
-
-            for evaluator in vm.evaluators:
-                ev, _ = modeldb.Evaluator.objects.update_or_create(
-                    evaluator_id=evaluator.evaluatorId,
-                    defaults={
-                        "command": evaluator.command,
-                        "working_directory": evaluator.workingDirectory,
-                        "measures": evaluator.measures,
-                        "is_deprecated": evaluator.isDeprecated,
-                    },
-                )
-                modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator=ev, vm=vm2)
-
-        except FileNotFoundError:
-            logger.exception(f"Could not find VM file for vm_id {user.userName}")
-            _, _ = modeldb.VirtualMachine.objects.update_or_create(
-                vm_id=user.userName, defaults={"user_password": user.userPw, "roles": user.roles}
-            )
-
-
-def _parse_task_list(tasks_dir_path: "Path") -> None:
-    """Parse the PB Database and extract all tasks.
-    :return:
-    1. a dict with the tasks {"taskId": {"name", "description", "dataset_count", "organizer", "year", "web"}}
-    2. a dict with default tasks of datasets {"dataset_id": "task_id"}
-    """
-    logger.info("loading tasks")
-    for task_path in tasks_dir_path.glob("*"):
-        task = Parse(task_path.read_bytes(), modelpb.Tasks.Task())
-        vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=task.virtualMachineId)
-        organizer, _ = modeldb.Organizer.objects.get_or_create(organizer_id=task.hostId)
-        t, _ = modeldb.Task.objects.update_or_create(
-            task_id=task.taskId,
-            defaults={
-                "task_name": task.taskName,
-                "task_description": task.taskDescription,
-                "vm": vm,
-                "organizer": organizer,
-                "web": task.web,
-                "max_std_out_chars_on_test_data": task.maxStdOutCharsOnTestData,
-                "max_std_err_chars_on_test_data": task.maxStdErrCharsOnTestData,
-                "max_file_list_chars_on_test_data": task.maxFileListCharsOnTestData,
-                "command_placeholder": task.commandPlaceholder,
-                "command_description": task.commandDescription,
-                "dataset_label": task.datasetLabel,
-                "max_std_out_chars_on_test_data_eval": task.maxStdOutCharsOnTestDataEval,
-                "max_std_err_chars_on_test_data_eval": task.maxStdErrCharsOnTestDataEval,
-                "max_file_list_chars_on_test_data_eval": task.maxFileListCharsOnTestDataEval,
-            },
-        )
-
-        # allowed_servers
-        for allowed_server in task.allowedServers:
-            modeldb.AllowedServer.objects.update_or_create(task=t, server_address=allowed_server)
-        # datasets
-        for train_dataset in task.trainingDataset:
-            dataset, _ = modeldb.Dataset.objects.update_or_create(
-                dataset_id=train_dataset, defaults={"default_task": t}
-            )
-            # dataset.default_task = t
-            # dataset.save()
-            modeldb.TaskHasDataset.objects.update_or_create(task=t, dataset=dataset, defaults={"is_test": False})
-
-        for test_dataset in task.testDataset:
-            dataset, _ = modeldb.Dataset.objects.update_or_create(dataset_id=test_dataset, defaults={"default_task": t})
-            modeldb.TaskHasDataset.objects.update_or_create(task=t, dataset=dataset, defaults={"is_test": True})
-
-
-def _parse_dataset_list(datasets_dir_path: "Path") -> None:
-    """Load all the datasets from the database.
-    :return: a dict {dataset_id: dataset protobuf object}
-    """
-    logger.info("loading datasets")
-    for dataset_file in datasets_dir_path.rglob("*.prototext"):
-        logger.info("Process dataset: " + str(dataset_file))
-        dataset = Parse(dataset_file.read_bytes(), modelpb.Dataset())
-        evaluator, _ = modeldb.Evaluator.objects.get_or_create(evaluator_id=dataset.evaluatorId)
-        modeldb.Dataset.objects.update_or_create(
-            dataset_id=dataset.datasetId,
-            defaults={
-                "display_name": dataset.displayName,
-                "evaluator": evaluator,
-                "is_confidential": dataset.isConfidential,
-                "is_deprecated": dataset.isDeprecated,
-                "data_server": dataset.dataServer,
-                "released": extract_year_from_dataset_id(dataset.datasetId),
-            },
-        )
-
-
 def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, dataset: str) -> modeldb.Run:
     def __get_docker_software() -> "Optional[modeldb.DockerSoftware]":
         if "docker-software-" not in run_proto.softwareId:
@@ -152,6 +31,8 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
         return None
 
     def __get_upload() -> "Optional[modeldb.Upload]":
+        if "upload" in run_proto.softwareId and "eval" in run_proto.softwareId:
+            return None
         if "upload" not in run_proto.softwareId:
             return None
         try:
@@ -159,6 +40,10 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
             return upload
         except modeldb.Upload.DoesNotExist:
             logger.exception(f"Run {run_id} lists an upload software {run_proto.softwareId}, but None exists.")
+        except modeldb.Upload.MultipleObjectsReturned:
+            logger.exception(
+                f"Run {run_id} lists multiple upload softwares {run_proto.softwareId}, but multiple exists."
+            )
 
         return None
 

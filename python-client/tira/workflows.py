@@ -29,6 +29,8 @@ class WorkflowBase:
         mem_limit,
         gpu_device_ids,
         tira: "TiraClient",
+        forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
@@ -64,6 +66,8 @@ class Pan26TextWatermarking(WorkflowBase):
         mem_limit,
         gpu_device_ids,
         tira: "TiraClient",
+        forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
     ):
         ret = temporary_directory()
         (ret / "output").mkdir(parents=True, exist_ok=True)
@@ -88,6 +92,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
                 gpu_device_ids=gpu_device_ids,
+                forward_environment_variables=forward_environment_variables,
             )
         )
 
@@ -111,6 +116,17 @@ class Pan26TextWatermarking(WorkflowBase):
         obfuscation_inputs = temporary_directory()
         copytree(watermarking_results / "output", obfuscation_inputs / "01-watermarking")
         copytree(system_inputs, obfuscation_inputs / "original")
+
+        models_obfuscator = None
+        if "obfuscation_models" in self.workflow_configuration:
+            from tira.io_utils import huggingface_model_mounts
+
+            models_obfuscator = huggingface_model_mounts(self.workflow_configuration["obfuscation_models"])
+            models_obfuscator = [k + ":" + v["bind"] + ":" + v["mode"] for k, v in models_obfuscator.items()]
+            if not additional_volumes:
+                additional_volumes = []
+            additional_volumes += models_obfuscator
+            print(f"The following models from huggingface are mounted: {additional_volumes}\n\n")
 
         obfuscation_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
@@ -221,6 +237,8 @@ def run_workflow(
     mem_limit=None,
     gpu_device_ids=None,
     tira: "Optional[TiraClient]" = None,
+    forward_environment_variables: "Optional[list[str]]" = None,
+    mount_directory: "Optional[dict]" = None,
 ) -> WorkflowResult:
     """Run the specified workflow. Provides debug messages intended for users.
 
@@ -252,6 +270,8 @@ def run_workflow(
             mem_limit,
             gpu_device_ids,
             tira,
+            forward_environment_variables,
+            mount_directory,
         )
     except Exception as e:
         return WorkflowResult(_fmt.ERROR, str(e), None)

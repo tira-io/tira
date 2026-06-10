@@ -1,27 +1,47 @@
+from __future__ import annotations
+
 import gzip
+import hashlib
 import io
 import json
 import logging
 import os
+import platform
 import sys
+import tempfile
+import unicodedata
 import uuid
 import zipfile
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime as dt
 from glob import glob
 from pathlib import Path
-from subprocess import check_output
-from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
+from subprocess import CalledProcessError, check_output
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import pandas as pd
+import requests
 from tqdm import tqdm
 
 from tira.check_format import FormatMsgType, _fmt, log_message
 from tira.tira_client import TiraClient
+from tira.tirex_tracker import find_tirex_tracker_executable_or_none
 
 
 def dataset_as_dataframe(
-    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+    dataset_id_or_path: "Union[str, Path]",
+    dataset_format: str,
+    tira_client: "Optional[TiraClient]" = None,
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -40,7 +60,9 @@ def dataset_as_dataframe(
 
 
 def dataset_as_iterator(
-    dataset_id_or_path: "Union[str, Path]", dataset_format: str, tira_client: "Optional[TiraClient]" = None
+    dataset_id_or_path: "Union[str, Path]",
+    dataset_format: str,
+    tira_client: "Optional[TiraClient]" = None,
 ):
     """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
 
@@ -75,7 +97,10 @@ def verify_docker_installation() -> Tuple[FormatMsgType, str]:
         assert local_execution.docker_is_installed_failsave()
         return _fmt.OK, "Docker/Podman is installed."
     except:
-        return _fmt.ERROR, "Docker/Podman is not installed. You can not run dockerized TIRA submissions."
+        return (
+            _fmt.ERROR,
+            "Docker/Podman is not installed. You can not run dockerized TIRA submissions.",
+        )
 
 
 def tira_home_exists():
@@ -85,7 +110,10 @@ def tira_home_exists():
         assert Path(Client().tira_cache_dir).exists()
         return _fmt.OK, "TIRA home is writable."
     except:
-        return _fmt.ERROR, "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable."
+        return (
+            _fmt.ERROR,
+            "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable.",
+        )
 
 
 def api_key_is_valid():
@@ -95,18 +123,118 @@ def api_key_is_valid():
         assert Client().api_key_is_valid()
         return _fmt.OK, "You are authenticated against www.tira.io."
     except:
-        return _fmt.WARN, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+        return (
+            _fmt.ERROR,
+            "Your TIRA client is not authenticated. Please run 'tira-cli login'.",
+        )
 
 
 def verify_tirex_tracker():
-    return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+    tracker = find_tirex_tracker_executable_or_none()
+    if tracker is None:
+        return (
+            _fmt.WARN,
+            "The tirex-tracker is not available. Experimental metadata will not be tracked.",
+        )
+
+    try:
+        help_response = check_output([str(tracker), "--help"]).decode("UTF-8")
+    except (CalledProcessError, OSError):
+        return (
+            _fmt.WARN,
+            "The tirex-tracker is not working. Experimental metadata will not be tracked.",
+        )
+
+    if "Measures runtime, energy, and many other" in help_response:
+        return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+
+    return (
+        _fmt.WARN,
+        "The tirex-tracker is not working. Experimental metadata will not be tracked.",
+    )
 
 
-def verify_tira_installation() -> FormatMsgType:
+def verify_images_can_be_build_and_pushed(
+    task: "Optional[str]" = None, team: "Optional[str]" = None
+) -> tuple[FormatMsgType, str]:
+    if task is None or team is None:
+        return (
+            _fmt.ERROR,
+            "I can not verify if images can be uploaded.\n\tPlease pass --task TASK and --team TEAM to verify if you can upload correct images.",
+        )
+
+    if api_key_is_valid()[0] != _fmt.OK or verify_docker_installation()[0] != _fmt.OK:
+        return _fmt.ERROR, "Images can not be uploaded (no api key or no docker)"
+
+    from tira.rest_api_client import Client
+    from tira.third_party_integrations import temporary_directory
+
+    print("I verify that I can build and push images.")
+    tira = Client()
+
+    metadata = tira.metadata_for_task(task, team)
+    if not metadata or "status" not in metadata or metadata["status"] != 0:
+        msg = f"The passed task {task} or the passed team {team} do not exist."
+        if metadata and "message" in metadata:
+            msg += "\n  " + str(metadata["message"])
+
+        return _fmt.ERROR, msg
+
+    docker_file = Path(temporary_directory()) / "Dockerfile"
+    (docker_file.parent / "example-file").write_text(str(uuid.uuid4()))
+    docker_file.write_text("FROM bash:alpine3.16\n\nADD example-file /e")
+    image = "tira-mini"
+    tira.local_execution.build_docker_image(docker_file.parent, image, docker_file)
+
+    registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
+    pushed_image = tira.local_execution.push_image(
+        image, required_prefix=registry_prefix, task_name=task, team_name=team
+    )
+    try:
+        tira.local_execution.verify_image(pushed_image, "linux/amd64")
+    except Exception as e:
+        return _fmt.ERROR, f"The image is not in a format supported by TIRA: {repr(e)}"
+
+    return _fmt.OK, f"Images can be uploaded for team {team}."
+
+
+def verify_images_are_in_correct_format(
+    task: "Optional[str]" = None, team: "Optional[str]" = None
+) -> tuple[FormatMsgType, str]:
+    from tira.rest_api_client import Client
+
+    print("I verify that pushed images are in the correct format.")
+    tira = Client()
+    registry_prefix = tira.docker_registry() + "/code-research/tira/tira-user-" + team + "/"
+    json_payload = {"image": "latest", "repository_name": registry_prefix + "tira-mini"}
+
+    image_details = tira.execute_post_return_json("/v1/admin/validate-docker-image", json_payload=json_payload)
+
+    if (
+        image_details
+        and "context" in image_details
+        and "architecture" in image_details["context"]
+        and "Loading" not in image_details["context"]["architecture"]
+        and "amd64" == image_details["context"]["architecture"]
+    ):
+        return _fmt.OK, "The uploaded image is compatible with the cluster."
+    else:
+        return _fmt.ERROR, "The uploaded image is incompatible with the cluster."
+
+
+def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
     ret = _fmt.OK
 
-    checks: List[Callable] = [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]
+    checks: list[Callable] = [
+        api_key_is_valid,
+        tira_home_exists,
+        verify_docker_installation,
+        verify_tirex_tracker,
+        lambda: verify_images_can_be_build_and_pushed(task, team),
+        lambda: verify_images_are_in_correct_format(task, team),
+    ]
 
+    msgs = []
     for i in checks:
         status, msg = i()
         log_message(msg, status)
@@ -115,7 +243,97 @@ def verify_tira_installation() -> FormatMsgType:
         if status == _fmt.WARN and ret != _fmt.ERROR:
             ret = _fmt.WARN
 
+        msgs.append((msg, status))
+        if ret == _fmt.ERROR:
+            break
+
+    if ret == _fmt.OK or ret == _fmt.WARN:
+        os.system("cls" if os.name == "nt" else "clear")
+        print("tira-cli verify-installation")
+        for m in msgs:
+            log_message(m[0], m[1])
+
     return ret
+
+
+def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient", dataset_id: str) -> Optional[dict]:
+    if mount_directory is None or not mount_directory:
+        return None
+
+    ret = {}
+    for d in mount_directory:
+        k, v = d.split("=")
+        k = k.replace("$", "")
+
+        if not v or not Path(v).exists() or not Path(v).is_dir():
+            v = tira_client.get_run_output(v, dataset_id)
+
+        ret[k] = v
+    return ret
+
+
+def _md5_of_file(file_path: Path) -> str:
+    digest = hashlib.md5()
+
+    with open(file_path, "rb") as file_handle:
+        for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+
+    return digest.hexdigest()
+
+
+def _download_file_with_md5(url: str, target_file: Path, expected_md5: str) -> None:
+    response = requests.get(url, stream=True)
+    status_code = response.status_code
+
+    if status_code < 200 or status_code >= 300:
+        raise ValueError(f"Got non 200 status code {status_code} for {url}.")
+
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+    actual_md5 = hashlib.md5()
+
+    with tempfile.NamedTemporaryFile(delete=False, dir=target_file.parent) as tmp_file:
+        tmp_path = Path(tmp_file.name)
+
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if not chunk:
+                continue
+
+            tmp_file.write(chunk)
+            actual_md5.update(chunk)
+
+    actual_md5 = actual_md5.hexdigest()
+
+    if actual_md5 != expected_md5:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        raise ValueError(f'MD5 is unexpected: I expected "{expected_md5}" but got "{actual_md5}" for URL "{url}".')
+
+    tmp_path.replace(target_file)
+
+
+def resolve_mirrored_resources(directory: Union[str, Path]) -> Path:
+    directory = Path(directory)
+    mirrored_resources = directory / ".mirrored-resources.json"
+
+    if not mirrored_resources.exists():
+        return directory
+
+    parsed_mirrored_resources = json.loads(mirrored_resources.read_text(encoding="utf-8"))
+    for relative_path, resource in parsed_mirrored_resources.items():
+        if not isinstance(resource, dict):
+            raise ValueError(f'Expected mirrored resource "{relative_path}" to be a dictionary.')
+
+        if "url" not in resource or "md5" not in resource:
+            raise ValueError(f'Mirrored resource "{relative_path}" must define "url" and "md5".')
+
+        target_file = directory / relative_path
+        expected_md5 = resource["md5"]
+
+        if not target_file.exists() or _md5_of_file(target_file) != expected_md5:
+            _download_file_with_md5(resource["url"], target_file, expected_md5)
+
+    return directory
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
@@ -210,30 +428,44 @@ def stream_all_lines(
         yield parse_jsonl_line(line, load_default_text)
 
 
-def huggingface_model_mounts(models: "Iterable[str]") -> dict:
+def hf_cache_dir() -> Path:
+    ret = Path(os.path.expanduser("~/.cache/huggingface/hub"))
+    if "HF_HUB_CACHE" in os.environ:
+        ret = Path(os.environ["HF_HUB_CACHE"])
+    elif "HF_HOME" in os.environ:
+        ret = Path(os.environ["HF_HOME"]) / "hub"
+    return ret
+
+
+def huggingface_model_mounts(models: "Iterable[str]", lazy: bool = False) -> dict:
     """Determine the mounts to make the described huggingface models available in the container. The models must
-    already exist in the local huggingface cache of the host.
+    already exist in the local huggingface cache of the host unless lazy mode is enabled for publicly available
+    models.
 
     Args:
         models (Iterable[str]): A list of huggingface models that you want to mount, e.g., ["openai-community/gpt2"].
+        lazy (bool): If True, also accept publicly available models that are not yet present in the local cache.
 
     Returns:
         dict: The mounts required to make the specified models available in the container.
     """
-    hf_cache = Path(os.path.expanduser("~/.cache/huggingface/hub"))
-    if "HF_HUB_CACHE" in os.environ:
-        hf_cache = Path(os.environ["HF_HUB_CACHE"])
-    elif "HF_HOME" in os.environ:
-        hf_cache = Path(os.environ["HF_HOME"]) / "hub"
+
     ret = {}
     if not models:
         return ret
 
-    hf_cache = hf_cache.absolute()
+    hf_cache = hf_cache_dir().absolute()
     for model in models:
         model_in_fs = ("models/" + str(model)).replace("/", "--")
         model_path = hf_cache / model_in_fs
+        bind_path = f"/root/.cache/huggingface/hub/{model_in_fs}"
         if not model_path.exists():
+            if lazy:
+                from tira.third_party_integrations import is_public_huggingface_model
+
+                if is_public_huggingface_model(model):
+                    ret[str(model_path)] = {"bind": bind_path, "mode": "ro"}
+                    continue
             msg = (
                 f"Model {model} does not in HF_HUB_CACHE = '{hf_cache}'. Expected a directory '{model_path}' to exist."
                 " Please ensure that the model is available via your preferred way to download it."
@@ -241,7 +473,7 @@ def huggingface_model_mounts(models: "Iterable[str]") -> dict:
             print(msg)
             raise ValueError(msg)
         else:
-            ret[str(model_path)] = {"bind": f"/root/.cache/huggingface/hub/{model_in_fs}", "mode": "ro"}
+            ret[str(model_path)] = {"bind": bind_path, "mode": "ro"}
 
     return ret
 
@@ -377,7 +609,11 @@ def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, da
 
 def create_tira_size_txt(run_dir):
     ret = check_output(
-        ["bash", "-c", '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1']
+        [
+            "bash",
+            "-c",
+            '(du -sb "' + str(run_dir.parent) + '" && du -hs "' + str(run_dir.parent) + '") | cut -f1',
+        ]
     )
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f -exec cat {} + | wc -l'])
     ret += check_output(["bash", "-c", 'find "' + str(run_dir) + '" -type f | wc -l'])
@@ -427,23 +663,26 @@ class TqdmUploadFile:
 
 
 class MonitoredExecution:
+    def __init__(self):
+        self.stdout = io.StringIO()
+        self.stderr = io.StringIO()
+
     def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory
 
         ret = temporary_directory()
         output_dir = ret / "output"
         output_dir.mkdir(parents=True, exist_ok=True)
-        stdout = io.StringIO()
-        stderr = io.StringIO()
+
         exception_text = ""
-        with redirect_stdout(stdout), redirect_stderr(stderr):
+        with redirect_stdout(self.stdout), redirect_stderr(self.stderr):
             try:
                 method(output_dir)
             except Exception as e:
                 exception_text = "\n\n" + str(repr(e))
 
-        (ret / "stdout.txt").write_text(stdout.getvalue() + exception_text)
-        (ret / "stderr.txt").write_text(stderr.getvalue() + exception_text)
+        (ret / "stdout.txt").write_text(self.stdout.getvalue() + exception_text)
+        (ret / "stderr.txt").write_text(self.stderr.getvalue() + exception_text)
 
         return ret
 
@@ -597,6 +836,14 @@ def extract_volume_mounts(v):
     return volume_dir.replace("XYZ__________XYZ", ":\\"), volume_bind, volume_mode
 
 
+def sanitize_text(text: str) -> str:
+    return _remove_unicode_categories(text.encode("utf-8", errors="ignore").decode("utf-8"), {"Sm"})
+
+
+def _remove_unicode_categories(text: str, categories: set[str]) -> str:
+    return "".join(i for i in text if not (ord(i) > 127 and unicodedata.category(i) in categories))
+
+
 def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
     files = glob(str(directory) + "/*")
 
@@ -621,3 +868,41 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
         return ret
     else:
         return pd.read_json(files, lines=True, orient="records")
+
+
+def docker_supported_target_platform() -> str:
+    architecture = platform.machine()
+    if "arm64" in architecture or "aarch64" in architecture:
+        return "linux/arm64"
+    else:
+        return "linux/amd64"
+
+
+def get_manifest_of_ghcr_docker_image(image: str) -> Optional[dict]:
+    repo, tag = image.replace("ghcr.io/", "").split(":")
+
+    try:
+        token = requests.get(f"https://ghcr.io/token?service=ghcr.io&scope=repository:{repo}:pull").json()["token"]
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.docker.distribution.manifest.v2+json",
+        }
+        ret = requests.get(f"https://ghcr.io/v2/{repo}/manifests/{tag}", headers=headers).json()
+
+        if "config" not in ret or "layers" not in ret:
+            return None
+        else:
+            return ret
+    except Exception:
+        return None
+
+
+def dockerfile_for_architecture(base_dir: Path) -> str:
+    supported_platform = docker_supported_target_platform()
+
+    if supported_platform == "linux/amd64" and os.path.exists(base_dir / "Dockerfile.amd64"):
+        return str(base_dir / "Dockerfile.amd64")
+    elif supported_platform == "linux/arm64" and os.path.exists(base_dir / "Dockerfile.arm64"):
+        return str(base_dir / "Dockerfile.arm64")
+    else:
+        return str(base_dir / "Dockerfile")

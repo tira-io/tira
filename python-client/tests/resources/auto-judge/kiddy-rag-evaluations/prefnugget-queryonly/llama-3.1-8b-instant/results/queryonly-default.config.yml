@@ -1,0 +1,24 @@
+name: default
+create_nuggets: true
+create_qrels: true
+judge: true
+llm_model: llama-3.1-8b-instant
+timestamp: '2026-05-16T10:05:45.150317+00:00'
+git:
+  commit: a97b6061c69f06e83bad6303c6bda18e9fc068a2
+  dirty: unknown
+  remote: git@github.com:mam10eks/prefnugget-starterkit.git
+settings:
+  filebase: queryonly-{_name}
+  max_nuggets_per_topic: 20
+nugget_settings:
+  filebase: queryonly-{_name}
+  max_nuggets_per_topic: 20
+  prompt: prefnugget-baseline
+judge_settings:
+  filebase: queryonly-{_name}
+  max_nuggets_per_topic: 20
+  grade_threshold: 4
+qrels_settings:
+  filebase: queryonly-{_name}
+  max_nuggets_per_topic: 20

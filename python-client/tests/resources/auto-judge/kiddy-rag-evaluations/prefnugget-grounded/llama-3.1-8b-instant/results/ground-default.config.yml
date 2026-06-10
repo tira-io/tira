@@ -1,0 +1,45 @@
+name: default
+create_nuggets: true
+create_qrels: true
+judge: true
+llm_model: llama-3.1-8b-instant
+timestamp: '2026-05-16T10:05:51.592499+00:00'
+git:
+  commit: a97b6061c69f06e83bad6303c6bda18e9fc068a2
+  dirty: unknown
+  remote: git@github.com:mam10eks/prefnugget-starterkit.git
+settings:
+  filebase: ground-{_name}
+  num_others: 4
+  num_pivot: 0
+  no_dupes: true
+  pref_judge: ties_allowed
+nugget_settings:
+  filebase: ground-{_name}
+  num_others: 4
+  num_pivot: 0
+  no_dupes: true
+  pref_judge: ties_allowed
+  on_missing_evals: fix_aggregate
+  iterative_nuggets: true
+  max_nuggets_per_topic: 20
+  stop_collecting_at_nuggets_per_topic: 20
+  gen_batch_num_per_query: 2
+  max_pairs_considered: 100
+  nugget_gen_order: both
+  max_questions_per_pair: 2
+  random_pairs: false
+judge_settings:
+  filebase: ground-{_name}
+  num_others: 4
+  num_pivot: 0
+  no_dupes: true
+  pref_judge: ties_allowed
+  grade_threshold: 4
+  grade_text: response
+qrels_settings:
+  filebase: ground-{_name}
+  num_others: 4
+  num_pivot: 0
+  no_dupes: true
+  pref_judge: ties_allowed
