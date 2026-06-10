@@ -685,7 +685,8 @@ def import_submission(
 def submissions_for_task(
     request: "HttpRequest", context: "Context", task_id: str, user_id: str, submission_type: str
 ) -> "HttpResponse":
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    is_admin = context["role"] == "admin"
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True, show_only_visible_to_participants=not is_admin)
     cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
