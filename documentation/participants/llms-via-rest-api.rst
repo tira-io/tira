@@ -11,8 +11,8 @@ Please contact the organizers of your shared task to confirm that this is allowe
     This page is still work in progress.
 
 
-Handling LLM Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~
+Handling LLM Credentials (Not Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use a large language model via a REST API, the software you execute through TIRA needs credentials for that API.
 Ideally, your software should read them from environment variables such as ``OPENAI_API_KEY``, ``OPENAI_BASE_URL``, and
@@ -33,8 +33,8 @@ TIRA is open source and we do our best to prevent credential leaks. Even so, the
 short-lived credentials and remove them immediately after the shared task.
 
 
-Recommended: Use an OpenAI-Compatible Proxy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use an OpenAI-Compatible Proxy (Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As written above, it is the best to handle API keys with extreme care and ideally never forward real API keys to TIRA. Therefore, the recommended setup is to run an OpenAI-compatible proxy, such as `LiteLLM <https://github.com/BerriAI/litellm>`_, on
 your own machine or server. Then forward only the proxy endpoint and proxy credentials to TIRA. After your
@@ -97,7 +97,7 @@ The output should look similar to this:
     
     Uploading the software.
 
-4. The uploaded software can be started in the TIRA web interface where you can provide the
+4. The uploaded software can be started in the TIRA web interface from your submission page where you can provide the
    environment variables.
 
 .. figure:: images/forward-llm-environment-variables.png
@@ -107,6 +107,4 @@ The output should look similar to this:
     Running a software in TIRA with forwarded environment variables.
 
 5. After the shared task, revoke the forwarded credentials or shut down the proxy that provided access to the model.
-
-
 
