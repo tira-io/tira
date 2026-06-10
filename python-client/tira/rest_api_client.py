@@ -804,6 +804,8 @@ class Client(TiraClient):
             shutil.copytree(ret, output)
             return output
 
+        from tira.io_utils import resolve_mirrored_resources
+
         meta_data = self.get_dataset(f"{task}/{dataset}" if task else dataset)
         data_type = "training" if dataset.endswith("-training") else "test"
         suffix = "inputs" if not truth_dataset else "truths"
@@ -829,7 +831,9 @@ class Client(TiraClient):
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
-            return Path(target_dir + suffix)
+            ret = Path(target_dir + suffix)
+            resolve_mirrored_resources(ret)
+            return ret
 
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
@@ -841,7 +845,9 @@ class Client(TiraClient):
 
             os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
-        return Path(target_dir + suffix)
+        ret = Path(target_dir + suffix)
+        resolve_mirrored_resources(ret)
+        return ret
 
     def download_zip_to_cache_directory(self, task: str, dataset: str, team: str, run_id: str) -> Path:
         target_dir = f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}"
