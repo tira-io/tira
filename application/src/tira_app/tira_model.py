@@ -81,7 +81,10 @@ def get_datasets() -> "dict[str, dict[str, Any]]":
 
 
 def get_datasets_by_task(
-    task_id: str, include_deprecated: bool = False, return_only_names: bool = False, show_only_visible_to_participants=False
+    task_id: str,
+    include_deprecated: bool = False,
+    return_only_names: bool = False,
+    show_only_visible_to_participants=False,
 ) -> "list[dict[str, Any]]":
     """return the list of datasets associated with this task_id
     @param task_id: id string of the task the dataset belongs to

@@ -320,7 +320,9 @@ def get_task(request: "HttpRequest", context: "Context", task_id: str) -> "HttpR
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     # TODO: remove this when vuetify frontend is active
     context["remaining_team_names"] = []
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True, show_only_visible_to_participants=not is_admin)
+    context["datasets"] = model.get_datasets_by_task(
+        task_id, return_only_names=True, show_only_visible_to_participants=not is_admin
+    )
     context["datasets"] = sorted(context["datasets"], key=lambda i: i["display_name"])
     for d in context["datasets"]:
         if not d["display_name"]:
@@ -589,12 +591,10 @@ def get_snippet_to_run_components(request: "HttpRequest") -> "HttpResponse":
 
     component = TIREX_ID_TO_COMPONENT[component_key]
     component_type = component["type"]
-    dataset_initialization = textwrap.dedent(
-        """
+    dataset_initialization = textwrap.dedent("""
     # You can replace Robust04 with other datasets
     dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")
-    """
-    ).strip()
+    """).strip()
     snippet = ""
 
     if component_type == "dataset":
@@ -686,7 +686,9 @@ def submissions_for_task(
     request: "HttpRequest", context: "Context", task_id: str, user_id: str, submission_type: str
 ) -> "HttpResponse":
     is_admin = context["role"] == "admin"
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True, show_only_visible_to_participants=not is_admin)
+    context["datasets"] = model.get_datasets_by_task(
+        task_id, return_only_names=True, show_only_visible_to_participants=not is_admin
+    )
     cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
