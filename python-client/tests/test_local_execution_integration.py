@@ -70,3 +70,69 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         self.assertIn("Could not stop running docker image", stdout.getvalue())
         self.assertIn("container-1", stdout.getvalue())
         self.assertTrue(any("Could not stop running docker image with id container-1" in i for i in logs.output))
+
+    def test_run_uses_nano_cpus_for_linux_containers(self):
+        integration = LocalExecutionIntegration()
+
+        container = Mock()
+        container.id = "container-1"
+        container.attach.return_value = iter([b"container output\n"])
+        container.wait.return_value = {"StatusCode": 0}
+
+        client = Mock()
+        client.containers.run.return_value = container
+
+        with tempfile.TemporaryDirectory() as input_dir, tempfile.TemporaryDirectory() as output_dir:
+            with patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ):
+                integration.ensure_image_available_locally = Mock()
+                integration.tirex_tracker_available_in_docker_image = Mock(return_value=False)
+                integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+
+                integration.run(
+                    image="test-image",
+                    command="echo hello",
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                    cpu_count=2,
+                    platform="linux/amd64",
+                )
+
+        run_kwargs = client.containers.run.call_args.kwargs
+        self.assertEqual(2_000_000_000, run_kwargs["nano_cpus"])
+        self.assertNotIn("cpu_count", run_kwargs)
+
+    def test_run_keeps_cpu_count_for_non_linux_containers(self):
+        integration = LocalExecutionIntegration()
+
+        container = Mock()
+        container.id = "container-1"
+        container.attach.return_value = iter([b"container output\n"])
+        container.wait.return_value = {"StatusCode": 0}
+
+        client = Mock()
+        client.containers.run.return_value = container
+
+        with tempfile.TemporaryDirectory() as input_dir, tempfile.TemporaryDirectory() as output_dir:
+            with patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ):
+                integration.ensure_image_available_locally = Mock()
+                integration.tirex_tracker_available_in_docker_image = Mock(return_value=False)
+                integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+
+                integration.run(
+                    image="test-image",
+                    command="echo hello",
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                    cpu_count=2,
+                    platform="windows/amd64",
+                )
+
+        run_kwargs = client.containers.run.call_args.kwargs
+        self.assertEqual(2, run_kwargs["cpu_count"])
+        self.assertNotIn("nano_cpus", run_kwargs)
