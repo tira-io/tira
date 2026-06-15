@@ -802,7 +802,7 @@ class TiraClient(ABC):
     ):
         from shutil import copy
 
-        from tira.io_utils import TqdmUploadFile, verify_tira_installation, zip_dir
+        from tira.io_utils import TqdmUploadFile, resolve_mirrored_resources, verify_tira_installation, zip_dir
         from tira.third_party_integrations import temporary_directory
 
         all_messages = []
@@ -919,12 +919,18 @@ class TiraClient(ABC):
             target_file.parent.mkdir(exist_ok=True, parents=True)
             copy(data_file, target_file)
 
+        if not skip_baseline:
+            resolve_mirrored_resources(inputs_dir)
+
         l, m = check_format(inputs_dir, input_format, deepcopy(input_config))
         if l != _fmt.OK:
             log_message(m, l)
             return None
 
         print_message("The system inputs are valid.", _fmt.OK)
+
+        if not skip_baseline:
+            resolve_mirrored_resources(truth_dir)
 
         l, m = check_format(truth_dir, truth_format, deepcopy(truth_config))
         if l != _fmt.OK:

@@ -144,6 +144,13 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--task", required=True, default=None, help="The name of the task in TIRA.")
     parser.add_argument("--split", required=True, default=None, help="The name of the dataset split.")
+    parser.add_argument(
+        "--skip-baseline",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Skip the execution of the baseline. (e.g., for executions that take long.)",
+    )
 
     parser.set_defaults(executable=dataset_submission_command)
 
@@ -528,10 +535,11 @@ def dataset_submission_command(
     task: str,
     dry_run: bool,
     split: str,
+    skip_baseline: bool,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    ret = client.submit_dataset(Path(path), task, split, dry_run)
+    ret = client.submit_dataset(Path(path), task, split, dry_run, skip_baseline=skip_baseline)
     return 0 if ret and "inputs_zip" in ret else 1
 
 

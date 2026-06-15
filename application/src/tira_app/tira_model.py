@@ -81,14 +81,17 @@ def get_datasets() -> "dict[str, dict[str, Any]]":
 
 
 def get_datasets_by_task(
-    task_id: str, include_deprecated: bool = False, return_only_names: bool = False
+    task_id: str,
+    include_deprecated: bool = False,
+    return_only_names: bool = False,
+    show_only_visible_to_participants=False,
 ) -> "list[dict[str, Any]]":
     """return the list of datasets associated with this task_id
     @param task_id: id string of the task the dataset belongs to
     @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
     @return: a list of json-formatted datasets, as returned by get_dataset
     """
-    return model.get_datasets_by_task(task_id, include_deprecated, return_only_names)
+    return model.get_datasets_by_task(task_id, include_deprecated, return_only_names, show_only_visible_to_participants)
 
 
 def load_refresh_timestamp_for_cache_key(cache: BaseCache, key: str) -> datetime.datetime:

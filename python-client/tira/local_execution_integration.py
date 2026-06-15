@@ -26,6 +26,15 @@ class LocalExecutionIntegration:
         self.tira_client = tira_client
         self.running_docker_images = {}
 
+    def __docker_run_cpu_limits(self, cpu_count, platform):
+        if cpu_count is None:
+            return {}
+
+        if str(platform).lower().startswith("linux/"):
+            return {"nano_cpus": int(round(float(cpu_count) * 1_000_000_000))}
+
+        return {"cpu_count": cpu_count}
+
     def __normalize_command(self, cmd, evaluator):
         to_normalize = {
             "inputRun": "/tira-data/input-run",
@@ -623,7 +632,7 @@ class LocalExecutionIntegration:
             network_disabled=not allow_network,
             device_requests=device_requests,
             mem_limit=mem_limit,
-            cpu_count=cpu_count,
+            **self.__docker_run_cpu_limits(cpu_count, platform),
             privileged=True,
             platform=platform,
         )

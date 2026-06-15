@@ -316,10 +316,13 @@ def get_registration_formular(request: "HttpRequest", context: "Context", task_i
 @add_context
 def get_task(request: "HttpRequest", context: "Context", task_id: str) -> "HttpResponse":
     context["task"] = model.get_task(task_id)
+    is_admin = context["role"] == "admin"
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     # TODO: remove this when vuetify frontend is active
     context["remaining_team_names"] = []
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    context["datasets"] = model.get_datasets_by_task(
+        task_id, return_only_names=True, show_only_visible_to_participants=not is_admin
+    )
     context["datasets"] = sorted(context["datasets"], key=lambda i: i["display_name"])
     for d in context["datasets"]:
         if not d["display_name"]:
@@ -684,7 +687,10 @@ def import_submission(
 def submissions_for_task(
     request: "HttpRequest", context: "Context", task_id: str, user_id: str, submission_type: str
 ) -> "HttpResponse":
-    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    is_admin = context["role"] == "admin"
+    context["datasets"] = model.get_datasets_by_task(
+        task_id, return_only_names=True, show_only_visible_to_participants=not is_admin
+    )
     cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
