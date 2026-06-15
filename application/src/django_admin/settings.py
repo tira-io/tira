@@ -282,6 +282,14 @@ ALL_POSSIBLE_RESOURCES = {
         "description": "SISAP (8 CPU Cores, 24GB of RAM)",
         "key": "sisap",
     },
+    "sisap-huge": {
+        "cores": 16,
+        "ram": 48,
+        "gpu": 0,
+        "data": "no",
+        "description": "SISAP-XL (16 CPU Cores, 48GB of RAM)",
+        "key": "sisap-huge",
+    },
     "small-resources-gpu": {
         "cores": 1,
         "ram": 10,
