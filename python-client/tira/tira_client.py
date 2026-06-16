@@ -637,15 +637,23 @@ class TiraClient(ABC):
             if not resolved_mount_directory:
                 resolved_mount_directory = {}
 
-            resolved_mount_directory["CACHE_DIR"] = str((tmp_dir.parent / ".cache").resolve().absolute())
+            resolved_mount_directory["CACHE_DIR"] = str((tmp_dir.parent / "cache-dir").resolve().absolute())
 
             workflow_result = run_via_workflow()
+
+            result, msg = check_format(
+                Path(workflow_result.run / "output"), dataset_handle["format"], format_configuration
+            )
+            if result != _fmt.OK:
+                print(result.me)
+                raise ValueError(msg)
             msg = "Re-executing the software from the CACHE_DIR did yield valid results"
             msg += f" (verify at {workflow_result.run}). Modified environment variables were:"
             for i in ["OPENAI_BASE_URL", "OPENAI_API_KEY ", "OPENAI_MODEL   "]:
                 msg += f"\n  {i} = {os.environ[i.strip()]}"
             print_message(msg, _fmt.OK)
             workflow_configuration = None
+            workflow_software_configuration = None
 
         if not dry_run:
             print("Upload Code Submission image...")

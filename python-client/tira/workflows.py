@@ -276,7 +276,7 @@ class CachedExecution(WorkflowBase):
         )
 
         if len(list((mount_directory["CACHE_DIR"]["path"]).iterdir())) > 0:
-            target_cache_dir = execution_results / ".cache"
+            target_cache_dir = execution_results / "cache-dir"
             copytree(mount_directory["CACHE_DIR"]["path"], target_cache_dir)
             msg = f"The cache directory mounted via CACHE_DIR was used during the execution. (You can verify it at {target_cache_dir})"
             return WorkflowResult(_fmt.OK, msg, execution_results)
