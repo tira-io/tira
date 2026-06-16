@@ -223,6 +223,7 @@ def run(
                 additional_volumes=hf_models,
                 gpu_device_ids=gpu_devices,
                 tira=client,
+                forward_environment_variables=forward_environment_variables,
             )
             os.rmdir(i)
             copytree(run_results.run / "output", i)
