@@ -268,7 +268,7 @@ def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient
         if not v or not Path(v).exists() or not Path(v).is_dir():
             v = tira_client.get_run_output(v, dataset_id)
 
-        ret[k] = v
+        ret[k] = str(Path(v).absolute())
     return ret
 
 
@@ -662,10 +662,21 @@ class TqdmUploadFile:
         self.tqdm.close()
 
 
+class TeeStringIO(io.StringIO):
+    def __init__(self, internal_io):
+        super().__init__()
+        self.internal_io = internal_io
+
+    def write(self, s):
+        self.internal_io.write(s)
+        self.internal_io.flush()
+        return super().write(s)
+
+
 class MonitoredExecution:
-    def __init__(self):
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
+    def __init__(self, stdout=None, stderr=None):
+        self.stdout = io.StringIO() if stdout is None else stdout
+        self.stderr = io.StringIO() if stderr is None else stderr
 
     def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory

@@ -1,6 +1,7 @@
 import json
+from os import environ
 from pathlib import Path
-from shutil import copyfile, copytree
+from shutil import copytree
 from typing import Any, Callable, Dict, NamedTuple, Optional
 
 from tira.third_party_integrations import temporary_directory
@@ -34,10 +35,17 @@ class WorkflowBase:
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
-    def execute_monitored(self, method: Callable):
-        from tira.io_utils import MonitoredExecution
+    def execute_monitored(self, method: Callable, forward_io):
+        import sys
 
-        return MonitoredExecution().run(lambda i: method(i))
+        from tira.io_utils import MonitoredExecution, TeeStringIO
+
+        stdout, stderr = None, None
+        if forward_io:
+            stdout = TeeStringIO(sys.stdout)
+            stderr = TeeStringIO(sys.stderr)
+
+        return MonitoredExecution(stdout, stderr).run(lambda i: method(i))
 
 
 class Pan26TextWatermarking(WorkflowBase):
@@ -215,9 +223,72 @@ class Pan26TextWatermarking(WorkflowBase):
         return WorkflowResult(_fmt.OK, "workflow executed on 'pan26-text-watermarking'.", ret)
 
 
-WORKFLOWS = {
-    "pan26-text-watermarking": Pan26TextWatermarking,
-}
+class CachedExecution(WorkflowBase):
+    def apply_configuration_and_throw_if_invalid(
+        self, workflow_configuration: "Optional[Dict[str, Any]]", software: "Optional[Dict[str, Any]]"
+    ):
+        if not software or "image" not in software:
+            raise ValueError("Software executed for 'cached-execution' needs a configuration for 'image'.")
+
+        if not software or "command" not in software:
+            raise ValueError("Software executed for 'cached-execution' needs a configuration for 'command'.")
+
+        super().apply_configuration_and_throw_if_invalid(workflow_configuration, software)
+
+    def run_workflow(
+        self,
+        system_inputs: Path,
+        allow_network: bool,
+        additional_volumes,
+        cpu_count,
+        mem_limit,
+        gpu_device_ids,
+        tira: "TiraClient",
+        forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
+    ):
+        if not mount_directory:
+            mount_directory = {}
+
+        if "CACHE_DIR" in mount_directory:
+            cache_dir = temporary_directory() / "cache"
+            copytree(mount_directory["CACHE_DIR"], cache_dir)
+
+            mount_directory["CACHE_DIR"] = {"path": cache_dir, "mode": "rw"}
+        else:
+            mount_directory["CACHE_DIR"] = {"path": temporary_directory(), "mode": "rw"}
+
+        execution_results = self.execute_monitored(
+            lambda i: tira.local_execution.run(
+                image=self.software_configuration["image"],
+                command=self.software_configuration["command"],
+                input_dir=system_inputs,
+                output_dir=i,
+                allow_network=allow_network,
+                additional_volumes=additional_volumes,
+                cpu_count=cpu_count,
+                mem_limit=mem_limit,
+                gpu_device_ids=gpu_device_ids,
+                forward_environment_variables=forward_environment_variables,
+                mount_directory=mount_directory,
+            ),
+            True,
+        )
+
+        if len(list((mount_directory["CACHE_DIR"]["path"]).iterdir())) > 0:
+            target_cache_dir = execution_results / ".cache"
+            copytree(mount_directory["CACHE_DIR"]["path"], target_cache_dir)
+            msg = f"The cache directory mounted via CACHE_DIR was used during the execution. (You can verify it at {target_cache_dir})"
+            return WorkflowResult(_fmt.OK, msg, execution_results)
+        else:
+            return WorkflowResult(
+                _fmt.ERROR,
+                "The cache directory mounted via CACHE_DIR was not used during the execution.",
+                execution_results,
+            )
+
+
+WORKFLOWS = {"pan26-text-watermarking": Pan26TextWatermarking, "cached-execution": CachedExecution}
 
 
 class WorkflowResult(NamedTuple):

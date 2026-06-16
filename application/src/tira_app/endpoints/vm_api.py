@@ -180,6 +180,7 @@ def run_sandboxed_software(
     mount_hf_model: Optional[list[str]],
     job_id: str,
     env_to_forward: Optional[dict] = None,
+    use_cache: Optional[bool] = False,
 ) -> str:
     from tira_worker import run
 
@@ -193,6 +194,10 @@ def run_sandboxed_software(
         docker_software_id = int(software_id.split("-software-")[1])
         software_config = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
         software_workflow = software_config.get_workflow_configuration()
+
+    if use_cache:
+        software_workflow = {"image": docker_image, "command": command}
+        workflow = {"name": "cached-execution"}
 
     if isinstance(mount_hf_model, str):
         mount_hf_model = mount_hf_model.split()
@@ -633,6 +638,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("workflow_configuration", None),
             data.get("external_docker_registry", False),
             data.get("forward_environment_variable", None),
+            data.get("cache_behaviour", None),
         )
 
         if data.get("mount_hf_model"):
@@ -840,9 +846,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "is a  non-factoid quesiton answering dataset based on the questions and "
             + "answers of Yahoo! Webscope L6."
         )
-        bib_references[
-            "dataset"
-        ] = """@inproceedings{Hashemi2020Antique,
+        bib_references["dataset"] = """@inproceedings{Hashemi2020Antique,
   title        = {ANTIQUE: A Non-Factoid Question Answering Benchmark},
   author       = {Helia Hashemi and Mohammad Aliannejadi and Hamed Zamani and Bruce Croft},
   booktitle    = {ECIR},
@@ -855,9 +859,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             + "respectively [TIREx](https://webis.de/publications#froebe_2023e) "
             + "is used to enable reprodicible and blinded experiments."
         )
-        bib_references[
-            "task"
-        ] = """@InProceedings{froebe:2023b,
+        bib_references["task"] = """@InProceedings{froebe:2023b,
   address =                  {Berlin Heidelberg New York},
   author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
   booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
@@ -890,9 +892,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in"
             " [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
         )
-        bib_references[
-            "run"
-        ] = """@article{DBLP:journals/corr/abs-2101-05667,
+        bib_references["run"] = """@article{DBLP:journals/corr/abs-2101-05667,
   author       = {Ronak Pradeep and Rodrigo Frassetto Nogueira and Jimmy Lin},
   title        = {The Expando-Mono-Duo Design Pattern for Text Ranking with Pretrained Sequence-to-Sequence Models},
   journal      = {CoRR},
@@ -926,9 +926,7 @@ def __rendered_references(task_id: str, vm_id: str, run: dict[str, str]) -> tupl
             "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in"
             " [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
         )
-        bib_references[
-            "run"
-        ] = """@inproceedings{amati-2006-frequentist,
+        bib_references["run"] = """@inproceedings{amati-2006-frequentist,
   author    = {Giambattista Amati},
   editor    = {Mounia Lalmas and Andy MacFarlane and Stefan M. R{\"{u}}ger and Anastasios Tombros and Theodora Tsikrika and Alexei Yavlinsky},
   title     = {Frequentist and Bayesian Approach to Information Retrieval},
@@ -1228,6 +1226,7 @@ def run_execute_docker_software(
         docker_software.get("mount_hf_model", None),
         job_id,
         env_to_forward,
+        "cache_behaviour" in docker_software and isinstance(docker_software["cache_behaviour"], str),
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)

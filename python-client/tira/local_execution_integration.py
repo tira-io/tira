@@ -591,7 +591,9 @@ class LocalExecutionIntegration:
         if mount_directory:
             for i, (k, v) in enumerate(mount_directory.items()):
                 target_dir = f"/tira-data/mounted/{i}"
-                volumes[v] = {"bind": target_dir, "mode": "ro"}
+                volume_dir = v["path"] if isinstance(v, dict) else v
+                volume_mode = v.get("mode", "ro") if isinstance(v, dict) else "ro"
+                volumes[volume_dir] = {"bind": target_dir, "mode": volume_mode}
                 environment[k] = target_dir
 
         if input_run:

@@ -268,6 +268,7 @@ class Client(TiraClient):
         workflow_configuration=None,
         external_docker_registry=False,
         forward_environment_variable=None,
+        cache_behaviour=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -289,6 +290,9 @@ class Client(TiraClient):
 
         if forward_environment_variable:
             content["forward_environment_variable"] = json.dumps(forward_environment_variable)
+
+        if cache_behaviour and isinstance(cache_behaviour, str):
+            content["cache_behaviour"] = cache_behaviour
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages

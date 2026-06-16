@@ -412,6 +412,13 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         help="Detect the platform to build the docker image from the host. Attention, only linux/amd64 will run in tira.",
     )
 
+    parser.add_argument(
+        "--cache-behaviour",
+        required=False,
+        default=None,
+        help="The expected cache-behaviour of the to-be-uploaded software. Proper cache handling is important for submissions that use LLMs. TBD, CACHE_DIR...",
+    )
+
     parser.set_defaults(executable=code_submission_command)
 
 
@@ -559,6 +566,7 @@ def code_submission_command(
     build_args: "Optional[str]",
     mount_directory: "Optional[list[str]]",
     platform: "Optional[str]",
+    cache_behaviour: "Optional[str]",
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -580,6 +588,7 @@ def code_submission_command(
         build_args=build_args,
         mount_directory=mount_directory,
         platform=platform,
+        cache_behaviour=cache_behaviour,
     )
 
     return 0

@@ -758,6 +758,7 @@ class HybridDatabase(object):
             "mount_hf_model": mount_hf_model,
             "workflow_configuration": workflow_configuration,
             "forward_environment_variable": forward_environment_variable,
+            "cache_behaviour": ds.cache_behaviour,
         }
 
     @staticmethod
@@ -2342,6 +2343,7 @@ class HybridDatabase(object):
         tira_image_workdir: "Optional[str]" = None,
         workflow_configuration: "Optional[str]" = None,
         forward_environment_variable: "Optional[str]" = None,
+        cache_behaviour: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2369,6 +2371,7 @@ class HybridDatabase(object):
             tira_image_workdir=tira_image_workdir,
             workflow_configuration=workflow_configuration,
             forward_environment_variable=forward_environment_variable,
+            cache_behaviour=cache_behaviour,
         )
 
         additional_inputs = range(
