@@ -238,6 +238,12 @@ def run(
             except Exception:
                 pass
 
+            try:
+                copytree(run_results.run / "cache-dir", i.parent / "cache-dir")
+            except Exception:
+                print("something failed ....")
+                pass
+
         run_results = execute_monitored(
             run_tmp,
             client=client,
