@@ -304,7 +304,6 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
 
     client: "TiraClient" = RestClient()
     import json
-    system_inputs = client.download_dataset(None, input)
     system_details = client.private_system_details(approach)
 
     if out:
@@ -314,6 +313,7 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
                 print(f"Execution already finished: {Path(i).parent}")
                 return
 
+    system_inputs = client.download_dataset(None, input)
     monitored_execution = MonitoredExecution()
 
     results = monitored_execution.run(lambda i: client.local_execution.run(
