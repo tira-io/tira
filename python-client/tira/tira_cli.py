@@ -325,6 +325,8 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
         additional_volumes=None,
         gpu_device_ids=None,
         forward_environment_variables=None,
+        cpu_count=cpus,
+        mem_limit=memory,
         mount_directory=None,
         platform="linux",
     ))
