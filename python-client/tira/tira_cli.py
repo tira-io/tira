@@ -296,6 +296,96 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     export_parser.set_defaults(executable=admin_export_rag_responses)
 
 
+def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[str], out: Optional[str], **kwargs) -> int:
+    from glob import glob
+    from shutil import move
+
+    from tira.io_utils import MonitoredExecution, get_tira_id
+
+    client: "TiraClient" = RestClient()
+    import json
+    system_inputs = client.download_dataset(None, input)
+    system_details = client.private_system_details(approach)
+
+    if out:
+        for i in glob(f"{out}/*/execution-details.json"):
+            j = json.loads(Path(i).read_text())
+            if j["input"] == input and j["system"]["docker_software_id"] == system_details["docker_software_id"]:
+                print(f"Execution already finished: {Path(i).parent}")
+                return
+
+    monitored_execution = MonitoredExecution()
+
+    results = monitored_execution.run(lambda i: client.local_execution.run(
+        image=system_details["tira_image_name"],
+        command=system_details["command"],
+        input_dir=system_inputs,
+        output_dir=i,
+        allow_network=False,
+        additional_volumes=None,
+        gpu_device_ids=None,
+        forward_environment_variables=None,
+        mount_directory=None,
+        platform="linux",
+    ))
+
+    details = {"system": system_details, "input": input}
+    (results / "execution-details.json").write_text(json.dumps(details))
+
+    if not out:
+        print(results)
+    else:
+        out = Path(out) / get_tira_id()
+        move(results, out)
+        print(out)
+    return 0
+
+
+def setup_run_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    subparsers = parser.add_subparsers(dest="sub-command", required=True)
+
+    local = subparsers.add_parser("local", help="Batch-verify authentication tokens for a task")
+    local.add_argument(
+        "--input",
+        required=True,
+        default=None,
+        help="The dataset on which the approach should be executed.",
+    )
+    local.add_argument(
+        "--approach",
+        required=True,
+        default=None,
+        help="The approach that should be executed.",
+    )
+    local.add_argument(
+        "--cpus",
+        required=False,
+        default=None,
+        type=int,
+        help="The number of CPUs used for execution.",
+    )
+    local.add_argument(
+        "--memory",
+        required=False,
+        default=None,
+        type=str,
+        help="The memory limit.",
+    )
+    local.add_argument(
+        "--out",
+        required=False,
+        default=None,
+        type=str,
+        help="The output directory.",
+    )
+
+    local.set_defaults(executable=run_local)
+
+    remote = subparsers.add_parser("remote", help="Batch-verify authentication tokens for a task")
+    remote.set_defaults(executable=None)
+
+
 def ir_datasets_loader_cli(ir_datasets_id: str, output_dataset_path: Path, **kwargs) -> int:
     from tira.ir_datasets_loader import IrDatasetsLoader
 
@@ -771,6 +861,12 @@ def parse_args() -> argparse.Namespace:
         subparsers.add_parser(
             "admin",
             help="Control admin endpoints to tira, e.g., batch refreshing of tokens etc.",
+        )
+    )
+    setup_run_command(
+        subparsers.add_parser(
+            "run",
+            help="Run approaches in tira or locally.",
         )
     )
 
