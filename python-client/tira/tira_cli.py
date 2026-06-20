@@ -328,7 +328,7 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
         cpu_count=cpus,
         mem_limit=memory,
         mount_directory=None,
-        platform="linux",
+        platform="linux/amd64",
     ))
 
     details = {"system": system_details, "input": input}
