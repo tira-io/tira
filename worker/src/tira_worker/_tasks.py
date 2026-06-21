@@ -51,6 +51,31 @@ def get_admin_client() -> TiraClient:
     return ret
 
 
+def fail_if_tracker_does_not_work() -> None:
+    from pathlib import Path
+
+    from tira.rest_api_client import Client as RestClient
+    from tira.third_party_integrations import temporary_directory
+    ret = temporary_directory()
+    tira = RestClient()
+    tira.local_execution.run(
+        image="ubuntu:24.04",
+        command="echo 'check if tirex-tracker works'",
+        input_dir="/tmp",
+        output_dir=ret,
+    )
+    if not (Path(ret) / ".tracking-results.yml").is_file():
+        msg = f"the tirex-tracker does not work. Could not find the tracking file in {ret}."
+        print(msg)
+        raise ValueError(msg)
+    else:
+        print(f"Tirex tracker works, see {ret}")
+
+
+if "celery" in sys.argv[0]:
+    fail_if_tracker_does_not_work()
+
+
 if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
     gpu_devices = gpu_device_ids()
     get_admin_client().local_execution.run(
