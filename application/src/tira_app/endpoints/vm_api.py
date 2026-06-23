@@ -1153,6 +1153,9 @@ def run_execute_docker_software(
             if k not in dynamic_mounts or dynamic_mounts[k] != "EMPTY_DIR":
                 return JsonResponse({"status": 1, "message": f"Only EMPTY_DIR is currently allowed for {k}."})
 
+        for k in list(dynamic_mounts.keys()):
+            dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+
     input_run = None
     if (
         "ir_re_ranker" in docker_software

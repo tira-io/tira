@@ -227,10 +227,13 @@ def run(
 
         for k, v in dynamic_mounts.items():
 
-            if v == "rw":
+            if v["source"] == "EMPTY_DIR" and v["mode"] == "rw":
                 cache_directory[k] = temporary_directory()
             else:
                 mount_directory[k] = temporary_directory()
+        
+        print("cache_directory", cache_directory)
+        print("mount_directory", mount_directory)
 
     if task_workflow_configuration is None and software_workflow_configuration is None:
         run_results = execute_monitored(
