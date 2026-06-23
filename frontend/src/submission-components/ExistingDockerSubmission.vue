@@ -59,6 +59,42 @@
           :label="field.label"
           :rules="[v => !!(v && v.length) || `${field.name} is required.`]"
         />
+        <div
+          v-for="field in mount_config_fields"
+          :key="`mount-config-${field.name}`"
+          class="mb-4"
+        >
+          <v-card variant="outlined" class="pa-3">
+            <div class="text-subtitle-2 mb-2">{{ field.label }}</div>
+            <v-radio-group
+              v-model="mount_config_values[field.name]"
+              density="compact"
+              hide-details="auto"
+              :rules="[
+                v => !!v || `${field.name} is required.`,
+                v => v !== mount_config_options.previousExecution || 'Injecting output of other execution is currently only supported via the command line interface.'
+              ]"
+            >
+              <v-radio
+                label="Inject empty directory"
+                :value="mount_config_options.emptyDirectory"
+              />
+              <v-radio
+                label="Inject output of other execution"
+                :value="mount_config_options.previousExecution"
+              />
+            </v-radio-group>
+            <v-alert
+              v-if="mount_config_values[field.name] === mount_config_options.previousExecution"
+              type="info"
+              variant="tonal"
+              density="compact"
+              class="mt-2"
+            >
+              This is currently only supported via the command line interface.
+            </v-alert>
+          </v-card>
+        </div>
         
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
@@ -90,9 +126,15 @@ export default {
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
         'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
         'workflow_configuration': {} as { [key: string]: string },
-        'forward_environment_variable': [] as string[]
+        'forward_environment_variable': [] as string[],
+        'mount_config': {} as Record<string, string>
       },
       forward_environment_variable_values: {} as Record<string, string>,
+      mount_config_values: {} as Record<string, string>,
+      mount_config_options: {
+        emptyDirectory: 'EMPTY_DIR',
+        previousExecution: 'OUTPUT_OF_OTHER_EXECUTION'
+      },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
@@ -118,9 +160,14 @@ export default {
           }
         }
 
-        const params = this.forward_environment_variable_fields.length > 0
-          ? {'forward_environment_variable': this.forward_environment_variable_payload}
-          : {}
+        const params = {
+          ...(this.forward_environment_variable_fields.length > 0
+            ? {'forward_environment_variable': this.forward_environment_variable_payload}
+            : {}),
+          ...(this.mount_config_fields.length > 0
+            ? {'mount_config': this.mount_config_payload}
+            : {})
+        }
 
         post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
@@ -146,6 +193,16 @@ export default {
       }
 
       this.forward_environment_variable_values = values
+    },
+    initializeMountConfigValues() {
+      let values: Record<string, string> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_values[field.name]
+        values[field.name] = existingValue !== undefined ? existingValue : this.mount_config_options.emptyDirectory
+      }
+
+      this.mount_config_values = values
     }
   },
   computed: {
@@ -187,11 +244,34 @@ export default {
 
       return ret
     },
+    mount_config_fields() {
+      let ret: { name: string; label: string }[] = []
+      const mountConfig = this.docker_software_details.mount_config
+
+      if (!mountConfig || Array.isArray(mountConfig) || Object.keys(mountConfig).length === 0) {
+        return ret
+      }
+
+      for (const mountName of Object.keys(mountConfig)) {
+        ret.push({"name": mountName, "label": mountName})
+      }
+
+      return ret
+    },
     forward_environment_variable_payload() {
       let ret: Record<string, string> = {}
 
       for (const field of this.forward_environment_variable_fields) {
         ret[field.name] = this.forward_environment_variable_values[field.name]
+      }
+
+      return ret
+    },
+    mount_config_payload() {
+      let ret: Record<string, string> = {}
+
+      for (const field of this.mount_config_fields) {
+        ret[field.name] = this.mount_config_values[field.name]
       }
 
       return ret
@@ -203,6 +283,7 @@ export default {
         .then((message) => {
           inject_response(this, {'loading': false})(message)
           this.initializeForwardEnvironmentVariableValues()
+          this.initializeMountConfigValues()
         })
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

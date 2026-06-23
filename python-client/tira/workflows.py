@@ -76,6 +76,7 @@ class Pan26TextWatermarking(WorkflowBase):
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
+        *kwargs,
     ):
         ret = temporary_directory()
         (ret / "output").mkdir(parents=True, exist_ok=True)
@@ -246,17 +247,16 @@ class CachedExecution(WorkflowBase):
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
+        cache_directory: "Optional[dict]" = None,
     ):
         if not mount_directory:
             mount_directory = {}
 
-        if "CACHE_DIR" in mount_directory:
-            cache_dir = temporary_directory() / "cache"
-            copytree(mount_directory["CACHE_DIR"], cache_dir)
-
-            mount_directory["CACHE_DIR"] = {"path": cache_dir, "mode": "rw"}
-        else:
-            mount_directory["CACHE_DIR"] = {"path": temporary_directory(), "mode": "rw"}
+        if cache_directory:
+            for k, v in cache_directory.items():
+                cache_dir = temporary_directory() / "cache"
+                copytree(v, cache_dir)
+                mount_directory[k] = {"path": cache_dir, "mode": "rw"}
 
         execution_results = self.execute_monitored(
             lambda i: tira.local_execution.run(
@@ -275,17 +275,22 @@ class CachedExecution(WorkflowBase):
             True,
         )
 
-        if len(list((mount_directory["CACHE_DIR"]["path"]).iterdir())) > 0:
-            target_cache_dir = execution_results / "cache-dir"
-            copytree(mount_directory["CACHE_DIR"]["path"], target_cache_dir)
-            msg = f"The cache directory mounted via CACHE_DIR was used during the execution. (You can verify it at {target_cache_dir})"
-            return WorkflowResult(_fmt.OK, msg, execution_results)
-        else:
-            return WorkflowResult(
-                _fmt.ERROR,
-                "The cache directory mounted via CACHE_DIR was not used during the execution.",
-                execution_results,
-            )
+        for k, v in mount_directory.items():
+            if not isinstance(v, dict) or "path" not in v or "mode" not in v or v["mode"] != "rw":
+                continue
+
+            if len(list((v["path"]).iterdir())) == 0:
+                return WorkflowResult(
+                    _fmt.ERROR,
+                    f"The cache directory mounted via {k} was not used during the execution.",
+                    execution_results,
+                )
+
+            target_cache_dir = execution_results / k
+            copytree(v["path"], target_cache_dir)
+            msg = f"The cache directory mounted via {k} was used during the execution. (You can verify it at {target_cache_dir})"
+
+        return WorkflowResult(_fmt.OK, msg, execution_results)
 
 
 WORKFLOWS = {"pan26-text-watermarking": Pan26TextWatermarking, "cached-execution": CachedExecution}
@@ -310,6 +315,7 @@ def run_workflow(
     tira: "Optional[TiraClient]" = None,
     forward_environment_variables: "Optional[list[str]]" = None,
     mount_directory: "Optional[dict]" = None,
+    cache_directory: "Optional[dict]" = None,
 ) -> WorkflowResult:
     """Run the specified workflow. Provides debug messages intended for users.
 
@@ -343,6 +349,7 @@ def run_workflow(
             tira,
             forward_environment_variables,
             mount_directory,
+            cache_directory,
         )
     except Exception as e:
         return WorkflowResult(_fmt.ERROR, str(e), None)

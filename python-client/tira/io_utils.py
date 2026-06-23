@@ -256,7 +256,9 @@ def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]"
     return ret
 
 
-def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient", dataset_id: str) -> Optional[dict]:
+def resolve_mount_directory(
+    mount_directory: list[str], tira_client: "TiraClient", dataset_id: str, empty_dir: bool = False
+) -> Optional[dict]:
     if mount_directory is None or not mount_directory:
         return None
 
@@ -266,7 +268,12 @@ def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient
         k = k.replace("$", "")
 
         if not v or not Path(v).exists() or not Path(v).is_dir():
-            v = tira_client.get_run_output(v, dataset_id)
+            if empty_dir:
+                from tira.third_party_integrations import temporary_directory
+
+                v = temporary_directory()
+            else:
+                v = tira_client.get_run_output(v, dataset_id)
 
         ret[k] = str(Path(v).absolute())
     return ret

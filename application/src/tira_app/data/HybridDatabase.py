@@ -759,6 +759,7 @@ class HybridDatabase(object):
             "workflow_configuration": workflow_configuration,
             "forward_environment_variable": forward_environment_variable,
             "cache_behaviour": ds.cache_behaviour,
+            "mount_config": ds.get_mount_config(),
         }
 
     @staticmethod
@@ -2344,6 +2345,7 @@ class HybridDatabase(object):
         workflow_configuration: "Optional[str]" = None,
         forward_environment_variable: "Optional[str]" = None,
         cache_behaviour: "Optional[str]" = None,
+        mount_config: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2372,6 +2374,7 @@ class HybridDatabase(object):
             workflow_configuration=workflow_configuration,
             forward_environment_variable=forward_environment_variable,
             cache_behaviour=cache_behaviour,
+            mount_config=mount_config,
         )
 
         additional_inputs = range(

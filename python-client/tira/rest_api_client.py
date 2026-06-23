@@ -269,6 +269,7 @@ class Client(TiraClient):
         external_docker_registry=False,
         forward_environment_variable=None,
         cache_behaviour=None,
+        mount_config=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -293,6 +294,9 @@ class Client(TiraClient):
 
         if cache_behaviour and isinstance(cache_behaviour, str):
             content["cache_behaviour"] = cache_behaviour
+
+        if mount_config:
+            content["mount_config"] = json.dumps(mount_config)
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages

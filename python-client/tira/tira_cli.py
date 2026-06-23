@@ -296,7 +296,9 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     export_parser.set_defaults(executable=admin_export_rag_responses)
 
 
-def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[str], out: Optional[str], **kwargs) -> int:
+def run_local(
+    input: str, approach: str, cpus: Optional[int], memory: Optional[str], out: Optional[str], **kwargs
+) -> int:
     from glob import glob
     from shutil import move
 
@@ -304,6 +306,7 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
 
     client: "TiraClient" = RestClient()
     import json
+
     system_details = client.private_system_details(approach)
 
     if out:
@@ -316,19 +319,21 @@ def run_local(input: str, approach: str, cpus: Optional[int], memory: Optional[s
     system_inputs = client.download_dataset(None, input)
     monitored_execution = MonitoredExecution()
 
-    results = monitored_execution.run(lambda i: client.local_execution.run(
-        image=system_details["tira_image_name"],
-        command=system_details["command"],
-        input_dir=system_inputs,
-        output_dir=i,
-        allow_network=False,
-        additional_volumes=None,
-        gpu_device_ids=None,
-        forward_environment_variables=None,
-        cpu_count=cpus,
-        mem_limit=memory,
-        mount_directory=None,
-    ))
+    results = monitored_execution.run(
+        lambda i: client.local_execution.run(
+            image=system_details["tira_image_name"],
+            command=system_details["command"],
+            input_dir=system_inputs,
+            output_dir=i,
+            allow_network=False,
+            additional_volumes=None,
+            gpu_device_ids=None,
+            forward_environment_variables=None,
+            cpu_count=cpus,
+            mem_limit=memory,
+            mount_directory=None,
+        )
+    )
 
     details = {"system": system_details, "input": input}
     (results / "execution-details.json").write_text(json.dumps(details))
@@ -484,6 +489,14 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         default=[],
         help=(
             "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+        ),
+    )
+    parser.add_argument(
+        "--mount-cache",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy."
         ),
     )
     parser.add_argument(
@@ -656,6 +669,7 @@ def code_submission_command(
     forward_environment_variable: "Optional[list[str]]",
     build_args: "Optional[str]",
     mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
     platform: "Optional[str]",
     cache_behaviour: "Optional[str]",
     **kwargs,
@@ -678,6 +692,7 @@ def code_submission_command(
         forward_environment_variable=forward_environment_variable,
         build_args=build_args,
         mount_directory=mount_directory,
+        mount_cache=mount_cache,
         platform=platform,
         cache_behaviour=cache_behaviour,
     )

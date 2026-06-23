@@ -345,12 +345,21 @@ class DockerSoftware(models.Model):
     workflow_configuration = models.TextField(default=None, null=True)
     forward_environment_variable = models.TextField(default=None, null=True)
     cache_behaviour = models.CharField(max_length=20, default=None, null=True)
+    mount_config = models.TextField(default=None, null=True)
 
     def get_workflow_configuration(self) -> Optional[Any]:
         if not self.workflow_configuration:
             return None
         try:
             return json.loads(self.workflow_configuration)
+        except json.JSONDecodeError:
+            return None
+
+    def get_mount_config(self) -> Optional[Any]:
+        if not self.mount_config:
+            return None
+        try:
+            return json.loads(self.mount_config)
         except json.JSONDecodeError:
             return None
 

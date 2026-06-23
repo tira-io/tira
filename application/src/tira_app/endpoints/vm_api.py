@@ -181,6 +181,7 @@ def run_sandboxed_software(
     job_id: str,
     env_to_forward: Optional[dict] = None,
     use_cache: Optional[bool] = False,
+    dynamic_mounts: Optional[dict] = None,
 ) -> str:
     from tira_worker import run
 
@@ -215,6 +216,7 @@ def run_sandboxed_software(
             workflow,
             software_workflow,
             env_to_forward,
+            dynamic_mounts,
         ],
         queue=docker_resources,
     )
@@ -639,6 +641,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("external_docker_registry", False),
             data.get("forward_environment_variable", None),
             data.get("cache_behaviour", None),
+            data.get("mount_config", None),
         )
 
         if data.get("mount_hf_model"):
@@ -1135,6 +1138,21 @@ def run_execute_docker_software(
             if k not in env_to_forward:
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
 
+    dynamic_mounts = None
+    required_mount_config = docker_software.get_mount_config()
+    if required_mount_config:
+        try:
+            raw_dynamic_mounts = json.loads(request.body)["mount_config"]
+            dynamic_mounts = {k: v for k, v in raw_dynamic_mounts.items() if k in required_mount_config}
+        except Exception as e:
+            msg = f"Error handling the mounts. {e}"
+            logger.exception("Error handling the mounts", exc_info=e)
+            return JsonResponse({"status": 1, "message": msg})
+
+        for k in required_mount_config:
+            if k not in dynamic_mounts or dynamic_mounts[k] != "EMPTY_DIR":
+                return JsonResponse({"status": 1, "message": f"Only EMPTY_DIR is currently allowed for {k}."})
+
     input_run = None
     if (
         "ir_re_ranker" in docker_software
@@ -1227,6 +1245,7 @@ def run_execute_docker_software(
         job_id,
         env_to_forward,
         "cache_behaviour" in docker_software and isinstance(docker_software["cache_behaviour"], str),
+        dynamic_mounts,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)

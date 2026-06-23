@@ -202,6 +202,7 @@ def run(
     task_workflow_configuration: Optional[dict] = None,
     software_workflow_configuration: Optional[dict] = None,
     env_to_forward: Optional[dict] = None,
+    dynamic_mounts: Optional[dict] = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -217,6 +218,19 @@ def run(
         forward_environment_variables = list(set(env_to_forward.keys()))
         for k, v in env_to_forward.items():
             environ[k] = v
+
+    mount_directory = {}
+    cache_directory = {}
+
+    if dynamic_mounts:
+        from tira.third_party_integrations import temporary_directory
+
+        for k, v in dynamic_mounts.items():
+
+            if v == "rw":
+                cache_directory[k] = temporary_directory()
+            else:
+                mount_directory[k] = temporary_directory()
 
     if task_workflow_configuration is None and software_workflow_configuration is None:
         run_results = execute_monitored(

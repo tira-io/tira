@@ -432,6 +432,7 @@ class TiraClient(ABC):
         forward_environment_variable: "Optional[list[str]]" = None,
         build_args: "Optional[str]" = None,
         mount_directory: "Optional[list[str]]" = None,
+        mount_cache: "Optional[list[str]]" = None,
         platform: "Optional[str]" = None,
         gpus: "Optional[str]" = None,
         cache_behaviour: "Optional[str]" = None,
@@ -531,6 +532,13 @@ class TiraClient(ABC):
                 print_message(message, lvl)
 
         resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
+        resolved_cache_directory = resolve_mount_directory(mount_cache, self, dataset_id, "EMPTY")
+        mount_config = None if not (mount_directory and mount_cache) else {}
+
+        if mount_directory:
+            mount_config.update({k: "ro" for k in mount_directory})
+        if mount_cache:
+            mount_config.update({k: "rw" for k in mount_cache})
 
         if cache_behaviour and cache_behaviour != "deterministic":
             raise ValueError("TODO: Only deterministic cache-behaviour is supported for uploads at the moment...")
@@ -583,6 +591,7 @@ class TiraClient(ABC):
                 tira=self,
                 forward_environment_variables=forward_environment_variable,
                 mount_directory=resolved_mount_directory,
+                cache_directory=resolved_cache_directory,
             )
             if workflow_result.level != _fmt.OK:
                 log_message(workflow_result.message, workflow_result.level)
@@ -637,7 +646,8 @@ class TiraClient(ABC):
             if not resolved_mount_directory:
                 resolved_mount_directory = {}
 
-            resolved_mount_directory["CACHE_DIR"] = str((tmp_dir.parent / "cache-dir").resolve().absolute())
+            for k in list(resolved_cache_directory.keys()):
+                resolved_cache_directory[k] = str((tmp_dir.parent / k).resolve().absolute())
 
             workflow_result = run_via_workflow()
 
@@ -704,6 +714,7 @@ class TiraClient(ABC):
                 external_docker_registry=external_docker_registry is not None,
                 forward_environment_variable=forward_environment_variable if forward_environment_variable else None,
                 cache_behaviour=cache_behaviour,
+                mount_config=mount_config,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
