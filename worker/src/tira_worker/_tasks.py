@@ -263,8 +263,11 @@ def run(
                 gpu_device_ids=gpu_devices,
                 tira=client,
                 forward_environment_variables=forward_environment_variables,
+                cache_directory=cache_directory,
+                mount_directory=mount_directory,
             )
             os.rmdir(i)
+            print(run_results.msg)
             copytree(run_results.run / "output", i)
 
             try:
@@ -277,11 +280,12 @@ def run(
             except Exception:
                 pass
 
-            try:
-                copytree(run_results.run / "cache-dir", i.parent / "cache-dir")
-            except Exception:
-                print("something failed ....")
-                pass
+            for k, v in cache_directory.items():
+                try:
+                    copytree(run_results.run / k, i.parent / v)
+                except Exception:
+                    print("something failed ....")
+                    pass
 
         run_results = execute_monitored(
             run_tmp,
