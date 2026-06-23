@@ -267,7 +267,7 @@ def run(
                 mount_directory=mount_directory,
             )
             os.rmdir(i)
-            print(run_results.msg)
+            print(run_results.message)
             copytree(run_results.run / "output", i)
 
             try:
