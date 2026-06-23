@@ -52,6 +52,9 @@
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
+        <div v-if="forward_environment_variable_fields.length > 0" class="text-subtitle-1 mt-4 mb-2">
+          Environment variables
+        </div>
         <v-text-field
           v-for="field in forward_environment_variable_fields"
           :key="field.name"
@@ -59,6 +62,9 @@
           :label="field.label"
           :rules="[v => !!(v && v.length) || `${field.name} is required.`]"
         />
+        <div v-if="mount_config_fields.length > 0" class="text-subtitle-1 mt-4 mb-2">
+          Additional mounted directories
+        </div>
         <div
           v-for="field in mount_config_fields"
           :key="`mount-config-${field.name}`"
@@ -76,11 +82,11 @@
               ]"
             >
               <v-radio
-                label="Inject empty directory"
+                label="Mount a new empty directory"
                 :value="mount_config_options.emptyDirectory"
               />
               <v-radio
-                label="Inject output of other execution"
+                label="Mount the output of some other execution"
                 :value="mount_config_options.previousExecution"
               />
             </v-radio-group>

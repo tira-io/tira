@@ -533,12 +533,12 @@ class TiraClient(ABC):
 
         resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
         resolved_cache_directory = resolve_mount_directory(mount_cache, self, dataset_id, "EMPTY")
-        mount_config = None if not (mount_directory and mount_cache) else {}
+        mount_config = None if not mount_directory and not mount_cache else {}
 
         if mount_directory:
-            mount_config.update({k: "ro" for k in mount_directory})
+            mount_config.update({k.split("=")[0].replace("$", ""): "ro" for k in mount_directory})
         if mount_cache:
-            mount_config.update({k: "rw" for k in mount_cache})
+            mount_config.update({k.split("=")[0].replace("$", ""): "rw" for k in mount_cache})
 
         if cache_behaviour and cache_behaviour != "deterministic":
             raise ValueError("TODO: Only deterministic cache-behaviour is supported for uploads at the moment...")

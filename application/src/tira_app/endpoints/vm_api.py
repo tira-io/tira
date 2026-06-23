@@ -1139,7 +1139,7 @@ def run_execute_docker_software(
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
 
     dynamic_mounts = None
-    required_mount_config = docker_software.get_mount_config()
+    required_mount_config = docker_software["mount_config"]
     if required_mount_config:
         try:
             raw_dynamic_mounts = json.loads(request.body)["mount_config"]
