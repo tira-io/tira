@@ -283,9 +283,9 @@ def run(
             except Exception:
                 pass
 
-            for k, v in cache_directory.items():
+            for k in cache_directory.keys():
                 try:
-                    copytree(run_results.run / k, i.parent / v)
+                    copytree(run_results.run / k, i.parent / k)
                 except Exception:
                     print("something failed ....")
                     pass
