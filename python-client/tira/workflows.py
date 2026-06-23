@@ -275,6 +275,8 @@ class CachedExecution(WorkflowBase):
             True,
         )
 
+        msg = f"The execution finished {mount_directory}."
+
         for k, v in mount_directory.items():
             if not isinstance(v, dict) or "path" not in v or "mode" not in v or v["mode"] != "rw":
                 continue

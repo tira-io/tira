@@ -78,7 +78,7 @@
               hide-details="auto"
               :rules="[
                 v => !!v || `${field.name} is required.`,
-                v => v !== mount_config_options.previousExecution || 'Injecting output of other execution is currently only supported via the command line interface.'
+                v => !mount_config_unsupported_options.includes(v) || 'This is currently only supported via the command line interface.'
               ]"
             >
               <v-radio
@@ -89,9 +89,13 @@
                 label="Mount the output of some other execution"
                 :value="mount_config_options.previousExecution"
               />
+              <v-radio
+                label="Upload directory"
+                :value="mount_config_options.uploadDirectory"
+              />
             </v-radio-group>
             <v-alert
-              v-if="mount_config_values[field.name] === mount_config_options.previousExecution"
+              v-if="mount_config_unsupported_options.includes(mount_config_values[field.name])"
               type="info"
               variant="tonal"
               density="compact"
@@ -139,7 +143,8 @@ export default {
       mount_config_values: {} as Record<string, string>,
       mount_config_options: {
         emptyDirectory: 'EMPTY_DIR',
-        previousExecution: 'OUTPUT_OF_OTHER_EXECUTION'
+        previousExecution: 'OUTPUT_OF_OTHER_EXECUTION',
+        uploadDirectory: 'UPLOAD_DIRECTORY'
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("REST base URL"),
@@ -263,6 +268,12 @@ export default {
       }
 
       return ret
+    },
+    mount_config_unsupported_options() {
+      return [
+        this.mount_config_options.previousExecution,
+        this.mount_config_options.uploadDirectory
+      ]
     },
     forward_environment_variable_payload() {
       let ret: Record<string, string> = {}
