@@ -316,7 +316,10 @@ def run_local(
                 print(f"Execution already finished: {Path(i).parent}")
                 return
 
-    system_inputs = client.download_dataset(None, input)
+    if Path(input).is_dir():
+        system_inputs = Path(input).absolute()
+    else:
+        system_inputs = client.download_dataset(None, input)
     monitored_execution = MonitoredExecution()
 
     results = monitored_execution.run(
