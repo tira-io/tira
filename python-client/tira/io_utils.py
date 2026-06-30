@@ -33,7 +33,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from tira.check_format import FormatMsgType, _fmt, log_message
+from tira.check_format import FormatMsgType, _fmt, clean_logger, log_message
 from tira.tira_client import TiraClient
 from tira.tirex_tracker import find_tirex_tracker_executable_or_none
 
@@ -698,6 +698,7 @@ class MonitoredExecution:
                 method(output_dir)
             except Exception as e:
                 exception_text = "\n\n" + str(repr(e))
+                (ret / "exception.txt").write_text(str(repr(e)))
 
         (ret / "stdout.txt").write_text(self.stdout.getvalue() + exception_text)
         (ret / "stderr.txt").write_text(self.stderr.getvalue() + exception_text)

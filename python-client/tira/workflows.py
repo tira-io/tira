@@ -28,10 +28,13 @@ class WorkflowBase:
         additional_volumes,
         cpu_count,
         mem_limit,
+        gpu_count,
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
+        cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
@@ -72,11 +75,13 @@ class Pan26TextWatermarking(WorkflowBase):
         additional_volumes,
         cpu_count,
         mem_limit,
+        gpu_count,
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
-        *kwargs,
+        cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
     ):
         ret = temporary_directory()
         (ret / "output").mkdir(parents=True, exist_ok=True)
@@ -100,6 +105,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variables,
             )
@@ -147,6 +153,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
             )
         )
@@ -199,6 +206,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
             )
         )
@@ -243,11 +251,13 @@ class CachedExecution(WorkflowBase):
         additional_volumes,
         cpu_count,
         mem_limit,
+        gpu_count,
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
         cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
     ):
         if not mount_directory:
             mount_directory = {}
@@ -267,13 +277,23 @@ class CachedExecution(WorkflowBase):
                 allow_network=allow_network,
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
+                gpu_count=gpu_count,
                 mem_limit=mem_limit,
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variables,
                 mount_directory=mount_directory,
+                platform=platform,
             ),
             True,
         )
+
+        if (execution_results / "exception.txt").exists():
+            exception = (execution_results / "exception.txt").read_text()
+            return WorkflowResult(
+                _fmt.ERROR,
+                f'The command "{self.software_configuration["command"]}" failed: {exception}',
+                execution_results,
+            )
 
         msg = f"The execution finished {mount_directory}."
 
@@ -312,12 +332,14 @@ def run_workflow(
     allow_network: bool = False,
     additional_volumes=None,
     cpu_count=1,
+    gpu_count=0,
     mem_limit=None,
     gpu_device_ids=None,
     tira: "Optional[TiraClient]" = None,
     forward_environment_variables: "Optional[list[str]]" = None,
     mount_directory: "Optional[dict]" = None,
     cache_directory: "Optional[dict]" = None,
+    platform: str = "linux/amd64",
 ) -> WorkflowResult:
     """Run the specified workflow. Provides debug messages intended for users.
 
@@ -342,16 +364,18 @@ def run_workflow(
 
     try:
         return workflow_impl.run_workflow(
-            system_inputs,
-            allow_network,
-            additional_volumes,
-            cpu_count,
-            mem_limit,
-            gpu_device_ids,
-            tira,
-            forward_environment_variables,
-            mount_directory,
-            cache_directory,
+            system_inputs=system_inputs,
+            allow_network=allow_network,
+            additional_volumes=additional_volumes,
+            cpu_count=cpu_count,
+            mem_limit=mem_limit,
+            gpu_count=gpu_count,
+            gpu_device_ids=gpu_device_ids,
+            tira=tira,
+            forward_environment_variables=forward_environment_variables,
+            mount_directory=mount_directory,
+            cache_directory=cache_directory,
+            platform=platform,
         )
     except Exception as e:
         return WorkflowResult(_fmt.ERROR, str(e), None)

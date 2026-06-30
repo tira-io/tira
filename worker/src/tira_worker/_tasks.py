@@ -19,7 +19,6 @@ from tira.io_utils import (
 from tira.rest_api_client import Client as RestClient
 from tira.third_party_integrations import is_public_huggingface_model
 from tira.tira_client import TiraClient
-from tira.workflows import run_workflow
 
 from .settings import (
     CPU_COUNT,
@@ -219,82 +218,25 @@ def run(
         for k, v in env_to_forward.items():
             environ[k] = v
 
-    mount_directory = {}
-    cache_directory = {}
-
-    if dynamic_mounts:
-        from tira.third_party_integrations import temporary_directory
-
-        for k, v in dynamic_mounts.items():
-
-            if v["source"] == "EMPTY_DIR" and v["mode"] == "rw":
-                cache_directory[k] = temporary_directory()
-            else:
-                mount_directory[k] = temporary_directory()
-        
-        print("cache_directory", cache_directory)
-        print("mount_directory", mount_directory)
-
-    if task_workflow_configuration is None and software_workflow_configuration is None:
-        run_results = execute_monitored(
-            lambda i: client.local_execution.run(
-                image=docker_image,
-                command=command,
-                input_dir=system_inputs,
-                output_dir=i,
-                allow_network=allow_network,
-                additional_volumes=hf_models,
-                cpu_count=CPU_COUNT,
-                mem_limit=MEMORY_LIMIT,
-                gpu_device_ids=gpu_devices,
-                forward_environment_variables=forward_environment_variables,
-            ),
-            client=client,
-            job_id=job_id,
-        )
-    else:
-        software_workflow_configuration["image"] = docker_image
-
-        def run_tmp(i):
-            run_results = run_workflow(
-                system_inputs,
-                task_workflow_configuration["name"],
-                task_workflow_configuration,
-                software_workflow_configuration,
-                allow_network=allow_network,
-                additional_volumes=hf_models,
-                gpu_device_ids=gpu_devices,
-                tira=client,
-                forward_environment_variables=forward_environment_variables,
-                cache_directory=cache_directory,
-                mount_directory=mount_directory,
-            )
-            os.rmdir(i)
-            print(run_results.message)
-            copytree(run_results.run / "output", i)
-
-            try:
-                print((run_results.run / "stdout.txt").read_text())
-            except Exception:
-                pass
-
-            try:
-                print((run_results.run / "stderr.txt").read_text(), file=sys.stderr)
-            except Exception:
-                pass
-
-            for k in cache_directory.keys():
-                try:
-                    copytree(run_results.run / k, i.parent / k)
-                except Exception:
-                    print("something failed ....")
-                    pass
-
-        run_results = execute_monitored(
-            run_tmp,
-            client=client,
-            job_id=job_id,
-        )
+    run_results = execute_monitored(
+        lambda i: client.local_execution.run(
+            image=docker_image,
+            command=command,
+            input_dir=system_inputs,
+            output_dir=i,
+            allow_network=allow_network,
+            additional_volumes=hf_models,
+            cpu_count=CPU_COUNT,
+            mem_limit=MEMORY_LIMIT,
+            gpu_device_ids=gpu_devices,
+            forward_environment_variables=forward_environment_variables,
+            dynamic_mounts=dynamic_mounts,
+            task_workflow_configuration=task_workflow_configuration,
+            software_workflow_configuration=software_workflow_configuration,
+        ),
+        client=client,
+        job_id=job_id,
+    )
 
     if forward_environment_variables:
         for k in forward_environment_variables:

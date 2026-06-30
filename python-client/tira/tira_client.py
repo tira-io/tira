@@ -251,22 +251,44 @@ class TiraClient(ABC):
             print(msg)
             raise ValueError(msg)
 
-    def evaluate(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
+    def evaluate(self, predictions: Path, truths: Path, dataset: str = None) -> None:
+        """TBD"""
+        eval_config = self.get_dataset(dataset)
+        if not truths:
+            if "task_id" in eval_config:
+                task_id = eval_config["task_id"]
+            elif "default_task" in eval_config:
+                task_id = eval_config["default_task"]
+            else:
+                raise ValueError("Task configuration is invalid")
+
+            truths = Path(self.download_dataset(task_id, eval_config["dataset_id"], truth_dataset=True))
+
+        from tira.evaluators import evaluate, load_evaluator_config
+
+        use_unsandboxed_evaluator = False
+
+        try:
+            load_evaluator_config(eval_config, self)
+            use_unsandboxed_evaluator = True
+        except:
+            pass
+
+        if use_unsandboxed_evaluator:
+            return evaluate(Path(predictions), Path(truths), eval_config)
+        else:
+            from tira.third_party_integrations import temporary_directory
+            ret = temporary_directory()
+            self.evaluate_sandboxed(Path(predictions), dataset, ret)
+            return ret
+
+    def evaluate_sandboxed(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
         """Evaluate some predictions made for some dataset on your local machine.
 
         Args:
             directory (Path): The path to the directory that contains the predictions that you want to evaluate.
             dataset_id (str): The ID of the TIRA dataset on which the directory is to be evaluated.
         """
-        all_messages = []
-
-        def print_message(message, level):
-            all_messages.append((message, level))
-            os.system("cls" if os.name == "nt" else "clear")
-            print(f"TIRA Evaluation on '{dataset_id}':")
-            for m, l in all_messages:
-                log_message(m, l)
-
         dataset_handle = self.get_dataset(dataset_id)
         if (
             not dataset_handle
@@ -285,7 +307,7 @@ class TiraClient(ABC):
             raise ValueError("Dataset configuration has no evaluator configured: " + str(dataset_handle))
 
         if not directory or not directory.exists():
-            print_message(f"The directory {directory} does not exist.", _fmt.ERROR)
+            log_message(f"The directory {directory} does not exist.", _fmt.ERROR)
             raise ValueError(f"The directory {directory} does not exist.")
 
         format_config = dataset_handle.get("format_configuration", {})
@@ -293,17 +315,17 @@ class TiraClient(ABC):
         if result != _fmt.OK:
             log_message(msg, result)
             raise ValueError(msg)
-        print_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
+        log_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
 
         dataset_path = self.download_dataset(dataset_handle["default_task"], dataset_id, truth_dataset=True)
-        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
+        log_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         preds = self.__run_evaluation(
             dataset_handle["evaluator"]["image"],
             dataset_handle["evaluator"]["command"],
             directory,
             dataset_path,
-            print_message,
+            log_message,
             results_dir,
         )
 
@@ -1014,16 +1036,11 @@ class TiraClient(ABC):
 
                 workflow_software_config["image"] = docker_tag
                 workflow_output = run_workflow(
-                    inputs_dir,
-                    workflow_config["name"],
-                    workflow_config,
-                    workflow_software_config,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    self,
+                    system_inputs=inputs_dir,
+                    workflow=workflow_config["name"],
+                    workflow_configuration=workflow_config,
+                    software=workflow_software_config,
+                    tira=self,
                 )
                 if workflow_output.level != _fmt.OK:
                     log_message(

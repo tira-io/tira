@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Optional
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
 from tira.check_format import fmt_message
-from tira.io_utils import _fmt, log_message, verify_tira_installation
+from tira.io_utils import _fmt, clean_logger, load_output_of_directory, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
 from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
@@ -98,31 +98,7 @@ def setup_evaluation_command(parser: argparse.ArgumentParser) -> None:
 
 def evaluate_command(predictions: Path, truths: Path, dataset: str, **kwargs) -> int:
     client: "TiraClient" = RestClient()
-    eval_config = client.get_dataset(dataset)
-    if not truths:
-        if "task_id" in eval_config:
-            task_id = eval_config["task_id"]
-        elif "default_task" in eval_config:
-            task_id = eval_config["default_task"]
-        else:
-            raise ValueError("Task configuration is invalid")
-
-        truths = Path(client.download_dataset(task_id, eval_config["dataset_id"], truth_dataset=True))
-
-    from tira.evaluators import evaluate, load_evaluator_config
-
-    use_unsandboxed_evaluator = False
-
-    try:
-        load_evaluator_config(eval_config, client)
-        use_unsandboxed_evaluator = True
-    except:
-        pass
-
-    if use_unsandboxed_evaluator:
-        print(evaluate(Path(predictions), Path(truths), eval_config))
-    else:
-        client.evaluate(Path(predictions), dataset)
+    print(client.evaluate(predictions, truths, dataset))
 
     return 0
 
@@ -297,30 +273,99 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
 
 
 def run_local(
-    input: str, approach: str, cpus: Optional[int], memory: Optional[str], out: Optional[str], **kwargs
+    input: str,
+    approach: str,
+    cpus: Optional[int],
+    memory: Optional[str],
+    out: Optional[str],
+    forward_environment_variable: Optional[list[str]],
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+    **kwargs,
 ) -> int:
     from glob import glob
     from shutil import move
 
+    from tira.check_format import check_format
     from tira.io_utils import MonitoredExecution, get_tira_id
 
     client: "TiraClient" = RestClient()
+    log_message_clean = clean_logger(f"TIRA executes {approach} on {input}")
     import json
 
-    system_details = client.private_system_details(approach)
+    print("Load system details...")
+
+    system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
+    if "public_image_name" in system_details:
+        system_details["tira_image_name"] = system_details["public_image_name"]
+
+    # system_details = client.private_system_details(approach)
+
+    system_pretty = "/".join(approach.split("/")[1:])
+    log_message_clean(f"System {system_pretty} exists and is public.", level=_fmt.OK)
 
     if out:
         for i in glob(f"{out}/*/execution-details.json"):
             j = json.loads(Path(i).read_text())
             if j["input"] == input and j["system"]["docker_software_id"] == system_details["docker_software_id"]:
-                print(f"Execution already finished: {Path(i).parent}")
+                log_message_clean(f"Execution already finished: {Path(i).parent}", level=_fmt.OK)
                 return
+
+    miss_environment_variable, miss_mount = False, False
+    mount_config = None if not mount_directory and not mount_cache else {}
+
+    if mount_directory:
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "ro"} for k in mount_directory}
+        )
+    if mount_cache:
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "rw"} for k in mount_cache}
+        )
+
+    if "forward_environment_variable" in system_details and system_details["forward_environment_variable"]:
+        for f in system_details["forward_environment_variable"]:
+            if not forward_environment_variable or f not in forward_environment_variable:
+                miss_environment_variable = True
+
+        msg = f"The following environment variables must be forwarded explicitly to run the software {system_pretty}:\n  - "
+        msg += "\n  - ".join(system_details["forward_environment_variable"])
+        msg += f".\n\nPlease forward potentially sensible environment variables only when you trust the software {system_pretty}."
+        msg += "E.g., the software could potentially leak your credentials as network access is allowed when access to remote LLMs is allowed."
+        msg += "Please read https://docs.tira.io/participants/llms-via-rest-api.html for more details. "
+        msg += "If you trust the software, you can use the --forward-environment-variable flag in tira-cli to forward the environment variable(s), e.g., via: \n\n  --forward-environment-variable "
+        msg += " ".join(system_details["forward_environment_variable"])
+
+        if miss_environment_variable:
+            log_message(msg, _fmt.ERROR)
+
+    if "get_mount_config" in system_details and system_details["get_mount_config"]:
+        for f in system_details["get_mount_config"]:
+            if not mount_config or f not in mount_config:
+                miss_mount = True
+
+        msg = f"The following mounts must be forwarded explicitly to run the software {system_pretty}:\n  - "
+        msg += "\n  - ".join(system_details["get_mount_config"])
+        msg += "\n\nPlease use:\n  --mount-cache to mount caches (the container can write to a copy)\n  --mount-directory (the container has only read access)."
+
+        if miss_mount:
+            log_message(msg, _fmt.ERROR)
+
+    if miss_environment_variable or miss_mount:
+        return 1
 
     if Path(input).is_dir():
         system_inputs = Path(input).absolute()
     else:
+        print("Download dataset.")
         system_inputs = client.download_dataset(None, input)
+        log_message_clean(f"Dataset {input} available locally.", level=_fmt.OK)
+
     monitored_execution = MonitoredExecution()
+
+    print("Run software")
+
+    workflow_configuration = {"name": "cached-execution"}
 
     results = monitored_execution.run(
         lambda i: client.local_execution.run(
@@ -331,22 +376,52 @@ def run_local(
             allow_network=False,
             additional_volumes=None,
             gpu_device_ids=None,
-            forward_environment_variables=None,
+            forward_environment_variables=system_details["forward_environment_variable"],
             cpu_count=cpus,
             mem_limit=memory,
-            mount_directory=None,
+            dynamic_mounts=mount_config,
+            task_workflow_configuration=workflow_configuration,
+            software_workflow_configuration={},
         )
+    )
+
+    log_message_clean(f"Execution of the software finished.", level=_fmt.OK)
+    datasets = client.datasets(approach.split("/")[0])[input]
+
+    code, msg = check_format(results / "output", datasets["run_format"], datasets["format_configuration"])
+
+    if code != _fmt.OK:
+        log_message("The software did not produce results in the expected format.", level=_fmt.ERROR)
+        try:
+            print(f"Output of the software (from {results / 'stdout.txt'}):\n\n")
+            print(Path(results / "stdout.txt").read_text())
+        except:
+            pass
+        log_message(f"Please inspect the output at {results} for more details.", level=_fmt.ERROR)
+        return 1
+
+    log_message_clean(f"The format of the results is correct.", level=_fmt.OK)
+
+    eval_dir = client.evaluate(results / "output", None, input)
+    move(eval_dir, results / "evaluation")
+    eval_dir = results / "evaluation"
+    eval_results = "  ".join(
+        f"{k}: {v}\n" for k, v in load_output_of_directory(Path(eval_dir), evaluation=True).items()
     )
 
     details = {"system": system_details, "input": input}
     (results / "execution-details.json").write_text(json.dumps(details))
 
     if not out:
-        print(results)
+        out = results
     else:
         out = Path(out) / get_tira_id()
         move(results, out)
-        print(out)
+
+    log_message_clean(f"Evaluation:\n  {eval_results}", level=_fmt.OK)
+    log_message_clean(f"Full evaluation results: {eval_dir}", level=_fmt.OK)
+    log_message_clean(f"Outputs are at: {out}", level=_fmt.OK)
+
     return 0
 
 
@@ -366,6 +441,30 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         required=True,
         default=None,
         help="The approach that should be executed.",
+    )
+    local.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
+        ),
+    )
+    local.add_argument(
+        "--mount-directory",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+        ),
+    )
+    local.add_argument(
+        "--mount-cache",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy."
+        ),
     )
     local.add_argument(
         "--cpus",
