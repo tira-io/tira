@@ -38,7 +38,7 @@ class WorkflowBase:
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
-    def execute_monitored(self, method: Callable, forward_io=False):
+    def execute_monitored(self, method: Callable, forward_io: bool=False):
         import sys
 
         from tira.io_utils import MonitoredExecution, TeeStringIO
