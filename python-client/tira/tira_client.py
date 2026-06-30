@@ -278,6 +278,7 @@ class TiraClient(ABC):
             return evaluate(Path(predictions), Path(truths), eval_config)
         else:
             from tira.third_party_integrations import temporary_directory
+
             ret = temporary_directory()
             self.evaluate_sandboxed(Path(predictions), dataset, ret)
             return ret

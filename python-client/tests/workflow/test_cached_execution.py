@@ -171,7 +171,7 @@ class TestCachedExecutionWorkflow(unittest.TestCase):
         )
 
         self.assertEqual(_ERROR, actual[0])
-        self.assertEqual('The command "some-command" failed: RuntimeError(\'boom\')', actual[1])
+        self.assertEqual("The command \"some-command\" failed: RuntimeError('boom')", actual[1])
         self.assertEqual(1, len(tira_client.local_execution.calls))
         self.assertEqual("RuntimeError('boom')", (actual.run / "exception.txt").read_text())
         self.assertIn("RuntimeError('boom')", (actual.run / "stdout.txt").read_text())
