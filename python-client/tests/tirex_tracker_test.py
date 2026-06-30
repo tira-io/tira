@@ -2,9 +2,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import yaml
+
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.third_party_integrations import temporary_directory
-import yaml
 from tira.tirex_tracker import find_tirex_tracker_executable_or_none, tirex_tracker_mounts_or_none
 
 
