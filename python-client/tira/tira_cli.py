@@ -403,11 +403,15 @@ def run_local(
     log_message_clean(f"The format of the results is correct.", level=_fmt.OK)
 
     eval_dir = client.evaluate(results / "output", None, input)
-    move(eval_dir, results / "evaluation")
-    eval_dir = results / "evaluation"
-    eval_results = "  ".join(
-        f"{k}: {v}\n" for k, v in load_output_of_directory(Path(eval_dir), evaluation=True).items()
-    )
+    if isinstance(eval_dir, dict):
+        eval_results = eval_dir
+        eval_dir = None
+    else:
+        move(eval_dir, results / "evaluation")
+        eval_dir = results / "evaluation"
+        eval_results = "  ".join(
+            f"{k}: {v}\n" for k, v in load_output_of_directory(Path(eval_dir), evaluation=True).items()
+        )
 
     details = {"system": system_details, "input": input}
     (results / "execution-details.json").write_text(json.dumps(details))
@@ -419,7 +423,8 @@ def run_local(
         move(results, out)
 
     log_message_clean(f"Evaluation:\n  {eval_results}", level=_fmt.OK)
-    log_message_clean(f"Full evaluation results: {eval_dir}", level=_fmt.OK)
+    if eval_dir:
+        log_message_clean(f"Full evaluation results: {eval_dir}", level=_fmt.OK)
     log_message_clean(f"Outputs are at: {out}", level=_fmt.OK)
 
     return 0

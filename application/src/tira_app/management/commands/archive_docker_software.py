@@ -37,10 +37,10 @@ class Command(BaseCommand):
             return
 
         print(software)
-        if 'ghcr.io' in software.tira_image_name:
+        if "ghcr.io" in software.tira_image_name:
             software.public_image_name = software.tira_image_name
             image_metadata = docker_image_details(software.tira_image_name)
-            #for ghcr images we do not get their sizes...
+            # for ghcr images we do not get their sizes...
             software.public_image_size = -1
             software.save()
             return

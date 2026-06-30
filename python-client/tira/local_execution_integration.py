@@ -511,6 +511,8 @@ class LocalExecutionIntegration:
                 elif Path(v["source"]).is_dir() and v["mode"] == "rw":
                     cache_directory[k] = temporary_directory() / "cache"
                     copytree(v["source"], cache_directory[k])
+                elif Path(v["source"]).is_dir() and v["mode"] == "ro":
+                    cache_directory[k] = v["source"]
                 else:
                     mount_directory[k] = temporary_directory()
 
