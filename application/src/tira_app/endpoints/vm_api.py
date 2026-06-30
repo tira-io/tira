@@ -1145,9 +1145,8 @@ def run_execute_docker_software(
             raw_dynamic_mounts = json.loads(request.body)["mount_config"]
             dynamic_mounts = {k: v for k, v in raw_dynamic_mounts.items() if k in required_mount_config}
         except Exception as e:
-            msg = f"Error handling the mounts. {e}"
             logger.exception("Error handling the mounts", exc_info=e)
-            return JsonResponse({"status": 1, "message": msg})
+            return JsonResponse({"status": 1, "message": "Error handling the mounts."})
 
         for k in required_mount_config:
             if k not in dynamic_mounts or dynamic_mounts[k] != "EMPTY_DIR":
