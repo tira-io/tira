@@ -67,7 +67,7 @@ def serialize_docker_software(ds: "DockerSoftware") -> "dict[str, Any]":
         "docker_software_id": ds.docker_software_id,
         "input_docker_software": input_docker_software,
         "forward_environment_variable": ds.get_forward_environment_variable(),
-        "get_mount_config": ds.get_mount_config(),
+        "mount_config": ds.get_mount_config(),
     }
 
 

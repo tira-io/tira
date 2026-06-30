@@ -339,13 +339,13 @@ def run_local(
         if miss_environment_variable:
             log_message(msg, _fmt.ERROR)
 
-    if "get_mount_config" in system_details and system_details["get_mount_config"]:
-        for f in system_details["get_mount_config"]:
+    if "mount_config" in system_details and system_details["mount_config"]:
+        for f in system_details["mount_config"]:
             if not mount_config or f not in mount_config:
                 miss_mount = True
 
         msg = f"The following mounts must be forwarded explicitly to run the software {system_pretty}:\n  - "
-        msg += "\n  - ".join(system_details["get_mount_config"])
+        msg += "\n  - ".join(system_details["mount_config"])
         msg += "\n\nPlease use:\n  --mount-cache to mount caches (the container can write to a copy)\n  --mount-directory (the container has only read access)."
 
         if miss_mount:
