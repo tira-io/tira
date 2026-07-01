@@ -37,7 +37,8 @@ class Command(BaseCommand):
             return
 
         print(software)
-        if "ghcr.io" in software.tira_image_name:
+        normalized_image_name = (software.tira_image_name or "").strip().lower()
+        if normalized_image_name.startswith("ghcr.io/"):
             software.public_image_name = software.tira_image_name
             image_metadata = docker_image_details(software.tira_image_name)
             # for ghcr images we do not get their sizes...
