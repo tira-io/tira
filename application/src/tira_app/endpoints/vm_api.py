@@ -1157,7 +1157,7 @@ def run_execute_docker_software(
         request_payload = _load_request_payload(request)
     except Exception as e:
         logger.exception("Error parsing run request payload", exc_info=e)
-        return JsonResponse({"status": 1, "message": f"Error parsing request payload. {e}"})
+        return JsonResponse({"status": 1, "message": "Error parsing request payload."})
 
     env_to_forward = None
     if docker_software["forward_environment_variable"]:
