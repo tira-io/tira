@@ -1201,7 +1201,9 @@ def run_execute_docker_software(
             if dynamic_mounts[k] == "UPLOAD_DIRECTORY":
                 file_field = _mount_config_upload_field_name(k)
                 if file_field not in request.FILES:
-                    return JsonResponse({"status": 1, "message": f"Uploaded zip is required for mounted directory: {k}."})
+                    return JsonResponse(
+                        {"status": 1, "message": f"Uploaded zip is required for mounted directory: {k}."}
+                    )
 
                 try:
                     with zipfile.ZipFile(request.FILES[file_field], "r") as zip_ref:
@@ -1226,7 +1228,9 @@ def run_execute_docker_software(
                     }
                 )
 
-            return JsonResponse({"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."})
+            return JsonResponse(
+                {"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."}
+            )
 
     if mount_directory_upload_requested:
         return JsonResponse(

@@ -66,14 +66,14 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
         response = self._call_endpoint({"mount_config": json.dumps({"primary-input": "EMPTY_DIR"})})
 
         self.assertEqual(200, response.status_code)
-        self.assertJSONEqual(response.content, {"status": 1, "message": "Mounted directory is required: secondary input."})
+        self.assertJSONEqual(
+            response.content, {"status": 1, "message": "Mounted directory is required: secondary input."}
+        )
 
     def test_rejects_invalid_zip_uploads(self):
         response = self._call_endpoint(
             {
-                "mount_config": json.dumps(
-                    {"primary-input": "UPLOAD_DIRECTORY", "secondary input": "EMPTY_DIR"}
-                ),
+                "mount_config": json.dumps({"primary-input": "UPLOAD_DIRECTORY", "secondary input": "EMPTY_DIR"}),
                 _mount_config_upload_field_name("primary-input"): SimpleUploadedFile(
                     "mounted-directory.zip", b"not a valid zip archive", content_type="application/zip"
                 ),
@@ -92,9 +92,7 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
     def test_valid_zip_upload_returns_not_yet_implemented_message(self):
         response = self._call_endpoint(
             {
-                "mount_config": json.dumps(
-                    {"primary-input": "UPLOAD_DIRECTORY", "secondary input": "EMPTY_DIR"}
-                ),
+                "mount_config": json.dumps({"primary-input": "UPLOAD_DIRECTORY", "secondary input": "EMPTY_DIR"}),
                 _mount_config_upload_field_name("primary-input"): self._valid_zip_upload(),
             }
         )
