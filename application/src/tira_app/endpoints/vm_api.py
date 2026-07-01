@@ -10,6 +10,7 @@ import zipfile
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Mapping, Optional
+from urllib.parse import quote
 from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
@@ -43,6 +44,27 @@ include_navigation = False
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
+
+
+def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
+    if request.content_type and "multipart/form-data" in request.content_type:
+        ret = {}
+
+        for field_name in ("forward_environment_variable", "mount_config"):
+            raw_value = request.POST.get(field_name)
+            if raw_value:
+                ret[field_name] = json.loads(raw_value)
+
+        return ret
+
+    if not request.body:
+        return {}
+
+    return json.loads(request.body)
+
+
+def _mount_config_upload_field_name(mount_name: str) -> str:
+    return f"mount_config_upload_{quote(mount_name, safe='')}"
 
 
 # ---------------------------------------------------------------------
@@ -1131,11 +1153,19 @@ def run_execute_docker_software(
             }
         )
 
+    try:
+        request_payload = _load_request_payload(request)
+    except Exception as e:
+        logger.exception("Error parsing run request payload", exc_info=e)
+        return JsonResponse({"status": 1, "message": f"Error parsing request payload. {e}"})
+
     env_to_forward = None
     if docker_software["forward_environment_variable"]:
         required_env_vars = set(docker_software["forward_environment_variable"])
         try:
-            raw_env = json.loads(request.body)["forward_environment_variable"]
+            raw_env = request_payload.get("forward_environment_variable", {})
+            if not isinstance(raw_env, dict):
+                raise ValueError("forward_environment_variable must be a JSON object.")
             env_to_forward = {k: v for k, v in raw_env.items() if k in required_env_vars}
         except Exception as e:
             msg = f"Error forwarding environment variables. {e}"
@@ -1147,21 +1177,64 @@ def run_execute_docker_software(
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
 
     dynamic_mounts = None
+    mount_directory_upload_requested = False
     required_mount_config = docker_software["mount_config"]
     if required_mount_config:
         try:
-            raw_dynamic_mounts = json.loads(request.body)["mount_config"]
+            raw_dynamic_mounts = request_payload.get("mount_config", {})
+            if not isinstance(raw_dynamic_mounts, dict):
+                raise ValueError("mount_config must be a JSON object.")
             dynamic_mounts = {k: v for k, v in raw_dynamic_mounts.items() if k in required_mount_config}
         except Exception as e:
             logger.exception("Error handling the mounts", exc_info=e)
             return JsonResponse({"status": 1, "message": "Error handling the mounts."})
 
         for k in required_mount_config:
-            if k not in dynamic_mounts or dynamic_mounts[k] != "EMPTY_DIR":
-                return JsonResponse({"status": 1, "message": f"Only EMPTY_DIR is currently allowed for {k}."})
+            if k not in dynamic_mounts:
+                return JsonResponse({"status": 1, "message": f"Mounted directory is required: {k}."})
 
         for k in list(dynamic_mounts.keys()):
-            dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+            if dynamic_mounts[k] == "EMPTY_DIR":
+                dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+                continue
+
+            if dynamic_mounts[k] == "UPLOAD_DIRECTORY":
+                file_field = _mount_config_upload_field_name(k)
+                if file_field not in request.FILES:
+                    return JsonResponse({"status": 1, "message": f"Uploaded zip is required for mounted directory: {k}."})
+
+                try:
+                    with zipfile.ZipFile(request.FILES[file_field], "r") as zip_ref:
+                        invalid_member = zip_ref.testzip()
+                        if invalid_member is not None:
+                            raise zipfile.BadZipFile(f"Invalid member in uploaded archive: {invalid_member}")
+                except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
+                    logger.warning("Invalid mounted-directory zip for %s: %s", k, e)
+                    return JsonResponse(
+                        {"status": 1, "message": f"Uploaded file for mounted directory {k} is not a valid zip archive."}
+                    )
+
+                mount_directory_upload_requested = True
+                dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+                continue
+
+            if dynamic_mounts[k] == "OUTPUT_OF_OTHER_EXECUTION":
+                return JsonResponse(
+                    {
+                        "status": 1,
+                        "message": f"Mounting the output of another execution is currently only supported via the command line interface for {k}.",
+                    }
+                )
+
+            return JsonResponse({"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."})
+
+    if mount_directory_upload_requested:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
+            }
+        )
 
     input_run = None
     if (

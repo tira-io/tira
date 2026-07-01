@@ -78,7 +78,7 @@
               hide-details="auto"
               :rules="[
                 v => !!v || `${field.name} is required.`,
-                v => !mount_config_unsupported_options.includes(v) || 'This is currently only supported via the command line interface.'
+                v => !mount_config_cli_only_options.includes(v) || 'This is currently only supported via the command line interface.'
               ]"
             >
               <v-radio
@@ -94,8 +94,18 @@
                 :value="mount_config_options.uploadDirectory"
               />
             </v-radio-group>
+            <v-file-input
+              v-if="mount_config_values[field.name] === mount_config_options.uploadDirectory"
+              v-model="mount_config_uploads[field.name]"
+              accept=".zip,application/zip"
+              label="Zip archive for uploaded directory"
+              prepend-icon="mdi-folder-zip"
+              show-size
+              class="mt-3"
+              :rules="[v => validateMountConfigUpload(field.name, v)]"
+            />
             <v-alert
-              v-if="mount_config_unsupported_options.includes(mount_config_values[field.name])"
+              v-if="mount_config_cli_only_options.includes(mount_config_values[field.name])"
               type="info"
               variant="tonal"
               density="compact"
@@ -120,7 +130,7 @@
 import { inject } from 'vue'
 
 import {Loading, RunList} from "../components"
-import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
+import { get, post_file, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -141,6 +151,7 @@ export default {
       },
       forward_environment_variable_values: {} as Record<string, string>,
       mount_config_values: {} as Record<string, string>,
+      mount_config_uploads: {} as Record<string, File | File[] | null>,
       mount_config_options: {
         emptyDirectory: 'EMPTY_DIR',
         previousExecution: 'OUTPUT_OF_OTHER_EXECUTION',
@@ -171,16 +182,29 @@ export default {
           }
         }
 
-        const params = {
-          ...(this.forward_environment_variable_fields.length > 0
-            ? {'forward_environment_variable': this.forward_environment_variable_payload}
-            : {}),
-          ...(this.mount_config_fields.length > 0
-            ? {'mount_config': this.mount_config_payload}
-            : {})
+        const params = new FormData()
+
+        if (this.forward_environment_variable_fields.length > 0) {
+          params.append('forward_environment_variable', JSON.stringify(this.forward_environment_variable_payload))
         }
 
-        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
+        if (this.mount_config_fields.length > 0) {
+          params.append('mount_config', JSON.stringify(this.mount_config_payload))
+
+          for (const field of this.mount_config_fields) {
+            if (this.mount_config_values[field.name] !== this.mount_config_options.uploadDirectory) {
+              continue
+            }
+
+            const upload = this.selectedMountConfigUpload(field.name)
+
+            if (upload) {
+              params.append(this.mountConfigUploadFieldName(field.name), upload, upload.name)
+            }
+          }
+        }
+
+        post_file(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })
@@ -214,6 +238,41 @@ export default {
       }
 
       this.mount_config_values = values
+    },
+    initializeMountConfigUploads() {
+      let uploads: Record<string, File | File[] | null> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_uploads[field.name]
+        uploads[field.name] = existingValue !== undefined ? existingValue : null
+      }
+
+      this.mount_config_uploads = uploads
+    },
+    selectedMountConfigUpload(fieldName: string) {
+      const upload = this.mount_config_uploads[fieldName]
+
+      if (Array.isArray(upload)) {
+        return upload[0] ?? null
+      }
+
+      return upload ?? null
+    },
+    mountConfigUploadFieldName(fieldName: string) {
+      return `mount_config_upload_${encodeURIComponent(fieldName)}`
+    },
+    validateMountConfigUpload(fieldName: string, value: File | File[] | null) {
+      if (this.mount_config_values[fieldName] !== this.mount_config_options.uploadDirectory) {
+        return true
+      }
+
+      const upload = Array.isArray(value) ? (value[0] ?? null) : value
+
+      if (!upload) {
+        return 'Please upload a zip archive.'
+      }
+
+      return upload.name.toLowerCase().endsWith('.zip') ? true : 'Please select a .zip file.'
     }
   },
   computed: {
@@ -269,10 +328,9 @@ export default {
 
       return ret
     },
-    mount_config_unsupported_options() {
+    mount_config_cli_only_options() {
       return [
-        this.mount_config_options.previousExecution,
-        this.mount_config_options.uploadDirectory
+        this.mount_config_options.previousExecution
       ]
     },
     forward_environment_variable_payload() {
@@ -301,6 +359,7 @@ export default {
           inject_response(this, {'loading': false})(message)
           this.initializeForwardEnvironmentVariableValues()
           this.initializeMountConfigValues()
+          this.initializeMountConfigUploads()
         })
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
