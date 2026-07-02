@@ -1178,6 +1178,7 @@ def run_execute_docker_software(
 
     dynamic_mounts = None
     mount_directory_upload_requested = False
+    mount_output_of_other_execution_requested = False
     required_mount_config = docker_software["mount_config"]
     if required_mount_config:
         try:
@@ -1194,11 +1195,14 @@ def run_execute_docker_software(
                 return JsonResponse({"status": 1, "message": f"Mounted directory is required: {k}."})
 
         for k in list(dynamic_mounts.keys()):
-            if dynamic_mounts[k] == "EMPTY_DIR":
-                dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+            mount_value = dynamic_mounts[k]
+            mount_source = mount_value.get("source") if isinstance(mount_value, dict) else mount_value
+
+            if mount_source == "EMPTY_DIR":
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
                 continue
 
-            if dynamic_mounts[k] == "UPLOAD_DIRECTORY":
+            if mount_source == "UPLOAD_DIRECTORY":
                 file_field = _mount_config_upload_field_name(k)
                 if file_field not in request.FILES:
                     return JsonResponse(
@@ -1217,16 +1221,28 @@ def run_execute_docker_software(
                     )
 
                 mount_directory_upload_requested = True
-                dynamic_mounts[k] = {"source": dynamic_mounts[k], "mode": required_mount_config[k]}
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
                 continue
 
-            if dynamic_mounts[k] == "OUTPUT_OF_OTHER_EXECUTION":
-                return JsonResponse(
-                    {
-                        "status": 1,
-                        "message": f"Mounting the output of another execution is currently only supported via the command line interface for {k}.",
-                    }
-                )
+            if mount_source == "OUTPUT_OF_OTHER_EXECUTION":
+                run_id = mount_value.get("run_id", "") if isinstance(mount_value, dict) else ""
+
+                if not isinstance(run_id, str) or not run_id.strip():
+                    return JsonResponse({"status": 1, "message": f"Run ID is required for mounted directory: {k}."})
+
+                run_id = run_id.strip()
+
+                try:
+                    existing_run = model.get_run(run_id=run_id, vm_id=None, dataset_id=None)
+                except Exception:
+                    existing_run = None
+
+                if not existing_run:
+                    return JsonResponse({"status": 1, "message": f"There is no run with id {run_id}."})
+
+                mount_output_of_other_execution_requested = True
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k], "run_id": run_id}
+                continue
 
             return JsonResponse(
                 {"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."}
@@ -1237,6 +1253,14 @@ def run_execute_docker_software(
             {
                 "status": 1,
                 "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
+            }
+        )
+
+    if mount_output_of_other_execution_requested:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Mounting additional directories from another execution via the web UI is not yet implemented on the server side. The provided run ID was validated successfully.",
             }
         )
 

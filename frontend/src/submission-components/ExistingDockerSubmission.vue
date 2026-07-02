@@ -77,8 +77,7 @@
               density="compact"
               hide-details="auto"
               :rules="[
-                v => !!v || `${field.name} is required.`,
-                v => !mount_config_cli_only_options.includes(v) || 'This is currently only supported via the command line interface.'
+                v => !!v || `${field.name} is required.`
               ]"
             >
               <v-radio
@@ -104,15 +103,13 @@
               class="mt-3"
               :rules="[v => validateMountConfigUpload(field.name, v)]"
             />
-            <v-alert
-              v-if="mount_config_cli_only_options.includes(mount_config_values[field.name])"
-              type="info"
-              variant="tonal"
-              density="compact"
-              class="mt-2"
-            >
-              This is currently only supported via the command line interface.
-            </v-alert>
+            <v-text-field
+              v-if="mount_config_values[field.name] === mount_config_options.previousExecution"
+              v-model="mount_config_previous_execution_run_ids[field.name]"
+              label="Run ID to mount"
+              class="mt-3"
+              :rules="[v => validateMountConfigPreviousExecutionRunId(field.name, v)]"
+            />
           </v-card>
         </div>
         
@@ -152,6 +149,7 @@ export default {
       forward_environment_variable_values: {} as Record<string, string>,
       mount_config_values: {} as Record<string, string>,
       mount_config_uploads: {} as Record<string, File | File[] | null>,
+      mount_config_previous_execution_run_ids: {} as Record<string, string>,
       mount_config_options: {
         emptyDirectory: 'EMPTY_DIR',
         previousExecution: 'OUTPUT_OF_OTHER_EXECUTION',
@@ -249,6 +247,16 @@ export default {
 
       this.mount_config_uploads = uploads
     },
+    initializeMountConfigPreviousExecutionRunIds() {
+      let runIds: Record<string, string> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_previous_execution_run_ids[field.name]
+        runIds[field.name] = existingValue !== undefined ? existingValue : ''
+      }
+
+      this.mount_config_previous_execution_run_ids = runIds
+    },
     selectedMountConfigUpload(fieldName: string) {
       const upload = this.mount_config_uploads[fieldName]
 
@@ -273,6 +281,13 @@ export default {
       }
 
       return upload.name.toLowerCase().endsWith('.zip') ? true : 'Please select a .zip file.'
+    },
+    validateMountConfigPreviousExecutionRunId(fieldName: string, value: string) {
+      if (this.mount_config_values[fieldName] !== this.mount_config_options.previousExecution) {
+        return true
+      }
+
+      return value && value.trim().length > 0 ? true : 'Please provide a run ID.'
     }
   },
   computed: {
@@ -328,11 +343,6 @@ export default {
 
       return ret
     },
-    mount_config_cli_only_options() {
-      return [
-        this.mount_config_options.previousExecution
-      ]
-    },
     forward_environment_variable_payload() {
       let ret: Record<string, string> = {}
 
@@ -343,10 +353,20 @@ export default {
       return ret
     },
     mount_config_payload() {
-      let ret: Record<string, string> = {}
+      let ret: Record<string, string | { source: string, run_id: string }> = {}
 
       for (const field of this.mount_config_fields) {
-        ret[field.name] = this.mount_config_values[field.name]
+        const selectedMountSource = this.mount_config_values[field.name]
+
+        if (selectedMountSource === this.mount_config_options.previousExecution) {
+          ret[field.name] = {
+            source: selectedMountSource,
+            run_id: this.mount_config_previous_execution_run_ids[field.name].trim()
+          }
+          continue
+        }
+
+        ret[field.name] = selectedMountSource
       }
 
       return ret
@@ -360,6 +380,7 @@ export default {
           this.initializeForwardEnvironmentVariableValues()
           this.initializeMountConfigValues()
           this.initializeMountConfigUploads()
+          this.initializeMountConfigPreviousExecutionRunIds()
         })
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

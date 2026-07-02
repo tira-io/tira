@@ -697,8 +697,10 @@ class MonitoredExecution:
             try:
                 method(output_dir)
             except Exception as e:
-                exception_text = "\n\n" + str(repr(e))
-                (ret / "exception.txt").write_text(str(repr(e)))
+                print(str(repr(e)))
+                print(e)
+                exception_text = "\n\n" + str(repr(e)) + "\n\n" + str(e)
+                (ret / "exception.txt").write_text(exception_text)
 
         (ret / "stdout.txt").write_text(self.stdout.getvalue() + exception_text)
         (ret / "stderr.txt").write_text(self.stderr.getvalue() + exception_text)

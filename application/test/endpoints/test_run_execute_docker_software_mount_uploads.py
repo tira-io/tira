@@ -28,6 +28,12 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
             mount_config=json.dumps({"primary-input": "ro", "secondary input": "rw"}),
             deleted=False,
         )
+        cls.existing_run = modeldb.Run.objects.create(
+            run_id="existing-run-for-mounted-directory",
+            docker_software=cls.software,
+            input_dataset=modeldb.Dataset.objects.get(dataset_id=dataset_1),
+            task=modeldb.Task.objects.get(task_id="shared-task-1"),
+        )
 
     def _request(self, data):
         request = self.factory.post(
@@ -103,5 +109,74 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
             {
                 "status": 1,
                 "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
+            },
+        )
+
+    def test_requires_run_id_for_previous_execution_mount(self):
+        response = self._call_endpoint(
+            {
+                "mount_config": json.dumps(
+                    {
+                        "primary-input": {"source": "OUTPUT_OF_OTHER_EXECUTION"},
+                        "secondary input": "EMPTY_DIR",
+                    }
+                )
+            }
+        )
+
+        self.assertEqual(200, response.status_code)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "status": 1,
+                "message": "Run ID is required for mounted directory: primary-input.",
+            },
+        )
+
+    def test_rejects_unknown_run_id_for_previous_execution_mount(self):
+        response = self._call_endpoint(
+            {
+                "mount_config": json.dumps(
+                    {
+                        "primary-input": {
+                            "source": "OUTPUT_OF_OTHER_EXECUTION",
+                            "run_id": "does-not-exist",
+                        },
+                        "secondary input": "EMPTY_DIR",
+                    }
+                )
+            }
+        )
+
+        self.assertEqual(200, response.status_code)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "status": 1,
+                "message": "There is no run with id does-not-exist.",
+            },
+        )
+
+    def test_valid_run_id_returns_not_yet_implemented_message(self):
+        response = self._call_endpoint(
+            {
+                "mount_config": json.dumps(
+                    {
+                        "primary-input": {
+                            "source": "OUTPUT_OF_OTHER_EXECUTION",
+                            "run_id": self.existing_run.run_id,
+                        },
+                        "secondary input": "EMPTY_DIR",
+                    }
+                )
+            }
+        )
+
+        self.assertEqual(200, response.status_code)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "status": 1,
+                "message": "Mounting additional directories from another execution via the web UI is not yet implemented on the server side. The provided run ID was validated successfully.",
             },
         )
