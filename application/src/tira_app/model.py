@@ -321,6 +321,10 @@ class AnonymousUploads(models.Model):
 
 
 class DockerSoftware(models.Model):
+    class CacheBehaviour(models.TextChoices):
+        DETERMINISTIC = "deterministic", "deterministic"
+        NOT_DETERMINISTIC = "not-deterministic", "not-deterministic"
+
     docker_software_id = models.AutoField(primary_key=True)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
@@ -344,12 +348,42 @@ class DockerSoftware(models.Model):
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
     forward_environment_variable = models.TextField(default=None, null=True)
+    cache_behaviour = models.CharField(
+        max_length=17,
+        default=None,
+        null=True,
+        choices=CacheBehaviour.choices,
+    )
+    mount_config = models.TextField(default=None, null=True)
+
+    @classmethod
+    def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:
+        if cache_behaviour in (None, ""):
+            return None
+
+        if cache_behaviour not in cls.CacheBehaviour.values:
+            allowed = ", ".join(cls.CacheBehaviour.values)
+            raise ValueError(f"Invalid cache_behaviour '{cache_behaviour}'. Allowed values are: {allowed}.")
+
+        return cache_behaviour
+
+    def save(self, *args, **kwargs):
+        self.cache_behaviour = self.normalize_cache_behaviour(self.cache_behaviour)
+        return super().save(*args, **kwargs)
 
     def get_workflow_configuration(self) -> Optional[Any]:
         if not self.workflow_configuration:
             return None
         try:
             return json.loads(self.workflow_configuration)
+        except json.JSONDecodeError:
+            return None
+
+    def get_mount_config(self) -> Optional[Any]:
+        if not self.mount_config:
+            return None
+        try:
+            return json.loads(self.mount_config)
         except json.JSONDecodeError:
             return None
 

@@ -136,3 +136,38 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         run_kwargs = client.containers.run.call_args.kwargs
         self.assertEqual(2, run_kwargs["cpu_count"])
         self.assertNotIn("nano_cpus", run_kwargs)
+
+    def test_run_mounts_dict_mount_directory_with_requested_mode(self):
+        integration = LocalExecutionIntegration()
+
+        container = Mock()
+        container.id = "container-1"
+        container.attach.return_value = iter([b"container output\n"])
+        container.wait.return_value = {"StatusCode": 0}
+
+        client = Mock()
+        client.containers.run.return_value = container
+
+        with (
+            tempfile.TemporaryDirectory() as input_dir,
+            tempfile.TemporaryDirectory() as output_dir,
+            tempfile.TemporaryDirectory() as mount_dir,
+        ):
+            with patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ):
+                integration.ensure_image_available_locally = Mock()
+                integration.tirex_tracker_available_in_docker_image = Mock(return_value=False)
+                integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+
+                integration.run(
+                    image="test-image",
+                    command="echo hello",
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                    mount_directory={"CACHE_DIR": {"path": mount_dir, "mode": "rw"}},
+                )
+
+        run_kwargs = client.containers.run.call_args.kwargs
+        self.assertEqual("rw", run_kwargs["volumes"][mount_dir]["mode"])

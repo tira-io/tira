@@ -587,6 +587,8 @@ def add_docker_software(
     workflow_configuration: "Optional[str]" = None,
     external_docker_registry: "Optional[bool]" = False,
     forward_environment_variable: "Optional[str]" = None,
+    cache_behaviour: "Optional[str]" = None,
+    mount_config: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -639,6 +641,8 @@ def add_docker_software(
         tira_image_workdir,
         workflow_configuration,
         forward_environment_variable,
+        cache_behaviour,
+        mount_config,
     )
 
 

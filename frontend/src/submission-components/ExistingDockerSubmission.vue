@@ -52,6 +52,9 @@
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
+        <div v-if="forward_environment_variable_fields.length > 0" class="text-subtitle-1 mt-4 mb-2">
+          Environment variables
+        </div>
         <v-text-field
           v-for="field in forward_environment_variable_fields"
           :key="field.name"
@@ -59,6 +62,56 @@
           :label="field.label"
           :rules="[v => !!(v && v.length) || `${field.name} is required.`]"
         />
+        <div v-if="mount_config_fields.length > 0" class="text-subtitle-1 mt-4 mb-2">
+          Additional mounted directories
+        </div>
+        <div
+          v-for="field in mount_config_fields"
+          :key="`mount-config-${field.name}`"
+          class="mb-4"
+        >
+          <v-card variant="outlined" class="pa-3">
+            <div class="text-subtitle-2 mb-2">{{ field.label }}</div>
+            <v-radio-group
+              v-model="mount_config_values[field.name]"
+              density="compact"
+              hide-details="auto"
+              :rules="[
+                v => !!v || `${field.name} is required.`
+              ]"
+            >
+              <v-radio
+                label="Mount a new empty directory"
+                :value="mount_config_options.emptyDirectory"
+              />
+              <v-radio
+                label="Mount the output of some other execution"
+                :value="mount_config_options.previousExecution"
+              />
+              <v-radio
+                label="Upload directory"
+                :value="mount_config_options.uploadDirectory"
+              />
+            </v-radio-group>
+            <v-file-input
+              v-if="mount_config_values[field.name] === mount_config_options.uploadDirectory"
+              v-model="mount_config_uploads[field.name]"
+              accept=".zip,application/zip"
+              label="Zip archive for uploaded directory"
+              prepend-icon="mdi-folder-zip"
+              show-size
+              class="mt-3"
+              :rules="[v => validateMountConfigUpload(field.name, v)]"
+            />
+            <v-text-field
+              v-if="mount_config_values[field.name] === mount_config_options.previousExecution"
+              v-model="mount_config_previous_execution_run_ids[field.name]"
+              label="Run ID to mount"
+              class="mt-3"
+              :rules="[v => validateMountConfigPreviousExecutionRunId(field.name, v)]"
+            />
+          </v-card>
+        </div>
         
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
@@ -74,7 +127,7 @@
 import { inject } from 'vue'
 
 import {Loading, RunList} from "../components"
-import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
+import { get, post_file, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -90,9 +143,18 @@ export default {
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }],
         'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
         'workflow_configuration': {} as { [key: string]: string },
-        'forward_environment_variable': [] as string[]
+        'forward_environment_variable': [] as string[],
+        'mount_config': {} as Record<string, string>
       },
       forward_environment_variable_values: {} as Record<string, string>,
+      mount_config_values: {} as Record<string, string>,
+      mount_config_uploads: {} as Record<string, File | File[] | null>,
+      mount_config_previous_execution_run_ids: {} as Record<string, string>,
+      mount_config_options: {
+        emptyDirectory: 'EMPTY_DIR',
+        previousExecution: 'OUTPUT_OF_OTHER_EXECUTION',
+        uploadDirectory: 'UPLOAD_DIRECTORY'
+      },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
       rest_url: inject("REST base URL"),
       userinfo: inject('userinfo') as UserInfo,
@@ -118,11 +180,29 @@ export default {
           }
         }
 
-        const params = this.forward_environment_variable_fields.length > 0
-          ? {'forward_environment_variable': this.forward_environment_variable_payload}
-          : {}
+        const params = new FormData()
 
-        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
+        if (this.forward_environment_variable_fields.length > 0) {
+          params.append('forward_environment_variable', JSON.stringify(this.forward_environment_variable_payload))
+        }
+
+        if (this.mount_config_fields.length > 0) {
+          params.append('mount_config', JSON.stringify(this.mount_config_payload))
+
+          for (const field of this.mount_config_fields) {
+            if (this.mount_config_values[field.name] !== this.mount_config_options.uploadDirectory) {
+              continue
+            }
+
+            const upload = this.selectedMountConfigUpload(field.name)
+
+            if (upload) {
+              params.append(this.mountConfigUploadFieldName(field.name), upload, upload.name)
+            }
+          }
+        }
+
+        post_file(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, params, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })
@@ -146,6 +226,68 @@ export default {
       }
 
       this.forward_environment_variable_values = values
+    },
+    initializeMountConfigValues() {
+      let values: Record<string, string> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_values[field.name]
+        values[field.name] = existingValue !== undefined ? existingValue : this.mount_config_options.emptyDirectory
+      }
+
+      this.mount_config_values = values
+    },
+    initializeMountConfigUploads() {
+      let uploads: Record<string, File | File[] | null> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_uploads[field.name]
+        uploads[field.name] = existingValue !== undefined ? existingValue : null
+      }
+
+      this.mount_config_uploads = uploads
+    },
+    initializeMountConfigPreviousExecutionRunIds() {
+      let runIds: Record<string, string> = {}
+
+      for (const field of this.mount_config_fields) {
+        const existingValue = this.mount_config_previous_execution_run_ids[field.name]
+        runIds[field.name] = existingValue !== undefined ? existingValue : ''
+      }
+
+      this.mount_config_previous_execution_run_ids = runIds
+    },
+    selectedMountConfigUpload(fieldName: string) {
+      const upload = this.mount_config_uploads[fieldName]
+
+      if (Array.isArray(upload)) {
+        return upload[0] ?? null
+      }
+
+      return upload ?? null
+    },
+    mountConfigUploadFieldName(fieldName: string) {
+      return `mount_config_upload_${encodeURIComponent(fieldName)}`
+    },
+    validateMountConfigUpload(fieldName: string, value: File | File[] | null) {
+      if (this.mount_config_values[fieldName] !== this.mount_config_options.uploadDirectory) {
+        return true
+      }
+
+      const upload = Array.isArray(value) ? (value[0] ?? null) : value
+
+      if (!upload) {
+        return 'Please upload a zip archive.'
+      }
+
+      return upload.name.toLowerCase().endsWith('.zip') ? true : 'Please select a .zip file.'
+    },
+    validateMountConfigPreviousExecutionRunId(fieldName: string, value: string) {
+      if (this.mount_config_values[fieldName] !== this.mount_config_options.previousExecution) {
+        return true
+      }
+
+      return value && value.trim().length > 0 ? true : 'Please provide a run ID.'
     }
   },
   computed: {
@@ -187,11 +329,44 @@ export default {
 
       return ret
     },
+    mount_config_fields() {
+      let ret: { name: string; label: string }[] = []
+      const mountConfig = this.docker_software_details.mount_config
+
+      if (!mountConfig || Array.isArray(mountConfig) || Object.keys(mountConfig).length === 0) {
+        return ret
+      }
+
+      for (const mountName of Object.keys(mountConfig)) {
+        ret.push({"name": mountName, "label": mountName})
+      }
+
+      return ret
+    },
     forward_environment_variable_payload() {
       let ret: Record<string, string> = {}
 
       for (const field of this.forward_environment_variable_fields) {
         ret[field.name] = this.forward_environment_variable_values[field.name]
+      }
+
+      return ret
+    },
+    mount_config_payload() {
+      let ret: Record<string, string | { source: string, run_id: string }> = {}
+
+      for (const field of this.mount_config_fields) {
+        const selectedMountSource = this.mount_config_values[field.name]
+
+        if (selectedMountSource === this.mount_config_options.previousExecution) {
+          ret[field.name] = {
+            source: selectedMountSource,
+            run_id: this.mount_config_previous_execution_run_ids[field.name].trim()
+          }
+          continue
+        }
+
+        ret[field.name] = selectedMountSource
       }
 
       return ret
@@ -203,6 +378,9 @@ export default {
         .then((message) => {
           inject_response(this, {'loading': false})(message)
           this.initializeForwardEnvironmentVariableValues()
+          this.initializeMountConfigValues()
+          this.initializeMountConfigUploads()
+          this.initializeMountConfigPreviousExecutionRunIds()
         })
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

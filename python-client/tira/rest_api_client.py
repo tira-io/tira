@@ -268,6 +268,8 @@ class Client(TiraClient):
         workflow_configuration=None,
         external_docker_registry=False,
         forward_environment_variable=None,
+        cache_behaviour=None,
+        mount_config=None,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -289,6 +291,12 @@ class Client(TiraClient):
 
         if forward_environment_variable:
             content["forward_environment_variable"] = json.dumps(forward_environment_variable)
+
+        if cache_behaviour and isinstance(cache_behaviour, str):
+            content["cache_behaviour"] = cache_behaviour
+
+        if mount_config:
+            content["mount_config"] = json.dumps(mount_config)
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages
@@ -681,6 +689,22 @@ class Client(TiraClient):
             raise ValueError(msg)
 
         return ret
+
+    def private_system_details(self, approach):
+        task, team, system = approach.split("/")
+        endpoint = f"/api/submissions-for-task/{task}/{team}/code"
+        systems = self.json_response(endpoint)["context"]["code"]["submissions"]
+
+        docker_ids = set()
+        for system_desc in systems:
+            if system_desc["display_name"] == system:
+                docker_ids.add(system_desc["docker_software_id"])
+
+        if len(docker_ids) != 1:
+            raise ValueError(f"I did not find a unique system with name {system}. Found {docker_ids}")
+
+        endpoint = f"/api/docker-softwares-details/{team}/{list(docker_ids)[0]}"
+        return self.json_response(endpoint)["context"]["docker_software_details"]
 
     def get_run_execution_or_none(self, approach: str, dataset: str, previous_stage_run_id: str = None) -> Dict:
         task, team, software = approach.split("/")

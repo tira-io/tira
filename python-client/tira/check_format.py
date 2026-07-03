@@ -49,6 +49,19 @@ def log_message(message: str, level: _fmt):
     print(fmt_message(message, level))
 
 
+def clean_logger(header: str):
+    all_messages = []
+
+    def print_message(message, level):
+        all_messages.append((message, level))
+        os.system("cls" if os.name == "nt" else "clear")
+        print(header)
+        for m, l in all_messages:
+            log_message(m, l)
+
+    return print_message
+
+
 CONF_REQUIRED_FIELDS = "required_fields"
 CONF_MINIMUM_LINES = "minimum_lines"
 CONF_ID_FIELD = "id_field"

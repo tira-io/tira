@@ -1,14 +1,23 @@
 import ast
+import io
 import shutil
 import tempfile
 import unittest
 import zipfile
+from contextlib import redirect_stdout
 from pathlib import Path
 from subprocess import CalledProcessError
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from tira.check_format import _fmt
-from tira.io_utils import _md5_of_file, resolve_mirrored_resources, sanitize_text, verify_tirex_tracker, zip_dir
+from tira.io_utils import (
+    TeeStringIO,
+    _md5_of_file,
+    resolve_mirrored_resources,
+    sanitize_text,
+    verify_tirex_tracker,
+    zip_dir,
+)
 
 from .format_check import IR_METADATA_MULTIPLE_VALID
 
@@ -18,6 +27,38 @@ TRUTHS_ZIP_MD5 = "f28e36759760c9520e7831aba86c4d23"
 
 
 class TestIoUtils(unittest.TestCase):
+    def test_tee_string_io_writes_to_internal_io_and_buffer(self):
+        sink = io.StringIO()
+        tee = TeeStringIO(sink)
+
+        written = tee.write("hello world")
+
+        self.assertEqual(len("hello world"), written)
+        self.assertEqual("hello world", sink.getvalue())
+        self.assertEqual("hello world", tee.getvalue())
+
+    def test_tee_string_io_flushes_internal_io_after_each_write(self):
+        sink = Mock()
+        tee = TeeStringIO(sink)
+
+        tee.write("hello")
+        tee.write(" world")
+
+        self.assertEqual("hello world", tee.getvalue())
+        self.assertEqual([("hello",), (" world",)], [call.args for call in sink.write.call_args_list])
+        self.assertEqual(2, sink.flush.call_count)
+
+    def test_tee_string_io_works_with_redirect_stdout(self):
+        sink = io.StringIO()
+        tee = TeeStringIO(sink)
+
+        with redirect_stdout(tee):
+            print("hello")
+            print("world", end="")
+
+        self.assertEqual("hello\nworld", sink.getvalue())
+        self.assertEqual("hello\nworld", tee.getvalue())
+
     def test_sanitize_text_keeps_valid_utf8_text(self):
         self.assertEqual("hello äöü 😀", sanitize_text("hello äöü 😀"))
 

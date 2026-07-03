@@ -469,6 +469,104 @@ class LocalExecutionIntegration:
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode("utf-8"), flush=True)
 
+    def run_workflow(
+        self,
+        identifier=None,
+        image=None,
+        command=None,
+        input_dir=None,
+        output_dir=None,
+        evaluate=False,
+        dry_run=False,
+        docker_software_id_to_output=None,
+        software_id=None,
+        allow_network=False,
+        input_run=None,
+        additional_volumes=None,
+        eval_dir="tira-evaluation",
+        gpu_count=0,
+        cpu_count=None,
+        mem_limit=None,
+        gpu_device_ids=None,
+        forward_environment_variables=None,
+        mount_directory=None,
+        platform="linux/amd64",
+        task_workflow_configuration=None,
+        software_workflow_configuration=None,
+        dynamic_mounts=None,
+    ):
+        from tira.workflows import run_workflow
+
+        mount_directory = {}
+        cache_directory = {}
+        from shutil import copytree
+
+        if dynamic_mounts:
+            from tira.third_party_integrations import temporary_directory
+
+            for k, v in dynamic_mounts.items():
+
+                if v["source"] == "EMPTY_DIR" and v["mode"] == "rw":
+                    cache_directory[k] = temporary_directory()
+                elif Path(v["source"]).is_dir() and v["mode"] == "rw":
+                    cache_directory[k] = temporary_directory() / "cache"
+                    copytree(v["source"], cache_directory[k])
+                elif Path(v["source"]).is_dir() and v["mode"] == "ro":
+                    cache_directory[k] = v["source"]
+                else:
+                    mount_directory[k] = temporary_directory()
+
+            print("cache_directory", cache_directory)
+            print("mount_directory", mount_directory)
+
+        if not software_workflow_configuration:
+            software_workflow_configuration = {}
+
+        software_workflow_configuration["image"] = image
+        if "command" not in software_workflow_configuration:
+            software_workflow_configuration["command"] = command
+
+        def run_tmp(i):
+            run_results = run_workflow(
+                input_dir,
+                task_workflow_configuration["name"],
+                task_workflow_configuration,
+                software_workflow_configuration,
+                allow_network=allow_network,
+                additional_volumes=additional_volumes,
+                gpu_device_ids=gpu_device_ids,
+                tira=self.tira_client,
+                forward_environment_variables=forward_environment_variables,
+                cache_directory=cache_directory,
+                mount_directory=mount_directory,
+                platform=platform,
+                gpu_count=gpu_count,
+                cpu_count=cpu_count,
+                mem_limit=mem_limit,
+            )
+            os.rmdir(i)
+            print(run_results.message)
+            copytree(run_results.run / "output", i)
+
+            try:
+                print((run_results.run / "stdout.txt").read_text())
+            except Exception:
+                pass
+
+            try:
+                print((run_results.run / "stderr.txt").read_text(), file=sys.stderr)
+            except Exception:
+                pass
+
+            for k in cache_directory.keys():
+                try:
+                    copytree(run_results.run / k, i.parent / k)
+                except Exception:
+                    print("something failed ....")
+                    pass
+
+        run_tmp(output_dir)
+
     def run(
         self,
         identifier=None,
@@ -491,7 +589,38 @@ class LocalExecutionIntegration:
         forward_environment_variables=None,
         mount_directory=None,
         platform="linux/amd64",
+        task_workflow_configuration=None,
+        software_workflow_configuration=None,
+        dynamic_mounts=None,
     ):
+        if task_workflow_configuration is not None or software_workflow_configuration is not None:
+            self.run_workflow(
+                identifier,
+                image,
+                command,
+                input_dir,
+                output_dir,
+                evaluate,
+                dry_run,
+                docker_software_id_to_output,
+                software_id,
+                allow_network,
+                input_run,
+                additional_volumes,
+                eval_dir,
+                gpu_count,
+                cpu_count,
+                mem_limit,
+                gpu_device_ids,
+                forward_environment_variables,
+                mount_directory,
+                platform,
+                task_workflow_configuration,
+                software_workflow_configuration,
+                dynamic_mounts,
+            )
+            return
+
         previous_stages = []
         original_args = {
             "identifier": identifier,
@@ -591,7 +720,9 @@ class LocalExecutionIntegration:
         if mount_directory:
             for i, (k, v) in enumerate(mount_directory.items()):
                 target_dir = f"/tira-data/mounted/{i}"
-                volumes[v] = {"bind": target_dir, "mode": "ro"}
+                volume_dir = v["path"] if isinstance(v, dict) else v
+                volume_mode = v.get("mode", "ro") if isinstance(v, dict) else "ro"
+                volumes[volume_dir] = {"bind": target_dir, "mode": volume_mode}
                 environment[k] = target_dir
 
         if input_run:

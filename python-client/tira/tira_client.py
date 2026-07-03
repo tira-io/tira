@@ -251,22 +251,45 @@ class TiraClient(ABC):
             print(msg)
             raise ValueError(msg)
 
-    def evaluate(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
+    def evaluate(self, predictions: Path, truths: Path, dataset: str = None) -> None:
+        """TBD"""
+        eval_config = self.get_dataset(dataset)
+        if not truths:
+            if "task_id" in eval_config:
+                task_id = eval_config["task_id"]
+            elif "default_task" in eval_config:
+                task_id = eval_config["default_task"]
+            else:
+                raise ValueError("Task configuration is invalid")
+
+            truths = Path(self.download_dataset(task_id, eval_config["dataset_id"], truth_dataset=True))
+
+        from tira.evaluators import evaluate, load_evaluator_config
+
+        use_unsandboxed_evaluator = False
+
+        try:
+            load_evaluator_config(eval_config, self)
+            use_unsandboxed_evaluator = True
+        except:
+            pass
+
+        if use_unsandboxed_evaluator:
+            return evaluate(Path(predictions), Path(truths), eval_config)
+        else:
+            from tira.third_party_integrations import temporary_directory
+
+            ret = temporary_directory()
+            self.evaluate_sandboxed(Path(predictions), dataset, ret)
+            return ret
+
+    def evaluate_sandboxed(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
         """Evaluate some predictions made for some dataset on your local machine.
 
         Args:
             directory (Path): The path to the directory that contains the predictions that you want to evaluate.
             dataset_id (str): The ID of the TIRA dataset on which the directory is to be evaluated.
         """
-        all_messages = []
-
-        def print_message(message, level):
-            all_messages.append((message, level))
-            os.system("cls" if os.name == "nt" else "clear")
-            print(f"TIRA Evaluation on '{dataset_id}':")
-            for m, l in all_messages:
-                log_message(m, l)
-
         dataset_handle = self.get_dataset(dataset_id)
         if (
             not dataset_handle
@@ -285,7 +308,7 @@ class TiraClient(ABC):
             raise ValueError("Dataset configuration has no evaluator configured: " + str(dataset_handle))
 
         if not directory or not directory.exists():
-            print_message(f"The directory {directory} does not exist.", _fmt.ERROR)
+            log_message(f"The directory {directory} does not exist.", _fmt.ERROR)
             raise ValueError(f"The directory {directory} does not exist.")
 
         format_config = dataset_handle.get("format_configuration", {})
@@ -293,17 +316,17 @@ class TiraClient(ABC):
         if result != _fmt.OK:
             log_message(msg, result)
             raise ValueError(msg)
-        print_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
+        log_message(f"The predictions in {directory} have the expected format.", _fmt.OK)
 
         dataset_path = self.download_dataset(dataset_handle["default_task"], dataset_id, truth_dataset=True)
-        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
+        log_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         preds = self.__run_evaluation(
             dataset_handle["evaluator"]["image"],
             dataset_handle["evaluator"]["command"],
             directory,
             dataset_path,
-            print_message,
+            log_message,
             results_dir,
         )
 
@@ -432,8 +455,10 @@ class TiraClient(ABC):
         forward_environment_variable: "Optional[list[str]]" = None,
         build_args: "Optional[str]" = None,
         mount_directory: "Optional[list[str]]" = None,
+        mount_cache: "Optional[list[str]]" = None,
         platform: "Optional[str]" = None,
         gpus: "Optional[str]" = None,
+        cache_behaviour: "Optional[str]" = None,
     ):
         """Build a tira submission from a git repository.
 
@@ -530,6 +555,19 @@ class TiraClient(ABC):
                 print_message(message, lvl)
 
         resolved_mount_directory = resolve_mount_directory(mount_directory, self, dataset_id)
+        resolved_cache_directory = resolve_mount_directory(mount_cache, self, dataset_id, "EMPTY")
+        mount_config = None if not mount_directory and not mount_cache else {}
+
+        if mount_directory:
+            mount_config.update({k.split("=")[0].replace("$", ""): "ro" for k in mount_directory})
+        if mount_cache:
+            mount_config.update({k.split("=")[0].replace("$", ""): "rw" for k in mount_cache})
+
+        if cache_behaviour and cache_behaviour != "deterministic":
+            raise ValueError("TODO: Only deterministic cache-behaviour is supported for uploads at the moment...")
+
+        if cache_behaviour:
+            workflow_configuration = {"name": "cached-execution"}
 
         if platform is None:
             platform = "linux/amd64"
@@ -560,6 +598,34 @@ class TiraClient(ABC):
         elif "CUDA_VISIBLE_DEVICES" in os.environ and os.environ["CUDA_VISIBLE_DEVICES"]:
             gpu_device_ids = [os.environ["CUDA_VISIBLE_DEVICES"]]
 
+        def run_via_workflow():
+            from tira.workflows import run_workflow
+
+            workflow_software_configuration["image"] = docker_tag
+            workflow_software_configuration["command"] = command
+            workflow_result = run_workflow(
+                dataset_path,
+                workflow_configuration["name"],
+                workflow_configuration,
+                workflow_software_configuration,
+                allow_network=allow_network,
+                additional_volumes=hf_models,
+                gpu_device_ids=gpu_device_ids,
+                tira=self,
+                forward_environment_variables=forward_environment_variable,
+                mount_directory=resolved_mount_directory,
+                cache_directory=resolved_cache_directory,
+            )
+            if workflow_result.level != _fmt.OK:
+                log_message(workflow_result.message, workflow_result.level)
+                if workflow_result.run:
+                    print(
+                        f"You can expect the output of your software at {workflow_result.run}. The inputs are at {dataset_path}"
+                    )
+
+                raise ValueError(workflow_result.message)
+            return workflow_result
+
         tmp_dir = temporary_directory()
         if workflow_configuration is None:
             self.local_execution.run(
@@ -575,32 +641,10 @@ class TiraClient(ABC):
                 platform=platform,
             )
         else:
-            from tira.workflows import run_workflow
-
             if not workflow_software_configuration:
                 workflow_software_configuration = {}
-
-            workflow_software_configuration["image"] = docker_tag
-            workflow_result = run_workflow(
-                dataset_path,
-                workflow_configuration["name"],
-                workflow_configuration,
-                workflow_software_configuration,
-                allow_network=allow_network,
-                additional_volumes=hf_models,
-                gpu_device_ids=gpu_device_ids,
-                tira=self,
-                forward_environment_variables=forward_environment_variable,
-                mount_directory=resolved_mount_directory,
-            )
-            if workflow_result.level != _fmt.OK:
-                print_message(workflow_result.message, workflow_result.level)
-                if workflow_result.run:
-                    print(
-                        f"You can expect the output of your software at {workflow_result.run}. The inputs are at {dataset_path}"
-                    )
-
-                raise ValueError(workflow_result.message)
+            workflow_result = run_via_workflow()
+            print_message(workflow_result.message, _fmt.OK)
             del workflow_software_configuration["image"]
             workflow_software_configuration["workflow_configuration"] = workflow_configuration
             tmp_dir = workflow_result.run / "output"
@@ -617,6 +661,32 @@ class TiraClient(ABC):
             _fmt.OK,
         )
         shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
+
+        if cache_behaviour and cache_behaviour == "deterministic":
+            print("Re-execute ...")
+            os.environ["OPENAI_BASE_URL"] = "EMPTY"
+            os.environ["OPENAI_API_KEY"] = "EMPTY"
+            if not resolved_mount_directory:
+                resolved_mount_directory = {}
+
+            for k in list(resolved_cache_directory.keys()):
+                resolved_cache_directory[k] = str((tmp_dir.parent / k).resolve().absolute())
+
+            workflow_result = run_via_workflow()
+
+            result, msg = check_format(
+                Path(workflow_result.run / "output"), dataset_handle["format"], format_configuration
+            )
+            if result != _fmt.OK:
+                print(result.me)
+                raise ValueError(msg)
+            msg = "Re-executing the software from the CACHE_DIR did yield valid results"
+            msg += f" (verify at {workflow_result.run}). Modified environment variables were:"
+            for i in ["OPENAI_BASE_URL", "OPENAI_API_KEY ", "OPENAI_MODEL   "]:
+                msg += f"\n  {i} = {os.environ[i.strip()]}"
+            print_message(msg, _fmt.OK)
+            workflow_configuration = None
+            workflow_software_configuration = None
 
         if not dry_run:
             print("Upload Code Submission image...")
@@ -666,6 +736,8 @@ class TiraClient(ABC):
                 workflow_configuration=workflow_software_configuration,
                 external_docker_registry=external_docker_registry is not None,
                 forward_environment_variable=forward_environment_variable if forward_environment_variable else None,
+                cache_behaviour=cache_behaviour,
+                mount_config=mount_config,
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
@@ -965,16 +1037,11 @@ class TiraClient(ABC):
 
                 workflow_software_config["image"] = docker_tag
                 workflow_output = run_workflow(
-                    inputs_dir,
-                    workflow_config["name"],
-                    workflow_config,
-                    workflow_software_config,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    self,
+                    system_inputs=inputs_dir,
+                    workflow=workflow_config["name"],
+                    workflow_configuration=workflow_config,
+                    software=workflow_software_config,
+                    tira=self,
                 )
                 if workflow_output.level != _fmt.OK:
                     log_message(

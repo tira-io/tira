@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import urlparse
 
 from django.core.cache import cache
 from django.core.management.base import BaseCommand
@@ -37,6 +38,19 @@ class Command(BaseCommand):
             return
 
         print(software)
+        normalized_image_name = (software.tira_image_name or "").strip().lower()
+        parsed_image_name = urlparse(normalized_image_name)
+        image_host = parsed_image_name.hostname
+        if image_host is None:
+            image_host = urlparse(f"//{normalized_image_name}").hostname
+        if image_host == "ghcr.io":
+            software.public_image_name = software.tira_image_name
+            image_metadata = docker_image_details(software.tira_image_name)
+            # for ghcr images we do not get their sizes...
+            software.public_image_size = -1
+            software.save()
+            return
+
         image_name = (slugify(software.tira_image_name)).replace("/", "-")
         dockerhub_image = f"docker.io/webis/{task_id}-submissions:" + image_name.split("-tira-user-")[1].strip()
 

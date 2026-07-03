@@ -3,7 +3,7 @@ import unittest
 
 from tira.check_format import lines_if_valid
 
-from ..format_check import _ERROR, _OK, JSONL_OUTPUT_VALID
+from ..format_check import _ERROR, _OK, JSONL_OUTPUT_INVALID, JSONL_OUTPUT_VALID
 
 
 def pseudo_watermarking(input_dir, output_dir):
@@ -46,10 +46,15 @@ def wrong_detection_command(input_dir, output_dir):
     print("detection that does not write a file...")
 
 
+def wrong_obfuscation(input_dir, output_dir):
+    print("obfuscation that does not write a file...")
+
+
 COMMAND_TO_MOCK = {
     "wrong-watermarking-command": wrong_watermarking,
     "some-watermarking-command": pseudo_watermarking,
     "some-obfuscation-command": pseudo_obfuscation,
+    "wrong-obfuscation-command": wrong_obfuscation,
     "some-detection-command": detection_command,
     "wrong-detection-command": wrong_detection_command,
 }
@@ -57,6 +62,9 @@ COMMAND_TO_MOCK = {
 
 def mocked_tira_client():
     class MockedLocalExecution:
+        def __init__(self):
+            self.calls = []
+
         def run(
             self,
             image,
@@ -67,9 +75,25 @@ def mocked_tira_client():
             additional_volumes,
             cpu_count,
             mem_limit,
-            gpu_device_ids,
+            gpu_count=0,
+            gpu_device_ids=None,
             forward_environment_variables=None,
         ):
+            self.calls.append(
+                {
+                    "image": image,
+                    "command": command,
+                    "input_dir": input_dir,
+                    "output_dir": output_dir,
+                    "allow_network": allow_network,
+                    "additional_volumes": additional_volumes,
+                    "cpu_count": cpu_count,
+                    "mem_limit": mem_limit,
+                    "gpu_count": gpu_count,
+                    "gpu_device_ids": gpu_device_ids,
+                    "forward_environment_variables": forward_environment_variables,
+                }
+            )
             COMMAND_TO_MOCK[command](input_dir, output_dir)
 
     class MockedTiraClient:
@@ -79,14 +103,54 @@ def mocked_tira_client():
     return MockedTiraClient()
 
 
-def run_worklow(workflow_name, workflow_config, software):
+def run_worklow_with_client(workflow_name, workflow_config, software, **kwargs):
     from tira.workflows import run_workflow as rw
 
     tira_client = mocked_tira_client()
-    return rw(JSONL_OUTPUT_VALID, workflow_name, workflow_config, software, None, None, None, None, None, tira_client)
+    result = rw(
+        system_inputs=JSONL_OUTPUT_VALID,
+        workflow=workflow_name,
+        workflow_configuration=workflow_config,
+        software=software,
+        tira=tira_client,
+        **kwargs,
+    )
+    return result, tira_client
+
+
+def run_worklow(workflow_name, workflow_config, software, **kwargs):
+    return run_worklow_with_client(workflow_name, workflow_config, software, **kwargs)[0]
 
 
 class TestErrorMessageWorkflows(unittest.TestCase):
+    def test_fails_for_invalid_input_format(self):
+        workflow_name = "pan26-text-watermarking"
+        workflow_config = {
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "some-obfuscation-command",
+        }
+        software = {
+            "image": "some-image",
+            "watermark_command": "some-watermarking-command",
+            "detect_command": "some-detection-command",
+        }
+
+        from tira.workflows import run_workflow as rw
+
+        tira_client = mocked_tira_client()
+        actual = rw(
+            system_inputs=JSONL_OUTPUT_INVALID,
+            workflow=workflow_name,
+            workflow_configuration=workflow_config,
+            software=software,
+            tira=tira_client,
+        )
+
+        self.assertEqual(_ERROR, actual[0])
+        self.assertIn("Input is invalid", actual[1])
+        self.assertIsNone(actual[2])
+        self.assertEqual(0, len(tira_client.local_execution.calls))
+
     def test_for_configuration_with_invalid_watermarking(self):
         expected = [
             _ERROR,
@@ -172,6 +236,42 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         self.assertIn("Step 1: Watermarking with some-watermarking-command", stderr_text)
         self.assertIn("The jsonl file has the correct format", stderr_text)
 
+    def test_for_configuration_with_invalid_obfuscation(self):
+        expected = [_ERROR, "The step 2 (obfuscation) failed. No valid jsonl file was produced."]
+        workflow_name = "pan26-text-watermarking"
+        workflow_config = {
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "wrong-obfuscation-command",
+        }
+        software = {
+            "image": "some-image",
+            "watermark_command": "some-watermarking-command",
+            "detect_command": "some-detection-command",
+        }
+
+        actual, tira_client = run_worklow_with_client(workflow_name, workflow_config, software)
+        stderr = actual.run / "stderr.txt"
+        stdout = actual.run / "stdout.txt"
+
+        self.assertEqual(expected[0], actual[0])
+        self.assertEqual(expected[1], actual[1])
+        self.assertEqual(2, len(tira_client.local_execution.calls))
+        self.assertEqual("some-watermarking-command", tira_client.local_execution.calls[0]["command"])
+        self.assertEqual("wrong-obfuscation-command", tira_client.local_execution.calls[1]["command"])
+
+        stdout_text = stdout.read_text()
+        stderr_text = stderr.read_text()
+
+        self.assertIn("hello world from watermarking", stdout_text)
+        self.assertIn("obfuscation that does not write a file...", stdout_text)
+        self.assertIn("Step 3: Obfuscation with wrong-obfuscation-command", stdout_text)
+        self.assertNotIn("hello world from detection", stdout_text)
+        self.assertNotIn("Step 5: Detection with some-detection-command", stdout_text)
+
+        self.assertIn("Step 3: Obfuscation with wrong-obfuscation-command", stderr_text)
+        self.assertNotIn("obfuscation that does not write a file...", stderr_text)
+        self.assertNotIn("Step 5: Detection with some-detection-command", stderr_text)
+
     def test_for_correct_configuration(self):
         expected = [
             _OK,
@@ -216,3 +316,28 @@ class TestErrorMessageWorkflows(unittest.TestCase):
         self.assertIn("Step 3: Obfuscation with some-obfuscation-command", stderr_text)
         self.assertIn("Step 1: Watermarking with some-watermarking-command", stderr_text)
         self.assertIn("The jsonl file has the correct format", stderr_text)
+
+    def test_forwards_gpu_arguments_consistently(self):
+        workflow_name = "pan26-text-watermarking"
+        workflow_config = {
+            "obfuscation_image": "some-obfuscation-image-01",
+            "obfuscation_command": "some-obfuscation-command",
+        }
+        software = {
+            "image": "some-image",
+            "watermark_command": "some-watermarking-command",
+            "detect_command": "some-detection-command",
+        }
+
+        actual, tira_client = run_worklow_with_client(
+            workflow_name,
+            workflow_config,
+            software,
+            gpu_count=2,
+            gpu_device_ids=["0", "1"],
+        )
+
+        self.assertEqual(_OK, actual[0])
+        self.assertEqual(3, len(tira_client.local_execution.calls))
+        self.assertTrue(all(call["gpu_count"] == 2 for call in tira_client.local_execution.calls))
+        self.assertTrue(all(call["gpu_device_ids"] == ["0", "1"] for call in tira_client.local_execution.calls))

@@ -33,7 +33,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from tira.check_format import FormatMsgType, _fmt, log_message
+from tira.check_format import FormatMsgType, _fmt, clean_logger, log_message
 from tira.tira_client import TiraClient
 from tira.tirex_tracker import find_tirex_tracker_executable_or_none
 
@@ -256,7 +256,9 @@ def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]"
     return ret
 
 
-def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient", dataset_id: str) -> Optional[dict]:
+def resolve_mount_directory(
+    mount_directory: list[str], tira_client: "TiraClient", dataset_id: str, empty_dir: bool = False
+) -> Optional[dict]:
     if mount_directory is None or not mount_directory:
         return None
 
@@ -266,9 +268,14 @@ def resolve_mount_directory(mount_directory: list[str], tira_client: "TiraClient
         k = k.replace("$", "")
 
         if not v or not Path(v).exists() or not Path(v).is_dir():
-            v = tira_client.get_run_output(v, dataset_id)
+            if empty_dir:
+                from tira.third_party_integrations import temporary_directory
 
-        ret[k] = v
+                v = temporary_directory()
+            else:
+                v = tira_client.get_run_output(v, dataset_id)
+
+        ret[k] = str(Path(v).absolute())
     return ret
 
 
@@ -662,10 +669,21 @@ class TqdmUploadFile:
         self.tqdm.close()
 
 
+class TeeStringIO(io.StringIO):
+    def __init__(self, internal_io):
+        super().__init__()
+        self.internal_io = internal_io
+
+    def write(self, s):
+        self.internal_io.write(s)
+        self.internal_io.flush()
+        return super().write(s)
+
+
 class MonitoredExecution:
-    def __init__(self):
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
+    def __init__(self, stdout=None, stderr=None):
+        self.stdout = io.StringIO() if stdout is None else stdout
+        self.stderr = io.StringIO() if stderr is None else stderr
 
     def run(self, method: Callable):
         from tira.third_party_integrations import temporary_directory
@@ -679,7 +697,10 @@ class MonitoredExecution:
             try:
                 method(output_dir)
             except Exception as e:
-                exception_text = "\n\n" + str(repr(e))
+                print(str(repr(e)))
+                print(e)
+                exception_text = "\n\n" + str(repr(e)) + "\n\n" + str(e)
+                (ret / "exception.txt").write_text(exception_text)
 
         (ret / "stdout.txt").write_text(self.stdout.getvalue() + exception_text)
         (ret / "stderr.txt").write_text(self.stderr.getvalue() + exception_text)

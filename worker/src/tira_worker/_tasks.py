@@ -19,7 +19,6 @@ from tira.io_utils import (
 from tira.rest_api_client import Client as RestClient
 from tira.third_party_integrations import is_public_huggingface_model
 from tira.tira_client import TiraClient
-from tira.workflows import run_workflow
 
 from .settings import (
     CPU_COUNT,
@@ -49,6 +48,31 @@ def get_admin_client() -> TiraClient:
         raise ValueError(f"The tira client has no admin credentials. Got {role}")
 
     return ret
+
+
+def fail_if_tracker_does_not_work() -> None:
+    from pathlib import Path
+
+    from tira.rest_api_client import Client as RestClient
+    from tira.third_party_integrations import temporary_directory
+    ret = temporary_directory()
+    tira = RestClient()
+    tira.local_execution.run(
+        image="ubuntu:24.04",
+        command="echo 'check if tirex-tracker works'",
+        input_dir="/tmp",
+        output_dir=ret,
+    )
+    if not (Path(ret) / ".tracking-results.yml").is_file():
+        msg = f"the tirex-tracker does not work. Could not find the tracking file in {ret}."
+        print(msg)
+        raise ValueError(msg)
+    else:
+        print(f"Tirex tracker works, see {ret}")
+
+
+if "celery" in sys.argv[0]:
+    fail_if_tracker_does_not_work()
 
 
 if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
@@ -177,6 +201,7 @@ def run(
     task_workflow_configuration: Optional[dict] = None,
     software_workflow_configuration: Optional[dict] = None,
     env_to_forward: Optional[dict] = None,
+    dynamic_mounts: Optional[dict] = None,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -193,55 +218,25 @@ def run(
         for k, v in env_to_forward.items():
             environ[k] = v
 
-    if task_workflow_configuration is None and software_workflow_configuration is None:
-        run_results = execute_monitored(
-            lambda i: client.local_execution.run(
-                image=docker_image,
-                command=command,
-                input_dir=system_inputs,
-                output_dir=i,
-                allow_network=allow_network,
-                additional_volumes=hf_models,
-                cpu_count=CPU_COUNT,
-                mem_limit=MEMORY_LIMIT,
-                gpu_device_ids=gpu_devices,
-                forward_environment_variables=forward_environment_variables,
-            ),
-            client=client,
-            job_id=job_id,
-        )
-    else:
-        software_workflow_configuration["image"] = docker_image
-
-        def run_tmp(i):
-            run_results = run_workflow(
-                system_inputs,
-                task_workflow_configuration["name"],
-                task_workflow_configuration,
-                software_workflow_configuration,
-                allow_network=allow_network,
-                additional_volumes=hf_models,
-                gpu_device_ids=gpu_devices,
-                tira=client,
-            )
-            os.rmdir(i)
-            copytree(run_results.run / "output", i)
-
-            try:
-                print((run_results.run / "stdout.txt").read_text())
-            except Exception:
-                pass
-
-            try:
-                print((run_results.run / "stderr.txt").read_text(), file=sys.stderr)
-            except Exception:
-                pass
-
-        run_results = execute_monitored(
-            run_tmp,
-            client=client,
-            job_id=job_id,
-        )
+    run_results = execute_monitored(
+        lambda i: client.local_execution.run(
+            image=docker_image,
+            command=command,
+            input_dir=system_inputs,
+            output_dir=i,
+            allow_network=allow_network,
+            additional_volumes=hf_models,
+            cpu_count=CPU_COUNT,
+            mem_limit=MEMORY_LIMIT,
+            gpu_device_ids=gpu_devices,
+            forward_environment_variables=forward_environment_variables,
+            dynamic_mounts=dynamic_mounts,
+            task_workflow_configuration=task_workflow_configuration,
+            software_workflow_configuration=software_workflow_configuration,
+        ),
+        client=client,
+        job_id=job_id,
+    )
 
     if forward_environment_variables:
         for k in forward_environment_variables:

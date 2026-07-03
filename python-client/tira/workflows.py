@@ -1,6 +1,7 @@
 import json
+from os import environ
 from pathlib import Path
-from shutil import copyfile, copytree
+from shutil import copytree
 from typing import Any, Callable, Dict, NamedTuple, Optional
 
 from tira.third_party_integrations import temporary_directory
@@ -27,17 +28,27 @@ class WorkflowBase:
         additional_volumes,
         cpu_count,
         mem_limit,
+        gpu_count,
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
+        cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
     ):
         return WorkflowResult(_fmt.OK, "not implemented", None)
 
-    def execute_monitored(self, method: Callable):
-        from tira.io_utils import MonitoredExecution
+    def execute_monitored(self, method: Callable, forward_io: bool = False):
+        import sys
 
-        return MonitoredExecution().run(lambda i: method(i))
+        from tira.io_utils import MonitoredExecution, TeeStringIO
+
+        stdout, stderr = None, None
+        if forward_io:
+            stdout = TeeStringIO(sys.stdout)
+            stderr = TeeStringIO(sys.stderr)
+
+        return MonitoredExecution(stdout, stderr).run(lambda i: method(i))
 
 
 class Pan26TextWatermarking(WorkflowBase):
@@ -64,10 +75,13 @@ class Pan26TextWatermarking(WorkflowBase):
         additional_volumes,
         cpu_count,
         mem_limit,
+        gpu_count,
         gpu_device_ids,
         tira: "TiraClient",
         forward_environment_variables: "Optional[list[str]]" = None,
         mount_directory: "Optional[dict]" = None,
+        cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
     ):
         ret = temporary_directory()
         (ret / "output").mkdir(parents=True, exist_ok=True)
@@ -91,6 +105,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
                 forward_environment_variables=forward_environment_variables,
             )
@@ -138,6 +153,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
             )
         )
@@ -190,6 +206,7 @@ class Pan26TextWatermarking(WorkflowBase):
                 additional_volumes=additional_volumes,
                 cpu_count=cpu_count,
                 mem_limit=mem_limit,
+                gpu_count=gpu_count,
                 gpu_device_ids=gpu_device_ids,
             )
         )
@@ -215,9 +232,90 @@ class Pan26TextWatermarking(WorkflowBase):
         return WorkflowResult(_fmt.OK, "workflow executed on 'pan26-text-watermarking'.", ret)
 
 
-WORKFLOWS = {
-    "pan26-text-watermarking": Pan26TextWatermarking,
-}
+class CachedExecution(WorkflowBase):
+    def apply_configuration_and_throw_if_invalid(
+        self, workflow_configuration: "Optional[Dict[str, Any]]", software: "Optional[Dict[str, Any]]"
+    ):
+        if not software or "image" not in software:
+            raise ValueError("Software executed for 'cached-execution' needs a configuration for 'image'.")
+
+        if not software or "command" not in software:
+            raise ValueError("Software executed for 'cached-execution' needs a configuration for 'command'.")
+
+        super().apply_configuration_and_throw_if_invalid(workflow_configuration, software)
+
+    def run_workflow(
+        self,
+        system_inputs: Path,
+        allow_network: bool,
+        additional_volumes,
+        cpu_count,
+        mem_limit,
+        gpu_count,
+        gpu_device_ids,
+        tira: "TiraClient",
+        forward_environment_variables: "Optional[list[str]]" = None,
+        mount_directory: "Optional[dict]" = None,
+        cache_directory: "Optional[dict]" = None,
+        platform: str = "linux/amd64",
+    ):
+        if not mount_directory:
+            mount_directory = {}
+
+        if cache_directory:
+            for k, v in cache_directory.items():
+                cache_dir = temporary_directory() / "cache"
+                copytree(v, cache_dir)
+                mount_directory[k] = {"path": cache_dir, "mode": "rw"}
+
+        execution_results = self.execute_monitored(
+            lambda i: tira.local_execution.run(
+                image=self.software_configuration["image"],
+                command=self.software_configuration["command"],
+                input_dir=system_inputs,
+                output_dir=i,
+                allow_network=allow_network,
+                additional_volumes=additional_volumes,
+                cpu_count=cpu_count,
+                gpu_count=gpu_count,
+                mem_limit=mem_limit,
+                gpu_device_ids=gpu_device_ids,
+                forward_environment_variables=forward_environment_variables,
+                mount_directory=mount_directory,
+                platform=platform,
+            ),
+            True,
+        )
+
+        if (execution_results / "exception.txt").exists():
+            exception = (execution_results / "exception.txt").read_text()
+            return WorkflowResult(
+                _fmt.ERROR,
+                f'The command "{self.software_configuration["command"]}" failed: {exception}',
+                execution_results,
+            )
+
+        msg = f"The execution finished {mount_directory}."
+
+        for k, v in mount_directory.items():
+            if not isinstance(v, dict) or "path" not in v or "mode" not in v or v["mode"] != "rw":
+                continue
+
+            if len(list((v["path"]).iterdir())) == 0:
+                return WorkflowResult(
+                    _fmt.ERROR,
+                    f"The cache directory mounted via {k} was not used during the execution.",
+                    execution_results,
+                )
+
+            target_cache_dir = execution_results / k
+            copytree(v["path"], target_cache_dir)
+            msg = f"The cache directory mounted via {k} was used during the execution. (You can verify it at {target_cache_dir})"
+
+        return WorkflowResult(_fmt.OK, msg, execution_results)
+
+
+WORKFLOWS = {"pan26-text-watermarking": Pan26TextWatermarking, "cached-execution": CachedExecution}
 
 
 class WorkflowResult(NamedTuple):
@@ -234,11 +332,14 @@ def run_workflow(
     allow_network: bool = False,
     additional_volumes=None,
     cpu_count=1,
+    gpu_count=0,
     mem_limit=None,
     gpu_device_ids=None,
     tira: "Optional[TiraClient]" = None,
     forward_environment_variables: "Optional[list[str]]" = None,
     mount_directory: "Optional[dict]" = None,
+    cache_directory: "Optional[dict]" = None,
+    platform: str = "linux/amd64",
 ) -> WorkflowResult:
     """Run the specified workflow. Provides debug messages intended for users.
 
@@ -263,15 +364,18 @@ def run_workflow(
 
     try:
         return workflow_impl.run_workflow(
-            system_inputs,
-            allow_network,
-            additional_volumes,
-            cpu_count,
-            mem_limit,
-            gpu_device_ids,
-            tira,
-            forward_environment_variables,
-            mount_directory,
+            system_inputs=system_inputs,
+            allow_network=allow_network,
+            additional_volumes=additional_volumes,
+            cpu_count=cpu_count,
+            mem_limit=mem_limit,
+            gpu_count=gpu_count,
+            gpu_device_ids=gpu_device_ids,
+            tira=tira,
+            forward_environment_variables=forward_environment_variables,
+            mount_directory=mount_directory,
+            cache_directory=cache_directory,
+            platform=platform,
         )
     except Exception as e:
         return WorkflowResult(_fmt.ERROR, str(e), None)
