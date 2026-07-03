@@ -295,11 +295,10 @@ def run_local(
 
     print("Load system details...")
 
-    system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
-    if "public_image_name" in system_details:
+    # system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
+    system_details = client.private_system_details(approach)
+    if "public_image_name" in system_details and system_details["public_image_name"]:
         system_details["tira_image_name"] = system_details["public_image_name"]
-
-    # system_details = client.private_system_details(approach)
 
     system_pretty = "/".join(approach.split("/")[1:])
     log_message_clean(f"System {system_pretty} exists and is public.", level=_fmt.OK)
@@ -365,7 +364,12 @@ def run_local(
 
     print("Run software")
 
-    workflow_configuration = {"name": "cached-execution"}
+    if "cache_behaviour" in system_details and system_details["cache_behaviour"]:
+        workflow_configuration = {"name": "cached-execution"}
+        software_workflow_configuration = {}
+    else:
+        workflow_configuration = None
+        software_workflow_configuration = None
 
     results = monitored_execution.run(
         lambda i: client.local_execution.run(
@@ -381,11 +385,12 @@ def run_local(
             mem_limit=memory,
             dynamic_mounts=mount_config,
             task_workflow_configuration=workflow_configuration,
-            software_workflow_configuration={},
+            software_workflow_configuration=software_workflow_configuration,
         )
     )
 
     log_message_clean(f"Execution of the software finished.", level=_fmt.OK)
+    print(results)
     datasets = client.datasets(approach.split("/")[0])[input]
 
     code, msg = check_format(results / "output", datasets["run_format"], datasets["format_configuration"])
