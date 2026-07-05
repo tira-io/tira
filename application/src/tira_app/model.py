@@ -22,6 +22,69 @@ def _validate_transition_state(value):
         raise ValidationError("%(value)s is not a transition state", params={"value": value})
 
 
+def normalize_upload_form_fields(upload_form_fields: Any) -> "Optional[List[Dict[str, Any]]]":
+    if upload_form_fields in (None, ""):
+        return None
+
+    if isinstance(upload_form_fields, str):
+        try:
+            upload_form_fields = json.loads(upload_form_fields)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(upload_form_fields, list):
+        return None
+
+    normalized_fields = []
+    for field in upload_form_fields:
+        if not isinstance(field, dict):
+            return None
+
+        name = str(field.get("name", "")).strip()
+        display_name = str(field.get("display_name", "")).strip()
+        field_type = str(field.get("type", "")).strip().lower()
+
+        if not name or not display_name or not field_type:
+            return None
+
+        normalized_field: Dict[str, Any] = {
+            "name": name,
+            "display_name": display_name,
+            "type": field_type,
+        }
+
+        if "required" in field:
+            normalized_field["required"] = bool(field["required"])
+
+        normalized_fields.append(normalized_field)
+
+    return normalized_fields or None
+
+
+def normalize_upload_metadata(upload_metadata: Any) -> "Optional[Dict[str, str]]":
+    if upload_metadata in (None, ""):
+        return None
+
+    if isinstance(upload_metadata, str):
+        try:
+            upload_metadata = json.loads(upload_metadata)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(upload_metadata, dict):
+        return None
+
+    normalized_metadata = {}
+    for key, value in upload_metadata.items():
+        normalized_key = str(key).strip()
+        if not normalized_key:
+            continue
+
+        normalized_metadata[normalized_key] = "" if value is None else str(value)
+
+    return normalized_metadata or None
+
+
 class TransactionLog(models.Model):
     transaction_id = models.CharField(max_length=280, primary_key=True)
     completed = models.BooleanField()
@@ -120,6 +183,10 @@ class Task(models.Model):
     irds_re_ranking_resource = models.CharField(max_length=150, default="")
     aggregated_results = models.TextField(default=None, null=True)
     submission_tabs = models.TextField(default=None, null=True)
+    upload_form_fields = models.TextField(default=None, null=True)
+
+    def get_upload_form_fields(self) -> "Optional[List[Dict[str, Any]]]":
+        return normalize_upload_form_fields(self.upload_form_fields)
 
 
 class AllowedServer(models.Model):
@@ -293,6 +360,10 @@ class Upload(models.Model):
     paper_link = models.TextField(default="")
     deleted = models.BooleanField(default=False)
     rename_to = models.TextField(default=None, null=True)
+    upload_metadata = models.TextField(default=None, null=True)
+
+    def get_upload_metadata(self) -> "Optional[Dict[str, str]]":
+        return normalize_upload_metadata(self.upload_metadata)
 
 
 class AnonymousUploads(models.Model):

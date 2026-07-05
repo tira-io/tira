@@ -228,6 +228,8 @@ class HybridDatabase(object):
             except Exception:
                 pass
 
+        upload_form_fields = task.get_upload_form_fields()
+
         result = {
             "task_id": task.task_id,
             "task_name": task.task_name,
@@ -259,6 +261,7 @@ class HybridDatabase(object):
             "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval,
             "aggregated_results": aggregated_results,
             "submission_tabs": submission_tabs,
+            "upload_form_fields": upload_form_fields,
         }
 
         if include_dataset_stats:
@@ -633,6 +636,7 @@ class HybridDatabase(object):
             "description": upload.description,
             "paper_link": upload.paper_link,
             "rename_to": upload.rename_to,
+            "upload_metadata": upload.get_upload_metadata(),
         }
 
     def get_upload(self, task_id: str, vm_id: str, upload_id: str) -> "dict[str, Any]":
@@ -1869,9 +1873,15 @@ class HybridDatabase(object):
         help_command: "Optional[str]" = None,
         help_text: "Optional[str]" = None,
         allowed_task_teams: "Optional[str]" = None,
+        upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
+        upload_form_fields_json = None
+        normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
+        if normalized_upload_form_fields:
+            upload_form_fields_json = json.dumps(normalized_upload_form_fields)
+
         new_task = modeldb.Task.objects.create(
             task_id=task_id,
             task_name=task_name,
@@ -1884,6 +1894,7 @@ class HybridDatabase(object):
             require_groups=require_groups,
             restrict_groups=restrict_groups,
             allowed_task_teams=allowed_task_teams,
+            upload_form_fields=upload_form_fields_json,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2312,12 +2323,22 @@ class HybridDatabase(object):
         return {"run": returned_run, "last_edit_date": upload.last_edit_date, "run_dir": run_dir}
 
     def update_upload_metadata(
-        self, task_id: str, vm_id: str, upload_id: str, display_name: str, description: str, paper_link: str
+        self,
+        task_id: str,
+        vm_id: str,
+        upload_id: str,
+        display_name: str,
+        description: str,
+        paper_link: str,
+        upload_metadata: "Optional[dict[str, Any]]" = None,
     ) -> None:
+        normalized_upload_metadata = modeldb.normalize_upload_metadata(upload_metadata)
+        upload_metadata_json = None if normalized_upload_metadata is None else json.dumps(normalized_upload_metadata)
         modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id).update(
             display_name=display_name,
             description=description,
             paper_link=paper_link,
+            upload_metadata=upload_metadata_json,
         )
 
     def add_docker_software_mounts(self, docker_software: "dict[str, Any]", mounts):
@@ -2443,6 +2464,7 @@ class HybridDatabase(object):
         irds_re_ranking_command: str = "",
         irds_re_ranking_resource: str = "",
         aggregated_results: "Optional[List]" = None,
+        upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2465,6 +2487,11 @@ class HybridDatabase(object):
             else:
                 aggregated_results_json = json.dumps(aggregated_results)
 
+        upload_form_fields_json = None
+        normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
+        if normalized_upload_form_fields:
+            upload_form_fields_json = json.dumps(normalized_upload_form_fields)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
             task_name=task_name,
@@ -2481,6 +2508,7 @@ class HybridDatabase(object):
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
             aggregated_results=aggregated_results_json,
+            upload_form_fields=upload_form_fields_json,
         )
 
         if help_command:

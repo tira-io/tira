@@ -90,6 +90,7 @@ def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpRespons
             help_command=data["help_command"],
             help_text=data["help_text"],
             allowed_task_teams=data["task_teams"],
+            upload_form_fields=data.get("upload_form_fields"),
         )
 
         new_task_str = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -140,6 +141,7 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             irds_re_ranking_command=data.get("irds_re_ranking_command", ""),
             irds_re_ranking_resource=data.get("irds_re_ranking_resource", ""),
             aggregated_results=data.get("aggregated_results"),
+            upload_form_fields=data.get("upload_form_fields"),
         )
 
         return JsonResponse(

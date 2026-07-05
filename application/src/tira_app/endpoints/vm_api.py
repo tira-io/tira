@@ -36,7 +36,7 @@ from ..checks import (
     check_permissions,
     check_resources_exist,
 )
-from ..model import EvaluationLog
+from ..model import EvaluationLog, normalize_upload_metadata
 from ..util import link_to_discourse_team
 from ..views import add_context
 
@@ -65,6 +65,30 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
 
 def _mount_config_upload_field_name(mount_name: str) -> str:
     return f"mount_config_upload_{quote(mount_name, safe='')}"
+
+
+def _sanitize_upload_metadata(upload_metadata: Any) -> "Optional[dict[str, str]]":
+    normalized_upload_metadata = normalize_upload_metadata(upload_metadata)
+    if normalized_upload_metadata is None:
+        return None
+
+    return {key: sanitize_text(value) for key, value in normalized_upload_metadata.items()}
+
+
+def _upload_display_name_from_metadata(upload_metadata: "Optional[dict[str, str]]") -> str:
+    if not upload_metadata:
+        return ""
+
+    for field_name in ("display_name", "run_id", "name"):
+        value = upload_metadata.get(field_name)
+        if value:
+            return value
+
+    for value in upload_metadata.values():
+        if value:
+            return value
+
+    return ""
 
 
 # ---------------------------------------------------------------------
@@ -306,10 +330,20 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         from shutil import rmtree
 
-        from ..model import Dataset, Run
+        from ..model import Dataset, Run, Task
         from .v1._anonymous import check_format_for_dataset
 
         dataset = Dataset.objects.get(dataset_id=dataset_id)
+        task = Task.objects.get(task_id=task_id)
+        upload_metadata = _sanitize_upload_metadata(request.POST.get("upload_metadata"))
+        display_name = sanitize_text(request.POST.get("display_name"))
+        description = sanitize_text(request.POST.get("description"))
+
+        if task.get_upload_form_fields():
+            display_name = _upload_display_name_from_metadata(upload_metadata)
+            description = "" if upload_metadata is None else upload_metadata.get("description", "")
+        elif upload_metadata is None:
+            upload_metadata = _sanitize_upload_metadata({"run_id": display_name, "description": description})
 
         if upload_id == "new-submission":
             upload_id = model.add_upload(task_id, vm_id, None)["id"]
@@ -317,9 +351,10 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
                 task_id,
                 vm_id,
                 upload_id,
-                sanitize_text(request.POST.get("display_name")),
-                sanitize_text(request.POST.get("description")),
+                display_name,
+                description,
                 "",
+                upload_metadata,
             )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
@@ -786,6 +821,7 @@ def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str
                 sanitize_text(data.get("display_name")),
                 sanitize_text(data.get("description")),
                 data.get("paper_link"),
+                _sanitize_upload_metadata(data.get("upload_metadata")),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:

@@ -542,9 +542,15 @@ def delete_upload(task_id: str, vm_id: str, upload_id: str) -> None:
 
 
 def update_upload_metadata(
-    task_id: str, vm_id: str, upload_id: str, display_name: str, description: str, paper_link: str
+    task_id: str,
+    vm_id: str,
+    upload_id: str,
+    display_name: str,
+    description: str,
+    paper_link: str,
+    upload_metadata: "Optional[dict[str, Any]]" = None,
 ) -> None:
-    return model.update_upload_metadata(task_id, vm_id, upload_id, display_name, description, paper_link)
+    return model.update_upload_metadata(task_id, vm_id, upload_id, display_name, description, paper_link, upload_metadata)
 
 
 def add_uploaded_run(
@@ -700,6 +706,7 @@ def create_task(
     help_command: "Optional[str]" = None,
     help_text: "Optional[str]" = None,
     allowed_task_teams: "Optional[str]" = None,
+    upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -719,6 +726,7 @@ def create_task(
         help_command,
         help_text,
         allowed_task_teams,
+        upload_form_fields,
     )
 
 
@@ -863,6 +871,7 @@ def edit_task(
     irds_re_ranking_command: str = "",
     irds_re_ranking_resource: str = "",
     aggregated_results: "Optional[List]" = None,
+    upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
 ):
     """Update the task's data"""
 
@@ -888,6 +897,7 @@ def edit_task(
         irds_re_ranking_command,
         irds_re_ranking_resource,
         aggregated_results,
+        upload_form_fields,
     )
 
 
