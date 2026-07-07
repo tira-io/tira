@@ -473,7 +473,7 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     """get the registration of a user on a task. If there is none"""
     try:
         data: "dict[str, Any]" = json.loads(request.body)
-        data["group"] = sanitize_text(slugify(data["group"]))
+        data["group"] = sanitize_text(slugify(data["group"].lower().replace("_", "-")))
 
         disc_api_client = model.discourse_api_client()
         if (

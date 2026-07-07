@@ -336,8 +336,8 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         dataset = Dataset.objects.get(dataset_id=dataset_id)
         task = Task.objects.get(task_id=task_id)
         upload_metadata = _sanitize_upload_metadata(request.POST.get("upload_metadata"))
-        display_name = sanitize_text(request.POST.get("display_name"))
-        description = sanitize_text(request.POST.get("description"))
+        display_name = sanitize_text(request.POST.get("display_name", ""))
+        description = sanitize_text(request.POST.get("description", ""))
 
         if task.get_upload_form_fields():
             display_name = _upload_display_name_from_metadata(upload_metadata)

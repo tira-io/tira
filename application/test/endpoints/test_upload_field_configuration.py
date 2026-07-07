@@ -1,5 +1,6 @@
 import json
 import os
+from time import sleep
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -69,6 +70,7 @@ class TestUploadFieldConfiguration(TestCase):
     @patch("tira_app.endpoints.vm_api._run_evaluation")
     @patch("tira_app.endpoints.v1._anonymous.check_format_for_dataset", return_value=(_fmt.OK, "ok"))
     def test_upload_uses_default_metadata_when_task_has_no_configuration(self, _check_format, _run_evaluation):
+        sleep(2)
         request = self._upload_request(
             {
                 "display_name": "baseline-run",
