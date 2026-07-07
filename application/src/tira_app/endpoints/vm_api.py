@@ -10,6 +10,7 @@ import zipfile
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Mapping, Optional
+from urllib.parse import quote
 from uuid import uuid4
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
@@ -35,7 +36,7 @@ from ..checks import (
     check_permissions,
     check_resources_exist,
 )
-from ..model import EvaluationLog
+from ..model import EvaluationLog, normalize_upload_metadata
 from ..util import link_to_discourse_team
 from ..views import add_context
 
@@ -225,6 +226,8 @@ def run_sandboxed_software(
     mount_hf_model: Optional[list[str]],
     job_id: str,
     env_to_forward: Optional[dict] = None,
+    use_cache: Optional[bool] = False,
+    dynamic_mounts: Optional[dict] = None,
 ) -> str:
     from tira_worker import run
 
@@ -238,6 +241,10 @@ def run_sandboxed_software(
         docker_software_id = int(software_id.split("-software-")[1])
         software_config = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
         software_workflow = software_config.get_workflow_configuration()
+
+    if use_cache:
+        software_workflow = {"image": docker_image, "command": command}
+        workflow = {"name": "cached-execution"}
 
     if isinstance(mount_hf_model, str):
         mount_hf_model = mount_hf_model.split()
@@ -255,6 +262,7 @@ def run_sandboxed_software(
             workflow,
             software_workflow,
             env_to_forward,
+            dynamic_mounts,
         ],
         queue=docker_resources,
     )
@@ -322,10 +330,20 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         from shutil import rmtree
 
-        from ..model import Dataset, Run
+        from ..model import Dataset, Run, Task
         from .v1._anonymous import check_format_for_dataset
 
         dataset = Dataset.objects.get(dataset_id=dataset_id)
+        task = Task.objects.get(task_id=task_id)
+        upload_metadata = _sanitize_upload_metadata(request.POST.get("upload_metadata"))
+        display_name = sanitize_text(request.POST.get("display_name"))
+        description = sanitize_text(request.POST.get("description"))
+
+        if task.get_upload_form_fields():
+            display_name = _upload_display_name_from_metadata(upload_metadata)
+            description = "" if upload_metadata is None else upload_metadata.get("description", "")
+        elif upload_metadata is None:
+            upload_metadata = _sanitize_upload_metadata({"run_id": display_name, "description": description})
 
         if upload_id == "new-submission":
             upload_id = model.add_upload(task_id, vm_id, None)["id"]
@@ -333,9 +351,10 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
                 task_id,
                 vm_id,
                 upload_id,
-                sanitize_text(request.POST.get("display_name")),
-                sanitize_text(request.POST.get("description")),
+                display_name,
+                description,
                 "",
+                upload_metadata
             )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
@@ -343,6 +362,9 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         run_dir = Path(new_run["run_dir"])
         del new_run["run_dir"]
         status_code, message = check_format_for_dataset(run_dir / "output", dataset)
+        if upload_metadata is not None and upload_metadata:
+            (run_dir / "metadata.json").write_text(json.dumps(upload_metadata))
+
         if status_code != _fmt.OK:
             rmtree(run_dir)
             Run.objects.get(run_id=new_run["run"]["run_id"]).delete()
@@ -678,6 +700,8 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("workflow_configuration", None),
             data.get("external_docker_registry", False),
             data.get("forward_environment_variable", None),
+            data.get("cache_behaviour", None),
+            data.get("mount_config", None),
         )
 
         if data.get("mount_hf_model"):
@@ -800,6 +824,7 @@ def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str
                 sanitize_text(data.get("display_name")),
                 sanitize_text(data.get("description")),
                 data.get("paper_link"),
+                _sanitize_upload_metadata(data.get("upload_metadata")),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
@@ -1167,11 +1192,19 @@ def run_execute_docker_software(
             }
         )
 
+    try:
+        request_payload = _load_request_payload(request)
+    except Exception as e:
+        logger.exception("Error parsing run request payload", exc_info=e)
+        return JsonResponse({"status": 1, "message": "Error parsing request payload."})
+
     env_to_forward = None
     if docker_software["forward_environment_variable"]:
         required_env_vars = set(docker_software["forward_environment_variable"])
         try:
-            raw_env = json.loads(request.body)["forward_environment_variable"]
+            raw_env = request_payload.get("forward_environment_variable", {})
+            if not isinstance(raw_env, dict):
+                raise ValueError("forward_environment_variable must be a JSON object.")
             env_to_forward = {k: v for k, v in raw_env.items() if k in required_env_vars}
         except Exception as e:
             msg = f"Error forwarding environment variables. {e}"
@@ -1181,6 +1214,94 @@ def run_execute_docker_software(
         for k in required_env_vars:
             if k not in env_to_forward:
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
+
+    dynamic_mounts = None
+    mount_directory_upload_requested = False
+    mount_output_of_other_execution_requested = False
+    required_mount_config = docker_software["mount_config"]
+    if required_mount_config:
+        try:
+            raw_dynamic_mounts = request_payload.get("mount_config", {})
+            if not isinstance(raw_dynamic_mounts, dict):
+                raise ValueError("mount_config must be a JSON object.")
+            dynamic_mounts = {k: v for k, v in raw_dynamic_mounts.items() if k in required_mount_config}
+        except Exception as e:
+            logger.exception("Error handling the mounts", exc_info=e)
+            return JsonResponse({"status": 1, "message": "Error handling the mounts."})
+
+        for k in required_mount_config:
+            if k not in dynamic_mounts:
+                return JsonResponse({"status": 1, "message": f"Mounted directory is required: {k}."})
+
+        for k in list(dynamic_mounts.keys()):
+            mount_value = dynamic_mounts[k]
+            mount_source = mount_value.get("source") if isinstance(mount_value, dict) else mount_value
+
+            if mount_source == "EMPTY_DIR":
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
+                continue
+
+            if mount_source == "UPLOAD_DIRECTORY":
+                file_field = _mount_config_upload_field_name(k)
+                if file_field not in request.FILES:
+                    return JsonResponse(
+                        {"status": 1, "message": f"Uploaded zip is required for mounted directory: {k}."}
+                    )
+
+                try:
+                    with zipfile.ZipFile(request.FILES[file_field], "r") as zip_ref:
+                        invalid_member = zip_ref.testzip()
+                        if invalid_member is not None:
+                            raise zipfile.BadZipFile(f"Invalid member in uploaded archive: {invalid_member}")
+                except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
+                    logger.warning("Invalid mounted-directory zip for %s: %s", k, e)
+                    return JsonResponse(
+                        {"status": 1, "message": f"Uploaded file for mounted directory {k} is not a valid zip archive."}
+                    )
+
+                mount_directory_upload_requested = True
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
+                continue
+
+            if mount_source == "OUTPUT_OF_OTHER_EXECUTION":
+                run_id = mount_value.get("run_id", "") if isinstance(mount_value, dict) else ""
+
+                if not isinstance(run_id, str) or not run_id.strip():
+                    return JsonResponse({"status": 1, "message": f"Run ID is required for mounted directory: {k}."})
+
+                run_id = run_id.strip()
+
+                try:
+                    existing_run = model.get_run(run_id=run_id, vm_id=None, dataset_id=None)
+                except Exception:
+                    existing_run = None
+
+                if not existing_run:
+                    return JsonResponse({"status": 1, "message": f"There is no run with id {run_id}."})
+
+                mount_output_of_other_execution_requested = True
+                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k], "run_id": run_id}
+                continue
+
+            return JsonResponse(
+                {"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."}
+            )
+
+    if mount_directory_upload_requested:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
+            }
+        )
+
+    if mount_output_of_other_execution_requested:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Mounting additional directories from another execution via the web UI is not yet implemented on the server side. The provided run ID was validated successfully.",
+            }
+        )
 
     input_run = None
     if (
@@ -1273,6 +1394,8 @@ def run_execute_docker_software(
         docker_software.get("mount_hf_model", None),
         job_id,
         env_to_forward,
+        "cache_behaviour" in docker_software and isinstance(docker_software["cache_behaviour"], str),
+        dynamic_mounts,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
