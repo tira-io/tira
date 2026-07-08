@@ -929,6 +929,14 @@ class TiraClient(ABC):
             return None
 
         tira_configs = DatasetCard.load(str(path / "README.md")).data["tira_configs"]
+        default_upload_name = tira_configs.get("default_upload_name")
+        if not isinstance(default_upload_name, str) or not default_upload_name.strip():
+            print_message(
+                "Please specify a non-empty 'default_upload_name' in tira_configs in the dataset README.md.",
+                _fmt.ERROR,
+            )
+            return None
+        default_upload_name = default_upload_name.strip()
         resolve_inputs_to = tira_configs.get("resolve_inputs_to", None)
         input_format = tira_configs["input_format"]["name"]
         input_config = tira_configs["input_format"].get("config", {})
@@ -1124,7 +1132,7 @@ class TiraClient(ABC):
                 "name": dataset_name,
                 "task": task,
                 "type": "training" if ("train" in split.lower()) else "test",
-                "upload_name": "predictions.jsonl",
+                "upload_name": default_upload_name,
                 "is_confidential": True,
                 "irds_docker_image": "",
                 "irds_import_command": "",

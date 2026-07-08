@@ -27,6 +27,17 @@ To execute all approaches that have a positive review on one dataset on all data
 tira-cli admin batch-execution --task TASK
 ```
 
+## Admin-Only: Dataset submission
+
+When preparing a dataset for `tira-cli dataset-submission`, the dataset card in `README.md` must define
+`tira_configs.default_upload_name`. This is the default file name participants should upload for the dataset and the
+dataset submission fails if it is missing.
+
+```yaml
+tira_configs:
+  default_upload_name: predictions.jsonl
+```
+
 ## Download The results of some Submission
 
 You can download runs of published and unblinded submissions via:

@@ -471,6 +471,7 @@ class Client(TiraClient):
                             run_id_to_metadata[run["run_id"]] = {
                                 "description": upload_group_details["description"],
                                 "run_display_name": upload_group_details["display_name"],
+                                "upload_metadata": upload_group_details.get("upload_metadata"),
                                 "internal_data": run,
                             }
         else:
