@@ -9,6 +9,9 @@
       <template #item.dataset_id="{ item }">
         <submission-icon :submission="item" /> {{ item.dataset_id }}
       </template>
+      <template #item.review_comment="{ item }">
+        {{ item.review_comment ? item.review_comment : '—' }}
+      </template>
 
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
@@ -39,7 +42,7 @@ export default {
       userinfo: inject('userinfo') as UserInfo,
       selected_runs: [],
       loading: true,
-      runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1' }],
+      runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1', 'review_comment': '' }],
       headers: [{
           "title": "Dataset",
           "key": "dataset_id"
@@ -49,6 +52,9 @@ export default {
         }, {
           "title": "Uploaded",
           "key": "run_id"
+        }, {
+          "title": "Review comment",
+          "key": "review_comment"
         }, {
           "title": "",
           "key": "actions",

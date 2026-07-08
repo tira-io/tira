@@ -1111,7 +1111,7 @@ class HybridDatabase(object):
             tira_run_review.reviewer_id,
             tira_run_review.published, tira_run_review.blinded,
             tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, input_run.valid_formats
+            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats
         FROM
             tira_run as input_run
         INNER JOIN
@@ -1140,6 +1140,7 @@ class HybridDatabase(object):
             no_errors,
             has_errors,
             has_no_errors,
+            review_comment,
             valid_formats,
         ) in rows:
             if run_id not in input_run_to_evaluation:
@@ -1158,6 +1159,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["blinded"] = blinded
             input_run_to_evaluation[run_id]["is_upload"] = True
             input_run_to_evaluation[run_id]["review_state"] = review_state
+            input_run_to_evaluation[run_id]["review_comment"] = review_comment
 
             if valid_formats:
                 try:
