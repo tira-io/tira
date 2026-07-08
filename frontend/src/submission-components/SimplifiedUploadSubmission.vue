@@ -35,8 +35,17 @@
 
               Please describe your run<br>
               <template v-for="field in activeUploadFormFields" :key="field.name">
+                <v-select
+                  v-if="field.type === 'select'"
+                  v-model="upload_metadata_values[field.name]"
+                  :label="field.display_name"
+                  :items="field.options"
+                  item-title="display_value"
+                  item-value="id"
+                  :rules="fieldRules(field)"
+                />
                 <v-textarea
-                  v-if="field.type === 'textarea'"
+                  v-else-if="field.type === 'textarea'"
                   v-model="upload_metadata_values[field.name]"
                   :label="field.display_name"
                   :rules="fieldRules(field)"
@@ -141,7 +150,11 @@ export default {
       }
 
       const configuredFields = this.upload_form_fields.filter(field =>
-        field && typeof field.name === 'string' && typeof field.display_name === 'string' && typeof field.type === 'string'
+        field
+        && typeof field.name === 'string'
+        && typeof field.display_name === 'string'
+        && typeof field.type === 'string'
+        && (field.type !== 'select' || this.hasValidSelectOptions(field))
       )
 
       return configuredFields.length > 0 ? configuredFields : this.default_upload_form_fields
@@ -212,9 +225,24 @@ export default {
 
       return !!(value && value.toString().trim().length > 0)
     },
+    hasValidSelectOptions(field) {
+      return Array.isArray(field.options)
+        && field.options.length > 0
+        && field.options.every(option =>
+          option
+          && typeof option.id === 'string'
+          && option.id.trim() !== ''
+          && typeof option.display_value === 'string'
+          && option.display_value.trim() !== ''
+        )
+    },
     fieldRules(field) {
       if (field.required === false) {
         return []
+      }
+
+      if (field.type === 'select') {
+        return [v => !!(v && v.toString().trim().length > 0) || `Please select ${field.display_name.toLowerCase()}.`]
       }
 
       if (field.name === 'run_id') {

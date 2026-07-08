@@ -2,7 +2,7 @@ import ast
 import json
 import unittest
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from tira.io_utils import sanitize_text
 
@@ -21,6 +21,11 @@ normalize_upload_metadata = _load_function(
     model_path,
     "normalize_upload_metadata",
     {"Any": Any, "Dict": Dict, "Optional": Optional, "json": json},
+)
+normalize_upload_form_fields = _load_function(
+    model_path,
+    "normalize_upload_form_fields",
+    {"Any": Any, "Dict": Dict, "List": List, "Optional": Optional, "json": json},
 )
 
 vm_api_path = Path(__file__).resolve().parents[2] / "src" / "tira_app" / "endpoints" / "vm_api.py"
@@ -44,3 +49,42 @@ class TestUploadMetadataSanitization(unittest.TestCase):
         actual = _sanitize_upload_metadata('{"run_id": "hello ∑ world", "description": "hello world"}')
 
         self.assertEqual({"run_id": "hello  world", "description": "hello world"}, actual)
+
+
+class TestUploadFormFieldNormalization(unittest.TestCase):
+    def test_normalizes_select_upload_field_options(self):
+        actual = normalize_upload_form_fields(
+            [
+                {
+                    "name": "track",
+                    "display_name": "Track",
+                    "type": "select",
+                    "options": [
+                        {"id": " main ", "display_value": " Main Track "},
+                        {"id": "bio", "display_value": "Biomedical Track"},
+                    ],
+                }
+            ]
+        )
+
+        self.assertEqual(
+            [
+                {
+                    "name": "track",
+                    "display_name": "Track",
+                    "type": "select",
+                    "options": [
+                        {"id": "main", "display_value": "Main Track"},
+                        {"id": "bio", "display_value": "Biomedical Track"},
+                    ],
+                }
+            ],
+            actual,
+        )
+
+    def test_rejects_select_upload_fields_without_options(self):
+        actual = normalize_upload_form_fields(
+            [{"name": "track", "display_name": "Track", "type": "select", "options": []}]
+        )
+
+        self.assertIsNone(actual)

@@ -221,13 +221,7 @@ class HybridDatabase(object):
             except Exception:
                 pass
 
-        submission_tabs = None
-        if task.submission_tabs:
-            try:
-                submission_tabs = json.loads(task.submission_tabs)
-            except Exception:
-                pass
-
+        submission_tabs = task.get_submission_tabs()
         upload_form_fields = task.get_upload_form_fields()
 
         result = {
@@ -1873,10 +1867,16 @@ class HybridDatabase(object):
         help_command: "Optional[str]" = None,
         help_text: "Optional[str]" = None,
         allowed_task_teams: "Optional[str]" = None,
+        submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
+        submission_tabs_json = None
+        normalized_submission_tabs = modeldb.normalize_submission_tabs(submission_tabs)
+        if normalized_submission_tabs:
+            submission_tabs_json = json.dumps(normalized_submission_tabs)
+
         upload_form_fields_json = None
         normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
         if normalized_upload_form_fields:
@@ -1894,6 +1894,7 @@ class HybridDatabase(object):
             require_groups=require_groups,
             restrict_groups=restrict_groups,
             allowed_task_teams=allowed_task_teams,
+            submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
         )
         if help_command:
@@ -2464,6 +2465,7 @@ class HybridDatabase(object):
         irds_re_ranking_command: str = "",
         irds_re_ranking_resource: str = "",
         aggregated_results: "Optional[List]" = None,
+        submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     ):
         aggregated_results_json = None
@@ -2487,6 +2489,11 @@ class HybridDatabase(object):
             else:
                 aggregated_results_json = json.dumps(aggregated_results)
 
+        submission_tabs_json = None
+        normalized_submission_tabs = modeldb.normalize_submission_tabs(submission_tabs)
+        if normalized_submission_tabs:
+            submission_tabs_json = json.dumps(normalized_submission_tabs)
+
         upload_form_fields_json = None
         normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
         if normalized_upload_form_fields:
@@ -2508,6 +2515,7 @@ class HybridDatabase(object):
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
             aggregated_results=aggregated_results_json,
+            submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
         )
 

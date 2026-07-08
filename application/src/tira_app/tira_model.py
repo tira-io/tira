@@ -706,6 +706,7 @@ def create_task(
     help_command: "Optional[str]" = None,
     help_text: "Optional[str]" = None,
     allowed_task_teams: "Optional[str]" = None,
+    submission_tabs: "Optional[List[str]]" = None,
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
@@ -726,6 +727,7 @@ def create_task(
         help_command,
         help_text,
         allowed_task_teams,
+        submission_tabs,
         upload_form_fields,
     )
 
@@ -871,6 +873,7 @@ def edit_task(
     irds_re_ranking_command: str = "",
     irds_re_ranking_resource: str = "",
     aggregated_results: "Optional[List]" = None,
+    submission_tabs: "Optional[List[str]]" = None,
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
 ):
     """Update the task's data"""
@@ -897,6 +900,7 @@ def edit_task(
         irds_re_ranking_command,
         irds_re_ranking_resource,
         aggregated_results,
+        submission_tabs,
         upload_form_fields,
     )
 

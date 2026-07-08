@@ -15,6 +15,13 @@ logger = logging.getLogger("tira")
 transition_states = {3, 4, 5, 6, 7}
 # Stable is undefined (0), running (1), powered_off (2), or archived (8)
 stable_state = {0, 1, 2, 8}
+SUPPORTED_SUBMISSION_TABS = {
+    "code-submission",
+    "docker-submission",
+    "upload-submission",
+    "upload-submission-simplified",
+    "upload-models",
+}
 
 
 def _validate_transition_state(value):
@@ -53,12 +60,63 @@ def normalize_upload_form_fields(upload_form_fields: Any) -> "Optional[List[Dict
             "type": field_type,
         }
 
+        if field_type == "select":
+            options = field.get("options")
+            if not isinstance(options, list) or len(options) == 0:
+                return None
+
+            normalized_options = []
+            for option in options:
+                if not isinstance(option, dict):
+                    return None
+
+                option_id = str(option.get("id", "")).strip()
+                option_display_value = str(option.get("display_value", "")).strip()
+                if not option_id or not option_display_value:
+                    return None
+
+                normalized_options.append(
+                    {
+                        "id": option_id,
+                        "display_value": option_display_value,
+                    }
+                )
+
+            normalized_field["options"] = normalized_options
+
         if "required" in field:
             normalized_field["required"] = bool(field["required"])
 
         normalized_fields.append(normalized_field)
 
     return normalized_fields or None
+
+
+def normalize_submission_tabs(submission_tabs: Any) -> "Optional[List[str]]":
+    if submission_tabs in (None, ""):
+        return None
+
+    if isinstance(submission_tabs, str):
+        try:
+            submission_tabs = json.loads(submission_tabs)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(submission_tabs, list):
+        return None
+
+    normalized_tabs = []
+    for tab in submission_tabs:
+        if not isinstance(tab, str):
+            return None
+
+        normalized_tab = tab.strip()
+        if not normalized_tab or normalized_tab not in SUPPORTED_SUBMISSION_TABS:
+            return None
+
+        normalized_tabs.append(normalized_tab)
+
+    return normalized_tabs or None
 
 
 def normalize_upload_metadata(upload_metadata: Any) -> "Optional[Dict[str, str]]":
@@ -184,6 +242,9 @@ class Task(models.Model):
     aggregated_results = models.TextField(default=None, null=True)
     submission_tabs = models.TextField(default=None, null=True)
     upload_form_fields = models.TextField(default=None, null=True)
+
+    def get_submission_tabs(self) -> "Optional[List[str]]":
+        return normalize_submission_tabs(self.submission_tabs)
 
     def get_upload_form_fields(self) -> "Optional[List[Dict[str, Any]]]":
         return normalize_upload_form_fields(self.upload_form_fields)
