@@ -121,6 +121,7 @@ class TestUploadFieldConfiguration(TestCase):
             False,
             False,
             submission_tabs=["docker-submission", "upload-submission-simplified"],
+            allowed_task_teams=""
         )
 
         task = modeldb.Task.objects.get(task_id="shared-task-1")
