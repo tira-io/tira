@@ -14,7 +14,7 @@ from rest_framework.response import Response
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
-from ...model import RunningProcesses
+from ...model import Run, RunningProcesses
 from ..vm_api import _run_evaluation
 
 logger = logging.getLogger("tira")
@@ -64,6 +64,10 @@ def upload_response(request: Request, vm_id: str, job_id: str) -> Response:
     except Exception as e:
         logger.exception("Could not store run", exc_info=e)
         raise
+
+    dynamic_mounts = json.loads(job.details).get("job_config", {}).get("dynamic_mounts") if job.details else None
+    if dynamic_mounts is not None:
+        Run.objects.filter(run_id=run_id).update(dynamic_mounts=json.dumps(dynamic_mounts))
 
     if "-evaluates-" not in run_id:
         try:

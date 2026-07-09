@@ -550,6 +550,7 @@ class HybridDatabase(object):
             "software_id": software_id,
             "evaluator_id": evaluator_id,
             "docker_software_id": docker_software_id,
+            "dynamic_mounts": None if not run.dynamic_mounts else json.loads(run.dynamic_mounts),
             "upload_id": upload_id,
             "from_upload": run.from_upload.uuid if run.from_upload else None,
         }

@@ -267,15 +267,19 @@ def run_sandboxed_software(
         queue=docker_resources,
     )
 
-    add_celery_id_to_job(job_id, result.id)
+    add_celery_id_to_job(job_id, result.id, dynamic_mounts)
 
     return result.id
 
 
-def add_celery_id_to_job(job_id: str, celery_id: str) -> None:
+def add_celery_id_to_job(job_id: str, celery_id: str, dynamic_mounts: Optional[dict] = None) -> None:
     from ..model import RunningProcesses
 
     job = RunningProcesses.objects.get(uuid=job_id)
+    if dynamic_mounts is not None:
+        details = json.loads(job.details)
+        details.setdefault("job_config", {})["dynamic_mounts"] = dynamic_mounts
+        job.details = json.dumps(details)
     job.celery_id = celery_id
     job.save()
 
@@ -1216,8 +1220,6 @@ def run_execute_docker_software(
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
 
     dynamic_mounts = None
-    mount_directory_upload_requested = False
-    mount_output_of_other_execution_requested = False
     required_mount_config = docker_software["mount_config"]
     if required_mount_config:
         try:
@@ -1256,11 +1258,24 @@ def run_execute_docker_software(
                 except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
                     logger.warning("Invalid mounted-directory zip for %s: %s", k, e)
                     return JsonResponse(
-                        {"status": 1, "message": f"Uploaded file for mounted directory {k} is not a valid zip archive."}
+                        {
+                            "status": 1,
+                            "message": f"Uploaded file for mounted directory {k} is not a valid zip archive.",
+                        }
                     )
 
-                mount_directory_upload_requested = True
-                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
+                upload_id = model.add_upload(task_id, vm_id)["id"]
+                model.update_upload_metadata(
+                    task_id, vm_id, upload_id, f"Mounted directory for {k}", "", ""
+                )
+                run_id = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, request.FILES[file_field])[
+                    "run"
+                ]["run_id"]
+                dynamic_mounts[k] = {
+                    "source": "OUTPUT_OF_OTHER_EXECUTION",
+                    "mode": required_mount_config[k],
+                    "run_id": run_id,
+                }
                 continue
 
             if mount_source == "OUTPUT_OF_OTHER_EXECUTION":
@@ -1279,29 +1294,21 @@ def run_execute_docker_software(
                 if not existing_run:
                     return JsonResponse({"status": 1, "message": f"There is no run with id {run_id}."})
 
-                mount_output_of_other_execution_requested = True
+                run_matches_submission = existing_run.get("vm") == vm_id and existing_run.get("dataset") == dataset_id
+                if not run_matches_submission:
+                    run_is_public_and_unblinded = model.run_is_public_and_unblinded(run_id)
+
+                    if not run_is_public_and_unblinded:
+                        return JsonResponse(
+                            {"status": 1, "message": f"Run {run_id} must be from your own submission on this dataset or published by administrators."}
+                        )
+
                 dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k], "run_id": run_id}
                 continue
 
             return JsonResponse(
                 {"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."}
             )
-
-    if mount_directory_upload_requested:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
-            }
-        )
-
-    if mount_output_of_other_execution_requested:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Mounting additional directories from another execution via the web UI is not yet implemented on the server side. The provided run ID was validated successfully.",
-            }
-        )
 
     input_run = None
     if (

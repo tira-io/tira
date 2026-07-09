@@ -598,6 +598,7 @@ class Run(models.Model):
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
     valid_formats = models.TextField(default=None, null=True)
+    dynamic_mounts = models.TextField(default=None, null=True)
     from_upload = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.RESTRICT, null=True, default=None)
 
