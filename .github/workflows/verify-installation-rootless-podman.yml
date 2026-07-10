@@ -64,10 +64,15 @@ jobs:
         run: |
           podman ps
           podman pull bash
-          podman run --entrypoint echo bash hello
       - name: Install TIRA from source
+          podman run --entrypoint echo bash hello
         working-directory: ${{ github.workspace }}/python-client
         run: |
           pip install .
 
+      - name: Run AutoJudge with rootless podman
+        run: |
+          tira-cli run local \
+            --approach trec-auto-judge/webis/Naive-AutoJudge \
+            --input kiddie-20260605-training
 
