@@ -33,6 +33,13 @@ jobs:
           sudo rm -f /usr/local/bin/docker
           sudo rm -f /var/run/docker.sock
           sudo rm -f /run/docker.sock
+
+      - name: Verify Docker is not available
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            echo "ERROR: docker command exists"
+            exit 1
+          fi
       - name: Install rootless Podman
         run: |
           sudo apt-get update
@@ -48,21 +55,20 @@ jobs:
         run: |
           export XDG_RUNTIME_DIR="/run/user/$(id -u)"
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
-          echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
-          mkdir -p "$XDG_RUNTIME_DIR/podman"
           nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
           sleep 5
           test -S "$XDG_RUNTIME_DIR/podman/podman.sock"
           podman info --format '{{.Host.Security.Rootless}}' | grep true
+
+      - name: Verify Podman is working
+        run: |
+          podman ps
+          podman pull bash
+          podman run --entrypoint echo bash hello
 
       - name: Install TIRA from source
         working-directory: ${{ github.workspace }}/python-client
         run: |
           pip install .
 
-      - name: TBD
-        run: |
-          podman ps
-          podman pull bash
-          podman run --entrypoint echo bash hello
-          docker ps
+
