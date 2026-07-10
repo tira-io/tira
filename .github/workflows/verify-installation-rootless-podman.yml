@@ -19,6 +19,20 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Disable Docker
+        run: |
+          sudo systemctl stop docker.service docker.socket || true
+          sudo systemctl disable docker.service docker.socket || true
+          sudo systemctl disable docker.service docker.socket || true
+          sudo systemctl mask docker.service docker.socket || true
+
+          # Verify Docker is unavailable
+          ! docker info
+
+          sudo rm -f /usr/bin/docker
+          sudo rm -f /usr/local/bin/docker
+          sudo rm -f /var/run/docker.sock
+          sudo rm -f /run/docker.sock
       - name: Install rootless Podman
         run: |
           sudo apt-get update
