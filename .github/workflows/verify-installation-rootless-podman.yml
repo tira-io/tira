@@ -60,13 +60,11 @@ jobs:
           echo "podman info"
           podman info --format '{{.Host.Security.Rootless}}'
           podman info --format '{{.Host.Security.Rootless}}' | grep true
-
       - name: Verify Podman is working
         run: |
           podman ps
           podman pull bash
           podman run --entrypoint echo bash hello
-
       - name: Install TIRA from source
         working-directory: ${{ github.workspace }}/python-client
         run: |
