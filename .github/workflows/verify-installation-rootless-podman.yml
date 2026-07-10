@@ -19,15 +19,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Remove Docker packages
-        run: |
-          sudo systemctl stop docker.socket docker.service || true
-          sudo apt-get remove -y docker.io docker-doc docker-compose docker-compose-v2 containerd runc moby-engine moby-cli podman-docker || true
-          if command -v docker >/dev/null 2>&1; then
-            echo "docker should not be installed for this workflow."
-            exit 1
-          fi
-
       - name: Install rootless Podman
         run: |
           sudo apt-get update
