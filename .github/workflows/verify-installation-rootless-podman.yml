@@ -1,0 +1,63 @@
+name: Verify Installation with Rootless Podman
+
+on:
+  push:
+  workflow_dispatch: {}
+  pull_request: {}
+
+jobs:
+  verify-installation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHON_VERSION: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Remove Docker packages
+        run: |
+          sudo systemctl stop docker.socket docker.service || true
+          sudo apt-get remove -y docker.io docker-doc docker-compose docker-compose-v2 containerd runc moby-engine moby-cli podman-docker || true
+          if command -v docker >/dev/null 2>&1; then
+            echo "docker should not be installed for this workflow."
+            exit 1
+          fi
+
+      - name: Install rootless Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman uidmap slirp4netns fuse-overlayfs dbus-user-session
+          if ! grep -q "^$(whoami):" /etc/subuid; then
+            echo "$(whoami):100000:65536" | sudo tee -a /etc/subuid
+          fi
+          if ! grep -q "^$(whoami):" /etc/subgid; then
+            echo "$(whoami):100000:65536" | sudo tee -a /etc/subgid
+          fi
+
+      - name: Start rootless Podman service
+        run: |
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+          echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
+          mkdir -p "$XDG_RUNTIME_DIR/podman"
+          nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
+          sleep 5
+          test -S "$XDG_RUNTIME_DIR/podman/podman.sock"
+          podman info --format '{{.Host.Security.Rootless}}' | grep true
+
+      - name: Install TIRA from source
+        working-directory: ${{ github.workspace }}/python-client
+        run: |
+          pip install .
+
+      - name: TBD
+        run: |
+          podman ps
+          podman pull bash
+          podman run --entrypoint echo bash hello
+          docker ps

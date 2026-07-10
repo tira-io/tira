@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import urlparse
 
 from django.core.cache import cache
 from django.core.management.base import BaseCommand
@@ -19,6 +20,14 @@ class Command(BaseCommand):
     At the moment, we just execute some predefined commands
     """
 
+    def _image_host(self, image_name):
+        parsed_image_name = urlparse((image_name or "").strip().lower())
+        image_host = parsed_image_name.hostname
+        if image_host is None:
+            image_host = urlparse(f"//{(image_name or '').strip().lower()}").hostname
+
+        return image_host
+
     def archive_docker_software(self, approach, git_runner):
         from ... import model as modeldb
         from ...util import docker_image_details
@@ -37,12 +46,7 @@ class Command(BaseCommand):
             return
 
         print(software)
-        normalized_image_name = (software.tira_image_name or "").strip().lower()
-        parsed_image_name = urlparse(normalized_image_name)
-        image_host = parsed_image_name.hostname
-        if image_host is None:
-            image_host = urlparse(f"//{normalized_image_name}").hostname
-        if image_host == "ghcr.io":
+        if self._image_host(software.tira_image_name) == "ghcr.io":
             software.public_image_name = software.tira_image_name
             image_metadata = docker_image_details(software.tira_image_name)
             # for ghcr images we do not get their sizes...
