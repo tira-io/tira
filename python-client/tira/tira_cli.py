@@ -295,8 +295,16 @@ def run_local(
 
     print("Load system details...")
 
-    # system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
-    system_details = client.private_system_details(approach)
+    try:
+        system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
+    except Exception as e:
+        role = client.json_response("/api/role")["context"]
+
+        if "role" in role and "admin" == role["role"]:
+            system_details = client.private_system_details(approach)
+        else:
+            raise e
+
     if "public_image_name" in system_details and system_details["public_image_name"]:
         system_details["tira_image_name"] = system_details["public_image_name"]
 
