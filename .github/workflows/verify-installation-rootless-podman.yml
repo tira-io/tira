@@ -57,6 +57,8 @@ jobs:
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
           nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
           sleep 5
+          echo "podman info"
+          podman info --format '{{.Host.Security.Rootless}}'
           test -S "$XDG_RUNTIME_DIR/podman/podman.sock"
           podman info --format '{{.Host.Security.Rootless}}' | grep true
 
