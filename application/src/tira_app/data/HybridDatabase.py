@@ -964,6 +964,59 @@ class HybridDatabase(object):
 
         return ret
 
+    def get_count_of_team_software_executions(self, task_id: str) -> "list[dict[str, Any]]":
+        task = self.get_task(task_id, False)
+        all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
+        software_rows = (
+            modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False)
+            .values("vm__vm_id")
+            .annotate(software_count=Count("docker_software_id"))
+        )
+        execution_rows = (
+            modeldb.Run.objects.filter(
+                task__task_id=task_id,
+                docker_software__task__task_id=task_id,
+                docker_software__deleted=False,
+            )
+            .values("docker_software__vm__vm_id")
+            .annotate(
+                executed_on_unique_datasets=Count("input_dataset_id", distinct=True),
+                executed_on_datasets=Count("run_id"),
+            )
+        )
+
+        results = {
+            row["vm__vm_id"]: {
+                "team": row["vm__vm_id"],
+                "software_count": row["software_count"],
+                "executed_on_unique_datasets": 0,
+                "executed_on_datasets": 0,
+            }
+            for row in software_rows
+            if row["vm__vm_id"] is not None
+        }
+
+        for row in execution_rows:
+            team = row["docker_software__vm__vm_id"]
+            if team is None:
+                continue
+
+            results[team]["executed_on_unique_datasets"] = row["executed_on_unique_datasets"]
+            results[team]["executed_on_datasets"] = row["executed_on_datasets"]
+
+        for team in all_teams_on_task:
+            results.setdefault(
+                team,
+                {
+                    "team": team,
+                    "software_count": 0,
+                    "executed_on_unique_datasets": 0,
+                    "executed_on_datasets": 0,
+                },
+            )
+
+        return [results[team] for team in sorted(results)]
+
     def all_runs(self) -> dict:
         prepared_statement = """SELECT
                     tira_run.run_id, tira_run.task_id, tira_run.input_dataset_id,
