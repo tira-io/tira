@@ -258,7 +258,6 @@ class Client(TiraClient):
         tira_vm_id,
         tira_task_id,
         code_repository_id,
-        build_environment,
         previous_stages=[],
         mount_hf_model=[],
         source_code_remotes=None,
@@ -281,7 +280,6 @@ class Client(TiraClient):
             "image": image,
             "command": command,
             "code_repository_id": code_repository_id,
-            "build_environment": json.dumps(build_environment),
             "external_docker_registry": external_docker_registry,
         }
 

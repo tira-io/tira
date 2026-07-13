@@ -727,7 +727,6 @@ class TiraClient(ABC):
                 user_id,
                 task_id,
                 None,
-                dict(os.environ),
                 source_code_remotes=remotes,
                 source_code_commit=commit,
                 source_code_active_branch=active_branch,
