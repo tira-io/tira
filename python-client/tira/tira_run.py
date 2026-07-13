@@ -569,7 +569,6 @@ def main(args=None):
             args.tira_vm_id,
             args.tira_task_id,
             args.tira_code_repository_id,
-            dict(os.environ),
-            prev_stages,
-            args.mount_hf_model,
+            previous_stages=prev_stages,
+            mount_hf_model=args.mount_hf_model,
         )

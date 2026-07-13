@@ -258,6 +258,7 @@ class Client(TiraClient):
         tira_vm_id,
         tira_task_id,
         code_repository_id,
+        build_environment=None,
         previous_stages=[],
         mount_hf_model=[],
         source_code_remotes=None,
@@ -275,6 +276,19 @@ class Client(TiraClient):
         headers["Content-Type"] = "application/json"
         self.fail_if_api_key_is_invalid()
         url = f"{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker"
+        if build_environment is None:
+            build_environment = {
+                key: os.environ[key]
+                for key in (
+                    "GITHUB_REPOSITORY",
+                    "GITHUB_WORKFLOW",
+                    "GITHUB_SHA",
+                    "TIRA_DOCKER_PATH",
+                    "TIRA_JUPYTER_NOTEBOOK",
+                )
+                if key in os.environ
+            }
+
         content = {
             "action": "post",
             "image": image,
@@ -282,6 +296,9 @@ class Client(TiraClient):
             "code_repository_id": code_repository_id,
             "external_docker_registry": external_docker_registry,
         }
+
+        if build_environment is not None:
+            content["build_environment"] = build_environment
 
         if workflow_configuration:
             content["workflow_configuration"] = json.dumps(workflow_configuration)

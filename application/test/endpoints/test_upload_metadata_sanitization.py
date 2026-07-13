@@ -39,6 +39,11 @@ _sanitize_upload_metadata = _load_function(
         "sanitize_text": sanitize_text,
     },
 )
+_sanitize_build_environment = _load_function(
+    vm_api_path,
+    "_sanitize_build_environment",
+    {"Any": Any, "Optional": Optional},
+)
 
 
 class TestUploadMetadataSanitization(unittest.TestCase):
@@ -49,6 +54,32 @@ class TestUploadMetadataSanitization(unittest.TestCase):
         actual = _sanitize_upload_metadata('{"run_id": "hello ∑ world", "description": "hello world"}')
 
         self.assertEqual({"run_id": "hello  world", "description": "hello world"}, actual)
+
+
+class TestBuildEnvironmentSanitization(unittest.TestCase):
+    def test_keeps_only_variables_used_to_build_code_links(self):
+        actual = _sanitize_build_environment(
+            {
+                "GITHUB_REPOSITORY": "owner/repository",
+                "GITHUB_WORKFLOW": "Upload Docker Software to TIRA",
+                "GITHUB_SHA": "abc123",
+                "TIRA_DOCKER_PATH": "docker",
+                "SECRET_TOKEN": "do-not-store",
+            }
+        )
+
+        self.assertEqual(
+            {
+                "GITHUB_REPOSITORY": "owner/repository",
+                "GITHUB_WORKFLOW": "Upload Docker Software to TIRA",
+                "GITHUB_SHA": "abc123",
+                "TIRA_DOCKER_PATH": "docker",
+            },
+            actual,
+        )
+
+    def test_rejects_build_environments_without_allowed_values(self):
+        self.assertIsNone(_sanitize_build_environment({"SECRET_TOKEN": "do-not-store"}))
 
 
 class TestUploadFormFieldNormalization(unittest.TestCase):

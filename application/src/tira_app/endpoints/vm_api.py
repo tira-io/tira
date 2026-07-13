@@ -73,6 +73,25 @@ def _available_workers() -> set[str]:
     return all_workers()
 
 
+def _sanitize_build_environment(build_environment: Any) -> "Optional[dict[str, str]]":
+    if not isinstance(build_environment, dict):
+        return {}
+
+    allowed_keys = {
+        "GITHUB_REPOSITORY",
+        "GITHUB_WORKFLOW",
+        "GITHUB_SHA",
+        "TIRA_DOCKER_PATH",
+        "TIRA_JUPYTER_NOTEBOOK",
+    }
+    sanitized = {
+        key: value
+        for key, value in build_environment.items()
+        if key in allowed_keys and isinstance(value, str) and value
+    }
+    return sanitized
+
+
 def _sanitize_upload_metadata(upload_metadata: Any) -> "Optional[dict[str, str]]":
     normalized_upload_metadata = normalize_upload_metadata(upload_metadata)
     if normalized_upload_metadata is None:
@@ -684,15 +703,8 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
                     }
                 )
 
-            if not data.get("build_environment"):
-                return JsonResponse(
-                    {
-                        "status": 1,
-                        "message": "Please specify the build_environment for linking the code.",
-                    }
-                )
-
-            build_environment = json.dumps(data.get("build_environment"))
+            build_environment = _sanitize_build_environment(data.get("build_environment"))
+            build_environment = json.dumps(build_environment)
 
         new_docker_software = model.add_docker_software(
             task_id,
