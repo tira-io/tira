@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, overload
 import randomname
 from django.conf import settings
 from django.db import IntegrityError
+from django.db.models import Count, Q
 from google.protobuf.text_format import Parse
 from tira.io_utils import get_tira_id, sanitize_text
 
@@ -256,6 +257,7 @@ class HybridDatabase(object):
             "aggregated_results": aggregated_results,
             "submission_tabs": submission_tabs,
             "upload_form_fields": upload_form_fields,
+            "hide_upload_via_cli": task.hide_upload_via_cli,
         }
 
         if include_dataset_stats:
@@ -932,6 +934,34 @@ class HybridDatabase(object):
                         "link_submission": f"/submit/{task_id}/user/{team}",
                     }
                 ]
+        return ret
+
+    def get_count_of_team_software(self, task_id: str) -> "list[dict[str, Any]]":
+        task = self.get_task(task_id, False)
+        all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
+        rows = (
+            modeldb.DockerSoftware.objects.filter(task__task_id=task_id)
+            .values("vm__vm_id")
+            .annotate(
+                software_count=Count("docker_software_id", filter=Q(deleted=False)),
+                deleted_software_count=Count("docker_software_id", filter=Q(deleted=True)),
+            )
+        )
+        ret = [
+            {
+                "team": row["vm__vm_id"],
+                "software_count": row["software_count"],
+                "deleted_software_count": row["deleted_software_count"],
+            }
+            for row in rows
+            if row["vm__vm_id"] is not None
+        ]
+
+        teams_in_result = {row["team"] for row in ret}
+        for team in sorted(all_teams_on_task):
+            if team not in teams_in_result:
+                ret += [{"team": team, "software_count": 0, "deleted_software_count": 0}]
+
         return ret
 
     def all_runs(self) -> dict:
@@ -1872,6 +1902,7 @@ class HybridDatabase(object):
         allowed_task_teams: "Optional[str]" = None,
         submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+        hide_upload_via_cli: bool = False,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
@@ -1899,6 +1930,7 @@ class HybridDatabase(object):
             allowed_task_teams=allowed_task_teams,
             submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
+            hide_upload_via_cli=hide_upload_via_cli,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2470,6 +2502,7 @@ class HybridDatabase(object):
         aggregated_results: "Optional[List]" = None,
         submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+        hide_upload_via_cli: bool = False,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2520,6 +2553,7 @@ class HybridDatabase(object):
             aggregated_results=aggregated_results_json,
             submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
+            hide_upload_via_cli=hide_upload_via_cli,
         )
 
         if help_command:

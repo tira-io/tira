@@ -108,6 +108,23 @@ class TestUploadFieldConfiguration(TestCase):
             content["context"]["task"]["submission_tabs"],
         )
 
+    def test_task_endpoint_returns_hide_upload_via_cli(self):
+        modeldb.Task.objects.filter(task_id="shared-task-1").update(hide_upload_via_cli=True)
+        request = self.factory.get(
+            "/api/task/shared-task-1",
+            HTTP_X_DISRAPTOR_APP_SECRET_KEY=os.getenv("DISRAPTOR_APP_SECRET_KEY"),
+            HTTP_X_DISRAPTOR_USER="ignored-user.",
+            HTTP_X_DISRAPTOR_GROUPS=PARTICIPANT,
+            CSRF_COOKIE="aasa",
+        )
+        request.GET = QueryDict("", mutable=True)
+
+        response = task_function(request, task_id="shared-task-1")
+
+        self.assertEqual(200, response.status_code)
+        content = json.loads(response.content)
+        self.assertTrue(content["context"]["task"]["hide_upload_via_cli"])
+
     def test_edit_task_persists_submission_tabs(self):
         tira_model.edit_task(
             "shared-task-1",
@@ -129,6 +146,25 @@ class TestUploadFieldConfiguration(TestCase):
             ["docker-submission", "upload-submission-simplified"],
             task.get_submission_tabs(),
         )
+
+    def test_edit_task_persists_hide_upload_via_cli(self):
+        tira_model.edit_task(
+            "shared-task-1",
+            "Shared Task 1",
+            "Updated description",
+            False,
+            "master-vm-for-task-1",
+            "organizer",
+            "website",
+            False,
+            False,
+            False,
+            allowed_task_teams="",
+            hide_upload_via_cli=True,
+        )
+
+        task = modeldb.Task.objects.get(task_id="shared-task-1")
+        self.assertTrue(task.hide_upload_via_cli)
 
     @patch("tira_app.endpoints.vm_api._run_evaluation")
     @patch("tira_app.endpoints.v1._anonymous.check_format_for_dataset", return_value=(_fmt.OK, "ok"))

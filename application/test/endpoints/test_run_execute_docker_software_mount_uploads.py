@@ -63,7 +63,15 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
             input_dataset=modeldb.Dataset.objects.get(dataset_id=dataset_2),
             task=modeldb.Task.objects.get(task_id="shared-task-1"),
         )
-        modeldb.Review.objects.update_or_create(run=cls.public_foreign_run, defaults={"published": True, "blinded": False})
+        cls.public_foreign_evaluation = modeldb.Run.objects.create(
+            run_id="public-foreign-mounted-directory-run-eval",
+            input_run=cls.public_foreign_run,
+            input_dataset=modeldb.Dataset.objects.get(dataset_id=dataset_2),
+            task=modeldb.Task.objects.get(task_id="shared-task-1"),
+        )
+        modeldb.Review.objects.update_or_create(
+            run=cls.public_foreign_evaluation, defaults={"published": True, "blinded": False}
+        )
 
     def _request(self, data):
         request = self.factory.post(
@@ -318,6 +326,10 @@ class TestUploadResponseDynamicMounts(TestCase):
         cls.task.save(update_fields=["featured"])
 
     def test_upload_response_persists_dynamic_mounts_on_run(self):
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_1)
+        dataset.format = json.dumps(["arbitrary"])
+        dataset.save(update_fields=["format"])
+
         run = modeldb.Run.objects.create(
             run_id="run-with-dynamic-mounts",
             docker_software=modeldb.DockerSoftware.objects.filter(vm__vm_id="PARTICIPANT-FOR-TEST-1").first(),
@@ -343,7 +355,7 @@ class TestUploadResponseDynamicMounts(TestCase):
             format="multipart",
             HTTP_X_DISRAPTOR_APP_SECRET_KEY=os.getenv("DISRAPTOR_APP_SECRET_KEY"),
             HTTP_X_DISRAPTOR_USER="ignored-user.",
-            HTTP_X_DISRAPTOR_GROUPS=PARTICIPANT,
+            HTTP_X_DISRAPTOR_GROUPS="admins",
         )
 
         with patch("tira_app.endpoints.v1._admin._extract_run_from_archive", return_value=run.run_id), patch(

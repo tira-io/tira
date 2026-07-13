@@ -13,7 +13,7 @@
       <v-toolbar color="primary"><v-card-title> Upload New Run </v-card-title></v-toolbar>
       <v-card-text>
     
-    <v-stepper :items="['How to Submit', 'Specify Metadata', 'Upload']" v-model="stepperModel" hide-actions="true" flat :border=false>
+    <v-stepper :items="uploadStepperItems" v-model="stepperModel" hide-actions="true" flat :border=false>
       <template v-slot:item.1>
         <v-card title="Specify what you want to upload" flat>
           <v-radio-group v-model="upload_configuration">
@@ -82,7 +82,7 @@
     </v-stepper>
     </v-card-text>
     <v-card-actions>
-      <v-stepper-actions @click:prev="stepperModel = Math.max(1, stepperModel - 1)" @click:next="stepperModel = Math.max(1, stepperModel +1)" :disabled='disableUploadStepper'></v-stepper-actions>
+      <v-stepper-actions @click:prev="moveUploadStep(-1)" @click:next="moveUploadStep(1)" :disabled='disableUploadStepper'></v-stepper-actions>
     </v-card-actions>
     </v-card>
   </v-dialog>
@@ -107,7 +107,7 @@ import UploadSubmissionViaCli from "./UploadSubmissionViaCli.vue"
 export default {
   name: "upload-submission",
   components: { EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, UploadedRunList, ImportSubmission, CodeSnippet, UploadSubmissionViaCli },
-  props: ['organizer', 'organizer_id', 'upload_form_fields'],
+  props: ['organizer', 'organizer_id', 'upload_form_fields', 'hide_upload_via_cli'],
   emits: ['refresh_running_submissions'],
   data() {
     return {
@@ -120,9 +120,9 @@ export default {
       uploadDataset: '',
       uploadFormError: '',
       upload_type: 'upload-1',
-      upload_configuration: '',
+      upload_configuration: this.hide_upload_via_cli ? 'upload-config-1' : '',
       upload_type_next_upload: '',
-      stepperModel: '',
+      stepperModel: this.hide_upload_via_cli ? '2' : '',
       fileHandle: null,
       upload_form_valid: false,
       upload_metadata_values: {},
@@ -144,6 +144,14 @@ export default {
   computed: {
     link_organizer() { return get_link_to_organizer(this.organizer_id); },
     contact_organizer() { return get_contact_link_to_organizer(this.organizer_id); },
+    uploadStepperItems() {
+      const items = [
+        { title: 'How to Submit', value: '1' },
+        { title: 'Specify Metadata', value: '2' },
+        { title: 'Upload', value: '3' },
+      ]
+      return this.hide_upload_via_cli ? items.slice(1) : items
+    },
     activeUploadFormFields() {
       if (!Array.isArray(this.upload_form_fields) || this.upload_form_fields.length === 0) {
         return this.default_upload_form_fields
@@ -189,6 +197,12 @@ export default {
     }
   },
   methods: {
+    moveUploadStep(offset) {
+      const stepValues = this.uploadStepperItems.map(item => item.value)
+      const currentIndex = Math.max(0, stepValues.indexOf(this.stepperModel))
+      const nextIndex = Math.max(0, Math.min(stepValues.length - 1, currentIndex + offset))
+      this.stepperModel = stepValues[nextIndex]
+    },
     initializeUploadMetadataValues() {
       const nextValues = {}
 
@@ -294,8 +308,8 @@ export default {
       this.selectedDataset = ''
       this.upload_metadata_values = {}
       this.initializeUploadMetadataValues()
-      this.stepperModel = ''
-      this.upload_configuration = ''
+      this.stepperModel = this.hide_upload_via_cli ? '2' : ''
+      this.upload_configuration = this.hide_upload_via_cli ? 'upload-config-1' : ''
       this.showUploadForm = false
       this.$emit('refresh_running_submissions')
       this.$refs['simplified-upload-run-list'].fetchData()

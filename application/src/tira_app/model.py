@@ -242,6 +242,7 @@ class Task(models.Model):
     aggregated_results = models.TextField(default=None, null=True)
     submission_tabs = models.TextField(default=None, null=True)
     upload_form_fields = models.TextField(default=None, null=True)
+    hide_upload_via_cli = models.BooleanField(default=False)
 
     def get_submission_tabs(self) -> "Optional[List[str]]":
         return normalize_submission_tabs(self.submission_tabs)

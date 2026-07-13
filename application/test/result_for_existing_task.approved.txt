@@ -25,6 +25,7 @@
             "dataset_count": 2,
             "dataset_label": "Input dataset",
             "featured": false,
+            "hide_upload_via_cli": false,
             "irds_re_ranking_command": "",
             "irds_re_ranking_image": "",
             "irds_re_ranking_resource": "",

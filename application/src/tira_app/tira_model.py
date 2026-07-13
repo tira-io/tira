@@ -483,6 +483,10 @@ def get_count_of_team_submissions(task_id: str) -> "list[dict[str, Any]]":
     return model.get_count_of_team_submissions(task_id)
 
 
+def get_count_of_team_software(task_id: str) -> "list[dict[str, Any]]":
+    return model.get_count_of_team_software(task_id)
+
+
 def get_uploads(task_id: str, user_id: str) -> "list[dict[str, Any]]":
     return model.get_uploads(task_id, user_id)
 
@@ -708,6 +712,7 @@ def create_task(
     allowed_task_teams: "Optional[str]" = None,
     submission_tabs: "Optional[List[str]]" = None,
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+    hide_upload_via_cli: bool = False,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -729,6 +734,7 @@ def create_task(
         allowed_task_teams,
         submission_tabs,
         upload_form_fields,
+        hide_upload_via_cli,
     )
 
 
@@ -875,6 +881,7 @@ def edit_task(
     aggregated_results: "Optional[List]" = None,
     submission_tabs: "Optional[List[str]]" = None,
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+    hide_upload_via_cli: bool = False,
 ):
     """Update the task's data"""
 
@@ -902,6 +909,7 @@ def edit_task(
         aggregated_results,
         submission_tabs,
         upload_form_fields,
+        hide_upload_via_cli,
     )
 
 

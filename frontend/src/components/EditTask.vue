@@ -106,6 +106,7 @@
                   <v-text-field v-model="command_placeholder" label="Help Command" />
                   <v-textarea v-model="command_description" label="Help Text" />
                   <v-text-field label="Link to Baseline" />
+                  <v-checkbox v-model="hide_upload_via_cli" label="Hide upload via cli" />
                   <v-textarea
                     v-model="upload_form_fields_json"
                     label="Upload Form Fields (JSON)"
@@ -189,6 +190,7 @@ export default {
     loading: true, valid: false, step: 1, submitInProgress: false, selected_organizer: '', organizer_id: '',
     task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
     require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
+    hide_upload_via_cli: false,
     is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '',
     submission_tabs: null as null | string[],
     submission_tabs_json: '',
@@ -388,6 +390,7 @@ export default {
         'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command, 'irds_re_ranking_resource': this.irds_re_ranking_resource, 'organizer': organizer,
         'submission_tabs': submissionTabs === undefined ? null : submissionTabs,
         'upload_form_fields': uploadFormFields === undefined ? null : uploadFormFields,
+        'hide_upload_via_cli': this.hide_upload_via_cli,
       }
     }
   },

@@ -30,7 +30,7 @@
         <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
       <v-window-item value="upload-submission-simplified">
-        <simplified-upload-submission :organizer="organizer" :organizer_id="organizer_id" :upload_form_fields="upload_form_fields" @refresh_running_submissions="refresh_running_submissions()" simplified-upload="true"/>
+        <simplified-upload-submission :organizer="organizer" :organizer_id="organizer_id" :upload_form_fields="upload_form_fields" :hide_upload_via_cli="hide_upload_via_cli" @refresh_running_submissions="refresh_running_submissions()" simplified-upload="true"/>
       </v-window-item>
       <v-window-item value="upload-models">
         <upload-models :organizer="organizer" :organizer_id="organizer_id"/>
@@ -66,6 +66,7 @@ export default {
         organizer: "", organizer_id: "", web: "",
         submission_tabs: [],
         upload_form_fields: null,
+        hide_upload_via_cli: false,
         all_available_tabs: [
           {'id': 'code-submission', 'title': 'Code Submissions', 'icon': 'mdi-code-json'},
           {'id': 'docker-submission', 'title': 'Docker Submissions', 'icon': 'mdi-docker'},
