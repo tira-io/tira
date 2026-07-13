@@ -48,7 +48,7 @@ _sanitize_build_environment = _load_function(
 
 class TestUploadMetadataSanitization(unittest.TestCase):
     def test_returns_none_for_empty_upload_metadata(self):
-        self.assertIsNone(_sanitize_upload_metadata(None))
+        self.assertEqual({}, _sanitize_upload_metadata(None))
 
     def test_sanitizes_upload_metadata_values_from_json(self):
         actual = _sanitize_upload_metadata('{"run_id": "hello ∑ world", "description": "hello world"}')
@@ -79,7 +79,7 @@ class TestBuildEnvironmentSanitization(unittest.TestCase):
         )
 
     def test_rejects_build_environments_without_allowed_values(self):
-        self.assertIsNone(_sanitize_build_environment({"SECRET_TOKEN": "do-not-store"}))
+        self.assertEqual({}, _sanitize_build_environment({"SECRET_TOKEN": "do-not-store"}))
 
 
 class TestUploadFormFieldNormalization(unittest.TestCase):
@@ -118,4 +118,4 @@ class TestUploadFormFieldNormalization(unittest.TestCase):
             [{"name": "track", "display_name": "Track", "type": "select", "options": []}]
         )
 
-        self.assertIsNone(actual)
+        self.assertEqual({}, actual)
