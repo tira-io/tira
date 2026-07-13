@@ -67,6 +67,12 @@ def _mount_config_upload_field_name(mount_name: str) -> str:
     return f"mount_config_upload_{quote(mount_name, safe='')}"
 
 
+def _available_workers() -> set[str]:
+    from tira_worker import all_workers
+
+    return all_workers()
+
+
 def _sanitize_upload_metadata(upload_metadata: Any) -> "Optional[dict[str, str]]":
     normalized_upload_metadata = normalize_upload_metadata(upload_metadata)
     if normalized_upload_metadata is None:
@@ -1376,9 +1382,7 @@ def run_execute_docker_software(
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
-    from tira_worker import all_workers
-
-    available_workers = all_workers()
+    available_workers = _available_workers()
     if docker_resources not in available_workers:
         return JsonResponse(
             {

@@ -135,9 +135,9 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
 
     @patch("tira_app.endpoints.vm_api.run_sandboxed_software")
     @patch("tira_app.endpoints.vm_api.add_job", return_value="job-123")
-    @patch("tira_worker.all_workers", return_value={"small-resources": object()})
+    @patch("tira_app.endpoints.vm_api._available_workers", return_value={"small-resources": object()})
     def test_valid_zip_upload_creates_uploaded_run_and_starts_execution(
-        self, _all_workers, _add_job, run_sandboxed_software_mock
+        self, _available_workers, _add_job, run_sandboxed_software_mock
     ):
         response = self._call_endpoint(
             {
@@ -206,8 +206,8 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
 
     @patch("tira_app.endpoints.vm_api.run_sandboxed_software")
     @patch("tira_app.endpoints.vm_api.add_job", return_value="job-123")
-    @patch("tira_worker.all_workers", return_value={"small-resources": object()})
-    def test_valid_run_id_starts_execution(self, _all_workers, _add_job, run_sandboxed_software_mock):
+    @patch("tira_app.endpoints.vm_api._available_workers", return_value={"small-resources": object()})
+    def test_valid_run_id_starts_execution(self, _available_workers, _add_job, run_sandboxed_software_mock):
         response = self._call_endpoint(
             {
                 "mount_config": json.dumps(
@@ -256,9 +256,9 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
 
     @patch("tira_app.endpoints.vm_api.run_sandboxed_software")
     @patch("tira_app.endpoints.vm_api.add_job", return_value="job-123")
-    @patch("tira_worker.all_workers", return_value={"small-resources": object()})
+    @patch("tira_app.endpoints.vm_api._available_workers", return_value={"small-resources": object()})
     def test_accepts_public_run_from_other_vm_and_dataset(
-        self, _all_workers, _add_job, run_sandboxed_software_mock
+        self, _available_workers, _add_job, run_sandboxed_software_mock
     ):
         response = self._call_endpoint(
             {
