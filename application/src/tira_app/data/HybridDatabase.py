@@ -952,6 +952,8 @@ class HybridDatabase(object):
                 "team": row["vm__vm_id"],
                 "software_count": row["software_count"],
                 "deleted_software_count": row["deleted_software_count"],
+                "link": link_to_discourse_team(row["vm__vm_id"]),
+                "link_submission": f"/submit/{task_id}/user/{row['vm__vm_id']}",
             }
             for row in rows
             if row["vm__vm_id"] is not None
@@ -960,17 +962,23 @@ class HybridDatabase(object):
         teams_in_result = {row["team"] for row in ret}
         for team in sorted(all_teams_on_task):
             if team not in teams_in_result:
-                ret += [{"team": team, "software_count": 0, "deleted_software_count": 0}]
+                ret += [
+                    {
+                        "team": team,
+                        "software_count": 0,
+                        "deleted_software_count": 0,
+                        "link": link_to_discourse_team(team),
+                        "link_submission": f"/submit/{task_id}/user/{team}",
+                    }
+                ]
 
         return ret
 
     def get_count_of_team_software_executions(self, task_id: str) -> "list[dict[str, Any]]":
-        task = self.get_task(task_id, False)
-        all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
         software_rows = (
             modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False)
-            .values("vm__vm_id")
-            .annotate(software_count=Count("docker_software_id"))
+            .values("docker_software_id", "display_name", "vm__vm_id")
+            .order_by("vm__vm_id", "display_name", "docker_software_id")
         )
         execution_rows = (
             modeldb.Run.objects.filter(
@@ -978,44 +986,42 @@ class HybridDatabase(object):
                 docker_software__task__task_id=task_id,
                 docker_software__deleted=False,
             )
-            .values("docker_software__vm__vm_id")
+            .values("docker_software_id")
             .annotate(
                 executed_on_unique_datasets=Count("input_dataset_id", distinct=True),
                 executed_on_datasets=Count("run_id"),
             )
         )
 
-        results = {
-            row["vm__vm_id"]: {
-                "team": row["vm__vm_id"],
-                "software_count": row["software_count"],
-                "executed_on_unique_datasets": 0,
-                "executed_on_datasets": 0,
+        execution_counts = {
+            row["docker_software_id"]: {
+                "executed_on_unique_datasets": row["executed_on_unique_datasets"],
+                "executed_on_datasets": row["executed_on_datasets"],
             }
-            for row in software_rows
-            if row["vm__vm_id"] is not None
+            for row in execution_rows
         }
 
-        for row in execution_rows:
-            team = row["docker_software__vm__vm_id"]
-            if team is None:
-                continue
-
-            results[team]["executed_on_unique_datasets"] = row["executed_on_unique_datasets"]
-            results[team]["executed_on_datasets"] = row["executed_on_datasets"]
-
-        for team in all_teams_on_task:
-            results.setdefault(
-                team,
-                {
-                    "team": team,
-                    "software_count": 0,
-                    "executed_on_unique_datasets": 0,
-                    "executed_on_datasets": 0,
-                },
+        ret = []
+        for row in software_rows:
+            team = row["vm__vm_id"]
+            software_id = row["docker_software_id"]
+            counts = execution_counts.get(
+                software_id,
+                {"executed_on_unique_datasets": 0, "executed_on_datasets": 0},
             )
 
-        return [results[team] for team in sorted(results)]
+            ret += [
+                {
+                    "team": team,
+                    "software": row["display_name"],
+                    "software_id": software_id,
+                    **counts,
+                    "link": link_to_discourse_team(team),
+                    "link_submission": f"/submit/{task_id}/user/{team}",
+                }
+            ]
+
+        return ret
 
     def all_runs(self) -> dict:
         prepared_statement = """SELECT

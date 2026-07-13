@@ -31,9 +31,27 @@ class TestTeamSoftwareCounts(TestCase):
 
         self.assertEqual(
             {
-                "team-a": {"team": "team-a", "software_count": 2, "deleted_software_count": 1},
-                "team-b": {"team": "team-b", "software_count": 0, "deleted_software_count": 2},
-                "team-c": {"team": "team-c", "software_count": 0, "deleted_software_count": 0},
+                "team-a": {
+                    "team": "team-a",
+                    "software_count": 2,
+                    "deleted_software_count": 1,
+                    "link": "https://www.tira.io/g/tira_vm_team-a",
+                    "link_submission": "/submit/task-1/user/team-a",
+                },
+                "team-b": {
+                    "team": "team-b",
+                    "software_count": 0,
+                    "deleted_software_count": 2,
+                    "link": "https://www.tira.io/g/tira_vm_team-b",
+                    "link_submission": "/submit/task-1/user/team-b",
+                },
+                "team-c": {
+                    "team": "team-c",
+                    "software_count": 0,
+                    "deleted_software_count": 0,
+                    "link": "https://www.tira.io/g/tira_vm_team-c",
+                    "link_submission": "/submit/task-1/user/team-c",
+                },
             },
             actual,
         )
@@ -74,22 +92,28 @@ class TestTeamSoftwareCounts(TestCase):
                 task=task,
             )
 
-        actual = {row["team"]: row for row in tira_model.get_count_of_team_software_executions("task-1")}
+        actual = tira_model.get_count_of_team_software_executions("task-1")
 
         self.assertEqual(
-            {
-                "team-a": {
+            [
+                {
                     "team": "team-a",
-                    "software_count": 2,
+                    "software": "a-1",
+                    "software_id": software_a_1.docker_software_id,
                     "executed_on_unique_datasets": 2,
-                    "executed_on_datasets": 4,
+                    "executed_on_datasets": 3,
+                    "link": "https://www.tira.io/g/tira_vm_team-a",
+                    "link_submission": "/submit/task-1/user/team-a",
                 },
-                "team-b": {
-                    "team": "team-b",
-                    "software_count": 0,
-                    "executed_on_unique_datasets": 0,
-                    "executed_on_datasets": 0,
+                {
+                    "team": "team-a",
+                    "software": "a-2",
+                    "software_id": software_a_2.docker_software_id,
+                    "executed_on_unique_datasets": 1,
+                    "executed_on_datasets": 1,
+                    "link": "https://www.tira.io/g/tira_vm_team-a",
+                    "link_submission": "/submit/task-1/user/team-a",
                 },
-            },
+            ],
             actual,
         )

@@ -6,6 +6,12 @@
             <td>{{row.item.team}}</td>
             <td>{{row.item.software_count}}</td>
             <td>{{row.item.deleted_software_count}}</td>
+            <td>
+              <a :href="row.item.link">link to {{row.item.team}}`s page</a>
+            </td>
+            <td>
+              <a :href="row.item.link_submission">link to {{row.item.team}}`s page</a>
+            </td>
           </tr>
       </template>
     </v-data-table>
@@ -21,6 +27,8 @@ interface CountOfTeamSoftware {
   team: string,
   software_count: number,
   deleted_software_count: number,
+  link: string,
+  link_submission: string,
 }
 
 export default {
@@ -36,6 +44,8 @@ export default {
         { title: 'Team', key: 'team' },
         { title: 'Software', key: 'software_count' },
         { title: 'Deleted Software', key: 'deleted_software_count' },
+        { title: 'Team Page', key: 'link' },
+        { title: 'Submission Page', key: 'link_submission' },
       ],
     }
   },
