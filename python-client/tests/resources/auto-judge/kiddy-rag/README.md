@@ -12,6 +12,7 @@ configs:
 tira_configs:
   resolve_inputs_to: "."
   resolve_truths_to: "."
+  default_upload_name: "predictions.jsonl"
   baseline:
     link: https://github.com/trec-auto-judge/auto-judge-starter-kit/tree/main/
     command: auto-judge run --workflow /auto-judge/judges/naive/workflow.yml --rag-responses $inputDataset/runs/*/ --rag-topics $inputDataset/topics/*.jsonl --out-dir $outputDir

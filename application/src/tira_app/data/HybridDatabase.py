@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, overload
 import randomname
 from django.conf import settings
 from django.db import IntegrityError
+from django.db.models import Count, Q
 from google.protobuf.text_format import Parse
 from tira.io_utils import get_tira_id, sanitize_text
 
@@ -221,12 +222,8 @@ class HybridDatabase(object):
             except Exception:
                 pass
 
-        submission_tabs = None
-        if task.submission_tabs:
-            try:
-                submission_tabs = json.loads(task.submission_tabs)
-            except Exception:
-                pass
+        submission_tabs = task.get_submission_tabs()
+        upload_form_fields = task.get_upload_form_fields()
 
         result = {
             "task_id": task.task_id,
@@ -259,6 +256,8 @@ class HybridDatabase(object):
             "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval,
             "aggregated_results": aggregated_results,
             "submission_tabs": submission_tabs,
+            "upload_form_fields": upload_form_fields,
+            "hide_upload_via_cli": task.hide_upload_via_cli,
         }
 
         if include_dataset_stats:
@@ -553,6 +552,7 @@ class HybridDatabase(object):
             "software_id": software_id,
             "evaluator_id": evaluator_id,
             "docker_software_id": docker_software_id,
+            "dynamic_mounts": None if not run.dynamic_mounts else json.loads(run.dynamic_mounts),
             "upload_id": upload_id,
             "from_upload": run.from_upload.uuid if run.from_upload else None,
         }
@@ -633,6 +633,7 @@ class HybridDatabase(object):
             "description": upload.description,
             "paper_link": upload.paper_link,
             "rename_to": upload.rename_to,
+            "upload_metadata": upload.get_upload_metadata(),
         }
 
     def get_upload(self, task_id: str, vm_id: str, upload_id: str) -> "dict[str, Any]":
@@ -935,6 +936,93 @@ class HybridDatabase(object):
                 ]
         return ret
 
+    def get_count_of_team_software(self, task_id: str) -> "list[dict[str, Any]]":
+        task = self.get_task(task_id, False)
+        all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
+        rows = (
+            modeldb.DockerSoftware.objects.filter(task__task_id=task_id)
+            .values("vm__vm_id")
+            .annotate(
+                software_count=Count("docker_software_id", filter=Q(deleted=False)),
+                deleted_software_count=Count("docker_software_id", filter=Q(deleted=True)),
+            )
+        )
+        ret = [
+            {
+                "team": row["vm__vm_id"],
+                "software_count": row["software_count"],
+                "deleted_software_count": row["deleted_software_count"],
+                "link": link_to_discourse_team(row["vm__vm_id"]),
+                "link_submission": f"/submit/{task_id}/user/{row['vm__vm_id']}",
+            }
+            for row in rows
+            if row["vm__vm_id"] is not None
+        ]
+
+        teams_in_result = {row["team"] for row in ret}
+        for team in sorted(all_teams_on_task):
+            if team not in teams_in_result:
+                ret += [
+                    {
+                        "team": team,
+                        "software_count": 0,
+                        "deleted_software_count": 0,
+                        "link": link_to_discourse_team(team),
+                        "link_submission": f"/submit/{task_id}/user/{team}",
+                    }
+                ]
+
+        return ret
+
+    def get_count_of_team_software_executions(self, task_id: str) -> "list[dict[str, Any]]":
+        software_rows = (
+            modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False)
+            .values("docker_software_id", "display_name", "vm__vm_id")
+            .order_by("vm__vm_id", "display_name", "docker_software_id")
+        )
+        execution_rows = (
+            modeldb.Run.objects.filter(
+                task__task_id=task_id,
+                docker_software__task__task_id=task_id,
+                docker_software__deleted=False,
+            )
+            .values("docker_software_id")
+            .annotate(
+                executed_on_unique_datasets=Count("input_dataset_id", distinct=True),
+                executed_on_datasets=Count("run_id"),
+            )
+        )
+
+        execution_counts = {
+            row["docker_software_id"]: {
+                "executed_on_unique_datasets": row["executed_on_unique_datasets"],
+                "executed_on_datasets": row["executed_on_datasets"],
+            }
+            for row in execution_rows
+        }
+
+        ret = []
+        for row in software_rows:
+            team = row["vm__vm_id"]
+            software_id = row["docker_software_id"]
+            counts = execution_counts.get(
+                software_id,
+                {"executed_on_unique_datasets": 0, "executed_on_datasets": 0},
+            )
+
+            ret += [
+                {
+                    "team": team,
+                    "software": row["display_name"],
+                    "software_id": software_id,
+                    **counts,
+                    "link": link_to_discourse_team(team),
+                    "link_submission": f"/submit/{task_id}/user/{team}",
+                }
+            ]
+
+        return ret
+
     def all_runs(self) -> dict:
         prepared_statement = """SELECT
                     tira_run.run_id, tira_run.task_id, tira_run.input_dataset_id,
@@ -1113,7 +1201,7 @@ class HybridDatabase(object):
             tira_run_review.reviewer_id,
             tira_run_review.published, tira_run_review.blinded,
             tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, input_run.valid_formats
+            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats
         FROM
             tira_run as input_run
         INNER JOIN
@@ -1142,6 +1230,7 @@ class HybridDatabase(object):
             no_errors,
             has_errors,
             has_no_errors,
+            review_comment,
             valid_formats,
         ) in rows:
             if run_id not in input_run_to_evaluation:
@@ -1160,6 +1249,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["blinded"] = blinded
             input_run_to_evaluation[run_id]["is_upload"] = True
             input_run_to_evaluation[run_id]["review_state"] = review_state
+            input_run_to_evaluation[run_id]["review_comment"] = review_comment
 
             if valid_formats:
                 try:
@@ -1869,9 +1959,22 @@ class HybridDatabase(object):
         help_command: "Optional[str]" = None,
         help_text: "Optional[str]" = None,
         allowed_task_teams: "Optional[str]" = None,
+        submission_tabs: "Optional[List[str]]" = None,
+        upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+        hide_upload_via_cli: bool = False,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
+        submission_tabs_json = None
+        normalized_submission_tabs = modeldb.normalize_submission_tabs(submission_tabs)
+        if normalized_submission_tabs:
+            submission_tabs_json = json.dumps(normalized_submission_tabs)
+
+        upload_form_fields_json = None
+        normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
+        if normalized_upload_form_fields:
+            upload_form_fields_json = json.dumps(normalized_upload_form_fields)
+
         new_task = modeldb.Task.objects.create(
             task_id=task_id,
             task_name=task_name,
@@ -1884,6 +1987,9 @@ class HybridDatabase(object):
             require_groups=require_groups,
             restrict_groups=restrict_groups,
             allowed_task_teams=allowed_task_teams,
+            submission_tabs=submission_tabs_json,
+            upload_form_fields=upload_form_fields_json,
+            hide_upload_via_cli=hide_upload_via_cli,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2312,12 +2418,22 @@ class HybridDatabase(object):
         return {"run": returned_run, "last_edit_date": upload.last_edit_date, "run_dir": run_dir}
 
     def update_upload_metadata(
-        self, task_id: str, vm_id: str, upload_id: str, display_name: str, description: str, paper_link: str
+        self,
+        task_id: str,
+        vm_id: str,
+        upload_id: str,
+        display_name: str,
+        description: str,
+        paper_link: str,
+        upload_metadata: "Optional[dict[str, Any]]" = None,
     ) -> None:
+        normalized_upload_metadata = modeldb.normalize_upload_metadata(upload_metadata)
+        upload_metadata_json = None if normalized_upload_metadata is None else json.dumps(normalized_upload_metadata)
         modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id).update(
             display_name=display_name,
             description=description,
             paper_link=paper_link,
+            upload_metadata=upload_metadata_json,
         )
 
     def add_docker_software_mounts(self, docker_software: "dict[str, Any]", mounts):
@@ -2443,6 +2559,9 @@ class HybridDatabase(object):
         irds_re_ranking_command: str = "",
         irds_re_ranking_resource: str = "",
         aggregated_results: "Optional[List]" = None,
+        submission_tabs: "Optional[List[str]]" = None,
+        upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
+        hide_upload_via_cli: bool = False,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2465,6 +2584,16 @@ class HybridDatabase(object):
             else:
                 aggregated_results_json = json.dumps(aggregated_results)
 
+        submission_tabs_json = None
+        normalized_submission_tabs = modeldb.normalize_submission_tabs(submission_tabs)
+        if normalized_submission_tabs:
+            submission_tabs_json = json.dumps(normalized_submission_tabs)
+
+        upload_form_fields_json = None
+        normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
+        if normalized_upload_form_fields:
+            upload_form_fields_json = json.dumps(normalized_upload_form_fields)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
             task_name=task_name,
@@ -2481,6 +2610,9 @@ class HybridDatabase(object):
             irds_re_ranking_command=irds_re_ranking_command,
             irds_re_ranking_resource=irds_re_ranking_resource,
             aggregated_results=aggregated_results_json,
+            submission_tabs=submission_tabs_json,
+            upload_form_fields=upload_form_fields_json,
+            hide_upload_via_cli=hide_upload_via_cli,
         )
 
         if help_command:

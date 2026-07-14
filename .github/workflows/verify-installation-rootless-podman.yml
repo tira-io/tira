@@ -1,0 +1,78 @@
+name: Verify Installation with Rootless Podman
+
+on:
+  push:
+  workflow_dispatch: {}
+  pull_request: {}
+
+jobs:
+  verify-installation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHON_VERSION: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Disable Docker
+        run: |
+          sudo systemctl stop docker.service docker.socket || true
+          sudo systemctl disable docker.service docker.socket || true
+          sudo systemctl disable docker.service docker.socket || true
+          sudo systemctl mask docker.service docker.socket || true
+
+          # Verify Docker is unavailable
+          ! docker info
+
+          sudo rm -f /usr/bin/docker
+          sudo rm -f /usr/local/bin/docker
+          sudo rm -f /var/run/docker.sock
+          sudo rm -f /run/docker.sock
+
+      - name: Verify Docker is not available
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            echo "ERROR: docker command exists"
+            exit 1
+          fi
+      - name: Install rootless Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman uidmap slirp4netns fuse-overlayfs dbus-user-session
+          if ! grep -q "^$(whoami):" /etc/subuid; then
+            echo "$(whoami):100000:65536" | sudo tee -a /etc/subuid
+          fi
+          if ! grep -q "^$(whoami):" /etc/subgid; then
+            echo "$(whoami):100000:65536" | sudo tee -a /etc/subgid
+          fi
+
+      - name: Start rootless Podman service
+        run: |
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+          nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
+          sleep 5
+          echo "podman info"
+          podman info --format '{{.Host.Security.Rootless}}'
+          podman info --format '{{.Host.Security.Rootless}}' | grep true
+      - name: Verify Podman is working
+        run: |
+          podman ps
+          podman pull bash
+      - name: Install TIRA from source
+          podman run --entrypoint echo bash hello
+        working-directory: ${{ github.workspace }}/python-client
+        run: |
+          pip install .
+
+      - name: Run AutoJudge with rootless podman
+        run: |
+          tira-cli run local \
+            --approach trec-auto-judge/webis/Naive-AutoJudge \
+            --input kiddie-20260605-training
+

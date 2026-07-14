@@ -107,3 +107,52 @@ class TestExecuteMonitored(unittest.TestCase):
 
             self.assertIn(str(src_dir), str(context.exception))
             check_output.assert_not_called()
+
+    def test_resolve_dynamic_mounts_downloads_injected_run_and_resolves_named_subdirectory(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            output_dir = tmpdir / "downloaded-run" / "output"
+            cache_dir = output_dir / "CACHE_DIR"
+            cache_dir.mkdir(parents=True)
+            client = Mock()
+            client.download_zip_to_cache_directory.return_value = output_dir
+
+            actual = _tasks.resolve_dynamic_mounts(
+                {"CACHE_DIR": {"source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "rw", "run_id": "run-1"}},
+                client,
+                "task",
+                "dataset",
+                "team",
+            )
+
+            self.assertEqual(str(cache_dir.resolve().absolute()), actual["CACHE_DIR"]["source"])
+            client.download_zip_to_cache_directory.assert_called_once_with(
+                task="task", dataset="dataset", team="team", run_id="run-1"
+            )
+
+    def test_resolve_dynamic_mounts_falls_back_to_output_directory(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            output_dir = tmpdir / "downloaded-run" / "output"
+            output_dir.mkdir(parents=True)
+            client = Mock()
+            client.download_zip_to_cache_directory.return_value = output_dir
+
+            actual = _tasks.resolve_dynamic_mounts(
+                {"CACHE_DIR": {"source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "rw", "run_id": "run-1"}},
+                client,
+                "task",
+                "dataset",
+                "team",
+            )
+
+            self.assertEqual(str(output_dir.resolve().absolute()), actual["CACHE_DIR"]["source"])
+
+    def test_resolve_dynamic_mounts_keeps_non_run_mounts_unchanged(self):
+        client = Mock()
+        dynamic_mounts = {"CACHE_DIR": {"source": "EMPTY_DIR", "mode": "rw"}}
+
+        actual = _tasks.resolve_dynamic_mounts(dynamic_mounts, client, "task", "dataset", "team")
+
+        self.assertEqual(dynamic_mounts, actual)
+        client.download_zip_to_cache_directory.assert_not_called()

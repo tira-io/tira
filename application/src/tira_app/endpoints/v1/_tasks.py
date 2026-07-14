@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework import pagination
 from rest_framework.permissions import IsAdminUser
-from rest_framework.serializers import CharField, ModelSerializer
+from rest_framework.serializers import CharField, ModelSerializer, SerializerMethodField
 from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
@@ -24,6 +24,10 @@ class TaskSerializer(ModelSerializer):
     organizer = OrganizerSerializer()
     website = CharField(source="web")
     datasets = DatasetNameOnlySerializer(source="dataset_set", many=True, required=False, read_only=True)
+    upload_form_fields = SerializerMethodField()
+
+    def get_upload_form_fields(self, obj):
+        return obj.get_upload_form_fields()
 
     class Meta:
         model = modeldb.Task

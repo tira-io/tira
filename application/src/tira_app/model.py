@@ -15,11 +15,132 @@ logger = logging.getLogger("tira")
 transition_states = {3, 4, 5, 6, 7}
 # Stable is undefined (0), running (1), powered_off (2), or archived (8)
 stable_state = {0, 1, 2, 8}
+SUPPORTED_SUBMISSION_TABS = {
+    "code-submission",
+    "docker-submission",
+    "upload-submission",
+    "upload-submission-simplified",
+    "upload-models",
+}
 
 
 def _validate_transition_state(value):
     if value not in transition_states:
         raise ValidationError("%(value)s is not a transition state", params={"value": value})
+
+
+def normalize_upload_form_fields(upload_form_fields: Any) -> "Optional[List[Dict[str, Any]]]":
+    if upload_form_fields in (None, ""):
+        return None
+
+    if isinstance(upload_form_fields, str):
+        try:
+            upload_form_fields = json.loads(upload_form_fields)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(upload_form_fields, list):
+        return None
+
+    normalized_fields = []
+    for field in upload_form_fields:
+        if not isinstance(field, dict):
+            return None
+
+        name = str(field.get("name", "")).strip()
+        display_name = str(field.get("display_name", "")).strip()
+        field_type = str(field.get("type", "")).strip().lower()
+
+        if not name or not display_name or not field_type:
+            return None
+
+        normalized_field: Dict[str, Any] = {
+            "name": name,
+            "display_name": display_name,
+            "type": field_type,
+        }
+
+        if field_type == "select":
+            options = field.get("options")
+            if not isinstance(options, list) or len(options) == 0:
+                return None
+
+            normalized_options = []
+            for option in options:
+                if not isinstance(option, dict):
+                    return None
+
+                option_id = str(option.get("id", "")).strip()
+                option_display_value = str(option.get("display_value", "")).strip()
+                if not option_id or not option_display_value:
+                    return None
+
+                normalized_options.append(
+                    {
+                        "id": option_id,
+                        "display_value": option_display_value,
+                    }
+                )
+
+            normalized_field["options"] = normalized_options
+
+        if "required" in field:
+            normalized_field["required"] = bool(field["required"])
+
+        normalized_fields.append(normalized_field)
+
+    return normalized_fields or None
+
+
+def normalize_submission_tabs(submission_tabs: Any) -> "Optional[List[str]]":
+    if submission_tabs in (None, ""):
+        return None
+
+    if isinstance(submission_tabs, str):
+        try:
+            submission_tabs = json.loads(submission_tabs)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(submission_tabs, list):
+        return None
+
+    normalized_tabs = []
+    for tab in submission_tabs:
+        if not isinstance(tab, str):
+            return None
+
+        normalized_tab = tab.strip()
+        if not normalized_tab or normalized_tab not in SUPPORTED_SUBMISSION_TABS:
+            return None
+
+        normalized_tabs.append(normalized_tab)
+
+    return normalized_tabs or None
+
+
+def normalize_upload_metadata(upload_metadata: Any) -> "Optional[Dict[str, str]]":
+    if upload_metadata in (None, ""):
+        return None
+
+    if isinstance(upload_metadata, str):
+        try:
+            upload_metadata = json.loads(upload_metadata)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(upload_metadata, dict):
+        return None
+
+    normalized_metadata = {}
+    for key, value in upload_metadata.items():
+        normalized_key = str(key).strip()
+        if not normalized_key:
+            continue
+
+        normalized_metadata[normalized_key] = "" if value is None else str(value)
+
+    return normalized_metadata or None
 
 
 class TransactionLog(models.Model):
@@ -120,6 +241,14 @@ class Task(models.Model):
     irds_re_ranking_resource = models.CharField(max_length=150, default="")
     aggregated_results = models.TextField(default=None, null=True)
     submission_tabs = models.TextField(default=None, null=True)
+    upload_form_fields = models.TextField(default=None, null=True)
+    hide_upload_via_cli = models.BooleanField(default=False)
+
+    def get_submission_tabs(self) -> "Optional[List[str]]":
+        return normalize_submission_tabs(self.submission_tabs)
+
+    def get_upload_form_fields(self) -> "Optional[List[Dict[str, Any]]]":
+        return normalize_upload_form_fields(self.upload_form_fields)
 
 
 class AllowedServer(models.Model):
@@ -293,6 +422,10 @@ class Upload(models.Model):
     paper_link = models.TextField(default="")
     deleted = models.BooleanField(default=False)
     rename_to = models.TextField(default=None, null=True)
+    upload_metadata = models.TextField(default=None, null=True)
+
+    def get_upload_metadata(self) -> "Optional[Dict[str, str]]":
+        return normalize_upload_metadata(self.upload_metadata)
 
 
 class AnonymousUploads(models.Model):
@@ -466,6 +599,7 @@ class Run(models.Model):
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
     valid_formats = models.TextField(default=None, null=True)
+    dynamic_mounts = models.TextField(default=None, null=True)
     from_upload = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.RESTRICT, null=True, default=None)
 

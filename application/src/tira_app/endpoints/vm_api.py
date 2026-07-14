@@ -36,7 +36,7 @@ from ..checks import (
     check_permissions,
     check_resources_exist,
 )
-from ..model import EvaluationLog
+from ..model import EvaluationLog, normalize_upload_metadata
 from ..util import link_to_discourse_team
 from ..views import add_context
 
@@ -65,6 +65,55 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
 
 def _mount_config_upload_field_name(mount_name: str) -> str:
     return f"mount_config_upload_{quote(mount_name, safe='')}"
+
+
+def _available_workers() -> set[str]:
+    from tira_worker import all_workers
+
+    return all_workers()
+
+
+def _sanitize_build_environment(build_environment: Any) -> "Optional[dict[str, str]]":
+    if not isinstance(build_environment, dict):
+        return {}
+
+    allowed_keys = {
+        "GITHUB_REPOSITORY",
+        "GITHUB_WORKFLOW",
+        "GITHUB_SHA",
+        "TIRA_DOCKER_PATH",
+        "TIRA_JUPYTER_NOTEBOOK",
+    }
+    sanitized = {
+        key: value
+        for key, value in build_environment.items()
+        if key in allowed_keys and isinstance(value, str) and value
+    }
+    return sanitized
+
+
+def _sanitize_upload_metadata(upload_metadata: Any) -> "Optional[dict[str, str]]":
+    normalized_upload_metadata = normalize_upload_metadata(upload_metadata)
+    if normalized_upload_metadata is None:
+        return None
+
+    return {key: sanitize_text(value) for key, value in normalized_upload_metadata.items()}
+
+
+def _upload_display_name_from_metadata(upload_metadata: "Optional[dict[str, str]]") -> str:
+    if not upload_metadata:
+        return ""
+
+    for field_name in ("display_name", "run_id", "name"):
+        value = upload_metadata.get(field_name)
+        if value:
+            return value
+
+    for value in upload_metadata.values():
+        if value:
+            return value
+
+    return ""
 
 
 # ---------------------------------------------------------------------
@@ -243,15 +292,19 @@ def run_sandboxed_software(
         queue=docker_resources,
     )
 
-    add_celery_id_to_job(job_id, result.id)
+    add_celery_id_to_job(job_id, result.id, dynamic_mounts)
 
     return result.id
 
 
-def add_celery_id_to_job(job_id: str, celery_id: str) -> None:
+def add_celery_id_to_job(job_id: str, celery_id: str, dynamic_mounts: Optional[dict] = None) -> None:
     from ..model import RunningProcesses
 
     job = RunningProcesses.objects.get(uuid=job_id)
+    if dynamic_mounts is not None:
+        details = json.loads(job.details)
+        details.setdefault("job_config", {})["dynamic_mounts"] = dynamic_mounts
+        job.details = json.dumps(details)
     job.celery_id = celery_id
     job.save()
 
@@ -306,10 +359,20 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
 
         from shutil import rmtree
 
-        from ..model import Dataset, Run
+        from ..model import Dataset, Run, Task
         from .v1._anonymous import check_format_for_dataset
 
         dataset = Dataset.objects.get(dataset_id=dataset_id)
+        task = Task.objects.get(task_id=task_id)
+        upload_metadata = _sanitize_upload_metadata(request.POST.get("upload_metadata"))
+        display_name = sanitize_text(request.POST.get("display_name", ""))
+        description = sanitize_text(request.POST.get("description", ""))
+
+        if task.get_upload_form_fields():
+            display_name = _upload_display_name_from_metadata(upload_metadata)
+            description = "" if upload_metadata is None else upload_metadata.get("description", "")
+        elif upload_metadata is None:
+            upload_metadata = _sanitize_upload_metadata({"run_id": display_name, "description": description})
 
         if upload_id == "new-submission":
             upload_id = model.add_upload(task_id, vm_id, None)["id"]
@@ -317,9 +380,10 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
                 task_id,
                 vm_id,
                 upload_id,
-                sanitize_text(request.POST.get("display_name")),
-                sanitize_text(request.POST.get("description")),
+                display_name,
+                description,
                 "",
+                upload_metadata
             )
 
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
@@ -327,6 +391,9 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         run_dir = Path(new_run["run_dir"])
         del new_run["run_dir"]
         status_code, message = check_format_for_dataset(run_dir / "output", dataset)
+        if upload_metadata is not None and upload_metadata:
+            (run_dir / "metadata.json").write_text(json.dumps(upload_metadata))
+
         if status_code != _fmt.OK:
             rmtree(run_dir)
             Run.objects.get(run_id=new_run["run"]["run_id"]).delete()
@@ -636,15 +703,8 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
                     }
                 )
 
-            if not data.get("build_environment"):
-                return JsonResponse(
-                    {
-                        "status": 1,
-                        "message": "Please specify the build_environment for linking the code.",
-                    }
-                )
-
-            build_environment = json.dumps(data.get("build_environment"))
+            build_environment = _sanitize_build_environment(data.get("build_environment"))
+            build_environment = json.dumps(build_environment)
 
         new_docker_software = model.add_docker_software(
             task_id,
@@ -786,6 +846,7 @@ def upload_save(request: "HttpRequest", task_id: str, vm_id: str, upload_id: str
                 sanitize_text(data.get("display_name")),
                 sanitize_text(data.get("description")),
                 data.get("paper_link"),
+                _sanitize_upload_metadata(data.get("upload_metadata")),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
@@ -1177,8 +1238,6 @@ def run_execute_docker_software(
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
 
     dynamic_mounts = None
-    mount_directory_upload_requested = False
-    mount_output_of_other_execution_requested = False
     required_mount_config = docker_software["mount_config"]
     if required_mount_config:
         try:
@@ -1217,11 +1276,24 @@ def run_execute_docker_software(
                 except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
                     logger.warning("Invalid mounted-directory zip for %s: %s", k, e)
                     return JsonResponse(
-                        {"status": 1, "message": f"Uploaded file for mounted directory {k} is not a valid zip archive."}
+                        {
+                            "status": 1,
+                            "message": f"Uploaded file for mounted directory {k} is not a valid zip archive.",
+                        }
                     )
 
-                mount_directory_upload_requested = True
-                dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k]}
+                upload_id = model.add_upload(task_id, vm_id)["id"]
+                model.update_upload_metadata(
+                    task_id, vm_id, upload_id, f"Mounted directory for {k}", "", ""
+                )
+                run_id = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, request.FILES[file_field])[
+                    "run"
+                ]["run_id"]
+                dynamic_mounts[k] = {
+                    "source": "OUTPUT_OF_OTHER_EXECUTION",
+                    "mode": required_mount_config[k],
+                    "run_id": run_id,
+                }
                 continue
 
             if mount_source == "OUTPUT_OF_OTHER_EXECUTION":
@@ -1240,29 +1312,21 @@ def run_execute_docker_software(
                 if not existing_run:
                     return JsonResponse({"status": 1, "message": f"There is no run with id {run_id}."})
 
-                mount_output_of_other_execution_requested = True
+                run_matches_submission = existing_run.get("vm") == vm_id and existing_run.get("dataset") == dataset_id
+                if not run_matches_submission:
+                    run_is_public_and_unblinded = model.run_is_public_and_unblinded(run_id)
+
+                    if not run_is_public_and_unblinded:
+                        return JsonResponse(
+                            {"status": 1, "message": f"Run {run_id} must be from your own submission on this dataset or published by administrators."}
+                        )
+
                 dynamic_mounts[k] = {"source": mount_source, "mode": required_mount_config[k], "run_id": run_id}
                 continue
 
             return JsonResponse(
                 {"status": 1, "message": f"Unsupported mount configuration for {k}: {dynamic_mounts[k]}."}
             )
-
-    if mount_directory_upload_requested:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Uploading additional mounted directories via the web UI is not yet implemented on the server side. The uploaded zip archive was validated successfully.",
-            }
-        )
-
-    if mount_output_of_other_execution_requested:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Mounting additional directories from another execution via the web UI is not yet implemented on the server side. The provided run ID was validated successfully.",
-            }
-        )
 
     input_run = None
     if (
@@ -1330,9 +1394,7 @@ def run_execute_docker_software(
     if errors:
         return JsonResponse({"status": 1, "message": errors[0]})
 
-    from tira_worker import all_workers
-
-    available_workers = all_workers()
+    available_workers = _available_workers()
     if docker_resources not in available_workers:
         return JsonResponse(
             {

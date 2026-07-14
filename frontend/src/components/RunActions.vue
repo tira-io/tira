@@ -38,43 +38,28 @@
     </v-dialog>
 
     <span>
-      <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank"
+      <v-btn v-if="primary_download_link != null" :href="primary_download_link" target="_blank"
         :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" icon="mdi-file-download-outline" rounded
         density="compact" />
-      <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank"
+      <v-btn v-if="primary_download_link != null" :href="primary_download_link" target="_blank"
         class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" min-width="180"
         prepend-icon="mdi-file-download-outline" rounded density="compact">
-        <p>Download run</p>
+        <p>Download submission</p>
       </v-btn>
-      <v-tooltip activator="parent" location="top">Download run</v-tooltip>
+      <v-tooltip activator="parent" location="top">Download submission</v-tooltip>
     </span>
 
-
-    <v-menu v-if="link_run != null && link_results != null" transition="slide-y-transition">
-      <template v-slot:activator="{ props }">
-        <span>
-          <v-btn v-bind="props" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'"
-            icon="mdi-file-download-outline" rounded density="compact" />
-          <v-btn v-bind="props" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between"
-            prepend-icon="mdi-file-download-outline" min-width="180" rounded density="compact">
-            <p>Download run</p>
-          </v-btn>
-          <v-tooltip activator="parent" location="top">Download run</v-tooltip>
-        </span>
-      </template>
-      <v-list>
-        <v-list-item>
-          <v-btn :href="link_run" target="_blank" class="mx-2">
-            <v-icon>mdi-file-chart-check-outline</v-icon>
-            Download run
-          </v-btn>
-          <v-btn :href="link_results" target="_blank" class="mx-2">
-            <v-icon>mdi-file-download-outline</v-icon>
-            Download results
-          </v-btn>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <span>
+      <v-btn v-if="secondary_download_link != null" :href="secondary_download_link" target="_blank"
+        :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" icon="mdi-file-chart-check-outline" rounded
+        density="compact" />
+      <v-btn v-if="secondary_download_link != null" :href="secondary_download_link" target="_blank"
+        class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" min-width="180"
+        prepend-icon="mdi-file-chart-check-outline" rounded density="compact">
+        <p>Download Evaluation</p>
+      </v-btn>
+      <v-tooltip activator="parent" location="top">Download Evaluation</v-tooltip>
+    </span>
 
     <span>
       <v-btn v-if="link_serp != null" icon="mdi-search-web" :href="link_serp" target="_blank"
@@ -96,7 +81,7 @@
       <v-tooltip activator="parent" location="top">Show Code in new tab</v-tooltip>
     </span>
 
-    <span v-if="userinfo.role === 'admin' || run['owned_by_user']">
+    <span v-if="userinfo.role === 'admin'">
       <run-review-window :run_id="run.run_id" :vm_id="run.vm_id" :dataset_id_from_props="run.dataset_id"
         @reviewRun="(i: any) => $emit('review-run', i)" />
       <v-tooltip activator="parent" location="top">Review</v-tooltip>
@@ -169,6 +154,14 @@ export default {
     },
     link_run() {
       return this.run && 'link_run_download' in this.run ? this.base_url + this.run['link_run_download'] : null;
+    },
+    primary_download_link() {
+      return this.link_run || this.link_results
+    },
+    secondary_download_link() {
+      return this.run && this.run['published'] && !this.run['blinded'] && this.link_run && this.link_results
+        ? this.link_results
+        : null
     },
     can_delete() {
       return this.run && 'published' in this.run && !this.run['published'] && 'review_state' in this.run && this.run['review_state'] != 'valid'

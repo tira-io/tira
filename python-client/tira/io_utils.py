@@ -279,6 +279,21 @@ def resolve_mount_directory(
     return ret
 
 
+def resolve_cache_dir(directory: Union[str, Path], target_dir_name: str = "CACHE_DIR") -> Path:
+    directory = Path(directory).resolve().absolute()
+
+    if directory.name == target_dir_name:
+        return directory
+
+    if (directory / "output" / target_dir_name).is_dir():
+        return (directory / "output" / target_dir_name).resolve().absolute()
+
+    if (directory / "output").is_dir():
+        return (directory / "output").resolve().absolute()
+
+    return directory
+
+
 def _md5_of_file(file_path: Path) -> str:
     digest = hashlib.md5()
 

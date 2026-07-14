@@ -162,6 +162,16 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         name="get_count_of_team_submissions",
     ),
     path(
+        "api/count-of-team-software/<str:task_id>",
+        organizer_api.get_count_of_team_software,
+        name="get_count_of_team_software",
+    ),
+    path(
+        "api/count-of-team-software-executions/<str:task_id>",
+        organizer_api.get_count_of_team_software_executions,
+        name="get_count_of_team_software_executions",
+    ),
+    path(
         "api/count-of-missing-reviews/<str:task_id>",
         organizer_api.get_count_of_missing_reviews,
         name="get_count_of_missing_reviews",

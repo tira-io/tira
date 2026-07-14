@@ -25,6 +25,7 @@
             "dataset_count": 2,
             "dataset_label": "Input dataset",
             "featured": false,
+            "hide_upload_via_cli": false,
             "irds_re_ranking_command": "",
             "irds_re_ranking_image": "",
             "irds_re_ranking_resource": "",
@@ -46,6 +47,7 @@
             "task_description": "task_description",
             "task_id": "task-of-organizer-1",
             "task_name": "task_name",
+            "upload_form_fields": null,
             "web": "website",
             "year": "years"
         },
