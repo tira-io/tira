@@ -510,7 +510,7 @@ def run_local(
 
     print("Run software")
 
-    if "cache_behaviour" in system_details and system_details["cache_behaviour"]:
+    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or ("mount_config" in system_details and "CACHE_DIR" in system_details["mount_config"]):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
