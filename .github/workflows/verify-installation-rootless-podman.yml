@@ -5,6 +5,9 @@ on:
   workflow_dispatch: {}
   pull_request: {}
 
+permissions:
+  contents: read
+
 jobs:
   verify-installation:
     runs-on: ubuntu-latest
