@@ -18,6 +18,7 @@ from tira.io_utils import (
     verify_tira_installation,
 )
 from tira.rest_api_client import Client as RestClient
+from tira.rest_api_client import RunSoftwareError
 from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
@@ -226,6 +227,11 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         "--all-submissions",
         action="store_true",
         help="Download all submissions to a task.",
+    )
+    parser.add_argument(
+        "--all-evaluations",
+        action="store_true",
+        help="Download all evaluations for the downloaded submissions.",
     )
     parser.add_argument("--repackage", action="store_true", help="Repackage everything.")
     parser.set_defaults(executable=download_command)
@@ -510,7 +516,7 @@ def run_local(
 
     print("Run software")
 
-    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or ("mount_config" in system_details and "CACHE_DIR" in system_details["mount_config"]):
+    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or ("mount_config" in system_details and system_details["mount_config"] and "CACHE_DIR" in system_details["mount_config"]):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
@@ -586,6 +592,8 @@ def run_remote(
     dataset: list[str],
     resources: str,
     parallelism: int,
+    runs_per_approach: int = 1,
+    poll_interval_seconds: int = 500,
     require: "Optional[list[str]]" = None,
     forward_environment_variable: "Optional[list[str]]" = None,
     mount_directory: "Optional[list[str]]" = None,
@@ -602,14 +610,14 @@ def run_remote(
         for approach_id in approach:
             runs, matching_runs = runs_matching_requirements(client, approach_id, dataset_id, require)
             runs_with_evaluations[dataset_id] += runs
-            if matching_runs:
-                finished_executions += 1
-            else:
+            finished_executions += min(len(matching_runs), runs_per_approach)
+            for required_matching_runs in range(len(matching_runs) + 1, runs_per_approach + 1):
                 execution_queue.append(
                     {
                         "approach": approach_id,
                         "dataset": dataset_id,
                         "resources": resources,
+                        "required_matching_runs": required_matching_runs,
                     }
                 )
 
@@ -652,13 +660,26 @@ def run_remote(
     while execution_queue or running_executions:
         if execution_queue and len(running_executions) < parallelism:
             execution = execution_queue.pop(0)
-            client.run_software(
-                execution["approach"],
-                execution["dataset"],
-                execution["resources"],
-                software_id=software_details[execution["approach"]]["docker_software_id"],
-                json_payload=remote_execution_payload,
-            )
+            for attempt in range(1, 6):
+                try:
+                    client.run_software(
+                        execution["approach"],
+                        execution["dataset"],
+                        execution["resources"],
+                        software_id=software_details[execution["approach"]]["docker_software_id"],
+                        json_payload=remote_execution_payload,
+                    )
+                    break
+                except RunSoftwareError as error:
+                    if attempt == 5:
+                        raise
+
+                    print(
+                        f"Could not start execution (attempt {attempt}/5): {error.response}. "
+                        + "Retrying in 60 seconds."
+                    )
+                    time.sleep(60)
+
             running_executions.append(execution)
             print(
                 f'Started {execution["approach"]} on {execution["dataset"]}. '
@@ -666,10 +687,13 @@ def run_remote(
             )
             continue
 
+        if hasattr(client, "clear_json_response_cache"):
+            client.clear_json_response_cache()
+
         finished_running_executions = []
         for execution in running_executions:
             _, matching_runs = runs_matching_requirements(client, execution["approach"], execution["dataset"], require)
-            if matching_runs:
+            if len(matching_runs) >= execution["required_matching_runs"]:
                 finished_running_executions.append(execution)
 
         if finished_running_executions:
@@ -678,8 +702,14 @@ def run_remote(
                 finished_executions += 1
                 print(f'Finished {execution["approach"]} on {execution["dataset"]}.')
         elif running_executions:
-            print("Wait until execution finishes...")
-            time.sleep(500)
+            running_count = len(running_executions)
+            pending_count = len(execution_queue)
+            print(
+                "Wait until execution finishes... "
+                + f"{running_count} execution{'s are' if running_count != 1 else ' is'} still running, "
+                + f"{pending_count} execution{'s are' if pending_count != 1 else ' is'} pending."
+            )
+            time.sleep(poll_interval_seconds)
 
     print("No executions are waiting to be started.")
     return 0
@@ -752,6 +782,20 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         default=4,
         type=positive_int,
         help="How many remote execution requests may be started in parallel.",
+    )
+    remote.add_argument(
+        "--runs-per-approach",
+        required=False,
+        default=1,
+        type=positive_int,
+        help="How many matching runs must exist for every approach and dataset combination.",
+    )
+    remote.add_argument(
+        "--poll-interval-seconds",
+        required=False,
+        default=500,
+        type=positive_int,
+        help="How many seconds to wait between checks for completed remote executions.",
     )
     remote.add_argument(
         "--require",
@@ -988,14 +1032,18 @@ def download_command(
     truths: bool = False,
     output: "Optional[str]" = None,
     all_submissions: bool = False,
+    all_evaluations: bool = False,
     repackage: bool = False,
     **kwargs,
 ) -> int:
     client: "RestClient" = RestClient()
+    if all_evaluations and not all_submissions:
+        raise ValueError("--all-evaluations requires --all-submissions.")
+
     if approach is not None:
         ret = client.get_run_output(approach, dataset)
     elif all_submissions:
-        ret = client.download_all_submissions(dataset, output, repackage)
+        ret = client.download_all_submissions(dataset, output, repackage, all_evaluations=all_evaluations)
     else:
         ret = client.download_dataset(None, dataset, truths)
 

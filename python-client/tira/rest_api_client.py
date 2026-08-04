@@ -36,6 +36,12 @@ from tira.trectools_integration import TrecToolsIntegration
 from .tira_client import TiraClient
 
 
+class RunSoftwareError(RuntimeError):
+    def __init__(self, response: dict):
+        super().__init__(response)
+        self.response = response
+
+
 class Client(TiraClient):
     base_url: str
 
@@ -434,7 +440,16 @@ class Client(TiraClient):
 
         return ret
 
-    def download_all_submissions(self, dataset_id: str, output: "Optional[str]", repackage: bool):
+    def clear_json_response_cache(self):
+        self.json_response.cache_clear()
+
+    def download_all_submissions(
+        self,
+        dataset_id: str,
+        output: "Optional[str]",
+        repackage: bool,
+        all_evaluations: bool = False,
+    ):
         if not output:
             from tira.third_party_integrations import temporary_directory
 
@@ -443,9 +458,11 @@ class Client(TiraClient):
         output = Path(output)
         raw_output_dir = output / "raw-outputs" / dataset_id
         raw_output_dir.mkdir(parents=True, exist_ok=True)
+        raw_evaluation_dir = output / "raw-evaluations" / dataset_id
         outputs_flat = output / "outputs-flat"
         shutil.rmtree(outputs_flat, ignore_errors=True)
-        outputs_flat.mkdir(parents=True, exist_ok=True)
+        if repackage:
+            outputs_flat.mkdir(parents=True, exist_ok=True)
 
         existing_runs = {}
         if (output / "metadata.jsonl").exists():
@@ -469,6 +486,30 @@ class Client(TiraClient):
             shutil.copytree(Path(run_output).parent, raw_output_dir / i["run_id"])
             i["raw-outputs-from-tira"] = f"raw-outputs/{dataset_id}/{i['run_id']}"
             existing_runs[i["tira_run_id"]] = i
+
+        if all_evaluations:
+            raw_evaluation_dir.mkdir(parents=True, exist_ok=True)
+            for run in existing_runs.values():
+                run["evaluations"] = []
+
+            for _, evaluation in tqdm(list(evals.iterrows()), "Download evaluations"):
+                evaluation = evaluation.to_dict()
+                evaluation_run_id = evaluation["evaluation_run_id"]
+                relative_path = f"raw-evaluations/{dataset_id}/{evaluation_run_id}"
+                if relative_path in existing_runs[evaluation["run_id"]]["evaluations"]:
+                    continue
+
+                evaluation_output = self.download_zip_to_cache_directory(
+                    task,
+                    dataset_id,
+                    evaluation["team"],
+                    evaluation_run_id,
+                )
+                target = raw_evaluation_dir / evaluation_run_id
+                if target.exists():
+                    shutil.rmtree(target, ignore_errors=True)
+                shutil.copytree(Path(evaluation_output).parent, target)
+                existing_runs[evaluation["run_id"]]["evaluations"].append(relative_path)
 
         if repackage:
             run_id_to_metadata = {}
@@ -495,7 +536,7 @@ class Client(TiraClient):
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
                 metadata = run_id_to_metadata.get(i["tira_run_id"], {})
-                if not metadata:
+                if repackage and not metadata:
                     logging.warning(
                         f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment."
                     )
@@ -505,31 +546,31 @@ class Client(TiraClient):
                     i["run_display_name"] = i["tira_run_id"]
                 f.write(json.dumps(i) + "\n")
 
-        for i in tqdm(existing_runs.values()):
-            inp = output / i["raw-outputs-from-tira"] / "output"
-            assert len(glob(f"{inp}/*")) > 0
-            base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
-            target_file = outputs_flat / base_name
-            suffix = 2
-            while target_file.exists():
-                target_file = outputs_flat / f"{base_name}-{suffix}"
-                suffix += 1
-            if len(glob(f"{inp}/*")) == 1:
-                inp = glob(f"{inp}/*")
-                inp = inp[0]
-                expected_md5 = _md5_of_file(Path(inp))
-                shutil.copy(inp, target_file)
-                i["md5sum"] = expected_md5
-            else:
-                shutil.copytree(inp, target_file)
-            i["flat-outputs"] = "outputs-flat/" + target_file.name
+        if repackage:
+            for i in tqdm(existing_runs.values()):
+                inp = output / i["raw-outputs-from-tira"] / "output"
+                assert len(glob(f"{inp}/*")) > 0
+                base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+                target_file = outputs_flat / base_name
+                suffix = 2
+                while target_file.exists():
+                    target_file = outputs_flat / f"{base_name}-{suffix}"
+                    suffix += 1
+                if len(glob(f"{inp}/*")) == 1:
+                    inp = glob(f"{inp}/*")
+                    inp = inp[0]
+                    expected_md5 = _md5_of_file(Path(inp))
+                    shutil.copy(inp, target_file)
+                    i["md5sum"] = expected_md5
+                else:
+                    shutil.copytree(inp, target_file)
+                i["flat-outputs"] = "outputs-flat/" + target_file.name
 
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
                 f.write(json.dumps(i) + "\n")
 
     def evaluations(self, task, dataset, join_submissions=True):
-        print(task)
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
         evaluation_keys = response["ev_keys"]
@@ -1133,7 +1174,8 @@ class Client(TiraClient):
 
         ret = self.execute_post_return_json(url, json_payload=json_payload)
         logging.info(ret)
-        assert ret["status"] == 0
+        if ret["status"] != 0:
+            raise RunSoftwareError(ret)
 
     def review_run(
         self,
