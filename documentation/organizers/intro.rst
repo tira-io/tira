@@ -41,6 +41,12 @@ How do I...
     
       For those who have train-, validation-, and test-data and want to see how they can be fitted well.
 
+   .. grid-item-card:: :octicon:`terminal` Set Up a Task Locally
+      :link: local-shared-task
+      :link-type: doc
+
+      Prepare and validate a dataset, baseline, and evaluator yourself or with a coding agent before uploading them.
+
    .. grid-item-card:: :octicon:`server` Host my own Instance
       :link: deployment/index
       :link-type: doc

@@ -1,19 +1,10 @@
 Organizing Tasks
 ================
 
+.. tip::
 
-   You can test that the setup of your task is valid on your machine. Please install the TIRA client on your machine:
-   
-   .. code::
-
-      pip3 install tira
-
-   Next, you can use the `tira-cli dataset-submission ...` command to test and upload your task.
-
-   Examples of declarative task setups are available at, for instance, example tasks, including their definitions, include:
-   
-   - `Learned Sparse Retrieval <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/learned-sparse-retrieval>`_
-   - `Multi Author Analysis <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/multi-author-analysis>`_ 
+   Start with :doc:`local-shared-task` to prepare the dataset, baseline, and evaluator in a Git repository and validate
+   the complete workflow before uploading anything to TIRA.
 
 
 .. dropdown:: :material-regular:`looks_one;1.5em` Apply for a Organizer Account
