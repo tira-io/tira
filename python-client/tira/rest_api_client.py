@@ -443,6 +443,28 @@ class Client(TiraClient):
     def clear_json_response_cache(self):
         self.json_response.cache_clear()
 
+    def download_all_runs(self, approach: str, dataset_id: str, output: "Optional[str]") -> Path:
+        if not output:
+            from tira.third_party_integrations import temporary_directory
+
+            output = temporary_directory()
+
+        task, team, software = approach.split("/")
+        runs = self.submissions_with_evaluation_or_none(task, dataset_id, team, software)
+        if not runs:
+            raise ValueError(f'Could not get runs for approach "{approach}" on dataset "{dataset_id}".')
+
+        output = Path(output)
+        output.mkdir(parents=True, exist_ok=True)
+        for run in tqdm(runs, "Download runs"):
+            run_output = self.download_zip_to_cache_directory(task, dataset_id, team, run["run_id"])
+            target = output / run["run_id"]
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(run_output, target)
+
+        return output
+
     def download_all_submissions(
         self,
         dataset_id: str,

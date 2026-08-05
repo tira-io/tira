@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from tira.tira_client import TiraClient
 from tira.check_format import _fmt
+from tira.tira_client import TiraClient
 
 RESOURCE_DIR = Path(__file__).parent / "resources"
 

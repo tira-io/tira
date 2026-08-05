@@ -56,4 +56,13 @@ tira-cli upload
 tira-cli download
 ~~~~~~~~~~~~~~~~~
 
-.. todo:: TODO
+To download every run of one approach on a dataset, use ``--all-runs``. Each run is stored in a separate
+subdirectory named after its TIRA run ID:
+
+.. code:: bash
+
+    tira-cli download \
+      --approach trec-auto-judge/webis/tinyjudge \
+      --dataset rag25-gen-20260608-test \
+      --all-runs \
+      --output data/experiment-runs

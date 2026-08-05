@@ -558,7 +558,9 @@ def update_upload_metadata(
     paper_link: str,
     upload_metadata: "Optional[dict[str, Any]]" = None,
 ) -> None:
-    return model.update_upload_metadata(task_id, vm_id, upload_id, display_name, description, paper_link, upload_metadata)
+    return model.update_upload_metadata(
+        task_id, vm_id, upload_id, display_name, description, paper_link, upload_metadata
+    )
 
 
 def add_uploaded_run(

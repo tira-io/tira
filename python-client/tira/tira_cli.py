@@ -60,9 +60,13 @@ def build_mount_config(
     mount_config = None if not mount_directory and not mount_cache else {}
 
     if mount_directory:
-        mount_config.update({k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "ro"} for k in mount_directory})
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "ro"} for k in mount_directory}
+        )
     if mount_cache:
-        mount_config.update({k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "rw"} for k in mount_cache})
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "rw"} for k in mount_cache}
+        )
 
     return mount_config
 
@@ -227,6 +231,11 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         "--all-submissions",
         action="store_true",
         help="Download all submissions to a task.",
+    )
+    parser.add_argument(
+        "--all-runs",
+        action="store_true",
+        help="Download all runs of the specified approach.",
     )
     parser.add_argument(
         "--all-evaluations",
@@ -516,7 +525,11 @@ def run_local(
 
     print("Run software")
 
-    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or ("mount_config" in system_details and system_details["mount_config"] and "CACHE_DIR" in system_details["mount_config"]):
+    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or (
+        "mount_config" in system_details
+        and system_details["mount_config"]
+        and "CACHE_DIR" in system_details["mount_config"]
+    ):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
@@ -1032,6 +1045,7 @@ def download_command(
     truths: bool = False,
     output: "Optional[str]" = None,
     all_submissions: bool = False,
+    all_runs: bool = False,
     all_evaluations: bool = False,
     repackage: bool = False,
     **kwargs,
@@ -1039,8 +1053,14 @@ def download_command(
     client: "RestClient" = RestClient()
     if all_evaluations and not all_submissions:
         raise ValueError("--all-evaluations requires --all-submissions.")
+    if all_runs and approach is None:
+        raise ValueError("--all-runs requires --approach.")
+    if all_runs and all_submissions:
+        raise ValueError("--all-runs cannot be combined with --all-submissions.")
 
-    if approach is not None:
+    if all_runs:
+        ret = client.download_all_runs(approach, dataset, output)
+    elif approach is not None:
         ret = client.get_run_output(approach, dataset)
     elif all_submissions:
         ret = client.download_all_submissions(dataset, output, repackage, all_evaluations=all_evaluations)
