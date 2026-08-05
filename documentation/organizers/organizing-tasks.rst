@@ -45,6 +45,8 @@ Organizing Tasks
 
    We have some examples on baselines that you can adopt for your shared task, e.g.:
 
+   - The `minimal Touché-2026 causality extraction baseline <https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task1-naive-baseline>`__
+   - The `LongEval PyTerrier retrieval baseline <https://github.com/clef-longeval/longeval-code/tree/main/clef25/pyterrier-baseline>`__
    - The `clickbait spoiling baselines from SemEval-2023 <https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines>`__
    - The `ValueEval baseline from SemEval-2023 <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline>`__
    - The baselines for `Touché-2023 at CLEF <https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier>`__
@@ -97,6 +99,8 @@ Evaluators should produce helpful guidance for runs that are not valid (e.g., cl
 
 Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:
 
+- The `PAN-2026 multi-author analysis evaluator <https://github.com/pan-webis-de/pan-code/tree/master/clef26/multi-author-analysis/evaluator>`__ includes a Dockerfile and unit tests for its scoring logic.
+- The `Touché-2026 causality extraction evaluator <https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task3-evaluator>`__ is a compact example that writes ``evaluation.prototext``.
 - The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.
 - The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__ together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
 - The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__ script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__ and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.
