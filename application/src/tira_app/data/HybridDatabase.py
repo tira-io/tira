@@ -938,7 +938,7 @@ class HybridDatabase(object):
 
     def get_count_of_team_software(self, task_id: str) -> "list[dict[str, Any]]":
         task = self.get_task(task_id, False)
-        all_teams_on_task = set([i.strip() for i in task["allowed_task_teams"].split() if i.strip()])
+        all_teams_on_task = set(i.strip() for i in task["allowed_task_teams"].split() if i.strip())
         rows = (
             modeldb.DockerSoftware.objects.filter(task__task_id=task_id)
             .values("vm__vm_id")
