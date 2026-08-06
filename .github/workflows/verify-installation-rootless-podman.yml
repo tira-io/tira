@@ -68,7 +68,6 @@ jobs:
           podman ps
           podman pull bash
       - name: Install TIRA from source
-          podman run --entrypoint echo bash hello
         working-directory: ${{ github.workspace }}/python-client
         run: |
           pip install .
