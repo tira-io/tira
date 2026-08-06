@@ -374,6 +374,26 @@ class TiraClient(ABC):
         Repo.clone_from(repo_url, target_file)
         return target_file
 
+    def _resolve_baseline_source(self, dataset_path: Path, link: str) -> "tuple[Path, Path, Optional[str]]":
+        normalized_link = link.replace("/tree/master/", "/tree/main/")
+        if "/tree/main/" in normalized_link:
+            git_url, subdir = normalized_link.split("/tree/main/", 1)
+            git_repo_local = self.clone_git_repository(git_url)
+            return git_repo_local / subdir, git_repo_local, git_url
+
+        relative_link = Path(link)
+        if relative_link.is_absolute() or "://" in link:
+            raise ValueError(
+                "The baseline link must be a Git repository URL containing '/tree/main/' "
+                "or a path relative to the dataset directory."
+            )
+
+        baseline_path = (dataset_path / relative_link).resolve()
+        if not baseline_path.is_dir():
+            raise ValueError(f"The relative baseline path {link} does not exist at {baseline_path}.")
+
+        return baseline_path, baseline_path, None
+
     def build_docker_image_from_code(
         self,
         path: Path,
@@ -939,7 +959,6 @@ class TiraClient(ABC):
         resolve_inputs_to = tira_configs.get("resolve_inputs_to", None)
         input_format = tira_configs["input_format"]["name"]
         input_config = tira_configs["input_format"].get("config", {})
-        git_url, subdir = tira_configs["baseline"]["link"].replace("/tree/master/", "/tree/main/").split("/tree/main/")
 
         if "workflow" in tira_configs:
             baseline_command = None
@@ -1019,17 +1038,23 @@ class TiraClient(ABC):
         print_message("The truth data is valid.", _fmt.OK)
 
         if not skip_baseline:
-            git_repo_local = self.clone_git_repository(git_url)
-            print_message(f"Repository for the baseline is cloned from {git_url}.", _fmt.OK)
+            baseline_path, docker_file_root, git_url = self._resolve_baseline_source(
+                path, tira_configs["baseline"]["link"]
+            )
+            if git_url is not None:
+                print_message(f"Repository for the baseline is cloned from {git_url}.", _fmt.OK)
+            else:
+                print_message(f"The baseline is loaded from {baseline_path}.", _fmt.OK)
+
             docker_file = None
             if "file" in tira_configs["baseline"]:
-                docker_file = git_repo_local / Path(tira_configs["baseline"]["file"])
+                docker_file = docker_file_root / Path(tira_configs["baseline"]["file"])
 
             docker_tag, _, _, _, _ = self.build_docker_image_from_code(
-                git_repo_local / Path(subdir), log_message, False, docker_file=docker_file
+                baseline_path, log_message, False, docker_file=docker_file
             )
 
-            print_message(f"The baseline {subdir} is embedded in a Docker image.", _fmt.OK)
+            print_message(f"The baseline {baseline_path} is embedded in a Docker image.", _fmt.OK)
 
             if "workflow" not in tira_configs:
                 if baseline_command is None:

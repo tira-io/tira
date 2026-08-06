@@ -43,6 +43,10 @@ Organizing Tasks
 
    In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.
 
+   In a dataset card, ``tira_configs.baseline.link`` may be either a public GitHub directory URL or a path relative to
+   the directory containing the dataset ``README.md``. For example, use ``../../baseline`` when the dataset card is in
+   ``datasets/my-task`` and the baseline is in the repository's top-level ``baseline`` directory.
+
    We have some examples on baselines that you can adopt for your shared task, e.g.:
 
    - The `minimal Touché-2026 causality extraction baseline <https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task1-naive-baseline>`__

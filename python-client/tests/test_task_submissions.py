@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -14,6 +15,43 @@ def submit_task(directory, dataset="train"):
 
 
 class TestTaskSubmissions(unittest.TestCase):
+    @patch.object(TiraClient, "clone_git_repository")
+    def test_resolves_baseline_from_git_repository(self, clone_git_repository):
+        clone_git_repository.return_value = Path("/tmp/cloned-repository")
+        client = TiraClient()
+
+        baseline_path, docker_file_root, git_url = client._resolve_baseline_source(
+            RESOURCE_DIR,
+            "https://github.com/example/task/tree/master/baseline",
+        )
+
+        self.assertEqual(Path("/tmp/cloned-repository/baseline"), baseline_path)
+        self.assertEqual(Path("/tmp/cloned-repository"), docker_file_root)
+        self.assertEqual("https://github.com/example/task", git_url)
+        clone_git_repository.assert_called_once_with("https://github.com/example/task")
+
+    @patch.object(TiraClient, "clone_git_repository")
+    def test_resolves_baseline_relative_to_dataset_directory(self, clone_git_repository):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / "datasets" / "example"
+            relative_baseline = Path(tmpdir) / "baseline"
+            dataset_path.mkdir(parents=True)
+            relative_baseline.mkdir()
+
+            client = TiraClient()
+            baseline_path, docker_file_root, git_url = client._resolve_baseline_source(dataset_path, "../../baseline")
+
+            self.assertEqual(relative_baseline.resolve(), baseline_path)
+            self.assertEqual(relative_baseline.resolve(), docker_file_root)
+            self.assertIsNone(git_url)
+            clone_git_repository.assert_not_called()
+
+    def test_rejects_missing_relative_baseline(self):
+        client = TiraClient()
+
+        with self.assertRaisesRegex(ValueError, "does not exist"):
+            client._resolve_baseline_source(RESOURCE_DIR, "missing-baseline")
+
     def test_fails_for_non_existing_directory(self):
         actual = submit_task(RESOURCE_DIR / "does-not-exist")
         self.assertIsNone(actual)
