@@ -15,7 +15,6 @@ from tira.io_utils import (
     hf_cache_dir,
     huggingface_model_mounts,
     persist_tira_metadata_for_job,
-    resolve_cache_dir,
 )
 from tira.rest_api_client import Client as RestClient
 from tira.third_party_integrations import is_public_huggingface_model
@@ -27,7 +26,7 @@ from .settings import (
     QUEUE_BROKER_URL,
     QUEUE_RESULTS_BACKEND_URL,
 )
-from .utils import gpu_device_ids
+from .utils import gpu_device_ids, resolve_dynamic_mounts
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 app.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
@@ -89,30 +88,6 @@ if "celery" in sys.argv[0] and "gpu_executor" in sys.argv[2]:
     )
 else:
     gpu_devices = None
-
-
-def resolve_dynamic_mounts(
-    dynamic_mounts: Optional[dict],
-    client: TiraClient,
-    task: str,
-    dataset: str,
-    team: str,
-) -> Optional[dict]:
-    if dynamic_mounts is None:
-        return None
-
-    ret = {}
-    for mount_name, mount_config in dynamic_mounts.items():
-        ret[mount_name] = dict(mount_config)
-        if mount_config.get("source") != "OUTPUT_OF_OTHER_EXECUTION" or "run_id" not in mount_config:
-            continue
-
-        downloaded_run = client.download_zip_to_cache_directory(
-            task=task, dataset=dataset, team=team, run_id=mount_config["run_id"]
-        )
-        ret[mount_name]["source"] = str(resolve_cache_dir(downloaded_run.parent, mount_name))
-
-    return ret
 
 
 def _tail_lines(text: str, line_count: int = 15) -> str:

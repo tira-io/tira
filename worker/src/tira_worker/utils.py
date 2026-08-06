@@ -1,7 +1,34 @@
 import os
 import subprocess
+from typing import Optional
 
 from celery.app.control import Inspect
+from tira.io_utils import resolve_cache_dir
+from tira.tira_client import TiraClient
+
+
+def resolve_dynamic_mounts(
+    dynamic_mounts: Optional[dict],
+    client: TiraClient,
+    task: str,
+    dataset: str,
+    team: str,
+) -> Optional[dict]:
+    if dynamic_mounts is None:
+        return None
+
+    ret = {}
+    for mount_name, mount_config in dynamic_mounts.items():
+        ret[mount_name] = dict(mount_config)
+        if mount_config.get("source") != "OUTPUT_OF_OTHER_EXECUTION" or "run_id" not in mount_config:
+            continue
+
+        downloaded_run = client.download_zip_to_cache_directory(
+            task=task, dataset=dataset, team=team, run_id=mount_config["run_id"]
+        )
+        ret[mount_name]["source"] = str(resolve_cache_dir(downloaded_run.parent, mount_name))
+
+    return ret
 
 
 def gpu_device_ids():

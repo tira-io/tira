@@ -10,7 +10,7 @@ os.environ["TIRA_WORKER_CONFIG"] = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "tira-worker-config.yml")
 )
 
-from tira_worker import _tasks
+from tira_worker import _tasks, utils
 
 
 class TestExecuteMonitored(unittest.TestCase):
@@ -117,7 +117,7 @@ class TestExecuteMonitored(unittest.TestCase):
             client = Mock()
             client.download_zip_to_cache_directory.return_value = output_dir
 
-            actual = _tasks.resolve_dynamic_mounts(
+            actual = utils.resolve_dynamic_mounts(
                 {"CACHE_DIR": {"source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "rw", "run_id": "run-1"}},
                 client,
                 "task",
@@ -138,7 +138,7 @@ class TestExecuteMonitored(unittest.TestCase):
             client = Mock()
             client.download_zip_to_cache_directory.return_value = output_dir
 
-            actual = _tasks.resolve_dynamic_mounts(
+            actual = utils.resolve_dynamic_mounts(
                 {"CACHE_DIR": {"source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "rw", "run_id": "run-1"}},
                 client,
                 "task",
@@ -152,7 +152,7 @@ class TestExecuteMonitored(unittest.TestCase):
         client = Mock()
         dynamic_mounts = {"CACHE_DIR": {"source": "EMPTY_DIR", "mode": "rw"}}
 
-        actual = _tasks.resolve_dynamic_mounts(dynamic_mounts, client, "task", "dataset", "team")
+        actual = utils.resolve_dynamic_mounts(dynamic_mounts, client, "task", "dataset", "team")
 
         self.assertEqual(dynamic_mounts, actual)
         client.download_zip_to_cache_directory.assert_not_called()
