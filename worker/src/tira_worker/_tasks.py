@@ -98,8 +98,8 @@ def resolve_dynamic_mounts(
     dataset: str,
     team: str,
 ) -> Optional[dict]:
-    if not dynamic_mounts:
-        return dynamic_mounts
+    if dynamic_mounts is None:
+        return None
 
     ret = {}
     for mount_name, mount_config in dynamic_mounts.items():
