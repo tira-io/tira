@@ -157,7 +157,7 @@ def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[],
         help=(
-            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwarded (not stored) to the container."
         ),
     )
     parser.add_argument(
@@ -732,7 +732,7 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
 
-    local = subparsers.add_parser("local", help="Batch-verify authentication tokens for a task")
+    local = subparsers.add_parser("local", help="Run a registered TIRA approach locally.")
     setup_forwarding_args(local)
     local.add_argument(
         "--input",
@@ -931,7 +931,7 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[],
         help=(
-            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwarded (not stored) to the container."
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
@@ -1295,7 +1295,7 @@ def parse_args() -> argparse.Namespace:
     setup_download_command(subparsers.add_parser("download", help="Download runs or datasets from TIRA.io"))
     setup_upload_command(subparsers.add_parser("upload", help="Upload runs or datasets to TIRA.io"))
     setup_eval_command(subparsers.add_parser("evaluate", help="Evaluate runs locally."))
-    setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
+    setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the TIRA server."))
     setup_verify_installation(
         subparsers.add_parser(
             "verify-installation",
@@ -1305,11 +1305,11 @@ def parse_args() -> argparse.Namespace:
     setup_code_submission_command(
         subparsers.add_parser(
             "code-submission",
-            help="Make a code submission via Docker from a git repository.",
+            help="Make a code submission from a Git repository.",
         )
     )
     setup_dataset_submission_command(
-        subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
+        subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to TIRA.")
     )
     setup_admin_command(
         subparsers.add_parser(

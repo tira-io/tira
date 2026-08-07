@@ -5,8 +5,8 @@ TIRA CLI
 
 You don't always need to write code to interact with TIRA. For your convenience, we offer a handy command line interface (CLI) for quick and efficient interactions with the TIRA platform.
 
-.. note:: This documentation is particularly discussing ``tira-cli`` and not the ``tira-run`` command. ``tira-run``
-    should be viewed as legacy and we are committed to move the functionality over to ``tira-cli``.
+.. note:: ``tira-cli`` is the preferred command. The legacy ``tira-run`` command is still needed when directly
+    executing a container image that is not registered as a TIRA approach.
 
 
 Introduction
@@ -22,16 +22,24 @@ If everything worked, the CLI's help page should display the following:
 .. code-block:: bash
 
     $ tira-cli --help
-    usage: tira-cli [-h] {download,upload,login} ...
+    usage: tira-cli [-h] [-v]
+                    {download,upload,evaluate,login,verify-installation,code-submission,dataset-submission,admin,run} ...
 
     positional arguments:
-      {download,upload,login}
+      {download,upload,evaluate,login,verify-installation,code-submission,dataset-submission,admin,run}
         download            Download runs or datasets from TIRA.io
         upload              Upload runs or datasets to TIRA.io
-        login               Login your TIRA client to the tira server.
+        evaluate            Evaluate runs locally.
+        login               Login your TIRA client to the TIRA server.
+        verify-installation Verify that your local TIRA client is correctly installed.
+        code-submission     Make a code submission from a git repository.
+        dataset-submission  Submit a new task/dataset to TIRA.
+        admin               Control TIRA admin endpoints.
+        run                 Run approaches in TIRA or locally.
 
     options:
       -h, --help            show this help message and exit
+      -v, --version         show program's version number and exit
 
 
 .. tip:: To quickly find out more about ``tira-cli`` or a specific subcommand, use ``tira-cli --help`` or
@@ -45,6 +53,32 @@ tira-cli login
 ~~~~~~~~~~~~~~
 
 .. todo:: TODO
+
+
+tira-cli verify-installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify that the local client and its dependencies are ready before building submissions or running approaches:
+
+.. code-block:: bash
+
+    tira-cli verify-installation
+
+
+tira-cli run local
+~~~~~~~~~~~~~~~~~~
+
+Execute an approach registered in TIRA on a local or published dataset:
+
+.. code-block:: bash
+
+    tira-cli run local \
+      --approach trec-auto-judge/webis/Naive-AutoJudge \
+      --input kiddie-20260605-training \
+      --out tira-output
+
+Use ``tira-cli run local --help`` for resource limits, environment forwarding, and directory mounts. To execute an
+unregistered image directly, continue to use ``tira-run --image ... --command ...``.
 
 
 tira-cli upload

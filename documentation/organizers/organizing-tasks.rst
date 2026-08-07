@@ -56,7 +56,9 @@ Organizing Tasks
    - The baselines for `Touché-2023 at CLEF <https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier>`__
    - The baseline for `PAN-2023 at CLEF <https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines>`__
 
-   To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run` command that participants can use to test their image locally. The :code:`tira-run` commands executes a software as it would be executed in TIRA.
+   To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run`
+   command that participants can use to test an image locally. The command executes software as it would be executed in
+   TIRA.
 
    You can find some examples of shared tasks that use :code:`tira-run` in their baselines to simplify participation here:
 
@@ -73,8 +75,8 @@ Organizing Tasks
 
    .. code::
 
-      You can test docker images that you would submit to TIRA locally via `tira-run`. 
-      The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+      You can test Docker images that you would submit to TIRA locally via `tira-run`.
+      The `tira-run` command executes software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
 
       We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
 
