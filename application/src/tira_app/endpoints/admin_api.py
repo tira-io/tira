@@ -634,7 +634,7 @@ def call_django_command_failsave(cmd: str, args: list[str]) -> "dict[str, Option
     sys.stderr = captured_stderr
 
     try:
-        call_command(cmd, **args)
+        call_command(cmd, *args)
     except Exception as e:
         error = str(e)
         error += "\n\n" + traceback.format_exc()

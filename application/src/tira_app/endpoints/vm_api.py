@@ -681,7 +681,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             source_code_remotes = json.dumps(json.loads(source_code_remotes))
 
         submission_git_repo = None
-        build_environment = None
+        build_environment_json = None
         if data.get("code_repository_id"):
             submission_git_repo = model.model.get_submission_git_repo_or_none(
                 data.get("code_repository_id"), vm_id, True
@@ -696,7 +696,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
                 )
 
             build_environment = _sanitize_build_environment(data.get("build_environment"))
-            build_environment = json.dumps(build_environment)
+            build_environment_json = json.dumps(build_environment)
 
         new_docker_software = model.add_docker_software(
             task_id,
@@ -705,7 +705,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("command"),
             data.get("inputJob", None),
             submission_git_repo,
-            build_environment,
+            build_environment_json,
             source_code_remotes,
             commit,
             active_branch,

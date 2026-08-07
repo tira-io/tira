@@ -72,12 +72,8 @@ class TestTeamSoftwareCounts(TestCase):
         )
         dataset_a = modeldb.Dataset.objects.create(dataset_id="dataset-a", display_name="Dataset A")
         dataset_b = modeldb.Dataset.objects.create(dataset_id="dataset-b", display_name="Dataset B")
-        software_a_1 = modeldb.DockerSoftware.objects.create(
-            vm=team_a, task=task, display_name="a-1", deleted=False
-        )
-        software_a_2 = modeldb.DockerSoftware.objects.create(
-            vm=team_a, task=task, display_name="a-2", deleted=False
-        )
+        software_a_1 = modeldb.DockerSoftware.objects.create(vm=team_a, task=task, display_name="a-1", deleted=False)
+        software_a_2 = modeldb.DockerSoftware.objects.create(vm=team_a, task=task, display_name="a-2", deleted=False)
 
         for run_id, software, dataset in [
             ("run-a-1-dataset-a", software_a_1, dataset_a),

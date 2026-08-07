@@ -962,13 +962,15 @@ class HybridDatabase(object):
         teams_in_result = {row["team"] for row in ret}
         for team in sorted(all_teams_on_task):
             if team not in teams_in_result:
-                ret.append({
+                ret.append(
+                    {
                         "team": team,
                         "software_count": 0,
                         "deleted_software_count": 0,
                         "link": link_to_discourse_team(team),
                         "link_submission": f"/submit/{task_id}/user/{team}",
-                })
+                    }
+                )
 
         return ret
 
