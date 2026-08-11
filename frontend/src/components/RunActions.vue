@@ -159,7 +159,8 @@ export default {
       return this.link_run || this.link_results
     },
     secondary_download_link() {
-      return this.run && this.run['published'] && !this.run['blinded'] && this.link_run && this.link_results
+      return this.run && (this.userinfo.role === 'admin' || (this.run['published'] && !this.run['blinded']))
+        && this.link_run && this.link_results
         ? this.link_results
         : null
     },
