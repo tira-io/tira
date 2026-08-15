@@ -12,6 +12,7 @@ configs:
 tira_configs:
   resolve_inputs_to: "system-inputs"
   resolve_truths_to: "truths"
+  default_upload_name: "predictions.jsonl"
   baseline:
     link: https://github.com/pan-webis-de/pan-code/tree/master/clef25/multi-author-analysis/naive-baseline
     command: /predict.py --dataset $inputDataset --output $outputDir --predict 0
@@ -29,4 +30,3 @@ tira_configs:
 # Multi Author Analysis Example Dataset
 
 TODO: some description.
-

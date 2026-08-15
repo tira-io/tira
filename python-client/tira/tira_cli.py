@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import logging
+import time
 from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
@@ -8,8 +9,16 @@ from typing import TYPE_CHECKING, Optional
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
 from tira.check_format import fmt_message
-from tira.io_utils import _fmt, clean_logger, load_output_of_directory, log_message, verify_tira_installation
+from tira.io_utils import (
+    _fmt,
+    clean_logger,
+    environment_variables_to_forward,
+    load_output_of_directory,
+    log_message,
+    verify_tira_installation,
+)
 from tira.rest_api_client import Client as RestClient
+from tira.rest_api_client import RunSoftwareError
 from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
@@ -36,6 +45,172 @@ def setup_logging_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-q", "--quiet", action="store_true", help="Disables logging.")
 
 
+def positive_int(value: str) -> int:
+    ret = int(value)
+    if ret < 1:
+        raise argparse.ArgumentTypeError("Value must be at least 1.")
+
+    return ret
+
+
+def build_mount_config(
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+) -> "Optional[dict]":
+    mount_config = None if not mount_directory and not mount_cache else {}
+
+    if mount_directory:
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "ro"} for k in mount_directory}
+        )
+    if mount_cache:
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "rw"} for k in mount_cache}
+        )
+
+    return mount_config
+
+
+def build_remote_mount_config(
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+) -> "Optional[dict]":
+    mount_config = None if not mount_directory and not mount_cache else {}
+
+    if mount_directory:
+        mount_config.update({k.split("=")[0].replace("$", ""): k.split("=")[1] for k in mount_directory})
+    if mount_cache:
+        mount_config.update({k.split("=")[0].replace("$", ""): k.split("=")[1] for k in mount_cache})
+
+    return mount_config
+
+
+def validate_required_forwarding(
+    system_details: dict,
+    system_pretty: str,
+    forward_environment_variable: "Optional[list[str]]",
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+) -> bool:
+    miss_environment_variable, miss_mount = False, False
+    mount_config = build_mount_config(mount_directory, mount_cache)
+
+    if "forward_environment_variable" in system_details and system_details["forward_environment_variable"]:
+        for f in system_details["forward_environment_variable"]:
+            if not forward_environment_variable or f not in forward_environment_variable:
+                miss_environment_variable = True
+
+        msg = f"The following environment variables must be forwarded explicitly to run the software {system_pretty}:\n  - "
+        msg += "\n  - ".join(system_details["forward_environment_variable"])
+        msg += f".\n\nPlease forward potentially sensible environment variables only when you trust the software {system_pretty}."
+        msg += "E.g., the software could potentially leak your credentials as network access is allowed when access to remote LLMs is allowed."
+        msg += "Please read https://docs.tira.io/participants/llms-via-rest-api.html for more details. "
+        msg += "If you trust the software, you can use the --forward-environment-variable flag in tira-cli to forward the environment variable(s), e.g., via: \n\n  --forward-environment-variable "
+        msg += " ".join(system_details["forward_environment_variable"])
+
+        if miss_environment_variable:
+            log_message(msg, _fmt.ERROR)
+
+    if "mount_config" in system_details and system_details["mount_config"]:
+        for f in system_details["mount_config"]:
+            if not mount_config or f not in mount_config:
+                miss_mount = True
+
+        msg = f"The following mounts must be forwarded explicitly to run the software {system_pretty}:\n  - "
+        msg += "\n  - ".join(system_details["mount_config"])
+        msg += "\n\nPlease use:\n  --mount-cache to mount caches (the container can write to a copy)\n  --mount-directory (the container has only read access)."
+
+        if miss_mount:
+            log_message(msg, _fmt.ERROR)
+
+    return not miss_environment_variable and not miss_mount
+
+
+def _value_for_requirement_path(data: dict, path: str):
+    ret = data
+    for part in path.split("."):
+        if not isinstance(ret, dict) or part not in ret:
+            return None
+        ret = ret[part]
+
+    return ret
+
+
+def matches_requirements(line: dict, requirements: "Optional[list[str]]") -> bool:
+    if not requirements:
+        return True
+
+    for requirement in requirements:
+        if "==" not in requirement:
+            raise ValueError(f'Invalid requirement "{requirement}". Expected format: <path>==<value>.')
+
+        requirement_path, expected_value = requirement.split("==", 1)
+        if _value_for_requirement_path(line, requirement_path) != expected_value:
+            return False
+
+    return True
+
+
+def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwarded (not stored) to the container."
+        ),
+    )
+    parser.add_argument(
+        "--mount-directory",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+        ),
+    )
+    parser.add_argument(
+        "--mount-cache",
+        nargs="+",
+        default=[],
+        help=(
+            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy."
+        ),
+    )
+
+
+def split_approach_identifier(approach_id: str) -> tuple[str, str, str]:
+    split_approach = approach_id.split("/")
+    if len(split_approach) != 3:
+        raise ValueError(f'Approach "{approach_id}" is invalid. Expected format: <task-id>/<team-id>/<software-id>.')
+
+    return split_approach[0], split_approach[1], split_approach[2]
+
+
+def runs_matching_requirements(client: "TiraClient", approach_id: str, dataset_id: str, require: "Optional[list[str]]"):
+    task, team, software = split_approach_identifier(approach_id)
+    runs = client.submissions_with_evaluation_or_none(task, dataset_id, team, software)
+    matching_runs = [run for run in runs if matches_requirements(run, require)]
+
+    return runs, matching_runs
+
+
+def build_remote_execution_payload(
+    forward_environment_variable: "Optional[list[str]]",
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+) -> dict:
+    payload = {}
+    forwarded_environment = environment_variables_to_forward(forward_environment_variable)
+    if forwarded_environment:
+        payload["forward_environment_variable"] = forwarded_environment
+
+    mount_config = build_remote_mount_config(mount_directory, mount_cache)
+    if mount_config:
+        payload["mount_config"] = mount_config
+
+    return payload
+
+
 """
 Setup commands for each supported subcommand.
 """
@@ -56,6 +231,16 @@ def setup_download_command(parser: argparse.ArgumentParser) -> None:
         "--all-submissions",
         action="store_true",
         help="Download all submissions to a task.",
+    )
+    parser.add_argument(
+        "--all-runs",
+        action="store_true",
+        help="Download all runs of the specified approach.",
+    )
+    parser.add_argument(
+        "--all-evaluations",
+        action="store_true",
+        help="Download all evaluations for the downloaded submissions.",
     )
     parser.add_argument("--repackage", action="store_true", help="Repackage everything.")
     parser.set_defaults(executable=download_command)
@@ -295,8 +480,16 @@ def run_local(
 
     print("Load system details...")
 
-    # system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
-    system_details = client.private_system_details(approach)
+    try:
+        system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
+    except Exception as e:
+        role = client.json_response("/api/role")["context"]
+
+        if "role" in role and "admin" == role["role"]:
+            system_details = client.private_system_details(approach)
+        else:
+            raise e
+
     if "public_image_name" in system_details and system_details["public_image_name"]:
         system_details["tira_image_name"] = system_details["public_image_name"]
 
@@ -310,47 +503,15 @@ def run_local(
                 log_message_clean(f"Execution already finished: {Path(i).parent}", level=_fmt.OK)
                 return
 
-    miss_environment_variable, miss_mount = False, False
-    mount_config = None if not mount_directory and not mount_cache else {}
+    mount_config = build_mount_config(mount_directory, mount_cache)
 
-    if mount_directory:
-        mount_config.update(
-            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "ro"} for k in mount_directory}
-        )
-    if mount_cache:
-        mount_config.update(
-            {k.split("=")[0].replace("$", ""): {"source": k.split("=")[1], "mode": "rw"} for k in mount_cache}
-        )
-
-    if "forward_environment_variable" in system_details and system_details["forward_environment_variable"]:
-        for f in system_details["forward_environment_variable"]:
-            if not forward_environment_variable or f not in forward_environment_variable:
-                miss_environment_variable = True
-
-        msg = f"The following environment variables must be forwarded explicitly to run the software {system_pretty}:\n  - "
-        msg += "\n  - ".join(system_details["forward_environment_variable"])
-        msg += f".\n\nPlease forward potentially sensible environment variables only when you trust the software {system_pretty}."
-        msg += "E.g., the software could potentially leak your credentials as network access is allowed when access to remote LLMs is allowed."
-        msg += "Please read https://docs.tira.io/participants/llms-via-rest-api.html for more details. "
-        msg += "If you trust the software, you can use the --forward-environment-variable flag in tira-cli to forward the environment variable(s), e.g., via: \n\n  --forward-environment-variable "
-        msg += " ".join(system_details["forward_environment_variable"])
-
-        if miss_environment_variable:
-            log_message(msg, _fmt.ERROR)
-
-    if "mount_config" in system_details and system_details["mount_config"]:
-        for f in system_details["mount_config"]:
-            if not mount_config or f not in mount_config:
-                miss_mount = True
-
-        msg = f"The following mounts must be forwarded explicitly to run the software {system_pretty}:\n  - "
-        msg += "\n  - ".join(system_details["mount_config"])
-        msg += "\n\nPlease use:\n  --mount-cache to mount caches (the container can write to a copy)\n  --mount-directory (the container has only read access)."
-
-        if miss_mount:
-            log_message(msg, _fmt.ERROR)
-
-    if miss_environment_variable or miss_mount:
+    if not validate_required_forwarding(
+        system_details,
+        system_pretty,
+        forward_environment_variable,
+        mount_directory,
+        mount_cache,
+    ):
         return 1
 
     if Path(input).is_dir():
@@ -364,7 +525,11 @@ def run_local(
 
     print("Run software")
 
-    if "cache_behaviour" in system_details and system_details["cache_behaviour"]:
+    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or (
+        "mount_config" in system_details
+        and system_details["mount_config"]
+        and "CACHE_DIR" in system_details["mount_config"]
+    ):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
@@ -435,11 +600,140 @@ def run_local(
     return 0
 
 
+def run_remote(
+    approach: list[str],
+    dataset: list[str],
+    resources: str,
+    parallelism: int,
+    runs_per_approach: int = 1,
+    poll_interval_seconds: int = 500,
+    require: "Optional[list[str]]" = None,
+    forward_environment_variable: "Optional[list[str]]" = None,
+    mount_directory: "Optional[list[str]]" = None,
+    mount_cache: "Optional[list[str]]" = None,
+    **kwargs,
+) -> int:
+    client: "TiraClient" = RestClient()
+    runs_with_evaluations = {}
+    execution_queue = []
+    finished_executions = 0
+
+    for dataset_id in dataset:
+        runs_with_evaluations[dataset_id] = []
+        for approach_id in approach:
+            runs, matching_runs = runs_matching_requirements(client, approach_id, dataset_id, require)
+            runs_with_evaluations[dataset_id] += runs
+            finished_executions += min(len(matching_runs), runs_per_approach)
+            for required_matching_runs in range(len(matching_runs) + 1, runs_per_approach + 1):
+                execution_queue.append(
+                    {
+                        "approach": approach_id,
+                        "dataset": dataset_id,
+                        "resources": resources,
+                        "required_matching_runs": required_matching_runs,
+                    }
+                )
+
+    software_details = {}
+    for execution in execution_queue:
+        if execution["approach"] not in software_details:
+            software_details[execution["approach"]] = client.private_system_details(execution["approach"])
+
+    for approach_id, system_details in software_details.items():
+        if not validate_required_forwarding(
+            system_details,
+            "/".join(approach_id.split("/")[1:]),
+            forward_environment_variable,
+            mount_directory,
+            mount_cache,
+        ):
+            return 1
+
+    print(
+        f"{finished_executions} executions have already been finished, "
+        + f"{len(execution_queue)} executions are about to be started."
+    )
+
+    if not execution_queue:
+        print("No executions are waiting to be started.")
+        return 0
+
+    remote_execution_payload = build_remote_execution_payload(
+        forward_environment_variable,
+        mount_directory,
+        mount_cache,
+    )
+    print("The following executions are about to be started:")
+    for execution in execution_queue:
+        print(f'- {execution["approach"]} on {execution["dataset"]} with {execution["resources"]}')
+    print("Waiting 15 seconds before starting executions...")
+    time.sleep(15)
+
+    running_executions = []
+    while execution_queue or running_executions:
+        if execution_queue and len(running_executions) < parallelism:
+            execution = execution_queue.pop(0)
+            for attempt in range(1, 6):
+                try:
+                    client.run_software(
+                        execution["approach"],
+                        execution["dataset"],
+                        execution["resources"],
+                        software_id=software_details[execution["approach"]]["docker_software_id"],
+                        json_payload=remote_execution_payload,
+                    )
+                    break
+                except RunSoftwareError as error:
+                    if attempt == 5:
+                        raise
+
+                    print(
+                        f"Could not start execution (attempt {attempt}/5): {error.response}. "
+                        + "Retrying in 60 seconds."
+                    )
+                    time.sleep(60)
+
+            running_executions.append(execution)
+            print(
+                f'Started {execution["approach"]} on {execution["dataset"]}. '
+                + f"{len(execution_queue)} executions are still waiting to be started."
+            )
+            continue
+
+        if hasattr(client, "clear_json_response_cache"):
+            client.clear_json_response_cache()
+
+        finished_running_executions = []
+        for execution in running_executions:
+            _, matching_runs = runs_matching_requirements(client, execution["approach"], execution["dataset"], require)
+            if len(matching_runs) >= execution["required_matching_runs"]:
+                finished_running_executions.append(execution)
+
+        if finished_running_executions:
+            for execution in finished_running_executions:
+                running_executions.remove(execution)
+                finished_executions += 1
+                print(f'Finished {execution["approach"]} on {execution["dataset"]}.')
+        elif running_executions:
+            running_count = len(running_executions)
+            pending_count = len(execution_queue)
+            print(
+                "Wait until execution finishes... "
+                + f"{running_count} execution{'s are' if running_count != 1 else ' is'} still running, "
+                + f"{pending_count} execution{'s are' if pending_count != 1 else ' is'} pending."
+            )
+            time.sleep(poll_interval_seconds)
+
+    print("No executions are waiting to be started.")
+    return 0
+
+
 def setup_run_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
 
-    local = subparsers.add_parser("local", help="Batch-verify authentication tokens for a task")
+    local = subparsers.add_parser("local", help="Run a registered TIRA approach locally.")
+    setup_forwarding_args(local)
     local.add_argument(
         "--input",
         required=True,
@@ -451,30 +745,6 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         required=True,
         default=None,
         help="The approach that should be executed.",
-    )
-    local.add_argument(
-        "--forward-environment-variable",
-        nargs="+",
-        default=[],
-        help=(
-            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
-        ),
-    )
-    local.add_argument(
-        "--mount-directory",
-        nargs="+",
-        default=[],
-        help=(
-            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
-        ),
-    )
-    local.add_argument(
-        "--mount-cache",
-        nargs="+",
-        default=[],
-        help=(
-            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy."
-        ),
     )
     local.add_argument(
         "--cpus",
@@ -500,8 +770,53 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
 
     local.set_defaults(executable=run_local)
 
-    remote = subparsers.add_parser("remote", help="Batch-verify authentication tokens for a task")
-    remote.set_defaults(executable=None)
+    remote = subparsers.add_parser("remote", help="Start one or more remote execution requests on TIRA.")
+    setup_forwarding_args(remote)
+    remote.add_argument(
+        "--approach",
+        nargs="+",
+        required=True,
+        help="One or more approaches to execute. All provided values are combined as a Cartesian product.",
+    )
+    remote.add_argument(
+        "--dataset",
+        nargs="+",
+        required=True,
+        help="One or more datasets on which the approaches should be executed.",
+    )
+    remote.add_argument(
+        "--resources",
+        default="large-resources",
+        help="The resources on which the software should run.",
+    )
+    remote.add_argument(
+        "--parallelism",
+        required=False,
+        default=4,
+        type=positive_int,
+        help="How many remote execution requests may be started in parallel.",
+    )
+    remote.add_argument(
+        "--runs-per-approach",
+        required=False,
+        default=1,
+        type=positive_int,
+        help="How many matching runs must exist for every approach and dataset combination.",
+    )
+    remote.add_argument(
+        "--poll-interval-seconds",
+        required=False,
+        default=500,
+        type=positive_int,
+        help="How many seconds to wait between checks for completed remote executions.",
+    )
+    remote.add_argument(
+        "--require",
+        action="append",
+        default=None,
+        help="Filter printed lines via <path>==<value>, e.g. --require 'evaluation.Model==Qwen/Qwen2.5-7B-Instruct'.",
+    )
+    remote.set_defaults(executable=run_remote)
 
 
 def ir_datasets_loader_cli(ir_datasets_id: str, output_dataset_path: Path, **kwargs) -> int:
@@ -616,7 +931,7 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[],
         help=(
-            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwared (not stored) to the container."
+            "Some software requires environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL, etc.). The environment variables are forwarded (not stored) to the container."
         ),
     )
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
@@ -730,14 +1045,25 @@ def download_command(
     truths: bool = False,
     output: "Optional[str]" = None,
     all_submissions: bool = False,
+    all_runs: bool = False,
+    all_evaluations: bool = False,
     repackage: bool = False,
     **kwargs,
 ) -> int:
     client: "RestClient" = RestClient()
-    if approach is not None:
+    if all_evaluations and not all_submissions:
+        raise ValueError("--all-evaluations requires --all-submissions.")
+    if all_runs and approach is None:
+        raise ValueError("--all-runs requires --approach.")
+    if all_runs and all_submissions:
+        raise ValueError("--all-runs cannot be combined with --all-submissions.")
+
+    if all_runs:
+        ret = client.download_all_runs(approach, dataset, output)
+    elif approach is not None:
         ret = client.get_run_output(approach, dataset)
     elif all_submissions:
-        ret = client.download_all_submissions(dataset, output, repackage)
+        ret = client.download_all_submissions(dataset, output, repackage, all_evaluations=all_evaluations)
     else:
         ret = client.download_dataset(None, dataset, truths)
 
@@ -969,7 +1295,7 @@ def parse_args() -> argparse.Namespace:
     setup_download_command(subparsers.add_parser("download", help="Download runs or datasets from TIRA.io"))
     setup_upload_command(subparsers.add_parser("upload", help="Upload runs or datasets to TIRA.io"))
     setup_eval_command(subparsers.add_parser("evaluate", help="Evaluate runs locally."))
-    setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
+    setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the TIRA server."))
     setup_verify_installation(
         subparsers.add_parser(
             "verify-installation",
@@ -979,11 +1305,11 @@ def parse_args() -> argparse.Namespace:
     setup_code_submission_command(
         subparsers.add_parser(
             "code-submission",
-            help="Make a code submission via Docker from a git repository.",
+            help="Make a code submission from a Git repository.",
         )
     )
     setup_dataset_submission_command(
-        subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to tira.")
+        subparsers.add_parser("dataset-submission", help="Submit a new task/dataset to TIRA.")
     )
     setup_admin_command(
         subparsers.add_parser(

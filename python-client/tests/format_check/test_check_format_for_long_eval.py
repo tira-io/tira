@@ -12,8 +12,7 @@ from . import _ERROR, _OK, EMPTY_OUTPUT, JSONL_OUTPUT_VALID
 
 def persist_run_to_file(directory: Path):
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "run.txt").write_text(
-        """1 Q0 doc-1 1 10 tag
+    (directory / "run.txt").write_text("""1 Q0 doc-1 1 10 tag
 1 Q0 doc-2 2 9 tag
 3 Q0 doc-3 1 1 tag
 5 Q0 doc-1 1 10 tag
@@ -22,8 +21,7 @@ def persist_run_to_file(directory: Path):
 5 Q0 doc-4 4 7 tag
 5 Q0 doc-5 6 6 tag
 5 Q0 doc-6 7 5 tag
-5 Q0 doc-7 8 4 tag"""
-    )
+5 Q0 doc-7 8 4 tag""")
 
 
 from tira.third_party_integrations import temporary_directory

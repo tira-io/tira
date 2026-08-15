@@ -13,7 +13,7 @@
       <v-toolbar color="primary"><v-card-title> Upload New Run </v-card-title></v-toolbar>
       <v-card-text>
     
-    <v-stepper :items="['How to Submit', 'Specify Metadata', 'Upload']" v-model="stepperModel" hide-actions="true" flat :border=false>
+    <v-stepper :items="uploadStepperItems" v-model="stepperModel" hide-actions="true" flat :border=false>
       <template v-slot:item.1>
         <v-card title="Specify what you want to upload" flat>
           <v-radio-group v-model="upload_configuration">
@@ -34,8 +34,30 @@
               <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"  prepend-icon="mdi-file-document-multiple-outline" v-model="selectedDataset" variant="underlined" clearable :rules="[v => !!(v) || 'Please select a dataset.']"/>
 
               Please describe your run<br>
-              <v-text-field v-model="run_name" label="The ID/Name of your run" :rules="[v => !!(v && v.length >= 3 && v.length < 20) || 'Please use between 3 and 20 characters for your run id.']"/>
-              <v-textarea v-model="description" label="Description" :rules="[v => !!(v && v.length >= 3) || 'Please add a non-empty description of your run.']"/>
+              <template v-for="field in activeUploadFormFields" :key="field.name">
+                <v-select
+                  v-if="field.type === 'select'"
+                  v-model="upload_metadata_values[field.name]"
+                  :label="field.display_name"
+                  :items="field.options"
+                  item-title="display_value"
+                  item-value="id"
+                  :rules="fieldRules(field)"
+                />
+                <v-textarea
+                  v-else-if="field.type === 'textarea'"
+                  v-model="upload_metadata_values[field.name]"
+                  :label="field.display_name"
+                  :rules="fieldRules(field)"
+                />
+                <v-text-field
+                  v-else
+                  v-model="upload_metadata_values[field.name]"
+                  :label="field.display_name"
+                  :type="textFieldType(field)"
+                  :rules="fieldRules(field)"
+                />
+              </template>
             </v-form>
           </div>
         </v-card>
@@ -60,7 +82,7 @@
     </v-stepper>
     </v-card-text>
     <v-card-actions>
-      <v-stepper-actions @click:prev="stepperModel = Math.max(1, stepperModel - 1)" @click:next="stepperModel = Math.max(1, stepperModel +1)" :disabled='disableUploadStepper'></v-stepper-actions>
+      <v-stepper-actions @click:prev="moveUploadStep(-1)" @click:next="moveUploadStep(1)" :disabled='disableUploadStepper'></v-stepper-actions>
     </v-card-actions>
     </v-card>
   </v-dialog>
@@ -85,7 +107,7 @@ import UploadSubmissionViaCli from "./UploadSubmissionViaCli.vue"
 export default {
   name: "upload-submission",
   components: { EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, UploadedRunList, ImportSubmission, CodeSnippet, UploadSubmissionViaCli },
-  props: ['organizer', 'organizer_id'],
+  props: ['organizer', 'organizer_id', 'upload_form_fields', 'hide_upload_via_cli'],
   emits: ['refresh_running_submissions'],
   data() {
     return {
@@ -98,13 +120,12 @@ export default {
       uploadDataset: '',
       uploadFormError: '',
       upload_type: 'upload-1',
-      upload_configuration: '',
+      upload_configuration: this.hide_upload_via_cli ? 'upload-config-1' : '',
       upload_type_next_upload: '',
-      stepperModel: '',
+      stepperModel: this.hide_upload_via_cli ? '2' : '',
       fileHandle: null,
       upload_form_valid: false,
-      description: '',
-      run_name: '',
+      upload_metadata_values: {},
       error_message: '',
       editUploadMetadataToggle: false,
       hf_model_available: 'loading',
@@ -114,11 +135,44 @@ export default {
       token: 'YOUR-TOKEN-HERE',
       datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }],
       rest_url: inject("REST base URL"),
+      default_upload_form_fields: [
+        { name: 'run_id', display_name: 'The ID/Name of your run', type: 'text' },
+        { name: 'description', display_name: 'Description', type: 'textarea' },
+      ],
     }
   },
   computed: {
     link_organizer() { return get_link_to_organizer(this.organizer_id); },
     contact_organizer() { return get_contact_link_to_organizer(this.organizer_id); },
+    uploadStepperItems() {
+      const items = [
+        { title: 'How to Submit', value: '1' },
+        { title: 'Specify Metadata', value: '2' },
+        { title: 'Upload', value: '3' },
+      ]
+      return this.hide_upload_via_cli ? items.slice(1) : items
+    },
+    activeUploadFormFields() {
+      if (!Array.isArray(this.upload_form_fields) || this.upload_form_fields.length === 0) {
+        return this.default_upload_form_fields
+      }
+
+      const configuredFields = this.upload_form_fields.filter(field =>
+        field
+        && typeof field.name === 'string'
+        && typeof field.display_name === 'string'
+        && typeof field.type === 'string'
+        && (field.type !== 'select' || this.hasValidSelectOptions(field))
+      )
+
+      return configuredFields.length > 0 ? configuredFields : this.default_upload_form_fields
+    },
+    run_name() {
+      return this.upload_metadata_values['run_id'] || this.upload_metadata_values['display_name'] || this.firstMetadataValue()
+    },
+    description() {
+      return this.upload_metadata_values['description'] || ''
+    },
     
     disableUploadStepper() {
       if (this.stepperModel == '1' && !this.upload_configuration) {
@@ -129,7 +183,7 @@ export default {
         return 'next'
       }
 
-      const valid = this.run_name && this.run_name.length >= 3 && this.run_name.length <= 20 && this.description && this.description.length >= 3 && this.selectedDataset
+      const valid = this.selectedDataset && this.activeUploadFormFields.every(field => this.isFieldValid(field))
 
       if (this.stepperModel == '2' && this.upload_configuration == 'upload-config-1' && !valid) {
         return 'next'
@@ -143,6 +197,81 @@ export default {
     }
   },
   methods: {
+    moveUploadStep(offset) {
+      const stepValues = this.uploadStepperItems.map(item => item.value)
+      const currentIndex = Math.max(0, stepValues.indexOf(this.stepperModel))
+      const nextIndex = Math.max(0, Math.min(stepValues.length - 1, currentIndex + offset))
+      this.stepperModel = stepValues[nextIndex]
+    },
+    initializeUploadMetadataValues() {
+      const nextValues = {}
+
+      for (const field of this.activeUploadFormFields) {
+        nextValues[field.name] = this.upload_metadata_values[field.name] ?? ''
+      }
+
+      this.upload_metadata_values = nextValues
+    },
+    firstMetadataValue() {
+      for (const field of this.activeUploadFormFields) {
+        const value = this.upload_metadata_values[field.name]
+        if (value) {
+          return value
+        }
+      }
+
+      return ''
+    },
+    isFieldValid(field) {
+      const value = this.upload_metadata_values[field.name]
+
+      if (field.required === false) {
+        return true
+      }
+
+      if (field.name === 'run_id') {
+        return !!(value && value.length >= 3 && value.length < 20)
+      }
+
+      if (field.name === 'description') {
+        return !!(value && value.length >= 3)
+      }
+
+      return !!(value && value.toString().trim().length > 0)
+    },
+    hasValidSelectOptions(field) {
+      return Array.isArray(field.options)
+        && field.options.length > 0
+        && field.options.every(option =>
+          option
+          && typeof option.id === 'string'
+          && option.id.trim() !== ''
+          && typeof option.display_value === 'string'
+          && option.display_value.trim() !== ''
+        )
+    },
+    fieldRules(field) {
+      if (field.required === false) {
+        return []
+      }
+
+      if (field.type === 'select') {
+        return [v => !!(v && v.toString().trim().length > 0) || `Please select ${field.display_name.toLowerCase()}.`]
+      }
+
+      if (field.name === 'run_id') {
+        return [v => !!(v && v.length >= 3 && v.length < 20) || 'Please use between 3 and 20 characters for your run id.']
+      }
+
+      if (field.name === 'description') {
+        return [v => !!(v && v.length >= 3) || 'Please add a non-empty description of your run.']
+      }
+
+      return [v => !!(v && v.toString().trim().length > 0) || `Please provide ${field.display_name.toLowerCase()}.`]
+    },
+    textFieldType(field) {
+      return field.type === 'number' || field.type === 'url' || field.type === 'email' ? field.type : 'text'
+    },
     async fileUpload() {  // async
       const { valid } = await (this.$refs.form).validate()
       console.log('' + this.fileHandle)
@@ -157,6 +286,7 @@ export default {
       formData.append("file", this.fileHandle);
       formData.append("display_name", this.run_name);
       formData.append("description", this.description);
+      formData.append("upload_metadata", JSON.stringify(this.upload_metadata_values));
       let endpoint = this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/new-submission`
       post_file(endpoint, formData, this.userinfo, true)
         .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
@@ -176,10 +306,10 @@ export default {
       this.uploading = false
       this.fileHandle = null
       this.selectedDataset = ''
-      this.description = ''
-      this.run_name = ''
-      this.stepperModel = ''
-      this.upload_configuration = ''
+      this.upload_metadata_values = {}
+      this.initializeUploadMetadataValues()
+      this.stepperModel = this.hide_upload_via_cli ? '2' : ''
+      this.upload_configuration = this.hide_upload_via_cli ? 'upload-config-1' : ''
       this.showUploadForm = false
       this.$emit('refresh_running_submissions')
       this.$refs['simplified-upload-run-list'].fetchData()
@@ -192,6 +322,16 @@ export default {
 
     get(this.rest_url + '/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
+
+    this.initializeUploadMetadataValues()
+  },
+  watch: {
+    upload_form_fields: {
+      handler() {
+        this.initializeUploadMetadataValues()
+      },
+      deep: true,
+    },
   },
 }
 </script>

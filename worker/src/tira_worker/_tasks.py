@@ -26,7 +26,7 @@ from .settings import (
     QUEUE_BROKER_URL,
     QUEUE_RESULTS_BACKEND_URL,
 )
-from .utils import gpu_device_ids
+from .utils import gpu_device_ids, resolve_dynamic_mounts
 
 app = Celery("tira-tasks", backend=QUEUE_RESULTS_BACKEND_URL, broker=QUEUE_BROKER_URL)
 app.conf.control_queue_exclusive = True  # Not required after celery 5.7 is released
@@ -208,6 +208,7 @@ def run(
 
     system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)
+    dynamic_mounts = resolve_dynamic_mounts(dynamic_mounts, client, task, dataset, team)
 
     hf_models = resolve_hf_models(mount_hf_model)
 

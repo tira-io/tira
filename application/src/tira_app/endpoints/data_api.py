@@ -85,7 +85,7 @@ def __normalize_run(
 
     i["selectable"] = False
 
-    if not i["blinded"] and (i["owned_by_user"] or i["published"] or is_training_dataset):
+    if is_admin or (not i["blinded"] and (i["owned_by_user"] or i["published"] or is_training_dataset)):
         i["link_results_download"] = (
             f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
         )
@@ -473,7 +473,7 @@ def add_registration(request: "HttpRequest", context: "Context", task_id: str, v
     """get the registration of a user on a task. If there is none"""
     try:
         data: "dict[str, Any]" = json.loads(request.body)
-        data["group"] = sanitize_text(slugify(data["group"]))
+        data["group"] = sanitize_text(slugify(data["group"].lower().replace("_", "-")))
 
         disc_api_client = model.discourse_api_client()
         if (
@@ -591,12 +591,10 @@ def get_snippet_to_run_components(request: "HttpRequest") -> "HttpResponse":
 
     component = TIREX_ID_TO_COMPONENT[component_key]
     component_type = component["type"]
-    dataset_initialization = textwrap.dedent(
-        """
+    dataset_initialization = textwrap.dedent("""
     # You can replace Robust04 with other datasets
     dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")
-    """
-    ).strip()
+    """).strip()
     snippet = ""
 
     if component_type == "dataset":

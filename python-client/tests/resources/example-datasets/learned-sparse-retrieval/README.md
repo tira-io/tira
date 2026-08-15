@@ -12,6 +12,7 @@ configs:
 tira_configs:
   resolve_inputs_to: "."
   resolve_truths_to: "."
+  default_upload_name: "predictions.jsonl"
   baseline:
     link: https://github.com/reneuir/lsr-benchmark/tree/main/step-03-retrieval-approaches/pyterrier-naive
     command: /run-pyterrier.py --dataset $inputDataset --retrieval BM25 --output $outputDir
@@ -28,4 +29,3 @@ tira_configs:
 # Multi Author Analysis Example Dataset
 
 TODO: some description.
-

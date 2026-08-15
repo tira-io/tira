@@ -36,6 +36,12 @@ from tira.trectools_integration import TrecToolsIntegration
 from .tira_client import TiraClient
 
 
+class RunSoftwareError(RuntimeError):
+    def __init__(self, response: dict):
+        super().__init__(response)
+        self.response = response
+
+
 class Client(TiraClient):
     base_url: str
 
@@ -258,7 +264,7 @@ class Client(TiraClient):
         tira_vm_id,
         tira_task_id,
         code_repository_id,
-        build_environment,
+        build_environment=None,
         previous_stages=[],
         mount_hf_model=[],
         source_code_remotes=None,
@@ -276,14 +282,29 @@ class Client(TiraClient):
         headers["Content-Type"] = "application/json"
         self.fail_if_api_key_is_invalid()
         url = f"{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker"
+        if build_environment is None:
+            build_environment = {
+                key: os.environ[key]
+                for key in (
+                    "GITHUB_REPOSITORY",
+                    "GITHUB_WORKFLOW",
+                    "GITHUB_SHA",
+                    "TIRA_DOCKER_PATH",
+                    "TIRA_JUPYTER_NOTEBOOK",
+                )
+                if key in os.environ
+            }
+
         content = {
             "action": "post",
             "image": image,
             "command": command,
             "code_repository_id": code_repository_id,
-            "build_environment": json.dumps(build_environment),
             "external_docker_registry": external_docker_registry,
         }
+
+        if build_environment is not None:
+            content["build_environment"] = build_environment
 
         if workflow_configuration:
             content["workflow_configuration"] = json.dumps(workflow_configuration)
@@ -419,7 +440,38 @@ class Client(TiraClient):
 
         return ret
 
-    def download_all_submissions(self, dataset_id: str, output: "Optional[str]", repackage: bool):
+    def clear_json_response_cache(self):
+        self.json_response.cache_clear()
+
+    def download_all_runs(self, approach: str, dataset_id: str, output: "Optional[str]") -> Path:
+        if not output:
+            from tira.third_party_integrations import temporary_directory
+
+            output = temporary_directory()
+
+        task, team, software = approach.split("/")
+        runs = self.submissions_with_evaluation_or_none(task, dataset_id, team, software)
+        if not runs:
+            raise ValueError(f'Could not get runs for approach "{approach}" on dataset "{dataset_id}".')
+
+        output = Path(output)
+        output.mkdir(parents=True, exist_ok=True)
+        for run in tqdm(runs, "Download runs"):
+            run_output = self.download_zip_to_cache_directory(task, dataset_id, team, run["run_id"])
+            target = output / run["run_id"]
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.copytree(run_output, target)
+
+        return output
+
+    def download_all_submissions(
+        self,
+        dataset_id: str,
+        output: "Optional[str]",
+        repackage: bool,
+        all_evaluations: bool = False,
+    ):
         if not output:
             from tira.third_party_integrations import temporary_directory
 
@@ -428,9 +480,11 @@ class Client(TiraClient):
         output = Path(output)
         raw_output_dir = output / "raw-outputs" / dataset_id
         raw_output_dir.mkdir(parents=True, exist_ok=True)
+        raw_evaluation_dir = output / "raw-evaluations" / dataset_id
         outputs_flat = output / "outputs-flat"
         shutil.rmtree(outputs_flat, ignore_errors=True)
-        outputs_flat.mkdir(parents=True, exist_ok=True)
+        if repackage:
+            outputs_flat.mkdir(parents=True, exist_ok=True)
 
         existing_runs = {}
         if (output / "metadata.jsonl").exists():
@@ -455,6 +509,30 @@ class Client(TiraClient):
             i["raw-outputs-from-tira"] = f"raw-outputs/{dataset_id}/{i['run_id']}"
             existing_runs[i["tira_run_id"]] = i
 
+        if all_evaluations:
+            raw_evaluation_dir.mkdir(parents=True, exist_ok=True)
+            for run in existing_runs.values():
+                run["evaluations"] = []
+
+            for _, evaluation in tqdm(list(evals.iterrows()), "Download evaluations"):
+                evaluation = evaluation.to_dict()
+                evaluation_run_id = evaluation["evaluation_run_id"]
+                relative_path = f"raw-evaluations/{dataset_id}/{evaluation_run_id}"
+                if relative_path in existing_runs[evaluation["run_id"]]["evaluations"]:
+                    continue
+
+                evaluation_output = self.download_zip_to_cache_directory(
+                    task,
+                    dataset_id,
+                    evaluation["team"],
+                    evaluation_run_id,
+                )
+                target = raw_evaluation_dir / evaluation_run_id
+                if target.exists():
+                    shutil.rmtree(target, ignore_errors=True)
+                shutil.copytree(Path(evaluation_output).parent, target)
+                existing_runs[evaluation["run_id"]]["evaluations"].append(relative_path)
+
         if repackage:
             run_id_to_metadata = {}
             for team in tqdm(set(i["team"] for i in existing_runs.values()), "Load metadata"):
@@ -471,6 +549,7 @@ class Client(TiraClient):
                             run_id_to_metadata[run["run_id"]] = {
                                 "description": upload_group_details["description"],
                                 "run_display_name": upload_group_details["display_name"],
+                                "upload_metadata": upload_group_details.get("upload_metadata"),
                                 "internal_data": run,
                             }
         else:
@@ -479,7 +558,7 @@ class Client(TiraClient):
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
                 metadata = run_id_to_metadata.get(i["tira_run_id"], {})
-                if not metadata:
+                if repackage and not metadata:
                     logging.warning(
                         f"No upload metadata found for run {i['tira_run_id']} (team: {i.get('team')}), skipping metadata enrichment."
                     )
@@ -489,31 +568,31 @@ class Client(TiraClient):
                     i["run_display_name"] = i["tira_run_id"]
                 f.write(json.dumps(i) + "\n")
 
-        for i in tqdm(existing_runs.values()):
-            inp = output / i["raw-outputs-from-tira"] / "output"
-            assert len(glob(f"{inp}/*")) > 0
-            base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
-            target_file = outputs_flat / base_name
-            suffix = 2
-            while target_file.exists():
-                target_file = outputs_flat / f"{base_name}-{suffix}"
-                suffix += 1
-            if len(glob(f"{inp}/*")) == 1:
-                inp = glob(f"{inp}/*")
-                inp = inp[0]
-                expected_md5 = _md5_of_file(Path(inp))
-                shutil.copy(inp, target_file)
-                i["md5sum"] = expected_md5
-            else:
-                shutil.copytree(inp, target_file)
-            i["flat-outputs"] = "outputs-flat/" + target_file.name
+        if repackage:
+            for i in tqdm(existing_runs.values()):
+                inp = output / i["raw-outputs-from-tira"] / "output"
+                assert len(glob(f"{inp}/*")) > 0
+                base_name = i["run_display_name"].replace("_", "-").replace("/", "-").replace(".", "-")
+                target_file = outputs_flat / base_name
+                suffix = 2
+                while target_file.exists():
+                    target_file = outputs_flat / f"{base_name}-{suffix}"
+                    suffix += 1
+                if len(glob(f"{inp}/*")) == 1:
+                    inp = glob(f"{inp}/*")
+                    inp = inp[0]
+                    expected_md5 = _md5_of_file(Path(inp))
+                    shutil.copy(inp, target_file)
+                    i["md5sum"] = expected_md5
+                else:
+                    shutil.copytree(inp, target_file)
+                i["flat-outputs"] = "outputs-flat/" + target_file.name
 
         with open(output / "metadata.jsonl", "w") as f:
             for i in existing_runs.values():
                 f.write(json.dumps(i) + "\n")
 
     def evaluations(self, task, dataset, join_submissions=True):
-        print(task)
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
         evaluation_keys = response["ev_keys"]
@@ -1117,7 +1196,8 @@ class Client(TiraClient):
 
         ret = self.execute_post_return_json(url, json_payload=json_payload)
         logging.info(ret)
-        assert ret["status"] == 0
+        if ret["status"] != 0:
+            raise RunSoftwareError(ret)
 
     def review_run(
         self,

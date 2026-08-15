@@ -13,6 +13,7 @@ from tira.check_format import _fmt
 from tira.io_utils import (
     TeeStringIO,
     _md5_of_file,
+    resolve_cache_dir,
     resolve_mirrored_resources,
     sanitize_text,
     verify_tirex_tracker,
@@ -241,6 +242,36 @@ scores"""
                 self.assertEqual(md5_example_file, _md5_of_file(resource_dir / "example-file"))
 
             download_file.assert_not_called()
+
+    def test_resolve_cache_dir_returns_target_dir_when_directory_is_target(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            cache_dir = Path(tmp_dir) / "CACHE_DIR"
+            cache_dir.mkdir()
+
+            self.assertEqual(cache_dir.resolve().absolute(), resolve_cache_dir(cache_dir))
+
+    def test_resolve_cache_dir_prefers_target_dir_in_output(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_dir = Path(tmp_dir) / "run"
+            cache_dir = run_dir / "output" / "CACHE_DIR"
+            cache_dir.mkdir(parents=True)
+
+            self.assertEqual(cache_dir.resolve().absolute(), resolve_cache_dir(run_dir))
+
+    def test_resolve_cache_dir_returns_output_when_only_output_exists(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_dir = Path(tmp_dir) / "run"
+            output_dir = run_dir / "output"
+            output_dir.mkdir(parents=True)
+
+            self.assertEqual(output_dir.resolve().absolute(), resolve_cache_dir(run_dir))
+
+    def test_resolve_cache_dir_returns_input_directory_when_no_output_exists(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_dir = Path(tmp_dir) / "run"
+            run_dir.mkdir()
+
+            self.assertEqual(run_dir.resolve().absolute(), resolve_cache_dir(run_dir))
 
     def _copy_resource_directory(self, tmp_dir: str) -> Path:
         target_dir = Path(tmp_dir) / "resource-loading-from-webis"

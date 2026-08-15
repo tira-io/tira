@@ -2,7 +2,7 @@ import logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NamedTuple
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional
 
 from tira.io_utils import stream_all_lines
 from tira.tirex import IRDS_TO_TIREX_DATASET
@@ -26,6 +26,7 @@ class TirexQuery(NamedTuple):
     query: str
     description: str
     narrative: str
+    original_query: Optional[Dict[str, Any]] = None
 
     def default_text(self):
         """
@@ -229,16 +230,12 @@ def __queries(input_file, original_dataset):
                 ret = {}
                 for i in stream_all_lines(self.get_input_file(), False):
                     orig_query = None if "original_query" not in i else i["original_query"]
+                    if not isinstance(orig_query, dict):
+                        orig_query = None
                     description = (
-                        None
-                        if (not orig_query or type(orig_query) is not dict or "description" not in orig_query)
-                        else orig_query["description"]
+                        None if (not orig_query or "description" not in orig_query) else orig_query["description"]
                     )
-                    narrative = (
-                        None
-                        if (not orig_query or type(orig_query) is not dict or "narrative" not in orig_query)
-                        else orig_query["narrative"]
-                    )
+                    narrative = None if (not orig_query or "narrative" not in orig_query) else orig_query["narrative"]
                     if i["qid"] not in ret:
                         ret[i["qid"]] = TirexQuery(
                             query_id=i["qid"],
@@ -247,6 +244,7 @@ def __queries(input_file, original_dataset):
                             title=i["query"],
                             description=description,
                             narrative=narrative,
+                            original_query=deepcopy(orig_query),
                         )
 
                 self.queries = ret

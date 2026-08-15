@@ -492,14 +492,12 @@ def main(args=None):
             args.v = []
         args.v += hf_models
 
-    print(
-        f"""
+    print(f"""
 ########################################## TIRA RUN CONFIGURATION ######################################################
 # image={args.image}
 # command={args.command}
 ########################################################################################################################
-"""
-    )
+""")
     gpus = 0
     if args.gpus:
         gpus = -1 if args.gpus == "all" else int(args.gpus)
@@ -528,14 +526,12 @@ def main(args=None):
         raise ValueError("The software produced an empty output directory, it likely failed?")
 
     if args.push.lower() == "true":
-        print(
-            f"""
+        print(f"""
 ######################################### Review the Outputs of your Software ##########################################
 # Your software produced the following outputs in {args.output_directory}.
 # Please shortly review them before we push your software.
 ########################################################################################################################
-"""
-        )
+""")
         if not os.path.exists(args.output_directory) or not os.listdir(args.output_directory):
             print("Your software did not produce any output, please review the logs above.")
         else:
@@ -569,7 +565,6 @@ def main(args=None):
             args.tira_vm_id,
             args.tira_task_id,
             args.tira_code_repository_id,
-            dict(os.environ),
-            prev_stages,
-            args.mount_hf_model,
+            previous_stages=prev_stages,
+            mount_hf_model=args.mount_hf_model,
         )

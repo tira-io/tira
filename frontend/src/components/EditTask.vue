@@ -106,6 +106,21 @@
                   <v-text-field v-model="command_placeholder" label="Help Command" />
                   <v-textarea v-model="command_description" label="Help Text" />
                   <v-text-field label="Link to Baseline" />
+                  <v-checkbox v-model="hide_upload_via_cli" label="Hide upload via cli" />
+                  <v-textarea
+                    v-model="upload_form_fields_json"
+                    label="Upload Form Fields (JSON)"
+                    :hint="upload_form_fields_hint"
+                    persistent-hint
+                    :rules="[validateUploadFormFieldsJson]"
+                  />
+                  <v-textarea
+                    v-model="submission_tabs_json"
+                    label="Submission Tabs (JSON)"
+                    :hint="submission_tabs_hint"
+                    persistent-hint
+                    :rules="[validateSubmissionTabsJson]"
+                  />
 
                   <v-divider />
                   <h2 class="my-1">IR-Datasets integration</h2>
@@ -150,6 +165,14 @@ import { Loading } from '.'
 import { VAutocomplete } from "vuetify/components";
 import { get, post, reportError, slugify, inject_response, type UserInfo } from '../utils'
 
+const AVAILABLE_SUBMISSION_TABS = [
+  'code-submission',
+  'docker-submission',
+  'upload-submission',
+  'upload-submission-simplified',
+  'upload-models',
+]
+
 export default {
   name: "edit-task",
   components: { Loading, VAutocomplete },
@@ -167,7 +190,15 @@ export default {
     loading: true, valid: false, step: 1, submitInProgress: false, selected_organizer: '', organizer_id: '',
     task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
     require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
-    is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '', rest_endpoint: inject("REST base URL") as string
+    hide_upload_via_cli: false,
+    is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '',
+    submission_tabs: null as null | string[],
+    submission_tabs_json: '',
+    submission_tabs_hint: 'Optional JSON array of submission tabs, e.g. ["docker-submission","upload-submission-simplified"]. Allowed values: code-submission, docker-submission, upload-submission, upload-submission-simplified, upload-models.',
+    upload_form_fields: null as null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[],
+    upload_form_fields_json: '',
+    upload_form_fields_hint: 'Optional JSON array of fields, e.g. [{"name":"run_id","display_name":"Run ID","type":"text"},{"name":"track","display_name":"Track","type":"select","options":[{"id":"main","display_value":"Main Track"},{"id":"bio","display_value":"Biomedical Track"}]}]. Select fields require a non-empty options array with id and display_value.',
+    rest_endpoint: inject("REST base URL") as string
   }),
   computed: {
     title() {
@@ -178,12 +209,105 @@ export default {
     clicked: function () {
       if (this.task_id_for_edit === '') {
         this.loading = false
+        this.submission_tabs_json = this.formatSubmissionTabs(null)
+        this.upload_form_fields_json = this.formatUploadFormFields(null)
       } else {
         get(this.rest_endpoint + '/api/task/' + this.task_id_for_edit)
           .then(inject_response(this, { 'loading': false }, true, 'task'))
+          .then(() => {
+            this.submission_tabs_json = this.formatSubmissionTabs(this.submission_tabs)
+            this.upload_form_fields_json = this.formatUploadFormFields(this.upload_form_fields)
+          })
           .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
-          .then(() => console.log(this.$data))
       }
+    },
+    formatSubmissionTabs: function (submissionTabs: null | string[]) {
+      return submissionTabs && submissionTabs.length > 0 ? JSON.stringify(submissionTabs, null, 2) : ''
+    },
+    formatUploadFormFields: function (uploadFormFields: null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[]) {
+      return uploadFormFields && uploadFormFields.length > 0 ? JSON.stringify(uploadFormFields, null, 2) : ''
+    },
+    parseSubmissionTabs: function () {
+      if (!this.submission_tabs_json.trim()) {
+        return null
+      }
+
+      try {
+        const parsed = JSON.parse(this.submission_tabs_json)
+        if (!Array.isArray(parsed)) {
+          return undefined
+        }
+
+        for (const tab of parsed) {
+          if (
+            typeof tab !== 'string'
+            || tab.trim() === ''
+            || !AVAILABLE_SUBMISSION_TABS.includes(tab.trim())
+          ) {
+            return undefined
+          }
+        }
+
+        return parsed.map(tab => tab.trim())
+      } catch {
+        return undefined
+      }
+    },
+    parseUploadFormFields: function () {
+      if (!this.upload_form_fields_json.trim()) {
+        return null
+      }
+
+      try {
+        const parsed = JSON.parse(this.upload_form_fields_json)
+        if (!Array.isArray(parsed)) {
+          return undefined
+        }
+
+        for (const field of parsed) {
+          if (
+            !field
+            || typeof field.name !== 'string'
+            || typeof field.display_name !== 'string'
+            || typeof field.type !== 'string'
+            || field.name.trim() === ''
+            || field.display_name.trim() === ''
+            || field.type.trim() === ''
+          ) {
+            return undefined
+          }
+
+          if (field.type.trim() === 'select') {
+            if (!Array.isArray(field.options) || field.options.length === 0) {
+              return undefined
+            }
+
+            for (const option of field.options) {
+              if (
+                !option
+                || typeof option.id !== 'string'
+                || typeof option.display_value !== 'string'
+                || option.id.trim() === ''
+                || option.display_value.trim() === ''
+              ) {
+                return undefined
+              }
+            }
+          }
+        }
+
+        return parsed
+      } catch {
+        return undefined
+      }
+    },
+    validateUploadFormFieldsJson: function () {
+      const parsed = this.parseUploadFormFields()
+      return parsed !== undefined || 'Please provide a valid JSON array of fields with name, display_name, and type. Select fields must also define non-empty options with id and display_value.'
+    },
+    validateSubmissionTabsJson: function () {
+      const parsed = this.parseSubmissionTabs()
+      return parsed !== undefined || `Please provide a valid JSON array of submission tab IDs: ${AVAILABLE_SUBMISSION_TABS.join(', ')}.`
     },
     go_to_step: async function (step: number) {
       if (this.submitInProgress) {
@@ -225,6 +349,22 @@ export default {
       }
 
       this.submitInProgress = true
+      const submissionTabs = this.parseSubmissionTabs()
+      const uploadFormFields = this.parseUploadFormFields()
+      if (submissionTabs === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid submission tab JSON.')
+        this.step = 2
+        return
+      }
+
+      if (uploadFormFields === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid upload form field JSON.')
+        this.step = 2
+        return
+      }
+
       post(this.url(), this.task_representation(), this.userinfo)
         .then(() => {
           isActive.value = false
@@ -239,13 +379,18 @@ export default {
     task_representation: function () {
       const task_id = this.task_id_for_edit === '' ? slugify(this.task_name) : this.task_id_for_edit
       const organizer = this.task_id_for_edit === '' ? this.selected_organizer : this.organizer_id
+      const submissionTabs = this.parseSubmissionTabs()
+      const uploadFormFields = this.parseUploadFormFields()
 
       return {
         'task_id': task_id, 'name': this.task_name, 'featured': this.featured,
         'website': this.web, 'description': this.task_description, 'help_text': this.command_description, 'help_command': this.command_placeholder,
         'require_registration': this.require_registration, 'require_groups': this.require_groups, 'restrict_groups': this.restrict_groups,
         'task_teams': this.allowed_task_teams, 'is_information_retrieval_task': this.is_ir_task,
-        'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command, 'irds_re_ranking_resource': this.irds_re_ranking_resource, 'organizer': organizer
+        'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command, 'irds_re_ranking_resource': this.irds_re_ranking_resource, 'organizer': organizer,
+        'submission_tabs': submissionTabs === undefined ? null : submissionTabs,
+        'upload_form_fields': uploadFormFields === undefined ? null : uploadFormFields,
+        'hide_upload_via_cli': this.hide_upload_via_cli,
       }
     }
   },
