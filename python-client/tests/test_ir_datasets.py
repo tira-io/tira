@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import unittest
@@ -481,15 +482,11 @@ class TestIRDatasets(unittest.TestCase):
         dataset = ir_datasets.load("ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training")
 
         assert 68 == len(list(dataset.queries_iter()))
-        print(str(list(dataset.queries_iter())[0]))
-        assert (
-            "TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system"
-            " improving effectiveness', query='retrieval system improving effectiveness', description='What papers"
-            " focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research"
-            " on what makes a retrieval system effective and what improves the effectiveness of a retrieval system."
-            " Papers that focus on improving something else or improving the effectiveness of a system that is not a"
-            " retrieval system are not relevant.')" == str(list(dataset.queries_iter())[0])
-        )
+        query = list(dataset.queries_iter())[0]
+        assert query.query_id == "1"
+        assert query.text == "retrieval system improving effectiveness"
+        assert query.description == "What papers focus on improving the effectiveness of a retrieval system?"
+        assert query.original_query["description"] == query.description
 
     def test_loading_queries_via_rest_api_from_tira_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
@@ -498,15 +495,11 @@ class TestIRDatasets(unittest.TestCase):
         dataset = ir_datasets.load("ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training")
 
         assert 68 == len(list(dataset.queries_iter()))
-        print(str(list(dataset.queries_iter())[0]))
-        assert (
-            "TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system"
-            " improving effectiveness', query='retrieval system improving effectiveness', description='What papers"
-            " focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research"
-            " on what makes a retrieval system effective and what improves the effectiveness of a retrieval system."
-            " Papers that focus on improving something else or improving the effectiveness of a system that is not a"
-            " retrieval system are not relevant.')" == str(list(dataset.queries_iter())[0])
-        )
+        query = list(dataset.queries_iter())[0]
+        assert query.query_id == "1"
+        assert query.text == "retrieval system improving effectiveness"
+        assert query.description == "What papers focus on improving the effectiveness of a retrieval system?"
+        assert query.original_query["description"] == query.description
 
     def test_patching_for_pyterrier_datasets_to_tira(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
@@ -616,3 +609,37 @@ class TestIRDatasets(unittest.TestCase):
             self.assertEqual(10, len(list(ds.qrels_iter())))
             self.assertEqual(2, len(list(ds.queries_iter())))
             self.assertEqual(5, len(list(ds.docs_iter())))
+
+    def test_loading_dataset_preserves_raw_original_query(self):
+        from tira.third_party_integrations import ir_datasets as irds
+
+        original_query = {
+            "language": "en",
+            "description": "A description",
+            "custom": {"values": [1, 2]},
+        }
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset_directory = Path(tmp_dir)
+            (dataset_directory / "queries.jsonl").write_text(
+                json.dumps({"qid": "1", "query": "query text", "original_query": original_query}) + "\n"
+            )
+            (dataset_directory / "documents.jsonl").write_text('{"doc_id": "1", "text": "document"}\n')
+
+            ds = irds.load(str(dataset_directory))
+            query = next(ds.queries_iter())
+
+            self.assertEqual(original_query, query.original_query)
+            query.original_query["custom"]["values"].append(3)
+            self.assertEqual(original_query, next(ds.queries_iter()).original_query)
+
+    def test_loading_dataset_without_original_query_remains_supported(self):
+        from tira.third_party_integrations import ir_datasets as irds
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset_directory = Path(tmp_dir)
+            (dataset_directory / "queries.jsonl").write_text('{"qid": "1", "query": "query text"}\n')
+            (dataset_directory / "documents.jsonl").write_text('{"doc_id": "1", "text": "document"}\n')
+
+            query = next(irds.load(str(dataset_directory)).queries_iter())
+
+            self.assertIsNone(query.original_query)

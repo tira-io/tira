@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from pathlib import Path
@@ -5,7 +6,8 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pandas as pd
 
-from tira.ir_datasets_loader import get_as_re_rank_input
+from tira.ir_datasets_loader import IrDatasetsLoader, get_as_re_rank_input
+from tira.ir_datasets_util import TirexQuery
 
 EXAMPLE_RANKING_01 = """
 1 Q0 12 1 10 tag
@@ -17,6 +19,43 @@ EXAMPLE_RANKING_01 = """
 
 
 class TestIrDatasetsLoader(unittest.TestCase):
+    def test_map_query_preserves_raw_original_query(self):
+        original_query = {
+            "language": "en",
+            "description": "A description",
+            "custom": {"values": [1, 2]},
+        }
+        query = TirexQuery(
+            query_id="1",
+            text="query text",
+            title="query text",
+            query="query text",
+            description="A description",
+            narrative=None,
+            original_query=original_query,
+        )
+
+        actual = json.loads(IrDatasetsLoader().map_query_as_jsonl(query))
+
+        self.assertEqual(original_query, actual["original_query"])
+        self.assertNotIn("original_query", actual["original_query"])
+
+    def test_map_query_without_raw_original_query_uses_query_fields(self):
+        query = TirexQuery(
+            query_id="1",
+            text="query text",
+            title="query text",
+            query="query text",
+            description="A description",
+            narrative=None,
+        )
+
+        actual = json.loads(IrDatasetsLoader().map_query_as_jsonl(query))
+
+        self.assertEqual("1", actual["original_query"]["query_id"])
+        self.assertEqual("A description", actual["original_query"]["description"])
+        self.assertNotIn("original_query", actual["original_query"])
+
     def test_loading_of_re_rank_file_depth_10(self):
         expected_path = "-inputs/83051700dcfaf0babc8fa5724dfc5c51/10"
         with TemporaryDirectory() as cache, NamedTemporaryFile() as ranking:

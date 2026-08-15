@@ -209,7 +209,7 @@ class IrDatasetsLoader(object):
             "query": query.default_text(),
         }
         if include_original:
-            ret["original_query"] = query._asdict()
+            ret["original_query"] = self.original_query(query)
         return json.dumps(ret)
 
     def map_query_as_xml(self, query: tuple, include_original=False) -> str:
@@ -220,11 +220,20 @@ class IrDatasetsLoader(object):
 
         if include_original:
             soup.topic.append(soup.new_tag("original_query"))
-            for key, value in query._asdict().items():
+            for key, value in self.original_query(query).items():
                 soup.original_query.append(soup.new_tag(str(key)))
                 tag = soup.original_query.find(key)
                 tag.append(soup.new_string(str(value)))
         return soup
+
+    def original_query(self, query: tuple) -> dict:
+        original_query = getattr(query, "original_query", None)
+        if original_query is not None:
+            return copy.deepcopy(original_query)
+
+        ret = query._asdict()
+        ret.pop("original_query", None)
+        return ret
 
     def map_qrel(self, qrel: tuple) -> str:
         return f"{qrel.query_id} {qrel.iteration} {qrel.doc_id} {qrel.relevance}"
@@ -281,7 +290,7 @@ class IrDatasetsLoader(object):
         ret = {
             "qid": query.query_id,
             "query": query.default_text(),
-            "original_query": self.make_serializable(query._asdict()),
+            "original_query": self.make_serializable(self.original_query(query)),
             "docno": rerank_line["docno"],
             "text": doc.default_text(),
             "original_document": {},
