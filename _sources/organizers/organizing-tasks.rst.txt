@@ -1,19 +1,10 @@
 Organizing Tasks
 ================
 
+.. tip::
 
-   You can test that the setup of your task is valid on your machine. Please install the TIRA client on your machine:
-   
-   .. code::
-
-      pip3 install tira
-
-   Next, you can use the `tira-cli dataset-submission ...` command to test and upload your task.
-
-   Examples of declarative task setups are available at, for instance, example tasks, including their definitions, include:
-   
-   - `Learned Sparse Retrieval <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/learned-sparse-retrieval>`_
-   - `Multi Author Analysis <https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/multi-author-analysis>`_ 
+   Start with :doc:`local-shared-task` to prepare the dataset, baseline, and evaluator in a Git repository and validate
+   the complete workflow before uploading anything to TIRA.
 
 
 .. dropdown:: :material-regular:`looks_one;1.5em` Apply for a Organizer Account
@@ -52,14 +43,22 @@ Organizing Tasks
 
    In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.
 
+   In a dataset card, ``tira_configs.baseline.link`` may be either a public GitHub directory URL or a path relative to
+   the directory containing the dataset ``README.md``. For example, use ``../../baseline`` when the dataset card is in
+   ``datasets/my-task`` and the baseline is in the repository's top-level ``baseline`` directory.
+
    We have some examples on baselines that you can adopt for your shared task, e.g.:
 
+   - The `minimal Touché-2026 causality extraction baseline <https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task1-naive-baseline>`__
+   - The `LongEval PyTerrier retrieval baseline <https://github.com/clef-longeval/longeval-code/tree/main/clef25/pyterrier-baseline>`__
    - The `clickbait spoiling baselines from SemEval-2023 <https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines>`__
    - The `ValueEval baseline from SemEval-2023 <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline>`__
    - The baselines for `Touché-2023 at CLEF <https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier>`__
    - The baseline for `PAN-2023 at CLEF <https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines>`__
 
-   To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run` command that participants can use to test their image locally. The :code:`tira-run` commands executes a software as it would be executed in TIRA.
+   To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run`
+   command that participants can use to test an image locally. The command executes software as it would be executed in
+   TIRA.
 
    You can find some examples of shared tasks that use :code:`tira-run` in their baselines to simplify participation here:
 
@@ -76,8 +75,8 @@ Organizing Tasks
 
    .. code::
 
-      You can test docker images that you would submit to TIRA locally via `tira-run`. 
-      The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+      You can test Docker images that you would submit to TIRA locally via `tira-run`.
+      The `tira-run` command executes software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
 
       We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
 
@@ -106,6 +105,8 @@ Evaluators should produce helpful guidance for runs that are not valid (e.g., cl
 
 Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:
 
+- The `PAN-2026 multi-author analysis evaluator <https://github.com/pan-webis-de/pan-code/tree/master/clef26/multi-author-analysis/evaluator>`__ includes a Dockerfile and unit tests for its scoring logic.
+- The `Touché-2026 causality extraction evaluator <https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task3-evaluator>`__ is a compact example that writes ``evaluation.prototext``.
 - The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.
 - The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__ together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
 - The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__ script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__ and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.

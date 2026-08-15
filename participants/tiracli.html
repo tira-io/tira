@@ -212,6 +212,7 @@
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../organizers/local-shared-task.html">Set Up a Shared Task Locally with a Coding Agent</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input aria-label="Toggle navigation of Deployment" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Backend</a></li>
@@ -304,8 +305,8 @@
 <p>You don’t always need to write code to interact with TIRA. For your convenience, we offer a handy command line interface (CLI) for quick and efficient interactions with the TIRA platform.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This documentation is particularly discussing <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> and not the <code class="docutils literal notranslate"><span class="pre">tira-run</span></code> command. <code class="docutils literal notranslate"><span class="pre">tira-run</span></code>
-should be viewed as legacy and we are committed to move the functionality over to <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> is the preferred command. The legacy <code class="docutils literal notranslate"><span class="pre">tira-run</span></code> command is still needed when directly
+executing a container image that is not registered as a TIRA approach.</p>
 </div>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
@@ -315,16 +316,24 @@ should be viewed as legacy and we are committed to move the functionality over t
 </div>
 <p>If everything worked, the CLI’s help page should display the following:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tira-cli<span class="w"> </span>--help
-usage:<span class="w"> </span>tira-cli<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">{</span>download,upload,login<span class="o">}</span><span class="w"> </span>...
+usage:<span class="w"> </span>tira-cli<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-v<span class="o">]</span>
+<span class="w">                </span><span class="o">{</span>download,upload,evaluate,login,verify-installation,code-submission,dataset-submission,admin,run<span class="o">}</span><span class="w"> </span>...
 
 positional<span class="w"> </span>arguments:
-<span class="w">  </span><span class="o">{</span>download,upload,login<span class="o">}</span>
+<span class="w">  </span><span class="o">{</span>download,upload,evaluate,login,verify-installation,code-submission,dataset-submission,admin,run<span class="o">}</span>
 <span class="w">    </span>download<span class="w">            </span>Download<span class="w"> </span>runs<span class="w"> </span>or<span class="w"> </span>datasets<span class="w"> </span>from<span class="w"> </span>TIRA.io
 <span class="w">    </span>upload<span class="w">              </span>Upload<span class="w"> </span>runs<span class="w"> </span>or<span class="w"> </span>datasets<span class="w"> </span>to<span class="w"> </span>TIRA.io
-<span class="w">    </span>login<span class="w">               </span>Login<span class="w"> </span>your<span class="w"> </span>TIRA<span class="w"> </span>client<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>tira<span class="w"> </span>server.
+<span class="w">    </span>evaluate<span class="w">            </span>Evaluate<span class="w"> </span>runs<span class="w"> </span>locally.
+<span class="w">    </span>login<span class="w">               </span>Login<span class="w"> </span>your<span class="w"> </span>TIRA<span class="w"> </span>client<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>TIRA<span class="w"> </span>server.
+<span class="w">    </span>verify-installation<span class="w"> </span>Verify<span class="w"> </span>that<span class="w"> </span>your<span class="w"> </span><span class="nb">local</span><span class="w"> </span>TIRA<span class="w"> </span>client<span class="w"> </span>is<span class="w"> </span>correctly<span class="w"> </span>installed.
+<span class="w">    </span>code-submission<span class="w">     </span>Make<span class="w"> </span>a<span class="w"> </span>code<span class="w"> </span>submission<span class="w"> </span>from<span class="w"> </span>a<span class="w"> </span>git<span class="w"> </span>repository.
+<span class="w">    </span>dataset-submission<span class="w">  </span>Submit<span class="w"> </span>a<span class="w"> </span>new<span class="w"> </span>task/dataset<span class="w"> </span>to<span class="w"> </span>TIRA.
+<span class="w">    </span>admin<span class="w">               </span>Control<span class="w"> </span>TIRA<span class="w"> </span>admin<span class="w"> </span>endpoints.
+<span class="w">    </span>run<span class="w">                 </span>Run<span class="w"> </span>approaches<span class="w"> </span><span class="k">in</span><span class="w"> </span>TIRA<span class="w"> </span>or<span class="w"> </span>locally.
 
 options:
 <span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>-v,<span class="w"> </span>--version<span class="w">         </span>show<span class="w"> </span>program<span class="err">&#39;</span>s<span class="w"> </span>version<span class="w"> </span>number<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
 </pre></div>
 </div>
 <div class="admonition tip">
@@ -345,6 +354,25 @@ this information as well whenever you file a bug ticket for the CLI.</p>
 <p>TODO</p>
 </div>
 </section>
+<section id="tira-cli-verify-installation">
+<h2>tira-cli verify-installation<a class="headerlink" href="#tira-cli-verify-installation" title="Link to this heading">¶</a></h2>
+<p>Verify that the local client and its dependencies are ready before building submissions or running approaches:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>verify-installation
+</pre></div>
+</div>
+</section>
+<section id="tira-cli-run-local">
+<h2>tira-cli run local<a class="headerlink" href="#tira-cli-run-local" title="Link to this heading">¶</a></h2>
+<p>Execute an approach registered in TIRA on a local or published dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>run<span class="w"> </span><span class="nb">local</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--approach<span class="w"> </span>trec-auto-judge/webis/Naive-AutoJudge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--input<span class="w"> </span>kiddie-20260605-training<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--out<span class="w"> </span>tira-output
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">run</span> <span class="pre">local</span> <span class="pre">--help</span></code> for resource limits, environment forwarding, and directory mounts. To execute an
+unregistered image directly, continue to use <code class="docutils literal notranslate"><span class="pre">tira-run</span> <span class="pre">--image</span> <span class="pre">...</span> <span class="pre">--command</span> <span class="pre">...</span></code>.</p>
+</section>
 <section id="tira-cli-upload">
 <h2>tira-cli upload<a class="headerlink" href="#tira-cli-upload" title="Link to this heading">¶</a></h2>
 <div class="admonition-todo admonition" id="id2">
@@ -354,9 +382,14 @@ this information as well whenever you file a bug ticket for the CLI.</p>
 </section>
 <section id="tira-cli-download">
 <h2>tira-cli download<a class="headerlink" href="#tira-cli-download" title="Link to this heading">¶</a></h2>
-<div class="admonition-todo admonition" id="id3">
-<p class="admonition-title">Todo</p>
-<p>TODO</p>
+<p>To download every run of one approach on a dataset, use <code class="docutils literal notranslate"><span class="pre">--all-runs</span></code>. Each run is stored in a separate
+subdirectory named after its TIRA run ID:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>download<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--approach<span class="w"> </span>trec-auto-judge/webis/tinyjudge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset<span class="w"> </span>rag25-gen-20260608-test<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--all-runs<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>data/experiment-runs
+</pre></div>
 </div>
 </section>
 </section>
@@ -426,6 +459,8 @@ this information as well whenever you file a bug ticket for the CLI.</p>
 <li><a class="reference internal" href="#">TIRA CLI</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#tira-cli-login">tira-cli login</a></li>
+<li><a class="reference internal" href="#tira-cli-verify-installation">tira-cli verify-installation</a></li>
+<li><a class="reference internal" href="#tira-cli-run-local">tira-cli run local</a></li>
 <li><a class="reference internal" href="#tira-cli-upload">tira-cli upload</a></li>
 <li><a class="reference internal" href="#tira-cli-download">tira-cli download</a></li>
 </ul>

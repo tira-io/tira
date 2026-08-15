@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Deployment" href="deployment/index.html"><link rel="prev" title="Introduction" href="intro.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Deployment" href="deployment/index.html"><link rel="prev" title="Set Up a Shared Task Locally with a Coding Agent" href="local-shared-task.html">
         <link rel="prefetch" href="https://assets.tira.io/tira-icons/tira-logo.svg" as="image">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
@@ -212,6 +212,7 @@
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="local-shared-task.html">Set Up a Shared Task Locally with a Coding Agent</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="deployment/index.html">Deployment</a><input aria-label="Toggle navigation of Deployment" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="deployment/application.html">Deploying the Backend</a></li>
@@ -301,18 +302,11 @@
         <article role="main" id="furo-main-content">
           <section id="organizing-tasks">
 <h1>Organizing Tasks<a class="headerlink" href="#organizing-tasks" title="Link to this heading">¶</a></h1>
-<blockquote>
-<div><p>You can test that the setup of your task is valid on your machine. Please install the TIRA client on your machine:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">tira</span>
-</pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Start with <a class="reference internal" href="local-shared-task.html"><span class="doc">Set Up a Shared Task Locally with a Coding Agent</span></a> to prepare the dataset, baseline, and evaluator in a Git repository and validate
+the complete workflow before uploading anything to TIRA.</p>
 </div>
-<p>Next, you can use the <cite>tira-cli dataset-submission …</cite> command to test and upload your task.</p>
-<p>Examples of declarative task setups are available at, for instance, example tasks, including their definitions, include:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/learned-sparse-retrieval">Learned Sparse Retrieval</a></p></li>
-<li><p><a class="reference external" href="https://github.com/tira-io/tira/tree/main/python-client/tests/resources/example-datasets/multi-author-analysis">Multi Author Analysis</a></p></li>
-</ul>
-</div></blockquote>
 <details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_one" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"></path></svg> Apply for a Organizer Account</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
@@ -347,14 +341,21 @@
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_4" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V7h2v4h2V7h2v10z"></path></svg> Upload Public Baselines</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <p class="sd-card-text">In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.</p>
+<p class="sd-card-text">In a dataset card, <code class="docutils literal notranslate"><span class="pre">tira_configs.baseline.link</span></code> may be either a public GitHub directory URL or a path relative to
+the directory containing the dataset <code class="docutils literal notranslate"><span class="pre">README.md</span></code>. For example, use <code class="docutils literal notranslate"><span class="pre">../../baseline</span></code> when the dataset card is in
+<code class="docutils literal notranslate"><span class="pre">datasets/my-task</span></code> and the baseline is in the repository’s top-level <code class="docutils literal notranslate"><span class="pre">baseline</span></code> directory.</p>
 <p class="sd-card-text">We have some examples on baselines that you can adopt for your shared task, e.g.:</p>
 <ul class="simple">
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task1-naive-baseline">minimal Touché-2026 causality extraction baseline</a></p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/clef-longeval/longeval-code/tree/main/clef25/pyterrier-baseline">LongEval PyTerrier retrieval baseline</a></p></li>
 <li><p class="sd-card-text">The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines">clickbait spoiling baselines from SemEval-2023</a></p></li>
 <li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline">ValueEval baseline from SemEval-2023</a></p></li>
 <li><p class="sd-card-text">The baselines for <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">Touché-2023 at CLEF</a></p></li>
 <li><p class="sd-card-text">The baseline for <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines">PAN-2023 at CLEF</a></p></li>
 </ul>
-<p class="sd-card-text">To simplify testing software submissions locally before they are uploaded to TIRA, we provide a <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> command that participants can use to test their image locally. The <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> commands executes a software as it would be executed in TIRA.</p>
+<p class="sd-card-text">To simplify testing software submissions locally before they are uploaded to TIRA, we provide a <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code>
+command that participants can use to test an image locally. The command executes software as it would be executed in
+TIRA.</p>
 <p class="sd-card-text">You can find some examples of shared tasks that use <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> in their baselines to simplify participation here:</p>
 <ul class="simple">
 <li><p class="sd-card-text"><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier</a></p></li>
@@ -367,8 +368,8 @@
 </ul>
 <p class="sd-card-text">Assuming that you have published the baseline for your task at dockerhub under the name <code class="code docutils literal notranslate"><span class="pre">&lt;DOCKER_IMAGE_BASELINE&gt;</span></code>
 and that the baseline is executed via the command <code class="code docutils literal notranslate"><span class="pre">&lt;BASELINE_SOFTWARE_COMMAND&gt;</span></code> inside the container and that you have a directory <code class="code docutils literal notranslate"><span class="pre">tira-sample-input</span></code> with the sample data in the git repository of your baseline, you can add the following documentation (replace the placeholders with the correct values) to your README:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>You can test docker images that you would submit to TIRA locally via `tira-run`.
-The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>You can test Docker images that you would submit to TIRA locally via `tira-run`.
+The `tira-run` command executes software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
 
 We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
 
@@ -397,6 +398,8 @@ This command should create the following output in `tira-output`: &lt;TODO_ADD_E
 <p>Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).</p>
 <p>Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:</p>
 <ul class="simple">
+<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/clef26/multi-author-analysis/evaluator">PAN-2026 multi-author analysis evaluator</a> includes a Dockerfile and unit tests for its scoring logic.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef26/causality-extraction/task3-evaluator">Touché-2026 causality extraction evaluator</a> is a compact example that writes <code class="docutils literal notranslate"><span class="pre">evaluation.prototext</span></code>.</p></li>
 <li><p>The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
 <li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a> together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
 <li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a> script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a> and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
@@ -682,14 +685,14 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="intro.html">
+          <a class="prev-page" href="local-shared-task.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Introduction</div>
+                <div class="title">Set Up a Shared Task Locally with a Coding Agent</div>
                 
               </div>
             </a>
