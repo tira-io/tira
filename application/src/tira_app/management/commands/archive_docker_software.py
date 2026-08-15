@@ -20,7 +20,7 @@ class Command(BaseCommand):
     At the moment, we just execute some predefined commands
     """
 
-    def _image_host(self, image_name):
+    def _image_host(self, image_name: "Optional[str]") -> str:
         parsed_image_name = urlparse((image_name or "").strip().lower())
         image_host = parsed_image_name.hostname
         if image_host is None:
