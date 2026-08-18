@@ -59,6 +59,7 @@ jobs:
           export TIRA_CACHE_DIR=/tmp/tira
           export XDG_RUNTIME_DIR="/run/user/$(id -u)"
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+          echo "TIRA_CACHE_DIR=/tmp/tira" >> "$GITHUB_ENV"
           nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
           sleep 5
           echo "podman info"
