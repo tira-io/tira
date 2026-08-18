@@ -74,7 +74,7 @@ jobs:
 
       - name: TIRA-cli verify installation
         run: |
-          tira-cli verify-installation
+          tira-cli verify-installation --local-only
 
       - name: Run AutoJudge with rootless podman
         run: |

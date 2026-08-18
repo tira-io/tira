@@ -18,6 +18,7 @@ from tira.io_utils import (
     sanitize_text,
     verify_docker_installation,
     verify_images_can_be_build_and_pushed,
+    verify_tira_installation,
     verify_tirex_tracker,
     zip_dir,
 )
@@ -82,6 +83,29 @@ class TestIoUtils(unittest.TestCase):
 
         self.assertEqual((_fmt.OK, "Images can be uploaded for team team."), actual)
         self.assertIn("FROM docker.io/bash:alpine3.16", docker_file_contents)
+
+    def test_verify_tira_installation_local_only_skips_remote_checks(self):
+        with (
+            patch("tira.io_utils.api_key_is_valid") as api_key,
+            patch("tira.io_utils.tira_home_exists", return_value=(_fmt.OK, "home")) as tira_home,
+            patch(
+                "tira.io_utils.verify_docker_installation",
+                return_value=(_fmt.OK, "container runtime"),
+            ) as docker,
+            patch("tira.io_utils.verify_tirex_tracker", return_value=(_fmt.OK, "tracker")) as tracker,
+            patch("tira.io_utils.verify_images_can_be_build_and_pushed") as build_and_push,
+            patch("tira.io_utils.verify_images_are_in_correct_format") as image_format,
+            patch("tira.io_utils.os.system"),
+        ):
+            actual = verify_tira_installation(local_only=True)
+
+        self.assertEqual(_fmt.OK, actual)
+        tira_home.assert_called_once_with()
+        docker.assert_called_once_with()
+        tracker.assert_called_once_with()
+        api_key.assert_not_called()
+        build_and_push.assert_not_called()
+        image_format.assert_not_called()
 
     def test_tee_string_io_writes_to_internal_io_and_buffer(self):
         sink = io.StringIO()

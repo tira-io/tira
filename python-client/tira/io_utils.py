@@ -225,17 +225,25 @@ def verify_images_are_in_correct_format(
         return _fmt.ERROR, "The uploaded image is incompatible with the cluster."
 
 
-def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
+def verify_tira_installation(
+    task: "Optional[str]" = None,
+    team: "Optional[str]" = None,
+    local_only: bool = False,
+) -> FormatMsgType:
     ret = _fmt.OK
 
     checks: list[Callable] = [
-        api_key_is_valid,
         tira_home_exists,
         verify_docker_installation,
         verify_tirex_tracker,
-        lambda: verify_images_can_be_build_and_pushed(task, team),
-        lambda: verify_images_are_in_correct_format(task, team),
     ]
+    if not local_only:
+        checks = [
+            api_key_is_valid,
+            *checks,
+            lambda: verify_images_can_be_build_and_pushed(task, team),
+            lambda: verify_images_are_in_correct_format(task, team),
+        ]
 
     msgs = []
     for i in checks:
