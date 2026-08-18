@@ -76,6 +76,7 @@ jobs:
 
       - name: TIRA-cli verify installation
         run: |
+          mkdir -p $TIRA_CACHE_DIR
           tira-cli verify-installation --local-only
 
       - name: Run AutoJudge with rootless podman
