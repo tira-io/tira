@@ -56,19 +56,28 @@ jobs:
 
       - name: Start rootless Podman service
         run: |
-          export TIRA_CACHE_DIR=/tmp/tira
           export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+          echo "DOCKER_HOST=$DOCKER_HOST" >> "$GITHUB_ENV"
           echo "TIRA_CACHE_DIR=/tmp/tira" >> "$GITHUB_ENV"
-          nohup podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" > podman-service.log 2>&1 &
+          mkdir -p "$XDG_RUNTIME_DIR/podman"
+          env -u RUNNER_TRACKING_ID nohup podman system service --time=0 "$DOCKER_HOST" > podman-service.log 2>&1 &
           sleep 5
           echo "podman info"
           podman info --format '{{.Host.Security.Rootless}}'
           podman info --format '{{.Host.Security.Rootless}}' | grep true
+
       - name: Verify Podman is working
         run: |
           podman ps
           podman pull bash
+
+      - name: Verify Podman API socket is working across steps
+        run: |
+          test -S "${DOCKER_HOST#unix://}"
+          curl --fail --unix-socket "${DOCKER_HOST#unix://}" http://localhost/_ping
+
       - name: Install TIRA from source
         working-directory: ${{ github.workspace }}/python-client
         run: |
@@ -84,4 +93,3 @@ jobs:
           tira-cli run local \
             --approach trec-auto-judge/webis/Naive-AutoJudge \
             --input kiddie-20260605-training
-
