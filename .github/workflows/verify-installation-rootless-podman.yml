@@ -72,6 +72,11 @@ jobs:
         run: |
           pip install .
 
+      - name: TIRA-cli verify installation
+        run: |
+          tira-cli verify-installation
+
+        run: |
       - name: Run AutoJudge with rootless podman
         run: |
           tira-cli run local \
