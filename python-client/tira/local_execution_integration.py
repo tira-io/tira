@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING, Optional
 
 import docker
 import pandas as pd
+from docker.utils import parse_repository_tag
 
 from tira.io_utils import environment_variables_to_forward
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
@@ -25,6 +27,8 @@ class LocalExecutionIntegration:
     def __init__(self, tira_client=None):
         self.tira_client = tira_client
         self.running_docker_images = {}
+        self.docker_socket: Optional[str] = None
+        self.__container_cli: Optional[str] = None
 
     def __docker_run_cpu_limits(self, cpu_count, platform):
         if cpu_count is None:
@@ -101,8 +105,9 @@ class LocalExecutionIntegration:
         build_args: "Optional[str]" = None,
         platform="linux/amd64",
     ):
+        container_cli = self.get_container_cli()
         cmd = [
-            "docker",
+            container_cli,
             "build",
             "--platform",
             platform,
@@ -113,6 +118,8 @@ class LocalExecutionIntegration:
         ]
         if build_args is not None and len(build_args) > 0:
             cmd += build_args.split()
+        if container_cli == "podman":
+            cmd += ["--format", "docker"]
         cmd += [str(path)]
         image_build_code = subprocess.call(cmd)
 
@@ -142,8 +149,9 @@ class LocalExecutionIntegration:
             )
 
     def ensure_image_available_locally(self, image, client=None):
+        container_cli = self.get_container_cli()
         try:
-            output = subprocess.check_output(["docker", "images", "-q", image])
+            output = subprocess.check_output([container_cli, "images", "-q", image])
             if len(output) > 0:
                 return
         except Exception:
@@ -157,7 +165,7 @@ class LocalExecutionIntegration:
                 pass
 
         print("# Pull Image\n\n")
-        image_pull_code = subprocess.call(["docker", "pull", image])
+        image_pull_code = subprocess.call([container_cli, "pull", image])
 
         if image_pull_code != 0 and "GITHUB_ACTION" in os.environ:
             print("Skip pulling of image because everything is executed within github.")
@@ -211,10 +219,29 @@ class LocalExecutionIntegration:
                 (self.docker_image_work_dir(image_name) + "/" + executable).replace("//", "/").replace("/./", "/"),
             )
 
-    def __docker_linux_sockets(self):
-        ret = [
+    def get_container_cli(self) -> str:
+        if self.__container_cli is not None:
+            return self.__container_cli
+
+        docker_socket = self.get_valid_docker_socket()
+        if docker_socket is not None and "podman" in docker_socket.lower():
+            commands = ("podman",)
+        elif docker_socket is not None and "docker" in docker_socket.lower():
+            commands = ("docker",)
+        else:
+            commands = ("docker", "podman")
+
+        for command in commands:
+            if shutil.which(command):
+                self.__container_cli = command
+                return self.__container_cli
+
+        raise ValueError("Neither Docker nor Podman is installed.")
+
+    def __docker_linux_sockets(self) -> list[str]:
+        ret = ["/var/run/docker.sock"]
+        ret += [
             os.path.expanduser("~/.docker/desktop/docker.sock"),
-            "/run/podman/podman.sock",
         ]
 
         try:
@@ -222,31 +249,67 @@ class LocalExecutionIntegration:
         except Exception:
             pass
 
-        return ret + ["/var/run/docker.sock"]
+        return ret + ["/run/podman/podman.sock"]
 
     def docker_is_installed_failsave(self) -> bool:
         return self.__docker_client() is not None
 
-    def __docker_client(self) -> docker.DockerClient:
+    def __docker_client_for_environment(self, environ: dict[str, str]) -> docker.DockerClient:
+        client = docker.from_env(environment=environ)
         try:
-            environ = os.environ.copy()
-            if sys.platform == "linux" and "DOCKER_HOST" not in environ:
-                for docker_socket in self.__docker_linux_sockets():
-                    if os.path.exists(docker_socket):
-                        environ["DOCKER_HOST"] = "unix://" + docker_socket
-
-                if "DOCKER_HOST" in environ:
-                    logging.warn(
-                        "Set DOCKER_HOST to '"
-                        + environ["DOCKER_HOST"]
-                        + "'. Prevent this by explicitly setting the environment variable DOCKER_HOST."
-                    )
-
-            client = docker.from_env(environment=environ)
-
             assert len(client.images.list()) >= 0
             assert len(client.containers.list()) >= 0
             return client
+        except Exception:
+            client.close()
+            raise
+
+    def get_valid_docker_socket(self) -> Optional[str]:
+        if self.docker_socket is not None:
+            return self.docker_socket
+
+        configured_socket = os.environ.get("DOCKER_HOST")
+        if configured_socket is not None:
+            client = self.__docker_client_for_environment(os.environ.copy())
+            client.close()
+            self.docker_socket = configured_socket
+            return self.docker_socket
+
+        if sys.platform != "linux":
+            return None
+
+        last_error = None
+        for docker_socket_file in self.__docker_linux_sockets():
+            if not os.path.exists(docker_socket_file) or not stat.S_ISSOCK(os.stat(docker_socket_file).st_mode):
+                continue
+
+            docker_socket = "unix://" + docker_socket_file
+            environ = os.environ.copy()
+            environ["DOCKER_HOST"] = docker_socket
+            try:
+                client = self.__docker_client_for_environment(environ)
+                client.close()
+                self.docker_socket = docker_socket
+                logging.warning(
+                    "Set DOCKER_HOST to '%s'. Prevent this by explicitly setting the DOCKER_HOST environment variable.",
+                    docker_socket,
+                )
+                return self.docker_socket
+            except Exception as error:
+                last_error = error
+
+        if last_error is not None:
+            raise last_error
+        return None
+
+    def __docker_client(self) -> docker.DockerClient:
+        try:
+            environ = os.environ.copy()
+            docker_socket = self.get_valid_docker_socket()
+            if docker_socket is not None:
+                environ["DOCKER_HOST"] = docker_socket
+
+            return self.__docker_client_for_environment(environ)
         except Exception as e:
             raise ValueError("It seems like docker is not installed?", e)
 
@@ -416,6 +479,7 @@ class LocalExecutionIntegration:
         evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
 
         if type(evaluate) is dict and evaluate["evaluator_id"]:
+            allow_network = bool(evaluate.get("allow_network", allow_network))
             evaluation_volumes[str(evaluate["truth_directory"])] = {
                 "bind": "/tira-data/input_truth",
                 "mode": "ro",
@@ -903,7 +967,8 @@ class LocalExecutionIntegration:
         if required_prefix and not image.startswith(required_prefix):
             new_image = self.normalize_image_name(image, required_prefix)
             print(f'I tag the image "{image}" as "{new_image}" for upload to TIRA (only internal).')
-            client.images.get(image).tag(new_image)
+            repository, tag = parse_repository_tag(new_image)
+            client.images.get(image).tag(repository, tag=tag)
             image = new_image
 
         tasks = {}

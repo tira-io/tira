@@ -95,7 +95,10 @@ def verify_docker_installation() -> Tuple[FormatMsgType, str]:
 
         local_execution: LocalExecutionIntegration = LocalExecutionIntegration()
         assert local_execution.docker_is_installed_failsave()
-        return _fmt.OK, "Docker/Podman is installed."
+        container_cli = local_execution.get_container_cli().capitalize()
+        docker_socket = local_execution.get_valid_docker_socket()
+        socket_details = "" if docker_socket is None else f" (socket: {docker_socket})"
+        return _fmt.OK, f"{container_cli} is installed{socket_details}."
     except:
         return (
             _fmt.ERROR,
@@ -182,7 +185,7 @@ def verify_images_can_be_build_and_pushed(
 
     docker_file = Path(temporary_directory()) / "Dockerfile"
     (docker_file.parent / "example-file").write_text(str(uuid.uuid4()))
-    docker_file.write_text("FROM bash:alpine3.16\n\nADD example-file /e")
+    docker_file.write_text("FROM docker.io/bash:alpine3.16\n\nADD example-file /e")
     image = "tira-mini"
     tira.local_execution.build_docker_image(docker_file.parent, image, docker_file)
 

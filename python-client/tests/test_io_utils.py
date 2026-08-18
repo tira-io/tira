@@ -16,6 +16,8 @@ from tira.io_utils import (
     resolve_cache_dir,
     resolve_mirrored_resources,
     sanitize_text,
+    verify_docker_installation,
+    verify_images_can_be_build_and_pushed,
     verify_tirex_tracker,
     zip_dir,
 )
@@ -28,6 +30,59 @@ TRUTHS_ZIP_MD5 = "f28e36759760c9520e7831aba86c4d23"
 
 
 class TestIoUtils(unittest.TestCase):
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_installation_reports_docker_socket(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "docker"
+        integration.get_valid_docker_socket.return_value = "unix:///var/run/docker.sock"
+
+        self.assertEqual(
+            (_fmt.OK, "Docker is installed (socket: unix:///var/run/docker.sock)."),
+            verify_docker_installation(),
+        )
+
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_installation_reports_podman_socket(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "podman"
+        integration.get_valid_docker_socket.return_value = "unix:///run/user/1000/podman/podman.sock"
+
+        self.assertEqual(
+            (_fmt.OK, "Podman is installed (socket: unix:///run/user/1000/podman/podman.sock)."),
+            verify_docker_installation(),
+        )
+
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_installation_reports_variant_without_socket(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "docker"
+        integration.get_valid_docker_socket.return_value = None
+
+        self.assertEqual((_fmt.OK, "Docker is installed."), verify_docker_installation())
+
+    def test_verify_images_uses_fully_qualified_base_image(self):
+        tira = Mock()
+        tira.metadata_for_task.return_value = {"status": 0}
+        tira.docker_registry.return_value = "registry.example.org"
+        tira.local_execution.push_image.return_value = "registry.example.org/test-image"
+
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            patch("tira.io_utils.api_key_is_valid", return_value=(_fmt.OK, "authenticated")),
+            patch("tira.io_utils.verify_docker_installation", return_value=(_fmt.OK, "Podman is installed.")),
+            patch("tira.rest_api_client.Client", return_value=tira),
+            patch("tira.third_party_integrations.temporary_directory", return_value=tmp_dir),
+        ):
+            actual = verify_images_can_be_build_and_pushed("task", "team")
+            docker_file = tira.local_execution.build_docker_image.call_args.args[2]
+            docker_file_contents = docker_file.read_text()
+
+        self.assertEqual((_fmt.OK, "Images can be uploaded for team team."), actual)
+        self.assertIn("FROM docker.io/bash:alpine3.16", docker_file_contents)
+
     def test_tee_string_io_writes_to_internal_io_and_buffer(self):
         sink = io.StringIO()
         tee = TeeStringIO(sink)
