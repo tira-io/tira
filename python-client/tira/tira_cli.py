@@ -967,6 +967,11 @@ def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="The team for which you want to run the verification.",
     )
+    parser.add_argument(
+        "--local-only",
+        action="store_true",
+        help="Only verify local components and skip authentication and image upload checks.",
+    )
     parser.set_defaults(executable=verify_installation_command)
 
 
@@ -1138,8 +1143,8 @@ def code_submission_command(
     return 0
 
 
-def verify_installation_command(task, team, **kwargs) -> int:
-    status = verify_tira_installation(task, team)
+def verify_installation_command(task, team, local_only=False, **kwargs) -> int:
+    status = verify_tira_installation(task, team, local_only=local_only)
 
     print("\nResult:")
     msg = "Your TIRA installation is valid."
