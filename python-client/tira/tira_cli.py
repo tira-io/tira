@@ -15,6 +15,7 @@ from tira.io_utils import (
     environment_variables_to_forward,
     load_output_of_directory,
     log_message,
+    requires_mount_workflow,
     verify_tira_installation,
 )
 from tira.rest_api_client import Client as RestClient
@@ -83,10 +84,6 @@ def build_remote_mount_config(
         mount_config.update({k.split("=")[0].replace("$", ""): k.split("=")[1] for k in mount_cache})
 
     return mount_config
-
-
-def requires_mount_workflow(system_details: dict) -> bool:
-    return bool(system_details.get("cache_behaviour") or system_details.get("mount_config"))
 
 
 def validate_required_forwarding(

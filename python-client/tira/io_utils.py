@@ -883,6 +883,10 @@ def extract_volume_mounts(v):
     return volume_dir.replace("XYZ__________XYZ", ":\\"), volume_bind, volume_mode
 
 
+def requires_mount_workflow(system_details: dict) -> bool:
+    return bool(system_details.get("cache_behaviour") or system_details.get("mount_config"))
+
+
 def sanitize_text(text: str) -> str:
     return _remove_unicode_categories(text.encode("utf-8", errors="ignore").decode("utf-8"), {"Sm"})
 

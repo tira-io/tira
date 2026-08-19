@@ -155,6 +155,7 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
 
         uploaded_run = modeldb.Run.objects.filter(upload__display_name="Mounted directory for primary-input").get()
         self.assertEqual(dataset_1, uploaded_run.input_dataset.dataset_id)
+        self.assertTrue(run_sandboxed_software_mock.call_args.args[11])
         dynamic_mounts = run_sandboxed_software_mock.call_args.args[12]
         self.assertEqual("OUTPUT_OF_OTHER_EXECUTION", dynamic_mounts["primary-input"]["source"])
         self.assertEqual(uploaded_run.run_id, dynamic_mounts["primary-input"]["run_id"])
