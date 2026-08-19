@@ -654,6 +654,55 @@ def create_tira_size_txt(run_dir):
     return ret
 
 
+MOUNTED_DIRECTORIES_METADATA_FILE_NAME = "mounted-directories-metadata.yml"
+
+# The subset of fields of a dynamic mount configuration that are relevant to reproduce a run.
+_MOUNT_METADATA_FIELDS = ("source", "mode", "run_id")
+
+
+def persist_mount_metadata(
+    run_dir: "Union[str, Path]",
+    dynamic_mounts: "Optional[Dict[str, Any]]",
+    software_id: "Optional[str]" = None,
+) -> "Optional[Path]":
+    """Persist metadata about dynamically mounted directories in the ir_metadata format (https://www.ir-metadata.org).
+
+    This allows to later reproduce a run by knowing which software was executed and which directories were mounted
+    under which environment variable (and how, e.g., via which run_id) during its execution. Analogous to the
+    ``.tracking-results.yml`` produced by the tirex-tracker, the metadata is written next to the output directory
+    (i.e., into ``run_dir``, not into ``run_dir / "output"``), so that it is persisted alongside a run without
+    becoming part of the run's (evaluated) output.
+
+    Returns the path of the written file, or None if there were no dynamic mounts to persist.
+    """
+    import yaml
+
+    if not dynamic_mounts:
+        return None
+
+    mounted_directories = []
+    for environment_variable, mount in dynamic_mounts.items():
+        entry: Dict[str, Any] = {"environment variable": environment_variable}
+
+        if isinstance(mount, dict):
+            entry.update({k: v for k, v in mount.items() if k in _MOUNT_METADATA_FIELDS})
+        else:
+            entry["source"] = mount
+
+        mounted_directories.append(entry)
+
+    metadata = {
+        "schema-version": "0.1",
+        "resources": {"software": software_id, "mounted directories": mounted_directories},
+    }
+
+    target_file = Path(run_dir) / MOUNTED_DIRECTORIES_METADATA_FILE_NAME
+    with open(target_file, "w") as f:
+        yaml.safe_dump(metadata, f, sort_keys=False)
+
+    return target_file
+
+
 def patch_ir_metadata(run_dir: str, src_pattern: Dict, target_pattern: Dict) -> None:
     import yaml
 

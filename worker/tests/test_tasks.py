@@ -156,3 +156,76 @@ class TestExecuteMonitored(unittest.TestCase):
 
         self.assertEqual(dynamic_mounts, actual)
         client.download_zip_to_cache_directory.assert_not_called()
+
+
+class TestRunTask(unittest.TestCase):
+    @patch.object(_tasks, "persist_mount_metadata")
+    @patch.object(_tasks, "persist_tira_metadata_for_job")
+    @patch.object(_tasks, "execute_monitored")
+    @patch.object(_tasks, "resolve_dynamic_mounts")
+    @patch.object(_tasks, "get_admin_client")
+    def test_run_persists_mount_metadata_with_requested_not_resolved_mounts(
+        self,
+        get_admin_client,
+        resolve_dynamic_mounts,
+        execute_monitored,
+        persist_tira_metadata_for_job,
+        persist_mount_metadata,
+    ):
+        client = Mock()
+        get_admin_client.return_value = client
+        requested_dynamic_mounts = {"NUGGETS": {"source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "ro", "run_id": "r-1"}}
+        resolved_dynamic_mounts = {"NUGGETS": {"source": "/local/cache/path", "mode": "ro", "run_id": "r-1"}}
+        resolve_dynamic_mounts.return_value = resolved_dynamic_mounts
+        run_results = Path("/tmp/some-run-dir")
+        execute_monitored.return_value = run_results
+
+        _tasks.run.run(
+            dataset="dataset-1",
+            task="task-1",
+            docker_image="image",
+            command="command",
+            software_id="docker-software-42",
+            team="team-1",
+            job_id="job-1",
+            dynamic_mounts=requested_dynamic_mounts,
+        )
+
+        resolve_dynamic_mounts.assert_called_once_with(requested_dynamic_mounts, client, "task-1", "dataset-1", "team-1")
+        persist_mount_metadata.assert_called_once_with(run_results, requested_dynamic_mounts, "docker-software-42")
+
+        # the resolved (local-path) mounts are the ones actually mounted into the container
+        run_lambda = execute_monitored.call_args.args[0]
+        run_lambda(Path("/tmp/output"))
+        client.local_execution.run.assert_called_once()
+        self.assertEqual(resolved_dynamic_mounts, client.local_execution.run.call_args.kwargs["dynamic_mounts"])
+
+    @patch.object(_tasks, "persist_mount_metadata")
+    @patch.object(_tasks, "persist_tira_metadata_for_job")
+    @patch.object(_tasks, "execute_monitored")
+    @patch.object(_tasks, "resolve_dynamic_mounts", return_value=None)
+    @patch.object(_tasks, "get_admin_client")
+    def test_run_persists_no_mount_metadata_without_dynamic_mounts(
+        self,
+        get_admin_client,
+        resolve_dynamic_mounts,
+        execute_monitored,
+        persist_tira_metadata_for_job,
+        persist_mount_metadata,
+    ):
+        client = Mock()
+        get_admin_client.return_value = client
+        run_results = Path("/tmp/some-run-dir")
+        execute_monitored.return_value = run_results
+
+        _tasks.run.run(
+            dataset="dataset-1",
+            task="task-1",
+            docker_image="image",
+            command="command",
+            software_id="docker-software-42",
+            team="team-1",
+            job_id="job-1",
+        )
+
+        persist_mount_metadata.assert_called_once_with(run_results, None, "docker-software-42")

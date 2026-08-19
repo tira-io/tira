@@ -14,6 +14,7 @@ from tira.io_utils import (
     get_tira_id,
     hf_cache_dir,
     huggingface_model_mounts,
+    persist_mount_metadata,
     persist_tira_metadata_for_job,
 )
 from tira.rest_api_client import Client as RestClient
@@ -208,6 +209,7 @@ def run(
 
     system_inputs = client.download_dataset(task, dataset)
     print("Inputs are available locally:", system_inputs)
+    requested_dynamic_mounts = dynamic_mounts
     dynamic_mounts = resolve_dynamic_mounts(dynamic_mounts, client, task, dataset, team)
 
     hf_models = resolve_hf_models(mount_hf_model)
@@ -247,6 +249,7 @@ def run(
                 pass
 
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
+    persist_mount_metadata(run_results, requested_dynamic_mounts, software_id)
     client.upload_run_admin(run_results, job_id)
 
 
