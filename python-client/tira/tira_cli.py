@@ -85,6 +85,10 @@ def build_remote_mount_config(
     return mount_config
 
 
+def requires_mount_workflow(system_details: dict) -> bool:
+    return bool(system_details.get("cache_behaviour") or system_details.get("mount_config"))
+
+
 def validate_required_forwarding(
     system_details: dict,
     system_pretty: str,
@@ -525,11 +529,7 @@ def run_local(
 
     print("Run software")
 
-    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or (
-        "mount_config" in system_details
-        and system_details["mount_config"]
-        and "CACHE_DIR" in system_details["mount_config"]
-    ):
+    if requires_mount_workflow(system_details):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
