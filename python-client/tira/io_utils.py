@@ -703,6 +703,32 @@ def persist_mount_metadata(
     return target_file
 
 
+def read_mount_metadata(run_dir: "Union[str, Path]") -> Dict[str, str]:
+    """Read back the run_id of dynamically mounted directories persisted via :func:`persist_mount_metadata`.
+
+    Returns a mapping of environment variable name to the run_id that was mounted under it. Mounts that were
+    not mounted from another execution (e.g., ``EMPTY_DIR``, ``UPLOAD_DIRECTORY``, or a local directory) have no
+    run_id and are therefore not part of the returned mapping. Returns an empty dict if no metadata is available.
+    """
+    import yaml
+
+    target_file = Path(run_dir) / MOUNTED_DIRECTORIES_METADATA_FILE_NAME
+    if not target_file.exists():
+        return {}
+
+    try:
+        metadata = yaml.safe_load(target_file.read_text()) or {}
+    except Exception:
+        return {}
+
+    mounted_directories = metadata.get("resources", {}).get("mounted directories", [])
+    return {
+        entry["environment variable"]: entry["run_id"]
+        for entry in mounted_directories
+        if isinstance(entry, dict) and entry.get("environment variable") is not None and entry.get("run_id") is not None
+    }
+
+
 def patch_ir_metadata(run_dir: str, src_pattern: Dict, target_pattern: Dict) -> None:
     import yaml
 
