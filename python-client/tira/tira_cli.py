@@ -158,10 +158,7 @@ def build_mount_combos(candidates_by_variable: "dict[str, list[str]]") -> "list[
     if any(not candidates_by_variable[v] for v in variables):
         return []
 
-    return [
-        dict(zip(variables, combo))
-        for combo in itertools.product(*(candidates_by_variable[v] for v in variables))
-    ]
+    return [dict(zip(variables, combo)) for combo in itertools.product(*(candidates_by_variable[v] for v in variables))]
 
 
 def validate_required_forwarding(
@@ -321,9 +318,7 @@ def runs_matching_requirements(
 ):
     task, team, software = split_approach_identifier(approach_id)
     runs = client.submissions_with_evaluation_or_none(task, dataset_id, team, software)
-    matching_runs = [
-        run for run in runs if matches_requirements(run, require, mount_combo, client, metadata_cache)
-    ]
+    matching_runs = [run for run in runs if matches_requirements(run, require, mount_combo, client, metadata_cache)]
 
     return runs, matching_runs
 

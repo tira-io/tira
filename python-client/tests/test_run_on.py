@@ -89,7 +89,9 @@ class FakeRunOnRestClient:
         output_dir.mkdir(parents=True, exist_ok=True)
         mounted = type(self).mounted.get(run_id)
         if mounted:
-            dynamic_mounts = {var: {"source": "OUTPUT_OF_OTHER_EXECUTION", "run_id": rid} for var, rid in mounted.items()}
+            dynamic_mounts = {
+                var: {"source": "OUTPUT_OF_OTHER_EXECUTION", "run_id": rid} for var, rid in mounted.items()
+            }
             persist_mount_metadata(run_dir, dynamic_mounts)
         return output_dir
 
@@ -185,18 +187,14 @@ class TestDynamicRequirement(unittest.TestCase):
 
     def test_matches_requirements_true_when_mounted_run_id_matches_combo(self):
         client = FakeRunOnRestClient()
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"}
-        )
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"})
         run = FakeRunOnRestClient.runs[("task", "dataset-a", "team", "approach-1")][0]
 
         self.assertTrue(matches_requirements(run, ["output.NUGGETS"], {"NUGGETS": "run-a-1"}, client))
 
     def test_matches_requirements_false_when_mounted_run_id_differs(self):
         client = FakeRunOnRestClient()
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"}
-        )
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"})
         run = FakeRunOnRestClient.runs[("task", "dataset-a", "team", "approach-1")][0]
 
         self.assertFalse(matches_requirements(run, ["output.NUGGETS"], {"NUGGETS": "run-a-2"}, client))
@@ -222,9 +220,7 @@ class TestDynamicRequirement(unittest.TestCase):
 
     def test_metadata_cache_avoids_repeated_downloads(self):
         client = FakeRunOnRestClient()
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"}
-        )
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"})
         run = FakeRunOnRestClient.runs[("task", "dataset-a", "team", "approach-1")][0]
 
         cache = {}
@@ -235,12 +231,8 @@ class TestDynamicRequirement(unittest.TestCase):
 
     def test_runs_matching_requirements_filters_by_combo(self):
         client = FakeRunOnRestClient()
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"}
-        )
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "approach-1", "run-2", mounted={"NUGGETS": "run-a-2"}
-        )
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-1", "run-1", mounted={"NUGGETS": "run-a-1"})
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-1", "run-2", mounted={"NUGGETS": "run-a-2"})
 
         runs, matching = runs_matching_requirements(
             client, "task/team/approach-1", "dataset-a", ["output.NUGGETS"], {"NUGGETS": "run-a-1"}, {}
@@ -292,9 +284,7 @@ class TestRunRemoteWithRunOn(unittest.TestCase):
     def test_skips_combo_already_covered_via_require(self):
         FakeRunOnRestClient.add_run("task", "dataset-a", "team", "approach-a", "run-a-1")
         # An existing main-approach run already used run-a-1 as NUGGETS mount.
-        FakeRunOnRestClient.add_run(
-            "task", "dataset-a", "team", "main", "run-main-1", mounted={"NUGGETS": "run-a-1"}
-        )
+        FakeRunOnRestClient.add_run("task", "dataset-a", "team", "main", "run-main-1", mounted={"NUGGETS": "run-a-1"})
 
         with patch("tira.tira_cli.RestClient", FakeRunOnRestClient), patch("tira.tira_cli.time.sleep"):
             with redirect_stdout(io.StringIO()):

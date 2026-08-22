@@ -51,7 +51,12 @@ class TestPersistMountMetadata(unittest.TestCase):
             mounted_directories = {i["environment variable"]: i for i in content["resources"]["mounted directories"]}
 
             self.assertEqual(
-                {"environment variable": "NUGGETS", "source": "OUTPUT_OF_OTHER_EXECUTION", "mode": "ro", "run_id": "the-run-id"},
+                {
+                    "environment variable": "NUGGETS",
+                    "source": "OUTPUT_OF_OTHER_EXECUTION",
+                    "mode": "ro",
+                    "run_id": "the-run-id",
+                },
                 mounted_directories["NUGGETS"],
             )
             self.assertEqual(

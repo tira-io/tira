@@ -1,0 +1,140 @@
+########################################################################################################################
+# This is the heavy, dependency-baking base image used by the fast day-to-day devcontainer.                           #
+#                                                                                                                       #
+# .devcontainer/Dockerfile.dev is a thin wrapper ("FROM webis/tira:dev-container-<version>") on top of the image       #
+# built from this file, so that opening the devcontainer normally does not require rebuilding all of this from        #
+# scratch. Rebuild and push this image (bump the version in both the comment below and in                            #
+# .devcontainer/Dockerfile.dev) whenever you change OS-level tooling or the preinstalled dependencies. Run the        #
+# build from the repository root (the build context needs the whole repo to bake dependencies).                      #
+########################################################################################################################
+#docker build -t webis/tira:dev-container-0.0.2 -f .devcontainer/Dockerfile-base.dev . && docker push webis/tira:dev-container-0.0.2
+FROM ubuntu:24.04
+
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && apt-get install -y sudo git locales s3cmd
+RUN echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+
+########################################################################################################################
+# Create Users                                                                                                         #
+########################################################################################################################
+RUN <<EOF
+	# Create docker group for later
+	addgroup docker
+
+	# Change root Password to 1234
+	echo 'root:1234' | chpasswd
+	
+	# Create new user: "dev" also with password 1234
+	useradd -ms /bin/bash dev
+    echo 'dev:1234' | chpasswd
+    usermod -aG sudo dev
+    usermod -aG docker dev
+	# Sometimes, the ubuntu user is used in the dev container
+	echo 'ubuntu:1234' | chpasswd
+    usermod -aG sudo ubuntu
+    usermod -aG docker ubuntu
+
+    chmod o+r /var/run/docker.sock
+    chmod o+w /var/run/docker.sock
+
+	# Add users to sudoers
+	echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+EOF
+
+
+########################################################################################################################
+# Frontend                                                                                                             #
+########################################################################################################################
+USER root
+
+RUN <<EOF
+    apt-get update
+    apt-get install -y npm
+    npm install --global yarn
+EOF
+
+# Use a fixed, world-writable global cache folder for yarn so that we can populate it during the
+# image build (see "Preinstall project dependencies" below) and reuse it later at container
+# runtime (postCreateCommand), regardless of which user yarn is invoked as.
+ENV YARN_CACHE_FOLDER=/opt/yarn-cache
+RUN mkdir -p /opt/yarn-cache && chmod -R 777 /opt/yarn-cache
+
+
+
+
+########################################################################################################################
+# Backend (Application)                                                                                                #
+########################################################################################################################
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
+    libpcre3-dev
+
+# Environment Variables for TIRA Configuration:
+ENV TIRA_ROOT=/workspaces/tira/model/src
+ENV TIRA_CONFIG=/workspaces/tira/application/config/tira-application-config.yml
+ENV TIRA_DEBUG=false
+ENV TIRA_CACHE_DIR=/tmp/tira-dev-cache-dir/
+ENV DISCOURSE_API_KEY="I am so secret"
+
+########################################################################################################################
+# Client                                                                                                               #
+########################################################################################################################
+USER root
+RUN <<EOF
+	# Install Java (some dependencies like python are already installed by the application module)
+    apt-get update
+    apt-get install -y openjdk-11-jdk tree
+	# Install Docker and set correct permissions to the docker.sock
+	apt-get install -y curl
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+	chmod a+r /etc/apt/keyrings/docker.gpg
+	echo \
+		"deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+		"$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+		tee /etc/apt/sources.list.d/docker.list > /dev/null
+	apt-get update -y
+	apt-get install -y docker-ce-cli
+	touch /var/run/docker.sock
+	chown root:docker /var/run/docker.sock
+EOF
+
+
+########################################################################################################################
+# Preinstall project dependencies                                                                                      #
+#                                                                                                                       #
+# We copy the whole repository into the image once and install all Python/Node dependencies (incl. the test/dev       #
+# extras) here, so that these (slow, network-heavy) downloads are cached in the Docker layers of this image. Once     #
+# the dependencies are installed, the source itself is removed again: at container start, the live checkout is        #
+# bind-mounted over /workspaces/tira anyway, so the image does not need to keep a (potentially stale) copy around.    #
+########################################################################################################################
+USER root
+COPY --chown=ubuntu:ubuntu . /workspaces/tira
+WORKDIR /workspaces/tira
+
+RUN cd frontend && yarn install --frozen-lockfile
+RUN cd python-client && pip3 install -e .[test,dev,ir]
+RUN cd worker && pip3 install -e .[test]
+RUN cd application && pip3 install -e .[test,dev]
+
+# Delete the source again now that all dependencies are installed (see comment above).
+RUN rm -rf /workspaces/tira && mkdir -p /workspaces/tira && chown ubuntu:ubuntu /workspaces/tira
+
+
+########################################################################################################################
+# Documentation                                                                                                        #
+########################################################################################################################
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip pkg-config plantuml wget
+# Install umlet
+RUN mkdir -p /usr/share/umlet \
+	&& cd /usr/share/umlet \
+	&& wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O download.zip \
+	&& cd /usr/share/umlet \
+	&& unzip download.zip
+USER dev
+RUN pip3 install sphinx furo myst-parser sphinx-toolbox sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
