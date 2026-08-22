@@ -535,6 +535,8 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
     - git_runner_image
     - git_runner_command
     - git_repository_id
+    - leaderboard_is_public: (optional) if False, the leaderboard for this dataset only shows published, unblinded
+      baselines and the requesting user's own unblinded runs to non-admin users
     """
     if request.method == "POST":
 
@@ -543,6 +545,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
         dataset_name = data["name"]
         task_id = data["task"]
         is_confidential = not data["publish"]
+        leaderboard_is_public = data.get("leaderboard_is_public", None)
 
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
@@ -607,6 +610,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
             trusted_evaluation,
             dataset_format_configuration,
             truth_format_configuration,
+            leaderboard_is_public,
         )
 
         from django.core.cache import cache

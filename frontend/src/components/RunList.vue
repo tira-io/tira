@@ -1,6 +1,11 @@
 <template>
   <loading :loading="loading" />
   <div v-if="!loading">
+    <v-alert v-if="dataset_id && !leaderboard_is_public && userinfo.role !== 'admin'" type="info" variant="tonal"
+      class="mb-4">
+      This leaderboard is not public. Only selected baselines (that are publicly available) and your own unblinded
+      runs are visible (please allow for one or two days for the review to unblind runs).
+    </v-alert>
     <v-data-table v-if="showTable" v-model="selected_runs" show-expand :headers="table_headers" :items="runs"
       item-value="run_id" v-model:sort-by="table_sort_by" density="compact" show-select
       class="elevation-1 d-none d-md-block" hover>
@@ -85,6 +90,7 @@ export default {
       selected_runs: [],
       loading: true,
       runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1' }],
+      leaderboard_is_public: true,
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: []

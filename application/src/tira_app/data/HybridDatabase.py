@@ -299,6 +299,7 @@ class HybridDatabase(object):
             "evaluator_id": evaluator_id,
             "dataset_id": dataset.dataset_id,
             "is_confidential": dataset.is_confidential,
+            "leaderboard_is_public": dataset.leaderboard_is_public,
             "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
@@ -2056,6 +2057,7 @@ class HybridDatabase(object):
                 "default_task": for_task,
                 "display_name": dataset_name,
                 "is_confidential": True if dataset_type == "test" else False,
+                "leaderboard_is_public": False,
                 "released": str(dt.now()),
                 "default_upload_name": upload_name,
                 "irds_docker_image": irds_docker_image,
@@ -2644,6 +2646,7 @@ class HybridDatabase(object):
         trusted_evaluation=None,
         dataset_format_configuration=None,
         truth_format_configuration=None,
+        leaderboard_is_public: "Optional[bool]" = None,
     ) -> "dict[str, Any]":
         """
 
@@ -2651,24 +2654,34 @@ class HybridDatabase(object):
         @param git_repository_id: the repo ID where the new run will be conducted
         @param git_runner_command: the command for the runner
         @param git_runner_image: which image should be run for the evalution
+        @param leaderboard_is_public: if False, the leaderboard for this dataset only shows unblinded, published
+            baselines and the requesting user's own unblinded runs to non-admin users. If None, the existing value
+            is kept unchanged.
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
-        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(
-            default_task=for_task,
-            display_name=dataset_name,
-            default_upload_name=upload_name,
-            is_confidential=is_confidential,
-            format=None if not dataset_format else json.dumps(dataset_format),
-            truth_format=None if not truth_format else json.dumps(truth_format),
-            description=description,
-            chatnoir_id=None if not chatnoir_id else chatnoir_id,
-            ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
-            format_configuration=None if not dataset_format_configuration else json.dumps(dataset_format_configuration),
-            truth_format_configuration=(
+        dataset_update_fields = {
+            "default_task": for_task,
+            "display_name": dataset_name,
+            "default_upload_name": upload_name,
+            "is_confidential": is_confidential,
+            "format": None if not dataset_format else json.dumps(dataset_format),
+            "truth_format": None if not truth_format else json.dumps(truth_format),
+            "description": description,
+            "chatnoir_id": None if not chatnoir_id else chatnoir_id,
+            "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
+            "format_configuration": (
+                None if not dataset_format_configuration else json.dumps(dataset_format_configuration)
+            ),
+            "truth_format_configuration": (
                 None if not truth_format_configuration else json.dumps(truth_format_configuration)
             ),
-        )
+        }
+
+        if leaderboard_is_public is not None:
+            dataset_update_fields["leaderboard_is_public"] = leaderboard_is_public
+
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(**dataset_update_fields)
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
         modeldb.TaskHasDataset.objects.filter(dataset=ds).update(task=for_task)

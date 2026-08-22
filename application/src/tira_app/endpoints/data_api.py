@@ -143,15 +143,22 @@ def get_evaluations_by_dataset(
     task = model.get_task(task_id, False)
     is_ir_task = "is_ir_task" in task and task["is_ir_task"]
     is_admin = context["role"] == "admin"
+    dataset = model.get_dataset(dataset_id)
+    leaderboard_is_public = dataset.get("leaderboard_is_public", True)
     show_only_unreviewed = request.GET.get("show_only_unreviewed", "false").lower() == "true"
-    print(show_only_unreviewed)
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin, show_only_unreviewed)
+    # When the leaderboard is not public, non-admin users may still see their own unblinded (but
+    # unpublished) runs, so we have to fetch unpublished runs as well and filter them below.
+    fetch_unpublished_runs = is_admin or not leaderboard_is_public
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(
+        dataset_id, fetch_unpublished_runs, show_only_unreviewed
+    )
     user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
 
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
     context["ev_keys"] = ev_keys
     context["evaluations"] = sorted(evaluations, key=lambda r: r["run_id"])
+    context["leaderboard_is_public"] = leaderboard_is_public
     headers = [
         {"title": "Team", "key": "vm_id"},
         {"title": "Approach", "key": "input_software_name"},
@@ -168,7 +175,12 @@ def get_evaluations_by_dataset(
     for i in evaluations:
         runs += [__normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task)]
 
+    if not is_admin and not leaderboard_is_public:
+        # Only show published, unblinded baselines and the user's own unblinded runs.
+        runs = [r for r in runs if not r["blinded"] and (r["owned_by_user"] or r["published"])]
+
     context["runs"] = runs
+
 
     return JsonResponse({"status": 0, "context": context})
 

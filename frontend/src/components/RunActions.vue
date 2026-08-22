@@ -159,8 +159,10 @@ export default {
       return this.link_run || this.link_results
     },
     secondary_download_link() {
-      return this.run && (this.userinfo.role === 'admin' || (this.run['published'] && !this.run['blinded']))
-        && this.link_run && this.link_results
+      // The backend already restricts link_results_download to cases where the user is allowed
+      // to download it (admin, owner of an unblinded run, or published and unblinded), so we only
+      // need to check that both a submission and an evaluation download link are available.
+      return this.run && this.link_run && this.link_results
         ? this.link_results
         : null
     },

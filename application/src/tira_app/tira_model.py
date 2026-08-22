@@ -69,8 +69,8 @@ def get_task(task_id: str, include_dataset_stats=False) -> "dict[str, Any]":
 def get_dataset(dataset_id: str) -> "dict[str, Any]":
     """Return a Dataset as dict with the keys:
 
-    {"display_name", "evaluator_id", "dataset_id", "is_confidential", "is_deprecated", "year",
-    "task".task_id, 'organizer', "software_count"}
+    {"display_name", "evaluator_id", "dataset_id", "is_confidential", "leaderboard_is_public", "is_deprecated",
+    "year", "task".task_id, 'organizer', "software_count"}
     """
     return model.get_dataset(dataset_id)
 
@@ -940,6 +940,7 @@ def edit_dataset(
     trusted_evaluation: "Optional[str]" = None,
     dataset_format_configuration: "Optional[str]" = None,
     truth_format_configuration: "Optional[str]" = None,
+    leaderboard_is_public: "Optional[bool]" = None,
 ) -> "dict[str, Any]":
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -963,6 +964,7 @@ def edit_dataset(
         trusted_evaluation,
         dataset_format_configuration,
         truth_format_configuration,
+        leaderboard_is_public,
     )
 
 
