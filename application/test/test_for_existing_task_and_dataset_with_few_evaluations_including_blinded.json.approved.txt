@@ -521,6 +521,7 @@
             }
         ],
         "include_navigation": false,
+        "leaderboard_is_public": false,
         "organizer_teams": "[]",
         "role": "admin",
         "runs": [

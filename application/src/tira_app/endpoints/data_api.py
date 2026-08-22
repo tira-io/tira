@@ -86,9 +86,14 @@ def __normalize_run(
     i["selectable"] = False
 
     if is_admin or (not i["blinded"] and (i["owned_by_user"] or i["published"] or is_training_dataset)):
-        i["link_results_download"] = (
-            f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
-        )
+        # eval_run_id only refers to a real, separate evaluation run if it differs from the
+        # (renamed) submission's run_id. For raw uploads without an evaluation (e.g., as returned
+        # by get_all_uploads_for_vm), eval_run_id equals the submission's run_id, so there is no
+        # separate evaluation output to download.
+        if eval_run_id != i["run_id"]:
+            i["link_results_download"] = (
+                f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
+            )
         i["link_run_download"] = (
             f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{i["run_id"]}.zip'
         )

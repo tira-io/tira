@@ -52,7 +52,13 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "sudo sh -c 'cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../worker; pip install -e .; cd ../application/; pip install -e .[test,dev]; chmod 777 /tmp/tira-dev-cache-dir; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
+	// Note: the Python dependencies (incl. test/dev extras) and the yarn package cache were
+	// already installed/populated while building the image (see .devcontainer/Dockerfile.dev), so
+	// this only has to (re-)link the Python packages in editable mode (--no-deps, no network
+	// access needed) and reinstall node_modules from the local yarn cache (--prefer-offline, no
+	// network access needed either), then prepare the database used by the tests (make setup /
+	// make import-mock-data).
+	"postCreateCommand": "sudo sh -c 'cd frontend; yarn install --frozen-lockfile --prefer-offline; cd ../python-client; pip install --no-deps -e .; cd ../worker; pip install --no-deps -e .; cd ../application/; pip install --no-deps -e .; chmod 777 /tmp/tira-dev-cache-dir; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -133,7 +139,55 @@
 					"editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
 				},
 				"python.formatting.provider": "black",
-				"isort.args": [ "--profile", "black" ]
+				"isort.args": [ "--profile", "black" ],
+				"tasks": {
+					"version": "2.0.0",
+					"tasks": [
+						{
+							"label": "Test: Backend (application, pytest)",
+							"type": "shell",
+							"command": "pytest",
+							"options": { "cwd": "${workspaceFolder:Backend}/test" },
+							"group": { "kind": "test", "isDefault": true },
+							"problemMatcher": []
+						},
+						{
+							"label": "Test: Worker (pytest)",
+							"type": "shell",
+							"command": "pytest -q tests/",
+							"options": { "cwd": "${workspaceFolder:Worker}" },
+							"group": "test",
+							"problemMatcher": []
+						},
+						{
+							"label": "Test: Python Client (pytest)",
+							"type": "shell",
+							"command": "pytest",
+							"options": { "cwd": "${workspaceFolder:Python API}" },
+							"group": "test",
+							"problemMatcher": []
+						},
+						{
+							"label": "Test: Frontend (yarn test)",
+							"type": "shell",
+							"command": "yarn test",
+							"options": { "cwd": "${workspaceFolder:Frontend}" },
+							"group": "test",
+							"problemMatcher": []
+						},
+						{
+							"label": "Test: All",
+							"dependsOrder": "sequence",
+							"dependsOn": [
+								"Test: Backend (application, pytest)",
+								"Test: Worker (pytest)",
+								"Test: Python Client (pytest)",
+								"Test: Frontend (yarn test)"
+							],
+							"problemMatcher": []
+						}
+					]
+				}
 			},
 			"extensions": [
 				"Vue.volar",

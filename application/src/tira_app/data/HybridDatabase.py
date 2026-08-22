@@ -1196,25 +1196,38 @@ class HybridDatabase(object):
         ]
 
     def get_all_uploads_for_vm(self, vm_id: str):
+        # Evaluations are joined in via a LEFT JOIN so that raw uploads without any evaluation are still
+        # returned. Rows are ordered by tira_evaluation.id ASC (its auto-increment id reflects insertion
+        # order), so if a run was evaluated multiple times, the dict-overwrite below keeps the values of
+        # the last (i.e., most recent) evaluation, consistent with __parse_submissions.
         prepared_statement = """
         SELECT
             tira_upload.display_name, input_run.run_id, input_run.input_dataset_id,
             tira_run_review.reviewer_id,
             tira_run_review.published, tira_run_review.blinded,
             tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats
+            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats,
+            evaluation_run.run_id, tira_evaluation_review.published, tira_evaluation_review.blinded,
+            tira_evaluation.measure_key, tira_evaluation.measure_value
         FROM
             tira_run as input_run
         INNER JOIN
              tira_upload ON input_run.upload_id = tira_upload.id
         LEFT JOIN
             tira_review as tira_run_review ON input_run.run_id = tira_run_review.run_id
+        LEFT JOIN
+            tira_run as evaluation_run ON evaluation_run.input_run_id = input_run.run_id
+                AND evaluation_run.evaluator_id IS NOT NULL AND evaluation_run.deleted = FALSE
+        LEFT JOIN
+            tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
+        LEFT JOIN
+            tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
             input_run.input_run_id is NULL
             AND input_run.evaluator_id IS NULL AND input_run.deleted = False
             AND tira_upload.vm_id = %s
         ORDER BY
-            input_run.run_id ASC;
+            input_run.run_id ASC, tira_evaluation.id ASC;
         """
 
         rows = self.__execute_raw_sql_statement(prepared_statement, [vm_id])
@@ -1233,6 +1246,11 @@ class HybridDatabase(object):
             has_no_errors,
             review_comment,
             valid_formats,
+            eval_run_id,
+            eval_published,
+            eval_blinded,
+            m_key,
+            m_value,
         ) in rows:
             if run_id not in input_run_to_evaluation:
                 input_run_to_evaluation[run_id] = {"measures": {}}
@@ -1244,13 +1262,24 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["dataset_id"] = dataset_id
             input_run_to_evaluation[run_id]["vm_id"] = vm_id
             input_run_to_evaluation[run_id]["input_software_name"] = display_name
-            input_run_to_evaluation[run_id]["run_id"] = run_id
             input_run_to_evaluation[run_id]["input_run_id"] = run_id
-            input_run_to_evaluation[run_id]["published"] = published
-            input_run_to_evaluation[run_id]["blinded"] = blinded
             input_run_to_evaluation[run_id]["is_upload"] = True
             input_run_to_evaluation[run_id]["review_state"] = review_state
             input_run_to_evaluation[run_id]["review_comment"] = review_comment
+
+            if eval_run_id:
+                # An evaluation exists for this run: expose the evaluation run's own id as 'run_id' (so
+                # link_results_download in __normalize_run points to the evaluation's own output), and
+                # use the evaluation review's publication/blinding state. If multiple evaluations exist,
+                # rows are processed in ascending tira_evaluation.id order, so later (more recent)
+                # evaluations overwrite earlier ones here, keeping only the last one.
+                input_run_to_evaluation[run_id]["run_id"] = eval_run_id
+                input_run_to_evaluation[run_id]["published"] = eval_published
+                input_run_to_evaluation[run_id]["blinded"] = eval_blinded or blinded
+            else:
+                input_run_to_evaluation[run_id]["run_id"] = run_id
+                input_run_to_evaluation[run_id]["published"] = published
+                input_run_to_evaluation[run_id]["blinded"] = blinded
 
             if valid_formats:
                 try:
@@ -1258,15 +1287,15 @@ class HybridDatabase(object):
                 except json.JSONDecodeError:
                     pass
 
-            # if m_key:
-            #    input_run_to_evaluation[run_id]["measures"][m_key] = m_value
-            #    keys[m_key] = ""
+            if m_key:
+                input_run_to_evaluation[run_id]["measures"][m_key] = m_value
+                keys[m_key] = ""
 
         keylist = list(keys.keys())
         ret: list[dict[str, Any]] = []
 
         for i in input_run_to_evaluation.values():
-            #    i["measures"] = [round_if_float(i["measures"].get(k, "-")) for k in keylist]
+            i["measures"] = [i["measures"].get(k, "-") for k in keylist]
             ret += [i]
 
         return keylist, ret
