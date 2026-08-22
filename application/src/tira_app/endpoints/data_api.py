@@ -186,7 +186,6 @@ def get_evaluations_by_dataset(
 
     context["runs"] = runs
 
-
     return JsonResponse({"status": 0, "context": context})
 
 
