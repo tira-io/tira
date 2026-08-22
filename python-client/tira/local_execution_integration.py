@@ -16,7 +16,7 @@ import docker
 import pandas as pd
 from docker.utils import parse_repository_tag
 
-from tira.io_utils import environment_variables_to_forward
+from tira.io_utils import environment_variables_require_network_access, environment_variables_to_forward
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 if TYPE_CHECKING:
@@ -806,7 +806,7 @@ class LocalExecutionIntegration:
         if openai_env is not None and len(openai_env) > 0:
             environment.update(openai_env)
             # TODO: fine-grained ip-tables rules for only access to the URL in the environment variable.
-            if "OPENAI_API_KEY" in environment and "OPENAI_BASE_URL" in environment and "OPENAI_MODEL" in environment:
+            if environment_variables_require_network_access(environment):
                 allow_network = True
 
         entrypoint = "sh"

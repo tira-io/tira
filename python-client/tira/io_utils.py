@@ -929,6 +929,27 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
+# Groups of environment variables that, when all present, indicate that the software/evaluator
+# needs network access to reach an external service (e.g., an LLM API). To allow network access
+# for another external service, add a new group of the environment variables that are required to
+# access that service.
+NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS = [
+    {"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"},
+    {"ORBIT_API_BASE"},
+]
+
+
+def environment_variables_require_network_access(environment):
+    """Returns True if the passed environment (a dict or any other object supporting 'in') contains
+    all environment variables of at least one of the NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS,
+    i.e., if network access is required to use the passed environment variables."""
+    for required_variables in NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS:
+        if all(k in environment for k in required_variables):
+            return True
+
+    return False
+
+
 def environment_variables_to_forward(required_variables=None):
     ret = {}
     if not required_variables or len(required_variables) == 0:
