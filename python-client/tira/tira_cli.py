@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import argparse
+import itertools
 import logging
 import time
 from pathlib import Path
 from platform import python_version
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
@@ -15,6 +16,8 @@ from tira.io_utils import (
     environment_variables_to_forward,
     load_output_of_directory,
     log_message,
+    read_mount_metadata,
+    requires_mount_workflow,
     verify_tira_installation,
 )
 from tira.rest_api_client import Client as RestClient
@@ -78,11 +81,84 @@ def build_remote_mount_config(
     mount_config = None if not mount_directory and not mount_cache else {}
 
     if mount_directory:
-        mount_config.update({k.split("=")[0].replace("$", ""): k.split("=")[1] for k in mount_directory})
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): _remote_mount_source(k.split("=")[1]) for k in mount_directory}
+        )
     if mount_cache:
-        mount_config.update({k.split("=")[0].replace("$", ""): k.split("=")[1] for k in mount_cache})
+        mount_config.update(
+            {k.split("=")[0].replace("$", ""): _remote_mount_source(k.split("=")[1]) for k in mount_cache}
+        )
 
     return mount_config
+
+
+def _remote_mount_source(value: str) -> "Union[str, dict]":
+    """Build the mount source for a remote execution from the raw '$variable=VALUE' value.
+
+    'EMPTY_DIR' is passed through as-is (an empty, writable directory). Any other value is interpreted
+    as the run_id of a previously executed run whose output should be mounted remotely, since a remote
+    worker has no access to local directories.
+    """
+    if value == "EMPTY_DIR":
+        return value
+
+    return {"source": "OUTPUT_OF_OTHER_EXECUTION", "run_id": value}
+
+
+def parse_run_on(run_on: "Optional[list[str]]") -> "dict[str, list[str]]":
+    """Parse '--run-on' values of the form '$variable=approach_id' into a mapping of variable name to the list
+    of approaches whose runs should be considered as candidates to be dynamically mounted under that variable.
+
+    Multiple approaches may be specified for the same variable (e.g., 'NUGGETS=task/team/a NUGGETS=task/team/b'),
+    in which case runs of all of them are considered as candidates.
+    """
+    run_on_by_variable: "dict[str, list[str]]" = {}
+    for entry in run_on or []:
+        if "=" not in entry:
+            raise ValueError(f'Invalid --run-on value "{entry}". Expected format: <variable>=<approach_id>.')
+
+        variable, approach_id = entry.split("=", 1)
+        variable = variable.replace("$", "")
+        run_on_by_variable.setdefault(variable, []).append(approach_id)
+
+    return run_on_by_variable
+
+
+def resolve_run_on_candidates(
+    client: "TiraClient", run_on_by_variable: "dict[str, list[str]]", dataset_id: str
+) -> "dict[str, list[str]]":
+    """Resolve, for every variable specified via '--run-on', the run_ids of all runs of the configured approaches
+    on the given dataset. These run_ids are the candidates that may be dynamically mounted under that variable.
+    """
+    candidates_by_variable: "dict[str, list[str]]" = {}
+    for variable, approaches in run_on_by_variable.items():
+        run_ids: "list[str]" = []
+        for approach_id in approaches:
+            task, team, software = split_approach_identifier(approach_id)
+            for run in client.submissions_with_evaluation_or_none(task, dataset_id, team, software):
+                if run["run_id"] not in run_ids:
+                    run_ids.append(run["run_id"])
+
+        candidates_by_variable[variable] = run_ids
+
+    return candidates_by_variable
+
+
+def build_mount_combos(candidates_by_variable: "dict[str, list[str]]") -> "list[dict[str, str]]":
+    """Build the Cartesian product of the run_id candidates of all '--run-on' variables.
+
+    Returns a list of dictionaries mapping variable name to a single candidate run_id. If no '--run-on' variables
+    are configured, a single empty combo is returned so that callers can treat this the same as any other combo.
+    Returns an empty list if any configured variable has no candidates at all (i.e., no combo can be built).
+    """
+    if not candidates_by_variable:
+        return [{}]
+
+    variables = sorted(candidates_by_variable.keys())
+    if any(not candidates_by_variable[v] for v in variables):
+        return []
+
+    return [dict(zip(variables, combo)) for combo in itertools.product(*(candidates_by_variable[v] for v in variables))]
 
 
 def validate_required_forwarding(
@@ -136,16 +212,60 @@ def _value_for_requirement_path(data: dict, path: str):
     return ret
 
 
-def matches_requirements(line: dict, requirements: "Optional[list[str]]") -> bool:
+def get_run_mount_metadata(
+    client: "TiraClient", run: dict, metadata_cache: "Optional[dict]" = None
+) -> "dict[str, str]":
+    """Return the mapping of environment variable name to run_id that was dynamically mounted for the given run,
+    as recorded in its persisted ir-metadata (see :func:`tira.io_utils.persist_mount_metadata`).
+
+    Downloads (or uses the cached download of) the run to read this metadata. ``metadata_cache`` may be passed to
+    avoid repeatedly downloading/parsing the metadata of the same run within a single command invocation.
+    """
+    cache = metadata_cache if metadata_cache is not None else {}
+    if run["run_id"] in cache:
+        return cache[run["run_id"]]
+
+    output_dir = client.download_zip_to_cache_directory(run["task"], run["dataset"], run["team"], run["run_id"])
+    metadata = read_mount_metadata(Path(output_dir).parent)
+    cache[run["run_id"]] = metadata
+
+    return metadata
+
+
+def matches_requirements(
+    line: dict,
+    requirements: "Optional[list[str]]",
+    mount_combo: "Optional[dict[str, str]]" = None,
+    client: "Optional[TiraClient]" = None,
+    metadata_cache: "Optional[dict]" = None,
+) -> bool:
     if not requirements:
         return True
 
     for requirement in requirements:
-        if "==" not in requirement:
-            raise ValueError(f'Invalid requirement "{requirement}". Expected format: <path>==<value>.')
+        if "==" in requirement:
+            requirement_path, expected_value = requirement.split("==", 1)
+            if _value_for_requirement_path(line, requirement_path) != expected_value:
+                return False
+            continue
 
-        requirement_path, expected_value = requirement.split("==", 1)
-        if _value_for_requirement_path(line, requirement_path) != expected_value:
+        if not requirement.startswith("output."):
+            raise ValueError(
+                f'Invalid requirement "{requirement}". Expected format: <path>==<value>, or "output.<variable>" '
+                "to check the run_id of a --run-on mounted directory."
+            )
+
+        variable = requirement.split("output.", 1)[1]
+        if not mount_combo or variable not in mount_combo:
+            raise ValueError(
+                f'The requirement "{requirement}" needs a matching "--run-on {variable}=<approach>" configuration.'
+            )
+
+        if client is None:
+            raise ValueError(f'The requirement "{requirement}" needs a client to look up the mounted run_id.')
+
+        actual_mounts = get_run_mount_metadata(client, line, metadata_cache)
+        if actual_mounts.get(variable) != mount_combo[variable]:
             return False
 
     return True
@@ -165,7 +285,8 @@ def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[],
         help=(
-            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable."
+            "Mount a local directory (or the output of a software) into the container via the form --mount-directory '$variable=DIRECTORY/RUN'. The location of the mount is available via the environment as $variable. "
+            "For 'tira-cli run local', DIRECTORY/RUN must be a local directory. For 'tira-cli run remote', RUN must be the run_id of a previously executed run (or 'EMPTY_DIR' for an empty, writable directory), since a remote worker has no access to local directories."
         ),
     )
     parser.add_argument(
@@ -173,7 +294,8 @@ def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
         nargs="+",
         default=[],
         help=(
-            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy."
+            "Mount a local directory (or the output of a software) into the container via the form --mount-cache '$variable=DIRECTORY/RUN'. The location of the cache is available via the environment as $variable. A cache is writable but on a copy. "
+            "For 'tira-cli run local', DIRECTORY/RUN must be a local directory. For 'tira-cli run remote', RUN must be the run_id of a previously executed run (or 'EMPTY_DIR' for an empty, writable directory), since a remote worker has no access to local directories."
         ),
     )
 
@@ -186,10 +308,17 @@ def split_approach_identifier(approach_id: str) -> tuple[str, str, str]:
     return split_approach[0], split_approach[1], split_approach[2]
 
 
-def runs_matching_requirements(client: "TiraClient", approach_id: str, dataset_id: str, require: "Optional[list[str]]"):
+def runs_matching_requirements(
+    client: "TiraClient",
+    approach_id: str,
+    dataset_id: str,
+    require: "Optional[list[str]]",
+    mount_combo: "Optional[dict[str, str]]" = None,
+    metadata_cache: "Optional[dict]" = None,
+):
     task, team, software = split_approach_identifier(approach_id)
     runs = client.submissions_with_evaluation_or_none(task, dataset_id, team, software)
-    matching_runs = [run for run in runs if matches_requirements(run, require)]
+    matching_runs = [run for run in runs if matches_requirements(run, require, mount_combo, client, metadata_cache)]
 
     return runs, matching_runs
 
@@ -198,13 +327,17 @@ def build_remote_execution_payload(
     forward_environment_variable: "Optional[list[str]]",
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
+    mount_combo: "Optional[dict[str, str]]" = None,
 ) -> dict:
     payload = {}
     forwarded_environment = environment_variables_to_forward(forward_environment_variable)
     if forwarded_environment:
         payload["forward_environment_variable"] = forwarded_environment
 
-    mount_config = build_remote_mount_config(mount_directory, mount_cache)
+    mount_config = build_remote_mount_config(mount_directory, mount_cache) or {}
+    if mount_combo:
+        mount_config.update({variable: _remote_mount_source(run_id) for variable, run_id in mount_combo.items()})
+
     if mount_config:
         payload["mount_config"] = mount_config
 
@@ -311,6 +444,15 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
         default=False,
         action="store_true",
         help="Skip the execution of the baseline. (e.g., for executions that take long.)",
+    )
+    parser.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some baselines require environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL,"
+            " etc.). The environment variables are forwarded (not stored) to the container running the baseline."
+        ),
     )
 
     parser.set_defaults(executable=dataset_submission_command)
@@ -525,11 +667,7 @@ def run_local(
 
     print("Run software")
 
-    if ("cache_behaviour" in system_details and system_details["cache_behaviour"]) or (
-        "mount_config" in system_details
-        and system_details["mount_config"]
-        and "CACHE_DIR" in system_details["mount_config"]
-    ):
+    if requires_mount_workflow(system_details):
         workflow_configuration = {"name": "cached-execution"}
         software_workflow_configuration = {}
     else:
@@ -611,28 +749,42 @@ def run_remote(
     forward_environment_variable: "Optional[list[str]]" = None,
     mount_directory: "Optional[list[str]]" = None,
     mount_cache: "Optional[list[str]]" = None,
+    run_on: "Optional[list[str]]" = None,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
     runs_with_evaluations = {}
     execution_queue = []
     finished_executions = 0
+    metadata_cache: "dict" = {}
+    run_on_by_variable = parse_run_on(run_on)
 
     for dataset_id in dataset:
         runs_with_evaluations[dataset_id] = []
+        candidates_by_variable = resolve_run_on_candidates(client, run_on_by_variable, dataset_id)
+        mount_combos = build_mount_combos(candidates_by_variable)
+
+        if run_on_by_variable and not mount_combos:
+            print(f"No --run-on candidates were found for dataset {dataset_id}. Skipping this dataset.")
+            continue
+
         for approach_id in approach:
-            runs, matching_runs = runs_matching_requirements(client, approach_id, dataset_id, require)
-            runs_with_evaluations[dataset_id] += runs
-            finished_executions += min(len(matching_runs), runs_per_approach)
-            for required_matching_runs in range(len(matching_runs) + 1, runs_per_approach + 1):
-                execution_queue.append(
-                    {
-                        "approach": approach_id,
-                        "dataset": dataset_id,
-                        "resources": resources,
-                        "required_matching_runs": required_matching_runs,
-                    }
+            for mount_combo in mount_combos:
+                runs, matching_runs = runs_matching_requirements(
+                    client, approach_id, dataset_id, require, mount_combo, metadata_cache
                 )
+                runs_with_evaluations[dataset_id] += runs
+                finished_executions += min(len(matching_runs), runs_per_approach)
+                for required_matching_runs in range(len(matching_runs) + 1, runs_per_approach + 1):
+                    execution_queue.append(
+                        {
+                            "approach": approach_id,
+                            "dataset": dataset_id,
+                            "resources": resources,
+                            "required_matching_runs": required_matching_runs,
+                            "mount_combo": mount_combo,
+                        }
+                    )
 
     software_details = {}
     for execution in execution_queue:
@@ -658,14 +810,10 @@ def run_remote(
         print("No executions are waiting to be started.")
         return 0
 
-    remote_execution_payload = build_remote_execution_payload(
-        forward_environment_variable,
-        mount_directory,
-        mount_cache,
-    )
     print("The following executions are about to be started:")
     for execution in execution_queue:
-        print(f'- {execution["approach"]} on {execution["dataset"]} with {execution["resources"]}')
+        combo_suffix = f" (run-on: {execution['mount_combo']})" if execution["mount_combo"] else ""
+        print(f'- {execution["approach"]} on {execution["dataset"]} with {execution["resources"]}{combo_suffix}')
     print("Waiting 15 seconds before starting executions...")
     time.sleep(15)
 
@@ -673,6 +821,12 @@ def run_remote(
     while execution_queue or running_executions:
         if execution_queue and len(running_executions) < parallelism:
             execution = execution_queue.pop(0)
+            remote_execution_payload = build_remote_execution_payload(
+                forward_environment_variable,
+                mount_directory,
+                mount_cache,
+                execution["mount_combo"],
+            )
             for attempt in range(1, 6):
                 try:
                     client.run_software(
@@ -705,7 +859,9 @@ def run_remote(
 
         finished_running_executions = []
         for execution in running_executions:
-            _, matching_runs = runs_matching_requirements(client, execution["approach"], execution["dataset"], require)
+            _, matching_runs = runs_matching_requirements(
+                client, execution["approach"], execution["dataset"], require, execution["mount_combo"], metadata_cache
+            )
             if len(matching_runs) >= execution["required_matching_runs"]:
                 finished_running_executions.append(execution)
 
@@ -814,7 +970,25 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         "--require",
         action="append",
         default=None,
-        help="Filter printed lines via <path>==<value>, e.g. --require 'evaluation.Model==Qwen/Qwen2.5-7B-Instruct'.",
+        help=(
+            "Filter printed lines via <path>==<value>, e.g. --require 'evaluation.Model==Qwen/Qwen2.5-7B-Instruct'. "
+            "Alternatively, 'output.<variable>' (used together with --run-on) requires that the run's recorded "
+            "--run-on mount for <variable> already matches the run_id targeted by the current --run-on combination, "
+            "i.e., an execution is skipped if that exact combination was already run."
+        ),
+    )
+    remote.add_argument(
+        "--run-on",
+        nargs="+",
+        default=None,
+        help=(
+            "Dynamically mount the output of other approaches' runs via the form '$variable=approach_id'. For every "
+            "dataset, all runs of the given approach(es) on that dataset are used as candidates that are mounted "
+            "under $variable; if multiple approaches (or multiple --run-on entries) share the same $variable, or "
+            "multiple $variables are used, the Cartesian product of all candidates is executed. "
+            "E.g., --run-on NUGGETS=task/team/approach-a NUGGETS=task/team/approach-b runs against every run of "
+            "approach-a and approach-b, mounted as $NUGGETS."
+        ),
     )
     remote.set_defaults(executable=run_remote)
 
@@ -967,6 +1141,11 @@ def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="The team for which you want to run the verification.",
     )
+    parser.add_argument(
+        "--local-only",
+        action="store_true",
+        help="Only verify local components and skip authentication and image upload checks.",
+    )
     parser.set_defaults(executable=verify_installation_command)
 
 
@@ -1085,10 +1264,18 @@ def dataset_submission_command(
     dry_run: bool,
     split: str,
     skip_baseline: bool,
+    forward_environment_variable: "Optional[list[str]]" = None,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    ret = client.submit_dataset(Path(path), task, split, dry_run, skip_baseline=skip_baseline)
+    ret = client.submit_dataset(
+        Path(path),
+        task,
+        split,
+        dry_run,
+        skip_baseline=skip_baseline,
+        forward_environment_variable=forward_environment_variable,
+    )
     return 0 if ret and "inputs_zip" in ret else 1
 
 
@@ -1138,8 +1325,8 @@ def code_submission_command(
     return 0
 
 
-def verify_installation_command(task, team, **kwargs) -> int:
-    status = verify_tira_installation(task, team)
+def verify_installation_command(task, team, local_only=False, **kwargs) -> int:
+    status = verify_tira_installation(task, team, local_only=local_only)
 
     print("\nResult:")
     msg = "Your TIRA installation is valid."

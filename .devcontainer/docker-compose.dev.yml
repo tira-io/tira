@@ -1,8 +1,10 @@
 services:
   devenv:
-    # image: webis/tira:dev-container-0.0.1
     build:
-      context: ./
+      # Dockerfile.dev just does "FROM webis/tira:dev-container-0.0.2" (see that file), so the
+      # build context can be the .devcontainer folder itself; the heavy base image (build steps,
+      # baked Python/Node dependencies, etc.) lives in .devcontainer/base-image/Dockerfile.dev.
+      context: .
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
@@ -66,3 +68,4 @@ services:
       - ./devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
       - ./devfiles/nginx/snippets/:/config/nginx/snippets/
       - ./devfiles/nginx/certs/:/etc/nginx/certs/
+

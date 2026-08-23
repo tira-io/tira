@@ -890,6 +890,7 @@ class TiraClient(ABC):
         system_inputs: str = "inputs",
         truths: str = "truths",
         skip_baseline: bool = False,
+        forward_environment_variable: "Optional[list[str]]" = None,
     ):
         from shutil import copy
 
@@ -1062,7 +1063,11 @@ class TiraClient(ABC):
 
                 baseline_output = temporary_directory()
                 self.local_execution.run(
-                    image=docker_tag, command=baseline_command, input_dir=inputs_dir, output_dir=baseline_output
+                    image=docker_tag,
+                    command=baseline_command,
+                    input_dir=inputs_dir,
+                    output_dir=baseline_output,
+                    forward_environment_variables=forward_environment_variable,
                 )
             else:
                 from tira.workflows import run_workflow
@@ -1074,6 +1079,7 @@ class TiraClient(ABC):
                     workflow_configuration=workflow_config,
                     software=workflow_software_config,
                     tira=self,
+                    forward_environment_variables=forward_environment_variable,
                 )
                 if workflow_output.level != _fmt.OK:
                     log_message(

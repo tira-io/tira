@@ -95,7 +95,10 @@ def verify_docker_installation() -> Tuple[FormatMsgType, str]:
 
         local_execution: LocalExecutionIntegration = LocalExecutionIntegration()
         assert local_execution.docker_is_installed_failsave()
-        return _fmt.OK, "Docker/Podman is installed."
+        container_cli = local_execution.get_container_cli().capitalize()
+        docker_socket = local_execution.get_valid_docker_socket()
+        socket_details = "" if docker_socket is None else f" (socket: {docker_socket})"
+        return _fmt.OK, f"{container_cli} is installed{socket_details}."
     except:
         return (
             _fmt.ERROR,
@@ -182,7 +185,7 @@ def verify_images_can_be_build_and_pushed(
 
     docker_file = Path(temporary_directory()) / "Dockerfile"
     (docker_file.parent / "example-file").write_text(str(uuid.uuid4()))
-    docker_file.write_text("FROM bash:alpine3.16\n\nADD example-file /e")
+    docker_file.write_text("FROM docker.io/bash:alpine3.16\n\nADD example-file /e")
     image = "tira-mini"
     tira.local_execution.build_docker_image(docker_file.parent, image, docker_file)
 
@@ -222,17 +225,25 @@ def verify_images_are_in_correct_format(
         return _fmt.ERROR, "The uploaded image is incompatible with the cluster."
 
 
-def verify_tira_installation(task: "Optional[str]" = None, team: "Optional[str]" = None) -> FormatMsgType:
+def verify_tira_installation(
+    task: "Optional[str]" = None,
+    team: "Optional[str]" = None,
+    local_only: bool = False,
+) -> FormatMsgType:
     ret = _fmt.OK
 
     checks: list[Callable] = [
-        api_key_is_valid,
         tira_home_exists,
         verify_docker_installation,
         verify_tirex_tracker,
-        lambda: verify_images_can_be_build_and_pushed(task, team),
-        lambda: verify_images_are_in_correct_format(task, team),
     ]
+    if not local_only:
+        checks = [
+            api_key_is_valid,
+            *checks,
+            lambda: verify_images_can_be_build_and_pushed(task, team),
+            lambda: verify_images_are_in_correct_format(task, team),
+        ]
 
     msgs = []
     for i in checks:
@@ -643,6 +654,81 @@ def create_tira_size_txt(run_dir):
     return ret
 
 
+MOUNTED_DIRECTORIES_METADATA_FILE_NAME = "mounted-directories-metadata.yml"
+
+# The subset of fields of a dynamic mount configuration that are relevant to reproduce a run.
+_MOUNT_METADATA_FIELDS = ("source", "mode", "run_id")
+
+
+def persist_mount_metadata(
+    run_dir: "Union[str, Path]",
+    dynamic_mounts: "Optional[Dict[str, Any]]",
+    software_id: "Optional[str]" = None,
+) -> "Optional[Path]":
+    """Persist metadata about dynamically mounted directories in the ir_metadata format (https://www.ir-metadata.org).
+
+    This allows to later reproduce a run by knowing which software was executed and which directories were mounted
+    under which environment variable (and how, e.g., via which run_id) during its execution. Analogous to the
+    ``.tracking-results.yml`` produced by the tirex-tracker, the metadata is written next to the output directory
+    (i.e., into ``run_dir``, not into ``run_dir / "output"``), so that it is persisted alongside a run without
+    becoming part of the run's (evaluated) output.
+
+    Returns the path of the written file, or None if there were no dynamic mounts to persist.
+    """
+    import yaml
+
+    if not dynamic_mounts:
+        return None
+
+    mounted_directories = []
+    for environment_variable, mount in dynamic_mounts.items():
+        entry: Dict[str, Any] = {"environment variable": environment_variable}
+
+        if isinstance(mount, dict):
+            entry.update({k: v for k, v in mount.items() if k in _MOUNT_METADATA_FIELDS})
+        else:
+            entry["source"] = mount
+
+        mounted_directories.append(entry)
+
+    metadata = {
+        "schema-version": "0.1",
+        "resources": {"software": software_id, "mounted directories": mounted_directories},
+    }
+
+    target_file = Path(run_dir) / MOUNTED_DIRECTORIES_METADATA_FILE_NAME
+    with open(target_file, "w") as f:
+        yaml.safe_dump(metadata, f, sort_keys=False)
+
+    return target_file
+
+
+def read_mount_metadata(run_dir: "Union[str, Path]") -> Dict[str, str]:
+    """Read back the run_id of dynamically mounted directories persisted via :func:`persist_mount_metadata`.
+
+    Returns a mapping of environment variable name to the run_id that was mounted under it. Mounts that were
+    not mounted from another execution (e.g., ``EMPTY_DIR``, ``UPLOAD_DIRECTORY``, or a local directory) have no
+    run_id and are therefore not part of the returned mapping. Returns an empty dict if no metadata is available.
+    """
+    import yaml
+
+    target_file = Path(run_dir) / MOUNTED_DIRECTORIES_METADATA_FILE_NAME
+    if not target_file.exists():
+        return {}
+
+    try:
+        metadata = yaml.safe_load(target_file.read_text()) or {}
+    except Exception:
+        return {}
+
+    mounted_directories = metadata.get("resources", {}).get("mounted directories", [])
+    return {
+        entry["environment variable"]: entry["run_id"]
+        for entry in mounted_directories
+        if isinstance(entry, dict) and entry.get("environment variable") is not None and entry.get("run_id") is not None
+    }
+
+
 def patch_ir_metadata(run_dir: str, src_pattern: Dict, target_pattern: Dict) -> None:
     import yaml
 
@@ -843,6 +929,27 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + "=" + v for k, v in ret.items()]
 
 
+# Groups of environment variables that, when all present, indicate that the software/evaluator
+# needs network access to reach an external service (e.g., an LLM API). To allow network access
+# for another external service, add a new group of the environment variables that are required to
+# access that service.
+NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS = [
+    {"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"},
+    {"ORBIT_API_BASE"},
+]
+
+
+def environment_variables_require_network_access(environment):
+    """Returns True if the passed environment (a dict or any other object supporting 'in') contains
+    all environment variables of at least one of the NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS,
+    i.e., if network access is required to use the passed environment variables."""
+    for required_variables in NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS:
+        if all(k in environment for k in required_variables):
+            return True
+
+    return False
+
+
 def environment_variables_to_forward(required_variables=None):
     ret = {}
     if not required_variables or len(required_variables) == 0:
@@ -870,6 +977,10 @@ def extract_volume_mounts(v):
     v_modified = v.replace(":\\", "XYZ__________XYZ")
     volume_dir, volume_bind, volume_mode = v_modified.split(":")
     return volume_dir.replace("XYZ__________XYZ", ":\\"), volume_bind, volume_mode
+
+
+def requires_mount_workflow(system_details: dict) -> bool:
+    return bool(system_details.get("cache_behaviour") or system_details.get("mount_config"))
 
 
 def sanitize_text(text: str) -> str:

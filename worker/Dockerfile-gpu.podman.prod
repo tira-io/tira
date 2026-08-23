@@ -1,0 +1,102 @@
+# Since we want to run GPU jobs on our worker nodes, we choose a CUDA base image. With plain `ubuntu:24.04`, the Nvidia
+# Container Toolkit would not automatically map GPUs into our container.
+FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04
+
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+RUN apt-get -qq update && \
+	apt-get -qq install -y python3 python3-pip git
+
+WORKDIR /tira/
+COPY ./worker ./
+COPY ./python-client ../python-client
+
+RUN pip3 install -q --no-cache-dir ../python-client ./
+
+RUN apt-get -qq update && apt-get -qq install -y tree podman fuse-overlayfs
+
+# Create a "docker" command that wraps podman wrapper and auto-injects NVIDIA GPU resources.
+#
+# Why not CDI or nvidia-container-toolkit hooks: those hooks need to create device nodes
+# (mknod) inside the container, which requires real CAP_SYS_ADMIN — unavailable in
+# rootless podman without subuid ranges.  Regular --device and --volume bind mounts DO
+# work, because they only need virtual capabilities inside the user namespace.
+#
+# The wrapper:
+#   1. Passes every accessible /dev/nvidia* device (in a nested container, this is already restricted to visible GPUs).
+#   2. Finds the real (non-stub) NVIDIA driver libraries that pyxis bind-mounts from the host into the outer container,
+#      and mounts each one into the inner container at the same path, so the CUDA stubs inside the inner image can
+#      dlopen them.
+#   3. Prepends the library directory to LD_LIBRARY_PATH so the dynamic linker finds the versioned file (e.g.
+#      libcuda.so.570.x.y) without needing ldcache to be rebuilt.
+
+# TODO: I think this the RUNs for cat and chmod can be converted into a single COPY with a heredoc.
+RUN cat > /usr/local/bin/docker <<'EOF'
+#!/bin/bash
+if [[ "$1" != "run" ]]; then
+    exec podman "$@"
+fi
+shift  # consume 'run'
+
+nvidia_args=()
+
+# Pass through all accessible NVIDIA device files (MIG caps included)
+for dev in /dev/nvidia* /dev/nvidiactl /dev/nvidia-uvm /dev/nvidia-uvm-tools \
+           /dev/nvidia-modeset /dev/nvidia-caps /dev/nvidia-caps/*; do
+    [[ -c "$dev" ]] && nvidia_args+=("--device=$dev")
+done
+
+if [[ ${#nvidia_args[@]} -gt 0 ]]; then
+    # Find NVIDIA driver libraries using find rather than ldconfig -p.
+    # ldconfig -p only knows about files baked into the image; pyxis bind-mounts the real
+    # driver (e.g. libcuda.so.570.x.y) into the outer container at runtime so it never
+    # appears in the ldcache.  find discovers everything present on the filesystem right now.
+    while IFS= read -r lib; do
+        nvidia_args+=("-v" "${lib}:${lib}:ro")
+    done < <(find /usr /lib -maxdepth 8 ! -type d \
+        \( -name 'libcuda.so*' -o -name 'libnvidia-*.so*' \) 2>/dev/null | sort -u)
+
+    # Tell the inner container's dynamic linker where to find the injected libraries.
+    lib_dir=$(find /usr /lib -maxdepth 8 -name 'libcuda.so.*[0-9]' ! -type d \
+        2>/dev/null | head -1 | xargs -r dirname 2>/dev/null)
+    [[ -n "$lib_dir" ]] && nvidia_args+=("--env" "LD_LIBRARY_PATH=${lib_dir}:${LD_LIBRARY_PATH:-}")
+
+    # Forward slurm's GPU assignment. Slurm restricts GPUs via CUDA_VISIBLE_DEVICES, not
+    # device cgroup rules, so all /dev/nvidia* files are visible but only the assigned
+    # indices are usable.  Without explicitly forwarding this, the inner container ignores
+    # the restriction and sees every device we passed in.
+    [[ -v CUDA_VISIBLE_DEVICES ]] && nvidia_args+=("--env" "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES")
+fi
+
+exec podman run "${nvidia_args[@]}" "$@"
+EOF
+RUN chmod +x /usr/local/bin/docker
+
+# Configure podman for rootless container-in-container execution inside slurm jobs:
+# - cgroupfs: no systemd user session available in slurm containers
+# - pidns=host: share the host PID namespace so crun never needs to mount a fresh /proc
+#   (fixes "mount proc to proc: Operation not permitted" in rootless environments without subuid ranges)
+# - fuse-overlayfs: overlay storage without requiring kernel overlay or subuid setup
+RUN printf '[engine]\ncgroup_manager = "cgroupfs"\n\n[containers]\npidns = "host"\n' \
+        > /etc/containers/containers.conf && \
+    printf '[storage]\ndriver = "overlay"\n\n[storage.options.overlay]\nmount_program = "/usr/bin/fuse-overlayfs"\n' \
+        > /etc/containers/storage.conf
+
+########################################################################################################################
+# Final Configuration Stuff                                                                                            #
+########################################################################################################################
+ENV PATH=/home/tira/.local/bin:$PATH
+# CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
+ENV TIRA_WORKER_CONFIG=/tira/config/tira-worker-config.yml
+ENV TIRA_DEBUG=false
+
+# HINT: You may want to set this environment variable for your deployment to control where (inside the container) the
+#       container cache lies. Per default this is inside the user's home directory (which you may have mounted, in which
+#       case you probably want to move it).
+# ENV XDG_DATA_HOME="..."
+
+EXPOSE 8080
+
+CMD ["celery", "-A", "tira_worker:app", "worker"]
+
+# This Dockerfile should work on Slurm with Pyxis; for other deployments, I am as interested to know as anyone.

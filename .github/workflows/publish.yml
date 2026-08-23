@@ -70,6 +70,7 @@ jobs:
               file: "application/Dockerfile.prod",
             }
           - { image: tira-worker, context: "", file: "worker/Dockerfile.prod" }
+          - { image: tira-podman-worker, context: "", file: "worker/Dockerfile.podman.prod" }
     steps:
       - name: Check out code
         uses: actions/checkout@v4

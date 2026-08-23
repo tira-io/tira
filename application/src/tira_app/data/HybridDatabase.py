@@ -299,6 +299,9 @@ class HybridDatabase(object):
             "evaluator_id": evaluator_id,
             "dataset_id": dataset.dataset_id,
             "is_confidential": dataset.is_confidential,
+            "leaderboard_is_public": dataset.leaderboard_is_public,
+            "auto_unblind_runs": dataset.auto_unblind_runs,
+            "auto_unblind_evaluation": dataset.auto_unblind_evaluation,
             "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
@@ -1195,25 +1198,38 @@ class HybridDatabase(object):
         ]
 
     def get_all_uploads_for_vm(self, vm_id: str):
+        # Evaluations are joined in via a LEFT JOIN so that raw uploads without any evaluation are still
+        # returned. Rows are ordered by tira_evaluation.id ASC (its auto-increment id reflects insertion
+        # order), so if a run was evaluated multiple times, the dict-overwrite below keeps the values of
+        # the last (i.e., most recent) evaluation, consistent with __parse_submissions.
         prepared_statement = """
         SELECT
             tira_upload.display_name, input_run.run_id, input_run.input_dataset_id,
             tira_run_review.reviewer_id,
             tira_run_review.published, tira_run_review.blinded,
             tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats
+            tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats,
+            evaluation_run.run_id, tira_evaluation_review.published, tira_evaluation_review.blinded,
+            tira_evaluation.measure_key, tira_evaluation.measure_value
         FROM
             tira_run as input_run
         INNER JOIN
              tira_upload ON input_run.upload_id = tira_upload.id
         LEFT JOIN
             tira_review as tira_run_review ON input_run.run_id = tira_run_review.run_id
+        LEFT JOIN
+            tira_run as evaluation_run ON evaluation_run.input_run_id = input_run.run_id
+                AND evaluation_run.evaluator_id IS NOT NULL AND evaluation_run.deleted = FALSE
+        LEFT JOIN
+            tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
+        LEFT JOIN
+            tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
             input_run.input_run_id is NULL
             AND input_run.evaluator_id IS NULL AND input_run.deleted = False
             AND tira_upload.vm_id = %s
         ORDER BY
-            input_run.run_id ASC;
+            input_run.run_id ASC, tira_evaluation.id ASC;
         """
 
         rows = self.__execute_raw_sql_statement(prepared_statement, [vm_id])
@@ -1232,6 +1248,11 @@ class HybridDatabase(object):
             has_no_errors,
             review_comment,
             valid_formats,
+            eval_run_id,
+            eval_published,
+            eval_blinded,
+            m_key,
+            m_value,
         ) in rows:
             if run_id not in input_run_to_evaluation:
                 input_run_to_evaluation[run_id] = {"measures": {}}
@@ -1243,13 +1264,24 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["dataset_id"] = dataset_id
             input_run_to_evaluation[run_id]["vm_id"] = vm_id
             input_run_to_evaluation[run_id]["input_software_name"] = display_name
-            input_run_to_evaluation[run_id]["run_id"] = run_id
             input_run_to_evaluation[run_id]["input_run_id"] = run_id
-            input_run_to_evaluation[run_id]["published"] = published
-            input_run_to_evaluation[run_id]["blinded"] = blinded
             input_run_to_evaluation[run_id]["is_upload"] = True
             input_run_to_evaluation[run_id]["review_state"] = review_state
             input_run_to_evaluation[run_id]["review_comment"] = review_comment
+
+            if eval_run_id:
+                # An evaluation exists for this run: expose the evaluation run's own id as 'run_id' (so
+                # link_results_download in __normalize_run points to the evaluation's own output), and
+                # use the evaluation review's publication/blinding state. If multiple evaluations exist,
+                # rows are processed in ascending tira_evaluation.id order, so later (more recent)
+                # evaluations overwrite earlier ones here, keeping only the last one.
+                input_run_to_evaluation[run_id]["run_id"] = eval_run_id
+                input_run_to_evaluation[run_id]["published"] = eval_published
+                input_run_to_evaluation[run_id]["blinded"] = eval_blinded or blinded
+            else:
+                input_run_to_evaluation[run_id]["run_id"] = run_id
+                input_run_to_evaluation[run_id]["published"] = published
+                input_run_to_evaluation[run_id]["blinded"] = blinded
 
             if valid_formats:
                 try:
@@ -1257,15 +1289,15 @@ class HybridDatabase(object):
                 except json.JSONDecodeError:
                     pass
 
-            # if m_key:
-            #    input_run_to_evaluation[run_id]["measures"][m_key] = m_value
-            #    keys[m_key] = ""
+            if m_key:
+                input_run_to_evaluation[run_id]["measures"][m_key] = m_value
+                keys[m_key] = ""
 
         keylist = list(keys.keys())
         ret: list[dict[str, Any]] = []
 
         for i in input_run_to_evaluation.values():
-            #    i["measures"] = [round_if_float(i["measures"].get(k, "-")) for k in keylist]
+            i["measures"] = [i["measures"].get(k, "-") for k in keylist]
             ret += [i]
 
         return keylist, ret
@@ -2032,6 +2064,8 @@ class HybridDatabase(object):
         format_configuration=None,
         truth_format_configuration=None,
         workflow_configuration=None,
+        auto_unblind_runs: bool = False,
+        auto_unblind_evaluation: bool = False,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -2056,6 +2090,9 @@ class HybridDatabase(object):
                 "default_task": for_task,
                 "display_name": dataset_name,
                 "is_confidential": True if dataset_type == "test" else False,
+                "leaderboard_is_public": False,
+                "auto_unblind_runs": auto_unblind_runs,
+                "auto_unblind_evaluation": auto_unblind_evaluation,
                 "released": str(dt.now()),
                 "default_upload_name": upload_name,
                 "irds_docker_image": irds_docker_image,
@@ -2389,6 +2426,10 @@ class HybridDatabase(object):
 
         # add the review
         review = auto_reviewer(run_dir, run_dir.stem)
+
+        if db_run.input_dataset and db_run.input_dataset.auto_unblind_runs:
+            review.blinded = False
+
         (run_dir / "run-review.prototext").write_text(str(review))
         (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
 
@@ -2644,6 +2685,9 @@ class HybridDatabase(object):
         trusted_evaluation=None,
         dataset_format_configuration=None,
         truth_format_configuration=None,
+        leaderboard_is_public: "Optional[bool]" = None,
+        auto_unblind_runs: "Optional[bool]" = None,
+        auto_unblind_evaluation: "Optional[bool]" = None,
     ) -> "dict[str, Any]":
         """
 
@@ -2651,24 +2695,44 @@ class HybridDatabase(object):
         @param git_repository_id: the repo ID where the new run will be conducted
         @param git_runner_command: the command for the runner
         @param git_runner_image: which image should be run for the evalution
+        @param leaderboard_is_public: if False, the leaderboard for this dataset only shows unblinded, published
+            baselines and the requesting user's own unblinded runs to non-admin users. If None, the existing value
+            is kept unchanged.
+        @param auto_unblind_runs: if True, newly added runs for this dataset are automatically unblinded. If None,
+            the existing value is kept unchanged.
+        @param auto_unblind_evaluation: if True, newly added evaluations for this dataset are automatically
+            unblinded. If None, the existing value is kept unchanged.
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
-        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(
-            default_task=for_task,
-            display_name=dataset_name,
-            default_upload_name=upload_name,
-            is_confidential=is_confidential,
-            format=None if not dataset_format else json.dumps(dataset_format),
-            truth_format=None if not truth_format else json.dumps(truth_format),
-            description=description,
-            chatnoir_id=None if not chatnoir_id else chatnoir_id,
-            ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
-            format_configuration=None if not dataset_format_configuration else json.dumps(dataset_format_configuration),
-            truth_format_configuration=(
+        dataset_update_fields = {
+            "default_task": for_task,
+            "display_name": dataset_name,
+            "default_upload_name": upload_name,
+            "is_confidential": is_confidential,
+            "format": None if not dataset_format else json.dumps(dataset_format),
+            "truth_format": None if not truth_format else json.dumps(truth_format),
+            "description": description,
+            "chatnoir_id": None if not chatnoir_id else chatnoir_id,
+            "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
+            "format_configuration": (
+                None if not dataset_format_configuration else json.dumps(dataset_format_configuration)
+            ),
+            "truth_format_configuration": (
                 None if not truth_format_configuration else json.dumps(truth_format_configuration)
             ),
-        )
+        }
+
+        if leaderboard_is_public is not None:
+            dataset_update_fields["leaderboard_is_public"] = leaderboard_is_public
+
+        if auto_unblind_runs is not None:
+            dataset_update_fields["auto_unblind_runs"] = auto_unblind_runs
+
+        if auto_unblind_evaluation is not None:
+            dataset_update_fields["auto_unblind_evaluation"] = auto_unblind_evaluation
+
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(**dataset_update_fields)
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
         modeldb.TaskHasDataset.objects.filter(dataset=ds).update(task=for_task)

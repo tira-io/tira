@@ -6,3 +6,14 @@ src/tira/frontend/node_modules
 .git
 **/venv/
 **/node_modules/
+**/*.egg-info/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.coverage
+model/src/state/*.sqlite3
+model/src/model/virtual-machines/admin.prototext
+application/.data-dumps/
+application/test/test-database/
+frontend/build/
+frontend/coverage/

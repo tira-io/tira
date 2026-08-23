@@ -233,6 +233,8 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         working_directory = data.get("evaluator_working_directory", "")
         measures = data.get("evaluation_measures", "")
         workflow_configuration = data.get("workflow_configuration", None)
+        auto_unblind_runs = bool(data.get("auto_unblind_runs", False))
+        auto_unblind_evaluation = bool(data.get("auto_unblind_evaluation", False))
 
         is_git_runner = data.get("is_git_runner", False)
         git_runner_image = data.get("git_runner_image", "")
@@ -330,6 +332,8 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     dataset_format_configuration,
                     truth_format_configuration,
                     workflow_configuration,
+                    auto_unblind_runs,
+                    auto_unblind_evaluation,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -349,6 +353,8 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     dataset_format_configuration,
                     truth_format_configuration,
                     workflow_configuration,
+                    auto_unblind_runs,
+                    auto_unblind_evaluation,
                 )
 
             model.add_evaluator(
@@ -535,6 +541,11 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
     - git_runner_image
     - git_runner_command
     - git_repository_id
+    - leaderboard_is_public: (optional) if False, the leaderboard for this dataset only shows published, unblinded
+      baselines and the requesting user's own unblinded runs to non-admin users
+    - auto_unblind_runs: (optional) if True, newly added runs for this dataset are automatically unblinded
+    - auto_unblind_evaluation: (optional) if True, newly added evaluations for this dataset are automatically
+      unblinded
     """
     if request.method == "POST":
 
@@ -543,6 +554,9 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
         dataset_name = data["name"]
         task_id = data["task"]
         is_confidential = not data["publish"]
+        leaderboard_is_public = data.get("leaderboard_is_public", None)
+        auto_unblind_runs = data.get("auto_unblind_runs", None)
+        auto_unblind_evaluation = data.get("auto_unblind_evaluation", None)
 
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
@@ -607,6 +621,9 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
             trusted_evaluation,
             dataset_format_configuration,
             truth_format_configuration,
+            leaderboard_is_public,
+            auto_unblind_runs,
+            auto_unblind_evaluation,
         )
 
         from django.core.cache import cache

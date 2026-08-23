@@ -27,7 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
-from tira.io_utils import sanitize_text
+from tira.io_utils import requires_mount_workflow, sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
@@ -1402,7 +1402,7 @@ def run_execute_docker_software(
         docker_software.get("mount_hf_model", None),
         job_id,
         env_to_forward,
-        "cache_behaviour" in docker_software and isinstance(docker_software["cache_behaviour"], str),
+        requires_mount_workflow(docker_software),
         dynamic_mounts,
     )
 

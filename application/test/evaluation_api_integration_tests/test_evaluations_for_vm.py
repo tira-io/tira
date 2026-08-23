@@ -344,3 +344,126 @@ class TestEvaluationsForVm(TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
+
+
+class TestGetAllUploadsForVm(TestCase):
+    """Tests get_all_uploads_for_vm directly, in particular that it also returns evaluations for
+    uploaded runs (and, if a run was evaluated multiple times, only the last evaluation)."""
+
+    @classmethod
+    def setUpClass(cls):
+        set_up_tira_filesystem()
+        tira_model.edit_organizer("uploads-eval-organizer", "organizer", "years", "web", [])
+        tira_model.add_vm(
+            "master-vm-for-uploads-eval-task", "user_name", "initial_user_password", "ip", "host", "12", "12"
+        )
+        tira_model.create_task(
+            "uploads-eval-task",
+            "task_name",
+            "task_description",
+            False,
+            "master-vm-for-uploads-eval-task",
+            "uploads-eval-organizer",
+            "website",
+            False,
+            False,
+            False,
+            "help_command",
+            "",
+            "",
+        )
+        cls.evaluator = modeldb.Evaluator.objects.update_or_create(evaluator_id="uploads-eval-task-evaluator")[0]
+        tira_model.add_dataset(
+            "uploads-eval-task", "uploads-eval-dataset", "test", "uploads-eval-dataset", "upload-name"
+        )
+        cls.dataset = modeldb.Dataset.objects.get(dataset_id__startswith="uploads-eval-dataset")
+
+        tira_model.add_vm("uploads-eval-vm", "user_name", "initial_user_password", "ip", "host", "12", "12")
+        cls.upload = modeldb.Upload.objects.create(
+            vm=modeldb.VirtualMachine.objects.get(vm_id="uploads-eval-vm"),
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+            last_edit_date="1",
+        )
+
+        # A run without any evaluation.
+        modeldb.Run.objects.create(
+            run_id="upload-run-without-eval",
+            upload=cls.upload,
+            input_dataset=cls.dataset,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+
+        # A run with a single evaluation.
+        modeldb.Run.objects.create(
+            run_id="upload-run-with-one-eval",
+            upload=cls.upload,
+            input_dataset=cls.dataset,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+        single_eval_run = modeldb.Run.objects.create(
+            run_id="upload-run-with-one-eval-evaluation-1",
+            input_run=modeldb.Run.objects.get(run_id="upload-run-with-one-eval"),
+            input_dataset=cls.dataset,
+            evaluator=cls.evaluator,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+        modeldb.Review.objects.create(run=single_eval_run, published=True, blinded=False)
+        modeldb.Evaluation.objects.create(measure_key="k-1", measure_value="1.0", run=single_eval_run)
+
+        # A run that was evaluated twice: only the last (most recent) evaluation should be returned.
+        modeldb.Run.objects.create(
+            run_id="upload-run-with-two-evals",
+            upload=cls.upload,
+            input_dataset=cls.dataset,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+        first_eval_run = modeldb.Run.objects.create(
+            run_id="upload-run-with-two-evals-evaluation-1",
+            input_run=modeldb.Run.objects.get(run_id="upload-run-with-two-evals"),
+            input_dataset=cls.dataset,
+            evaluator=cls.evaluator,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+        modeldb.Review.objects.create(run=first_eval_run, published=False, blinded=True)
+        modeldb.Evaluation.objects.create(measure_key="k-1", measure_value="1.0", run=first_eval_run)
+
+        last_eval_run = modeldb.Run.objects.create(
+            run_id="upload-run-with-two-evals-evaluation-2",
+            input_run=modeldb.Run.objects.get(run_id="upload-run-with-two-evals"),
+            input_dataset=cls.dataset,
+            evaluator=cls.evaluator,
+            task=modeldb.Task.objects.get(task_id="uploads-eval-task"),
+        )
+        modeldb.Review.objects.create(run=last_eval_run, published=True, blinded=False)
+        modeldb.Evaluation.objects.create(measure_key="k-1", measure_value="2.0", run=last_eval_run)
+
+    def test_run_without_evaluation_has_no_link_results_download(self):
+        keylist, evaluations = tira_model.get_all_uploads_for_vm("uploads-eval-vm")
+        by_run_id = {e["input_run_id"]: e for e in evaluations}
+
+        entry = by_run_id["upload-run-without-eval"]
+        self.assertEqual("upload-run-without-eval", entry["run_id"])
+
+    def test_run_with_one_evaluation_exposes_evaluation_run_id(self):
+        keylist, evaluations = tira_model.get_all_uploads_for_vm("uploads-eval-vm")
+        by_run_id = {e["input_run_id"]: e for e in evaluations}
+
+        entry = by_run_id["upload-run-with-one-eval"]
+        self.assertEqual("upload-run-with-one-eval-evaluation-1", entry["run_id"])
+        self.assertTrue(entry["published"])
+        self.assertFalse(entry["blinded"])
+        self.assertEqual("1.0", entry["measures"][keylist.index("k-1")])
+
+    def test_run_with_multiple_evaluations_returns_only_last_one(self):
+        keylist, evaluations = tira_model.get_all_uploads_for_vm("uploads-eval-vm")
+        by_run_id = {e["input_run_id"]: e for e in evaluations}
+
+        entry = by_run_id["upload-run-with-two-evals"]
+        self.assertEqual("upload-run-with-two-evals-evaluation-2", entry["run_id"])
+        self.assertTrue(entry["published"])
+        self.assertFalse(entry["blinded"])
+        self.assertEqual("2.0", entry["measures"][keylist.index("k-1")])
+
+    @classmethod
+    def tearDownClass(cls):
+        pass

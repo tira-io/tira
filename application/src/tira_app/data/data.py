@@ -91,12 +91,33 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
     return r
 
 
+def _auto_unblind(run: modeldb.Run) -> bool:
+    """Returns True if the run should automatically be unblinded, based on the dataset's
+    auto_unblind_runs/auto_unblind_evaluation configuration. A run is considered an evaluation if it
+    has an evaluator or an input_run associated with it (i.e., it evaluates another run)."""
+    dataset = run.input_dataset
+    if not dataset:
+        return False
+
+    is_evaluation = run.evaluator_id is not None or run.input_run_id is not None
+
+    if is_evaluation:
+        return bool(dataset.auto_unblind_evaluation)
+    else:
+        return bool(dataset.auto_unblind_runs)
+
+
 def _parse_review(run_dir: "Path", run: modeldb.Run) -> None:
     review_file = run_dir / "run-review.bin"
+    is_new_review = not review_file.exists()
 
     # AutoReviewer action here
-    if not review_file.exists():
+    if is_new_review:
         review = auto_reviewer(run_dir, run_dir.stem)
+
+        if _auto_unblind(run):
+            review.blinded = False
+
         (run_dir / "run-review.prototext").write_text(str(review))
         (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
     else:
