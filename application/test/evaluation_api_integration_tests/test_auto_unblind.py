@@ -49,9 +49,7 @@ class TestAutoUnblind(TestCase):
         tira_model.add_dataset(
             "auto-unblind-task", "dataset-with-auto-unblind", "test", "dataset-with-auto-unblind", "upload-name"
         )
-        cls.dataset_with_auto_unblind = modeldb.Dataset.objects.get(
-            dataset_id__startswith="dataset-with-auto-unblind"
-        )
+        cls.dataset_with_auto_unblind = modeldb.Dataset.objects.get(dataset_id__startswith="dataset-with-auto-unblind")
         cls.dataset_with_auto_unblind.auto_unblind_runs = True
         cls.dataset_with_auto_unblind.auto_unblind_evaluation = True
         cls.dataset_with_auto_unblind.evaluator = cls.evaluator
