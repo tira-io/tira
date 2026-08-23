@@ -68,12 +68,14 @@ CONF_ID_FIELD = "id_field"
 CONF_VALUE_FIELD = "value_field"
 CONF_MAX_SIZE_MB = "max_size_mb"
 CONF_SPOT_CHECK = "spot_check"
+CONF_MINIMUM_QUERIES = "minimum_queries"
 
 CONFIGURATION_FIELDS = {
     CONF_REQUIRED_FIELDS: "foo",
     CONF_MINIMUM_LINES: "foo",
     CONF_ID_FIELD: "foo",
     CONF_VALUE_FIELD: "foo",
+    CONF_MINIMUM_QUERIES: "foo",
 }
 
 
@@ -144,6 +146,16 @@ class LearnedSparseRetrievalInputs(FormatBase):
 class RunFormat(FormatBase):
     """Checks if a given output is a valid run file."""
 
+    def __init__(self):
+        super().__init__()
+        self.minimum_queries = 3
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(configuration)
+
+        if configuration and hasattr(configuration, "__iter__") and CONF_MINIMUM_QUERIES in configuration:
+            self.minimum_queries = int(configuration[CONF_MINIMUM_QUERIES])
+
     def check_format(self, run_output: Path):
         if (run_output / "run.txt").exists() and (run_output / "run.txt.gz").exists():
             msg = f"Found multiple run.txt or run.txt.gz files: {os.listdir(run_output)} ."
@@ -182,7 +194,7 @@ class RunFormat(FormatBase):
                 ]
             query_to_docs[line["qid"]].add(line["docno"])
 
-        if len(query_to_docs.keys()) < 3:
+        if len(query_to_docs.keys()) < self.minimum_queries:
             return [_fmt.ERROR, f"The run file has only {len(query_to_docs)} queries which is likely an error."]
 
         return [_fmt.OK, "The run.txt file has the correct format."]
@@ -221,6 +233,16 @@ class RunFormat(FormatBase):
 class QrelFormat(FormatBase):
     """Checks if a given output is a valid qrel file."""
 
+    def __init__(self):
+        super().__init__()
+        self.minimum_queries = 3
+
+    def apply_configuration_and_throw_if_invalid(self, configuration: "Optional[dict[str, Any]]"):
+        super().apply_configuration_and_throw_if_invalid(configuration)
+
+        if configuration and hasattr(configuration, "__iter__") and CONF_MINIMUM_QUERIES in configuration:
+            self.minimum_queries = int(configuration[CONF_MINIMUM_QUERIES])
+
     def check_format(self, run_output: Path):
         if (run_output / "qrels.txt").exists() and (run_output / "qrels.txt.gz").exists():
             msg = f"Found multiple qrels.txt or qrels.txt.gz files: {os.listdir(run_output)} ."
@@ -250,7 +272,7 @@ class QrelFormat(FormatBase):
                 ]
             query_to_docs[line["qid"]].add(line["docno"])
 
-        if len(query_to_docs.keys()) < 3:
+        if len(query_to_docs.keys()) < self.minimum_queries:
             return [_fmt.ERROR, f"The run file has only {len(query_to_docs)} queries which is likely an error."]
 
         return [_fmt.OK, "The qrels are valid."]
