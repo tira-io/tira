@@ -761,6 +761,8 @@ def add_dataset(
     dataset_format_configuration: "Optional[str]" = None,
     truth_format_configuration: "Optional[str]" = None,
     workflow_configuration: "Optional[str]" = None,
+    auto_unblind_runs: bool = False,
+    auto_unblind_evaluation: bool = False,
 ) -> "tuple[dict[str, Any], list[str]]":
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -780,6 +782,8 @@ def add_dataset(
         format_configuration=dataset_format_configuration,
         truth_format_configuration=truth_format_configuration,
         workflow_configuration=workflow_configuration,
+        auto_unblind_runs=auto_unblind_runs,
+        auto_unblind_evaluation=auto_unblind_evaluation,
     )
 
 
@@ -941,6 +945,8 @@ def edit_dataset(
     dataset_format_configuration: "Optional[str]" = None,
     truth_format_configuration: "Optional[str]" = None,
     leaderboard_is_public: "Optional[bool]" = None,
+    auto_unblind_runs: "Optional[bool]" = None,
+    auto_unblind_evaluation: "Optional[bool]" = None,
 ) -> "dict[str, Any]":
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -965,6 +971,8 @@ def edit_dataset(
         dataset_format_configuration,
         truth_format_configuration,
         leaderboard_is_public,
+        auto_unblind_runs,
+        auto_unblind_evaluation,
     )
 
 

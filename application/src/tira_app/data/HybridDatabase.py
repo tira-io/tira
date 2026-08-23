@@ -300,6 +300,8 @@ class HybridDatabase(object):
             "dataset_id": dataset.dataset_id,
             "is_confidential": dataset.is_confidential,
             "leaderboard_is_public": dataset.leaderboard_is_public,
+            "auto_unblind_runs": dataset.auto_unblind_runs,
+            "auto_unblind_evaluation": dataset.auto_unblind_evaluation,
             "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
@@ -2062,6 +2064,8 @@ class HybridDatabase(object):
         format_configuration=None,
         truth_format_configuration=None,
         workflow_configuration=None,
+        auto_unblind_runs: bool = False,
+        auto_unblind_evaluation: bool = False,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -2087,6 +2091,8 @@ class HybridDatabase(object):
                 "display_name": dataset_name,
                 "is_confidential": True if dataset_type == "test" else False,
                 "leaderboard_is_public": False,
+                "auto_unblind_runs": auto_unblind_runs,
+                "auto_unblind_evaluation": auto_unblind_evaluation,
                 "released": str(dt.now()),
                 "default_upload_name": upload_name,
                 "irds_docker_image": irds_docker_image,
@@ -2420,6 +2426,10 @@ class HybridDatabase(object):
 
         # add the review
         review = auto_reviewer(run_dir, run_dir.stem)
+
+        if db_run.input_dataset and db_run.input_dataset.auto_unblind_runs:
+            review.blinded = False
+
         (run_dir / "run-review.prototext").write_text(str(review))
         (run_dir / "run-review.bin").write_bytes(review.SerializeToString())
 
@@ -2676,6 +2686,8 @@ class HybridDatabase(object):
         dataset_format_configuration=None,
         truth_format_configuration=None,
         leaderboard_is_public: "Optional[bool]" = None,
+        auto_unblind_runs: "Optional[bool]" = None,
+        auto_unblind_evaluation: "Optional[bool]" = None,
     ) -> "dict[str, Any]":
         """
 
@@ -2686,6 +2698,10 @@ class HybridDatabase(object):
         @param leaderboard_is_public: if False, the leaderboard for this dataset only shows unblinded, published
             baselines and the requesting user's own unblinded runs to non-admin users. If None, the existing value
             is kept unchanged.
+        @param auto_unblind_runs: if True, newly added runs for this dataset are automatically unblinded. If None,
+            the existing value is kept unchanged.
+        @param auto_unblind_evaluation: if True, newly added evaluations for this dataset are automatically
+            unblinded. If None, the existing value is kept unchanged.
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
@@ -2709,6 +2725,12 @@ class HybridDatabase(object):
 
         if leaderboard_is_public is not None:
             dataset_update_fields["leaderboard_is_public"] = leaderboard_is_public
+
+        if auto_unblind_runs is not None:
+            dataset_update_fields["auto_unblind_runs"] = auto_unblind_runs
+
+        if auto_unblind_evaluation is not None:
+            dataset_update_fields["auto_unblind_evaluation"] = auto_unblind_evaluation
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(**dataset_update_fields)
 

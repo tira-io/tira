@@ -87,6 +87,14 @@
                   <v-radio label="The leaderboard is not public (only public baselines and a user's own unblinded runs are visible)" value="false"></v-radio>
                 </v-radio-group>
 
+                <h2 class="my-1">Automatic Unblinding</h2>
+                <p>
+                  You can configure new runs and/or evaluations to be automatically unblinded as soon as they are added, instead of requiring an organizer to manually unblind them.
+                </p>
+
+                <v-checkbox v-model="auto_unblind_runs" label="Automatically unblind new runs" hide-details/>
+                <v-checkbox v-model="auto_unblind_evaluation" label="Automatically unblind new evaluations" hide-details/>
+
                 <v-divider/>
                 <div v-if="file_listing">
                   <h2 class="my-1">Overview of the Actual Data</h2>
@@ -226,7 +234,7 @@
       props: {task_id: {}, dataset_id_from_props: {type: String, default: ''}, disabled: {type: Boolean, default: false}, is_ir_task: {type: Boolean, default: false}},
       data: () => ({
         loading: true, valid: false, submitInProgress: false, dataset_id: '',
-        display_name: '', description: '', is_confidential: 'true', leaderboard_is_public: 'false', dataset_type: 'test', upload_type: 'upload-0',
+        display_name: '', description: '', is_confidential: 'true', leaderboard_is_public: 'false', auto_unblind_runs: false, auto_unblind_evaluation: false, dataset_type: 'test', upload_type: 'upload-0',
         irds_image: '', irds_command: '', format: undefined, truth_format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         systemUrlHandle: "", systemUrlDirectory: "", truthUrlHandle: "", truthUrlDirectory: "", systemFileRename: "inputs.jsonl", truthFileRename: "labels.jsonl", error_message: "", chatnoir_id: "", ir_datasets_id: "",
@@ -374,6 +382,8 @@
               'type': this.dataset_type,'upload_name': this.default_upload_name, 
               'is_confidential': this.is_confidential !== 'false',
               'leaderboard_is_public': this.leaderboard_is_public !== 'false',
+              'auto_unblind_runs': this.auto_unblind_runs,
+              'auto_unblind_evaluation': this.auto_unblind_evaluation,
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 
               'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
               'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format, 'truth_format': this.truth_format, 'description': this.description,
