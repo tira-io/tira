@@ -445,6 +445,15 @@ def setup_dataset_submission_command(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Skip the execution of the baseline. (e.g., for executions that take long.)",
     )
+    parser.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Some baselines require environment variables (e.g., OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL,"
+            " etc.). The environment variables are forwarded (not stored) to the container running the baseline."
+        ),
+    )
 
     parser.set_defaults(executable=dataset_submission_command)
 
@@ -1255,10 +1264,18 @@ def dataset_submission_command(
     dry_run: bool,
     split: str,
     skip_baseline: bool,
+    forward_environment_variable: "Optional[list[str]]" = None,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
-    ret = client.submit_dataset(Path(path), task, split, dry_run, skip_baseline=skip_baseline)
+    ret = client.submit_dataset(
+        Path(path),
+        task,
+        split,
+        dry_run,
+        skip_baseline=skip_baseline,
+        forward_environment_variable=forward_environment_variable,
+    )
     return 0 if ret and "inputs_zip" in ret else 1
 
 
