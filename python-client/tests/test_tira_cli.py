@@ -69,7 +69,9 @@ class TestDatasetSubmissionForwardEnvironmentVariable(unittest.TestCase):
         mock_client = mock_rest_client.return_value
         mock_client.submit_dataset.return_value = {"inputs_zip": "some/path.zip"}
 
-        dataset_submission_command(path="some/path", task="some-task", dry_run=False, split="train", skip_baseline=False)
+        dataset_submission_command(
+            path="some/path", task="some-task", dry_run=False, split="train", skip_baseline=False
+        )
 
         _, kwargs = mock_client.submit_dataset.call_args
         self.assertIsNone(kwargs["forward_environment_variable"])
