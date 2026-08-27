@@ -224,6 +224,7 @@ class HybridDatabase(object):
 
         submission_tabs = task.get_submission_tabs()
         upload_form_fields = task.get_upload_form_fields()
+        allowed_hostnames = task.get_allowed_hostnames()
 
         result = {
             "task_id": task.task_id,
@@ -258,6 +259,7 @@ class HybridDatabase(object):
             "submission_tabs": submission_tabs,
             "upload_form_fields": upload_form_fields,
             "hide_upload_via_cli": task.hide_upload_via_cli,
+            "allowed_hostnames": allowed_hostnames,
         }
 
         if include_dataset_stats:
@@ -1994,6 +1996,7 @@ class HybridDatabase(object):
         submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
+        allowed_hostnames: "Optional[List[str]]" = None,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
@@ -2006,6 +2009,11 @@ class HybridDatabase(object):
         normalized_upload_form_fields = modeldb.normalize_upload_form_fields(upload_form_fields)
         if normalized_upload_form_fields:
             upload_form_fields_json = json.dumps(normalized_upload_form_fields)
+
+        allowed_hostnames_json = None
+        normalized_allowed_hostnames = modeldb.normalize_allowed_hostnames(allowed_hostnames)
+        if normalized_allowed_hostnames:
+            allowed_hostnames_json = json.dumps(normalized_allowed_hostnames)
 
         new_task = modeldb.Task.objects.create(
             task_id=task_id,
@@ -2022,6 +2030,7 @@ class HybridDatabase(object):
             submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
+            allowed_hostnames=allowed_hostnames_json,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2603,6 +2612,7 @@ class HybridDatabase(object):
         submission_tabs: "Optional[List[str]]" = None,
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
+        allowed_hostnames: "Optional[List[str]]" = None,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2635,6 +2645,11 @@ class HybridDatabase(object):
         if normalized_upload_form_fields:
             upload_form_fields_json = json.dumps(normalized_upload_form_fields)
 
+        allowed_hostnames_json = None
+        normalized_allowed_hostnames = modeldb.normalize_allowed_hostnames(allowed_hostnames)
+        if normalized_allowed_hostnames:
+            allowed_hostnames_json = json.dumps(normalized_allowed_hostnames)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
             task_name=task_name,
@@ -2654,6 +2669,7 @@ class HybridDatabase(object):
             submission_tabs=submission_tabs_json,
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
+            allowed_hostnames=allowed_hostnames_json,
         )
 
         if help_command:

@@ -121,6 +121,13 @@
                     persistent-hint
                     :rules="[validateSubmissionTabsJson]"
                   />
+                  <v-textarea
+                    v-model="allowed_hostnames_json"
+                    label="Allowed Hostnames for Network Access (JSON)"
+                    :hint="allowed_hostnames_hint"
+                    persistent-hint
+                    :rules="[validateAllowedHostnamesJson]"
+                  />
 
                   <v-divider />
                   <h2 class="my-1">IR-Datasets integration</h2>
@@ -198,6 +205,9 @@ export default {
     upload_form_fields: null as null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[],
     upload_form_fields_json: '',
     upload_form_fields_hint: 'Optional JSON array of fields, e.g. [{"name":"run_id","display_name":"Run ID","type":"text"},{"name":"track","display_name":"Track","type":"select","options":[{"id":"main","display_value":"Main Track"},{"id":"bio","display_value":"Biomedical Track"}]}]. Select fields require a non-empty options array with id and display_value.',
+    allowed_hostnames: null as null | string[],
+    allowed_hostnames_json: '',
+    allowed_hostnames_hint: 'Optional JSON array of hostnames that submitted software is allowed to access over the network, e.g. ["api.openai.com"]. Leave empty to disallow network access for this task.',
     rest_endpoint: inject("REST base URL") as string
   }),
   computed: {
@@ -211,12 +221,14 @@ export default {
         this.loading = false
         this.submission_tabs_json = this.formatSubmissionTabs(null)
         this.upload_form_fields_json = this.formatUploadFormFields(null)
+        this.allowed_hostnames_json = this.formatAllowedHostnames(null)
       } else {
         get(this.rest_endpoint + '/api/task/' + this.task_id_for_edit)
           .then(inject_response(this, { 'loading': false }, true, 'task'))
           .then(() => {
             this.submission_tabs_json = this.formatSubmissionTabs(this.submission_tabs)
             this.upload_form_fields_json = this.formatUploadFormFields(this.upload_form_fields)
+            this.allowed_hostnames_json = this.formatAllowedHostnames(this.allowed_hostnames)
           })
           .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
       }
@@ -226,6 +238,9 @@ export default {
     },
     formatUploadFormFields: function (uploadFormFields: null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[]) {
       return uploadFormFields && uploadFormFields.length > 0 ? JSON.stringify(uploadFormFields, null, 2) : ''
+    },
+    formatAllowedHostnames: function (allowedHostnames: null | string[]) {
+      return allowedHostnames && allowedHostnames.length > 0 ? JSON.stringify(allowedHostnames, null, 2) : ''
     },
     parseSubmissionTabs: function () {
       if (!this.submission_tabs_json.trim()) {
@@ -305,6 +320,32 @@ export default {
       const parsed = this.parseUploadFormFields()
       return parsed !== undefined || 'Please provide a valid JSON array of fields with name, display_name, and type. Select fields must also define non-empty options with id and display_value.'
     },
+    parseAllowedHostnames: function () {
+      if (!this.allowed_hostnames_json.trim()) {
+        return null
+      }
+
+      try {
+        const parsed = JSON.parse(this.allowed_hostnames_json)
+        if (!Array.isArray(parsed)) {
+          return undefined
+        }
+
+        for (const hostname of parsed) {
+          if (typeof hostname !== 'string' || hostname.trim() === '') {
+            return undefined
+          }
+        }
+
+        return parsed.map(hostname => hostname.trim())
+      } catch {
+        return undefined
+      }
+    },
+    validateAllowedHostnamesJson: function () {
+      const parsed = this.parseAllowedHostnames()
+      return parsed !== undefined || 'Please provide a valid JSON array of hostnames, e.g. ["api.openai.com"].'
+    },
     validateSubmissionTabsJson: function () {
       const parsed = this.parseSubmissionTabs()
       return parsed !== undefined || `Please provide a valid JSON array of submission tab IDs: ${AVAILABLE_SUBMISSION_TABS.join(', ')}.`
@@ -351,6 +392,7 @@ export default {
       this.submitInProgress = true
       const submissionTabs = this.parseSubmissionTabs()
       const uploadFormFields = this.parseUploadFormFields()
+      const allowedHostnames = this.parseAllowedHostnames()
       if (submissionTabs === undefined) {
         this.submitInProgress = false
         window.alert('Please provide valid submission tab JSON.')
@@ -361,6 +403,13 @@ export default {
       if (uploadFormFields === undefined) {
         this.submitInProgress = false
         window.alert('Please provide valid upload form field JSON.')
+        this.step = 2
+        return
+      }
+
+      if (allowedHostnames === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid allowed hostnames JSON.')
         this.step = 2
         return
       }
@@ -381,6 +430,7 @@ export default {
       const organizer = this.task_id_for_edit === '' ? this.selected_organizer : this.organizer_id
       const submissionTabs = this.parseSubmissionTabs()
       const uploadFormFields = this.parseUploadFormFields()
+      const allowedHostnames = this.parseAllowedHostnames()
 
       return {
         'task_id': task_id, 'name': this.task_name, 'featured': this.featured,
@@ -391,6 +441,7 @@ export default {
         'submission_tabs': submissionTabs === undefined ? null : submissionTabs,
         'upload_form_fields': uploadFormFields === undefined ? null : uploadFormFields,
         'hide_upload_via_cli': this.hide_upload_via_cli,
+        'allowed_hostnames': allowedHostnames === undefined ? null : allowedHostnames,
       }
     }
   },

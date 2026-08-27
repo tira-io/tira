@@ -93,6 +93,7 @@ def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpRespons
             submission_tabs=data.get("submission_tabs"),
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
+            allowed_hostnames=data.get("allowed_hostnames"),
         )
 
         new_task_str = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -146,6 +147,7 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             submission_tabs=data.get("submission_tabs"),
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
+            allowed_hostnames=data.get("allowed_hostnames"),
         )
 
         return JsonResponse(

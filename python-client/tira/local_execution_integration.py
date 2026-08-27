@@ -10,13 +10,19 @@ import tempfile
 import uuid
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import docker
 import pandas as pd
 from docker.utils import parse_repository_tag
 
-from tira.io_utils import environment_variables_require_network_access, environment_variables_to_forward
+from tira.check_format import _fmt, log_message
+from tira.io_utils import (
+    environment_variables_require_network_access,
+    environment_variables_to_forward,
+    hostnames_required_for_network_access,
+)
+from tira.network_proxy import start_network_proxy
 from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 if TYPE_CHECKING:
@@ -465,6 +471,35 @@ class LocalExecutionIntegration:
 
         return "Measures runtime, energy, and many other" in help_response
 
+    def __start_network_proxy_if_needed(
+        self,
+        client,
+        allow_network: bool,
+        network_allowlist,
+        output_dir=None,
+        access_log_name: str = "network-access.log",
+    ):
+        """Returns a tuple (network_proxy, network_kwargs) where network_kwargs are the docker
+        'containers.run' kwargs to (fully, restrictedly, or not at all) connect the sandboxed execution
+        container to the network, depending on 'allow_network' and 'network_allowlist'. If 'output_dir'
+        is set, the number of requests per hostname the proxy actually granted access to are written to
+        '{output_dir}/../{access_log_name}' once the proxy is stopped."""
+        if not network_allowlist:
+            return None, {"network_disabled": not allow_network}
+
+        allowed_hostnames = sorted(set(network_allowlist))
+        log_message(
+            "Network access during execution is restricted to: " + ", ".join(allowed_hostnames),
+            _fmt.OK,
+        )
+
+        access_log_file = None
+        if output_dir:
+            access_log_file = Path(output_dir).parent / access_log_name
+
+        network_proxy = start_network_proxy(client, allowed_hostnames, access_log_file=access_log_file)
+        return network_proxy, {"network": network_proxy.network.name}
+
     def evaluate(
         self,
         eval_dir: Path,
@@ -472,6 +507,7 @@ class LocalExecutionIntegration:
         allow_network: bool,
         evaluate: dict,
         client=None,
+        network_allowlist: "Optional[List[str]]" = None,
     ):
         if not client:
             client = self.__docker_client()
@@ -480,6 +516,7 @@ class LocalExecutionIntegration:
 
         if type(evaluate) is dict and evaluate["evaluator_id"]:
             allow_network = bool(evaluate.get("allow_network", allow_network))
+            network_allowlist = evaluate.get("network_allowlist", network_allowlist)
             evaluation_volumes[str(evaluate["truth_directory"])] = {
                 "bind": "/tira-data/input_truth",
                 "mode": "ro",
@@ -518,6 +555,16 @@ class LocalExecutionIntegration:
                 )
             ]
 
+        derived_hostnames = hostnames_required_for_network_access(environment)
+        if derived_hostnames:
+            network_allowlist = list({*(network_allowlist or []), *derived_hostnames})
+
+        network_proxy, network_kwargs = self.__start_network_proxy_if_needed(
+            client, allow_network, network_allowlist, output_dir, access_log_name="network-access-evaluator.log"
+        )
+        if network_proxy:
+            environment.update(network_proxy.environment_variables)
+
         container = client.containers.run(
             image,
             entrypoint="sh",
@@ -527,11 +574,15 @@ class LocalExecutionIntegration:
             remove=True,
             environment=environment,
             device_requests=device_requests,
-            network_disabled=not allow_network,
+            **network_kwargs,
         )
 
-        for line in container.attach(stdout=True, stream=True, logs=True):
-            print(line.decode("utf-8"), flush=True)
+        try:
+            for line in container.attach(stdout=True, stream=True, logs=True):
+                print(line.decode("utf-8"), flush=True)
+        finally:
+            if network_proxy:
+                network_proxy.stop()
 
     def run_workflow(
         self,
@@ -656,6 +707,7 @@ class LocalExecutionIntegration:
         task_workflow_configuration=None,
         software_workflow_configuration=None,
         dynamic_mounts=None,
+        network_allowlist: "Optional[List[str]]" = None,
     ):
         if task_workflow_configuration is not None or software_workflow_configuration is not None:
             self.run_workflow(
@@ -805,9 +857,14 @@ class LocalExecutionIntegration:
         openai_env = environment_variables_to_forward(forward_environment_variables)
         if openai_env is not None and len(openai_env) > 0:
             environment.update(openai_env)
-            # TODO: fine-grained ip-tables rules for only access to the URL in the environment variable.
-            if environment_variables_require_network_access(environment):
-                allow_network = True
+
+        derived_hostnames = hostnames_required_for_network_access(environment)
+        if derived_hostnames:
+            network_allowlist = list({*(network_allowlist or []), *derived_hostnames})
+        elif network_allowlist is None and environment_variables_require_network_access(environment):
+            # A group required network access but we could not derive its hostname(s), fall back to
+            # unrestricted network access for backwards compatibility.
+            allow_network = True
 
         entrypoint = "sh"
         entrypoint_flags = "-c"
@@ -815,6 +872,12 @@ class LocalExecutionIntegration:
             volumes.update(tirex_tracker_mounts_or_none())
             entrypoint = "/tracked"
             entrypoint_flags = "-o /tira-data/output/.tracking-results.yml -f irmetadata"
+
+        network_proxy, network_kwargs = self.__start_network_proxy_if_needed(
+            client, allow_network, network_allowlist, output_dir
+        )
+        if network_proxy:
+            environment.update(network_proxy.environment_variables)
 
         container = client.containers.run(
             image,
@@ -824,12 +887,12 @@ class LocalExecutionIntegration:
             volumes=volumes,
             detach=True,
             remove=True,
-            network_disabled=not allow_network,
             device_requests=device_requests,
             mem_limit=mem_limit,
             **self.__docker_run_cpu_limits(cpu_count, platform),
             privileged=True,
             platform=platform,
+            **network_kwargs,
         )
 
         self.running_docker_images[container.id] = container
@@ -841,9 +904,11 @@ class LocalExecutionIntegration:
             # TODO: add flag to fail if the return_code["StatusCode"]) is not 0, to have this, we first need to fix the bug in the tirex tracker to properly forward return codes
         finally:
             self.running_docker_images.pop(container.id, None)
+            if network_proxy:
+                network_proxy.stop()
 
         if evaluate:
-            self.evaluate(eval_dir, output_dir, allow_network, client)
+            self.evaluate(eval_dir, output_dir, allow_network, client, network_allowlist=network_allowlist)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'
