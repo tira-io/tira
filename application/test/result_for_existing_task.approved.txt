@@ -19,6 +19,7 @@
         "role": "user",
         "task": {
             "aggregated_results": null,
+            "allowed_hostnames": null,
             "allowed_task_teams": "",
             "command_description": "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.",
             "command_placeholder": "help_command",
