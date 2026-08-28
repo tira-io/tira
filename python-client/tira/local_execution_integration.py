@@ -614,7 +614,7 @@ class LocalExecutionIntegration:
 
         mount_directory = {}
         cache_directory = {}
-        from shutil import copytree
+        from shutil import copy2, copytree
 
         if dynamic_mounts:
             from tira.third_party_integrations import temporary_directory
@@ -662,6 +662,18 @@ class LocalExecutionIntegration:
             os.rmdir(i)
             print(run_results.message)
             copytree(run_results.run / "output", i)
+
+            # The network proxy (if used) writes the per-hostname access counts next to the execution's
+            # own output directory (i.e., into 'run_results.run', see
+            # 'LocalExecutionIntegration.__start_network_proxy_if_needed'). Since only the 'output'
+            # directory is copied out of 'run_results.run' above, we also copy this log file (if
+            # present) next to the final output directory so that it is not silently dropped.
+            access_log_file = run_results.run / "network-access.log"
+            if access_log_file.is_file():
+                try:
+                    copy2(access_log_file, i.parent / "network-access.log")
+                except Exception:
+                    print(f"Could not copy the network access log {access_log_file}.")
 
             try:
                 print((run_results.run / "stdout.txt").read_text())

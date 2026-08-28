@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock, call, patch
 
 from tira.local_execution_integration import LocalExecutionIntegration
+from tira.check_format import _fmt
 
 
 class TestLocalExecutionIntegration(unittest.TestCase):
@@ -404,3 +405,67 @@ class TestLocalExecutionIntegration(unittest.TestCase):
             )
 
         self.assertFalse(client.containers.run.call_args.kwargs["network_disabled"])
+
+    def test_run_workflow_copies_network_access_log_next_to_output_dir(self):
+        from tira.workflows import WorkflowResult
+
+        integration = LocalExecutionIntegration()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = root / "output"
+            output_dir.mkdir()
+
+            execution_dir = root / "execution"
+            execution_dir.mkdir()
+            (execution_dir / "output").mkdir()
+            (execution_dir / "output" / "run.txt").write_text("some-prediction")
+            (execution_dir / "network-access.log").write_text("example.com\t3\n")
+
+            workflow_result = WorkflowResult(_fmt.OK, "ok", execution_dir)
+
+            with patch("tira.workflows.run_workflow", return_value=workflow_result) as run_workflow_mock:
+                integration.run_workflow(
+                    image="some-image",
+                    command="some-command",
+                    input_dir=str(root / "input"),
+                    output_dir=output_dir,
+                    task_workflow_configuration={"name": "cached-execution"},
+                    software_workflow_configuration={},
+                )
+
+            run_workflow_mock.assert_called_once()
+            self.assertEqual("some-prediction", (output_dir / "run.txt").read_text())
+            copied_log = output_dir.parent / "network-access.log"
+            self.assertTrue(copied_log.is_file())
+            self.assertEqual("example.com\t3\n", copied_log.read_text())
+
+    def test_run_workflow_does_not_fail_without_network_access_log(self):
+        from tira.workflows import WorkflowResult
+
+        integration = LocalExecutionIntegration()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_dir = root / "output"
+            output_dir.mkdir()
+
+            execution_dir = root / "execution"
+            execution_dir.mkdir()
+            (execution_dir / "output").mkdir()
+            (execution_dir / "output" / "run.txt").write_text("some-prediction")
+
+            workflow_result = WorkflowResult(_fmt.OK, "ok", execution_dir)
+
+            with patch("tira.workflows.run_workflow", return_value=workflow_result):
+                integration.run_workflow(
+                    image="some-image",
+                    command="some-command",
+                    input_dir=str(root / "input"),
+                    output_dir=output_dir,
+                    task_workflow_configuration={"name": "cached-execution"},
+                    software_workflow_configuration={},
+                )
+
+            self.assertEqual("some-prediction", (output_dir / "run.txt").read_text())
+            self.assertFalse((output_dir.parent / "network-access.log").is_file())
