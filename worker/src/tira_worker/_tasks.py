@@ -5,7 +5,7 @@ import sys
 import threading
 from os import environ
 from pathlib import Path
-from shutil import copytree
+from shutil import copy2, copytree
 from subprocess import check_output
 from typing import Callable, Optional
 
@@ -144,6 +144,20 @@ def execute_monitored(method: Callable, client: Optional[TiraClient] = None, job
     return result["ret"]
 
 
+def _copy_network_access_log_into_output_dir(output_dir: Path, access_log_name: str) -> None:
+    """The network proxy writes the number of requests per hostname it granted access to next to the
+    output directory (i.e., to 'output_dir.parent / access_log_name', see
+    'LocalExecutionIntegration.__start_network_proxy_if_needed'). Since only the contents of
+    'output_dir' are zipped and uploaded, this file would otherwise be silently dropped, so we copy it
+    into 'output_dir' (if it exists) before the upload."""
+    access_log_file = Path(output_dir).parent / access_log_name
+    if access_log_file.is_file():
+        try:
+            copy2(access_log_file, Path(output_dir) / access_log_name)
+        except Exception:
+            print(f"Could not copy the network access log {access_log_file} into {output_dir}.")
+
+
 def rsync_from_local_or_fail(src_dir: Path, target_dir: Path):
     if not src_dir.is_dir():
         raise ValueError(f"Expected local directory '{src_dir}' to exist for rsync.")
@@ -247,6 +261,8 @@ def run(
                 del environ[k]
             except Exception:
                 pass
+
+    _copy_network_access_log_into_output_dir(run_results, "network-access.log")
 
     persist_tira_metadata_for_job(run_results, get_tira_id(), "none", software_id, dataset, task)
     persist_mount_metadata(run_results, requested_dynamic_mounts, software_id)
