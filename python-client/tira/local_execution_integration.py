@@ -482,8 +482,8 @@ class LocalExecutionIntegration:
         """Returns a tuple (network_proxy, network_kwargs) where network_kwargs are the docker
         'containers.run' kwargs to (fully, restrictedly, or not at all) connect the sandboxed execution
         container to the network, depending on 'allow_network' and 'network_allowlist'. If 'output_dir'
-        is set, the number of requests per hostname the proxy actually granted access to are written to
-        '{output_dir}/../{access_log_name}' once the proxy is stopped."""
+        is set, the number of requests per hostname the proxy granted or refused access to are written
+        to '{output_dir}/../{access_log_name}' once the proxy is stopped."""
         if not network_allowlist:
             return None, {"network_disabled": not allow_network}
 

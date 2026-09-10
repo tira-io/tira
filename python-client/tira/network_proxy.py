@@ -32,6 +32,11 @@ EXTERNAL_NETWORK = "bridge"
 #   descriptor 5.
 _ACCESSED_HOSTNAME_PATTERN = re.compile(r'Established connection to host "([^"]+)"')
 
+# Matches the tinyproxy log line that is written whenever the proxy refuses a connection to a host that
+# is not on the allowlist, e.g.:
+#   NOTICE    Aug 27 17:02:54.850 [1]: Proxying refused on filtered domain "denied.example.com"
+_BLOCKED_HOSTNAME_PATTERN = re.compile(r'Proxying refused on filtered domain "([^"]+)"')
+
 
 class NetworkProxy:
     """A running proxy container plus the isolated docker network that connects it to a sandboxed
@@ -77,17 +82,30 @@ class NetworkProxy:
             logging.debug("Could not read the log of the network proxy container.", exc_info=True)
             return {}
 
+    def blocked_hostname_counts(self) -> "Dict[str, int]":
+        """Returns a mapping of hostname to the number of requests the proxy refused (i.e., that were
+        not on the allowlist), extracted from the proxy container's log."""
+        try:
+            raw_log = self.container.logs().decode("utf-8", errors="replace")
+            return dict(Counter(_BLOCKED_HOSTNAME_PATTERN.findall(raw_log)))
+        except Exception:
+            logging.debug("Could not read the log of the network proxy container.", exc_info=True)
+            return {}
+
     def write_access_log(self) -> None:
-        """Persists the number of requests per hostname the proxy granted access to at
-        'self.access_log_file', if set."""
+        """Persists the number of requests per hostname the proxy granted or refused access to at
+        'self.access_log_file', if set. Each line contains the hostname, whether the requests were
+        allowed or blocked, and the request count, e.g. 'example.com\\tALLOW\\t3\\n'."""
         if not self.access_log_file:
             return
 
-        hostname_counts = self.accessed_hostname_counts()
+        allowed_counts = self.accessed_hostname_counts()
+        blocked_counts = self.blocked_hostname_counts()
         try:
             self.access_log_file.parent.mkdir(parents=True, exist_ok=True)
-            content = "".join(f"{hostname}\t{count}\n" for hostname, count in sorted(hostname_counts.items()))
-            self.access_log_file.write_text(content)
+            lines = [f"{hostname}\tALLOW\t{count}\n" for hostname, count in sorted(allowed_counts.items())]
+            lines += [f"{hostname}\tBLOCK\t{count}\n" for hostname, count in sorted(blocked_counts.items())]
+            self.access_log_file.write_text("".join(lines))
         except Exception:
             logging.debug(f"Could not write the network access log to {self.access_log_file}.", exc_info=True)
 
@@ -128,8 +146,8 @@ def start_network_proxy(
     Attach the sandboxed execution container only to 'NetworkProxy.network' (and add
     'NetworkProxy.environment_variables' to its environment) so that it can only reach the internet
     through the whitelisted hostnames. If 'access_log_file' is set, the number of requests per hostname
-    the proxy actually granted access to are written there (one "hostname\\tcount" pair per line) when
-    the proxy is stopped.
+    the proxy granted or refused access to are written there (one "hostname\\tALLOW|BLOCK\\tcount"
+    triple per line) when the proxy is stopped.
     """
     allowed_hostnames = sorted({h.strip() for h in allowed_hostnames if h and h.strip()})
     if not allowed_hostnames:

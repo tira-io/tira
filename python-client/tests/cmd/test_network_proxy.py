@@ -143,6 +143,33 @@ class TestNetworkProxy(unittest.TestCase):
 
         self.assertEqual(proxy.accessed_hostname_counts(), {})
 
+    def test_blocked_hostname_counts_counts_refused_requests_per_host(self):
+        client = MagicMock()
+        client.images.get.return_value = MagicMock()
+        container = MagicMock()
+        container.logs.return_value = (
+            b'NOTICE    Aug 27 17:02:54.850 [1]: Proxying refused on filtered domain "denied.example.com"\n'
+            b'NOTICE    Aug 27 17:02:55.100 [1]: Proxying refused on filtered domain "denied.example.com"\n'
+            b'CONNECT   Aug 27 17:02:53.876 [1]: Established connection to host "example.com" using'
+            b" file descriptor 5.\n"
+        )
+        client.containers.run.return_value = container
+
+        proxy = start_network_proxy(client, ["example.com", "denied.example.com"])
+
+        self.assertEqual(proxy.blocked_hostname_counts(), {"denied.example.com": 2})
+
+    def test_blocked_hostname_counts_is_robust_against_errors(self):
+        client = MagicMock()
+        client.images.get.return_value = MagicMock()
+        container = MagicMock()
+        container.logs.side_effect = Exception("boom")
+        client.containers.run.return_value = container
+
+        proxy = start_network_proxy(client, ["api.openai.com"])
+
+        self.assertEqual(proxy.blocked_hostname_counts(), {})
+
     def test_write_access_log_persists_request_counts_per_host_next_to_output(self):
         client = MagicMock()
         client.images.get.return_value = MagicMock()
@@ -151,6 +178,7 @@ class TestNetworkProxy(unittest.TestCase):
             b'CONNECT [1]: Established connection to host "example.com" using file descriptor 5.\n'
             b'CONNECT [1]: Established connection to host "example.com" using file descriptor 5.\n'
             b'CONNECT [1]: Established connection to host "api.openai.com" using file descriptor 6.\n'
+            b'NOTICE [1]: Proxying refused on filtered domain "denied.example.com"\n'
         )
         client.containers.run.return_value = container
 
@@ -162,7 +190,10 @@ class TestNetworkProxy(unittest.TestCase):
             proxy = start_network_proxy(client, ["example.com", "api.openai.com"], access_log_file=access_log_file)
             proxy.write_access_log()
 
-            self.assertEqual(access_log_file.read_text(), "api.openai.com\t1\nexample.com\t2\n")
+            self.assertEqual(
+                access_log_file.read_text(),
+                "api.openai.com\tALLOW\t1\nexample.com\tALLOW\t2\ndenied.example.com\tBLOCK\t1\n",
+            )
 
     def test_stop_writes_access_log_before_removing_the_container(self):
         client = MagicMock()
@@ -179,7 +210,7 @@ class TestNetworkProxy(unittest.TestCase):
             proxy = start_network_proxy(client, ["example.com"], access_log_file=access_log_file)
             proxy.stop()
 
-            self.assertEqual(access_log_file.read_text(), "example.com\t1\n")
+            self.assertEqual(access_log_file.read_text(), "example.com\tALLOW\t1\n")
             container.remove.assert_called_once_with(force=True)
 
     def test_write_access_log_does_nothing_without_a_configured_path(self):
