@@ -6,8 +6,8 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import Mock, call, patch
 
-from tira.local_execution_integration import LocalExecutionIntegration
 from tira.check_format import _fmt
+from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class TestLocalExecutionIntegration(unittest.TestCase):
