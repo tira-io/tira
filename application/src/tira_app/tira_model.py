@@ -720,6 +720,7 @@ def create_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    task_export_metadata: "Any" = None,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -743,6 +744,7 @@ def create_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        task_export_metadata,
     )
 
 
@@ -895,6 +897,7 @@ def edit_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    task_export_metadata: "Any" = None,
 ):
     """Update the task's data"""
 
@@ -924,6 +927,7 @@ def edit_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        task_export_metadata,
     )
 
 
