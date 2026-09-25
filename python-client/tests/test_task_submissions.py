@@ -52,6 +52,75 @@ class TestTaskSubmissions(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "does not exist"):
             client._resolve_baseline_source(RESOURCE_DIR, "missing-baseline")
 
+    def test_evaluator_image_is_returned_unchanged_for_plain_docker_reference(self):
+        client = TiraClient()
+        client.build_docker_image_from_code = MagicMock()
+
+        actual = client._resolve_evaluator_image(RESOURCE_DIR, {}, "ghcr.io/example/evaluator:latest", MagicMock())
+
+        self.assertEqual("ghcr.io/example/evaluator:latest", actual)
+        client.build_docker_image_from_code.assert_not_called()
+
+    def test_evaluator_image_is_built_from_local_directory(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / "datasets" / "example"
+            evaluator_dir = dataset_path / "evaluator"
+            dataset_path.mkdir(parents=True)
+            evaluator_dir.mkdir()
+
+            client = TiraClient()
+            client.build_docker_image_from_code = MagicMock(
+                return_value=("evaluator-docker-tag", None, None, None, None)
+            )
+
+            actual = client._resolve_evaluator_image(dataset_path, {}, "evaluator", MagicMock())
+
+            self.assertEqual("evaluator-docker-tag", actual)
+            client.build_docker_image_from_code.assert_called_once_with(
+                evaluator_dir.resolve(), unittest.mock.ANY, False, docker_file=None
+            )
+
+    def test_evaluator_image_is_built_with_configured_dockerfile(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / "datasets" / "example"
+            evaluator_dir = dataset_path / "evaluator"
+            dataset_path.mkdir(parents=True)
+            evaluator_dir.mkdir()
+
+            client = TiraClient()
+            client.build_docker_image_from_code = MagicMock(
+                return_value=("evaluator-docker-tag", None, None, None, None)
+            )
+
+            client._resolve_evaluator_image(dataset_path, {"file": "Dockerfile.eval"}, "evaluator", MagicMock())
+
+            client.build_docker_image_from_code.assert_called_once_with(
+                evaluator_dir.resolve(),
+                unittest.mock.ANY,
+                False,
+                docker_file=evaluator_dir.resolve() / "Dockerfile.eval",
+            )
+
+    @patch.object(TiraClient, "clone_git_repository")
+    def test_evaluator_image_is_built_from_git_repository(self, clone_git_repository):
+        clone_git_repository.return_value = Path("/tmp/cloned-repository")
+        client = TiraClient()
+        client.build_docker_image_from_code = MagicMock(
+            return_value=("evaluator-docker-tag", None, None, None, None)
+        )
+
+        actual = client._resolve_evaluator_image(
+            RESOURCE_DIR,
+            {},
+            "https://github.com/example/task/tree/main/evaluator",
+            MagicMock(),
+        )
+
+        self.assertEqual("evaluator-docker-tag", actual)
+        client.build_docker_image_from_code.assert_called_once_with(
+            Path("/tmp/cloned-repository/evaluator"), unittest.mock.ANY, False, docker_file=None
+        )
+
     def test_fails_for_non_existing_directory(self):
         actual = submit_task(RESOURCE_DIR / "does-not-exist")
         self.assertIsNone(actual)

@@ -394,6 +394,43 @@ class TiraClient(ABC):
 
         return baseline_path, baseline_path, None
 
+    def _resolve_evaluator_image(
+        self, dataset_path: Path, evaluator_config: dict, image: str, print_message
+    ) -> str:
+        """If `image` refers to a local directory (or a Git '/tree/main/' link, using the same
+        convention as the baseline's `link`), the evaluator is always built into a Docker image from
+        that code using the existing baseline build methodology (`_resolve_baseline_source` and
+        `build_docker_image_from_code`), and the resulting docker tag is returned. Otherwise, `image`
+        is assumed to already be a pullable Docker image reference and is returned unchanged.
+        """
+        normalized_image = image.replace("/tree/master/", "/tree/main/")
+        is_git_link = "/tree/main/" in normalized_image
+        looks_like_local_directory = (
+            not is_git_link
+            and "://" not in image
+            and not Path(image).is_absolute()
+            and (dataset_path / image).is_dir()
+        )
+
+        if not is_git_link and not looks_like_local_directory:
+            return image
+
+        evaluator_path, docker_file_root, git_url = self._resolve_baseline_source(dataset_path, image)
+        if git_url is not None:
+            print_message(f"Repository for the evaluator is cloned from {git_url}.", _fmt.OK)
+        else:
+            print_message(f"The evaluator is loaded from {evaluator_path}.", _fmt.OK)
+
+        docker_file = None
+        if "file" in evaluator_config:
+            docker_file = docker_file_root / Path(evaluator_config["file"])
+
+        docker_tag, _, _, _, _ = self.build_docker_image_from_code(
+            evaluator_path, print_message, False, docker_file=docker_file
+        )
+        print_message(f"The evaluator {evaluator_path} is embedded in a Docker image.", _fmt.OK)
+        return docker_tag
+
     def build_docker_image_from_code(
         self,
         path: Path,
@@ -1039,6 +1076,11 @@ class TiraClient(ABC):
         print_message("The truth data is valid.", _fmt.OK)
 
         if not skip_baseline:
+            if eval_image is not None:
+                eval_image = self._resolve_evaluator_image(
+                    path, tira_configs["evaluator"], eval_image, print_message
+                )
+
             baseline_path, docker_file_root, git_url = self._resolve_baseline_source(
                 path, tira_configs["baseline"]["link"]
             )
