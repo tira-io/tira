@@ -1,7 +1,10 @@
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import yaml
 
 from tira.check_format import _fmt
 from tira.tira_client import TiraClient
@@ -70,7 +73,7 @@ class TestTaskSubmissions(unittest.TestCase):
 
             client = TiraClient()
             client.build_docker_image_from_code = MagicMock(
-                return_value=("evaluator-docker-tag", None, None, None, None)
+                return_value=("evaluator-docker-tag", None, None, None, None, None)
             )
 
             actual = client._resolve_evaluator_image(dataset_path, {}, "evaluator", MagicMock())
@@ -89,7 +92,7 @@ class TestTaskSubmissions(unittest.TestCase):
 
             client = TiraClient()
             client.build_docker_image_from_code = MagicMock(
-                return_value=("evaluator-docker-tag", None, None, None, None)
+                return_value=("evaluator-docker-tag", None, None, None, None, None)
             )
 
             client._resolve_evaluator_image(dataset_path, {"file": "Dockerfile.eval"}, "evaluator", MagicMock())
@@ -106,7 +109,7 @@ class TestTaskSubmissions(unittest.TestCase):
         clone_git_repository.return_value = Path("/tmp/cloned-repository")
         client = TiraClient()
         client.build_docker_image_from_code = MagicMock(
-            return_value=("evaluator-docker-tag", None, None, None, None)
+            return_value=("evaluator-docker-tag", None, None, None, None, None)
         )
 
         actual = client._resolve_evaluator_image(
@@ -172,3 +175,127 @@ class TestTaskSubmissions(unittest.TestCase):
 
         self.assertIsNotNone(actual)
         self.assertEqual("predictions.jsonl", post_mock.call_args_list[0].kwargs["json"]["upload_name"])
+
+
+def _submit_code_with_mocks(tmp_upload_dir, skip_code_upload=False, directory_in_path="some-directory", **submit_code_kwargs):
+    """Runs TiraClient.submit_code with all of its network/docker/git dependencies mocked out, so that only
+    the pure bookkeeping logic (e.g., what gets written/uploaded) is exercised."""
+    client = TiraClient()
+
+    zipped_code = Path(tmp_upload_dir) / "zipped-source-code.zip"
+    with zipfile.ZipFile(zipped_code, "w") as zf:
+        zf.writestr("Dockerfile", "FROM bash\n")
+
+    client.build_docker_image_from_code = MagicMock(
+        return_value=("some-docker-tag", zipped_code, {"origin": "foo"}, "commit-1", "main", directory_in_path)
+    )
+    client.datasets = MagicMock()
+    client.get_dataset = MagicMock(
+        return_value={
+            "mirrors": {"inputs": "some-mirror"},
+            "format": ["jsonl"],
+            "format_configuration": None,
+        }
+    )
+    client.download_dataset = MagicMock(return_value=Path(tmp_upload_dir) / "dataset-input")
+    client.local_execution = MagicMock()
+    client.local_execution.extract_entrypoint.return_value = "some-command"
+    client.upload_run_anonymous = MagicMock(return_value={"uuid": "some-uuid"})
+    client.add_docker_software = MagicMock(return_value={"display_name": "some-software"})
+
+    with patch("tira.tira_run.guess_vm_id_of_user", return_value="team-1"), patch(
+        "tira.io_utils.verify_images_can_be_build_and_pushed", return_value=(_fmt.OK, "ok")
+    ), patch("tira.io_utils.verify_images_are_in_correct_format", return_value=(_fmt.OK, "ok")), patch(
+        "tira.io_utils.resolve_mount_directory", return_value=None
+    ), patch(
+        "tira.third_party_integrations.temporary_directory", return_value=Path(tmp_upload_dir) / "output"
+    ), patch(
+        "tira.tira_client.check_format", return_value=(_fmt.OK, "ok")
+    ), patch(
+        "tira.tira_run.push_image", return_value="pushed-image-tag"
+    ), patch(
+        "tira.io_utils.huggingface_model_mounts", return_value={}
+    ):
+        (Path(tmp_upload_dir) / "output").mkdir()
+        client.submit_code(
+            Path(tmp_upload_dir),
+            "task",
+            dataset_id="dataset",
+            dry_run=False,
+            skip_code_upload=skip_code_upload,
+            **submit_code_kwargs,
+        )
+
+    return client
+
+
+class TestSkipCodeUpload(unittest.TestCase):
+    def test_source_code_zip_is_uploaded_by_default(self):
+        with tempfile.TemporaryDirectory() as tmp_upload_dir:
+            client = _submit_code_with_mocks(tmp_upload_dir, skip_code_upload=False)
+
+            client.upload_run_anonymous.assert_called_once()
+            uploaded_dir = client.upload_run_anonymous.call_args[0][0]
+            self.assertTrue((Path(uploaded_dir) / "source-code.zip").exists())
+
+    def test_source_code_zip_is_omitted_when_skip_code_upload_is_set(self):
+        with tempfile.TemporaryDirectory() as tmp_upload_dir:
+            client = _submit_code_with_mocks(tmp_upload_dir, skip_code_upload=True)
+
+            client.upload_run_anonymous.assert_called_once()
+            uploaded_dir = client.upload_run_anonymous.call_args[0][0]
+            self.assertFalse((Path(uploaded_dir) / "source-code.zip").exists())
+            self.assertTrue((Path(uploaded_dir) / "submission-metadata.yml").exists())
+
+
+class TestSubmissionMetadataYmlContent(unittest.TestCase):
+    """Tests that the submission-metadata.yml written by submit_code (see tira_client.py) contains all the
+    metadata that is also uploaded to the server, so that a submission's exact source code, command, and
+    context can be reconstructed later (e.g., via 'tira-cli run local --compile-from-code')."""
+
+    def test_submission_metadata_yml_contains_all_expected_fields(self):
+        with tempfile.TemporaryDirectory() as tmp_upload_dir:
+            client = _submit_code_with_mocks(
+                tmp_upload_dir,
+                skip_code_upload=False,
+                command="some-command",
+                user_id="team-1",
+                mount_hf_model=["some-model"],
+                forward_environment_variable=["OPENAI_API_KEY"],
+                tira_cli_command="tira-cli code-submission --path some/path --task task",
+            )
+
+            uploaded_dir = client.upload_run_anonymous.call_args[0][0]
+            with open(Path(uploaded_dir) / "submission-metadata.yml") as f:
+                submission_metadata = yaml.safe_load(f)
+
+        self.assertEqual(
+            {
+                "tira_cli_command": "tira-cli code-submission --path some/path --task task",
+                "task_id": "task",
+                "user_id": "team-1",
+                "dataset_id": "dataset",
+                "command": "some-command",
+                "source_code_remotes": {"origin": "foo"},
+                "source_code_commit": "commit-1",
+                "source_code_active_branch": "main",
+                "source_code_directory": "some-directory",
+                "mount_hf_model": ["some-model"],
+                "workflow_configuration": None,
+                "forward_environment_variable": ["OPENAI_API_KEY"],
+                "cache_behaviour": None,
+                "mount_config": None,
+            },
+            submission_metadata,
+        )
+
+    def test_submission_metadata_yml_reflects_repository_root_submission(self):
+        with tempfile.TemporaryDirectory() as tmp_upload_dir:
+            client = _submit_code_with_mocks(tmp_upload_dir, directory_in_path="")
+
+            uploaded_dir = client.upload_run_anonymous.call_args[0][0]
+            with open(Path(uploaded_dir) / "submission-metadata.yml") as f:
+                submission_metadata = yaml.safe_load(f)
+
+        self.assertEqual("", submission_metadata["source_code_directory"])
+

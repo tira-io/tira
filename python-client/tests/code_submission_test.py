@@ -44,3 +44,44 @@ class CodeSubmissionTest(unittest.TestCase):
         self.assertTrue(actual["image"].startswith("some-directory"))
 
         self.assertEqual(files_in_zip, expected_code_files)
+
+    def test_code_submission_zip_contains_tracked_files_when_submitting_from_repository_root(self):
+        """When the submission path is the git repository root itself (i.e., not a subdirectory of the
+        repository), the produced source-code.zip must still contain all git-tracked files.
+
+        This used to be a bug: `directory_in_path` was (incorrectly) computed as the repository's own
+        directory name instead of the empty string, so no tracked file matched the
+        `startswith(f"{directory}/")` filter used in `TiraClient._zip_tracked_files`, and the zip ended
+        up empty.
+        """
+        import git
+
+        tira = Client(tira_cache_dir="./tests/resources/local_cached_zip")
+
+        with tempfile.TemporaryDirectory() as tmp_file:
+            repo_dir = Path(tmp_file) / "repo-at-root"
+            repo_dir.mkdir()
+            (repo_dir / "Dockerfile").write_text('FROM bash\n\nADD script.sh /script.sh\n\nENTRYPOINT [ "./script.sh" ]\n')
+            (repo_dir / "script.sh").write_text(
+                "#!/usr/bin/env bash\n"
+                'echo \'{"id": "foo-1", "text": "a"}\' > ${TIRA_OUTPUT_DIR}/preds.jsonl\n'
+                'echo \'{"id": "foo-2", "text": "a"}\' >> ${TIRA_OUTPUT_DIR}/preds.jsonl\n'
+                'echo \'{"id": "foo-3", "text": "a"}\' >> ${TIRA_OUTPUT_DIR}/preds.jsonl\n'
+                'echo \'{"id": "foo-4", "text": "a"}\' >> ${TIRA_OUTPUT_DIR}/preds.jsonl\n'
+            )
+            os.chmod(str(repo_dir / "script.sh"), 0o0766)
+
+            repo = git.Repo.init(repo_dir, initial_branch="main")
+            repo.create_remote("origin", "foo")
+            repo.git.add(A=True)
+            repo.index.commit("init")
+
+            actual = tira.submit_code(repo_dir, "task-does-not-exist", dry_run=True)
+
+        zipObj = ZipFile(actual["code"])
+        files_in_zip = [i.filename for i in zipObj.infolist()]
+
+        self.assertEqual(sorted(files_in_zip), ["Dockerfile", "script.sh"])
+        self.assertEqual({"origin": "foo"}, actual["remotes"])
+        self.assertEqual("main", actual["active_branch"])
+
