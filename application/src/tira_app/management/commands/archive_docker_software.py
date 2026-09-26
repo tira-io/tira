@@ -40,7 +40,6 @@ class Command(BaseCommand):
         print(software)
         if software.tira_image_name.startswith("ghcr.io/"):
             software.public_image_name = software.tira_image_name
-            image_metadata = docker_image_details(software.tira_image_name)
             # for ghcr images we do not get their sizes...
             software.public_image_size = -1
             software.save()

@@ -119,6 +119,54 @@ def normalize_submission_tabs(submission_tabs: Any) -> "Optional[List[str]]":
     return normalized_tabs or None
 
 
+def normalize_allowed_hostnames(allowed_hostnames: Any) -> "Optional[List[str]]":
+    if allowed_hostnames in (None, ""):
+        return None
+
+    if isinstance(allowed_hostnames, str):
+        try:
+            allowed_hostnames = json.loads(allowed_hostnames)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(allowed_hostnames, list):
+        return None
+
+    normalized_hostnames = []
+    for hostname in allowed_hostnames:
+        if not isinstance(hostname, str):
+            return None
+
+        normalized_hostname = hostname.strip()
+        if not normalized_hostname:
+            return None
+
+        normalized_hostnames.append(normalized_hostname)
+
+    return normalized_hostnames or None
+
+
+def normalize_task_export_metadata(task_export_metadata: Any) -> "Any":
+    """Normalize task_export_metadata. The only requirement is that it is valid JSON (any JSON type is
+    accepted, e.g. object, array, string, number, boolean). Everything else about its structure is flexible.
+    Returns the parsed value, or None if the input is empty or not valid JSON."""
+    if task_export_metadata in (None, ""):
+        return None
+
+    if isinstance(task_export_metadata, str):
+        try:
+            return json.loads(task_export_metadata)
+        except json.JSONDecodeError:
+            return None
+
+    try:
+        json.dumps(task_export_metadata)
+    except (TypeError, ValueError):
+        return None
+
+    return task_export_metadata
+
+
 def normalize_upload_metadata(upload_metadata: Any) -> "Optional[Dict[str, str]]":
     if upload_metadata in (None, ""):
         return None
@@ -243,12 +291,20 @@ class Task(models.Model):
     submission_tabs = models.TextField(default=None, null=True)
     upload_form_fields = models.TextField(default=None, null=True)
     hide_upload_via_cli = models.BooleanField(default=False)
+    allowed_hostnames = models.TextField(default=None, null=True)
+    task_export_metadata = models.TextField(default=None, null=True)
 
     def get_submission_tabs(self) -> "Optional[List[str]]":
         return normalize_submission_tabs(self.submission_tabs)
 
     def get_upload_form_fields(self) -> "Optional[List[Dict[str, Any]]]":
         return normalize_upload_form_fields(self.upload_form_fields)
+
+    def get_allowed_hostnames(self) -> "Optional[List[str]]":
+        return normalize_allowed_hostnames(self.allowed_hostnames)
+
+    def get_task_export_metadata(self) -> "Any":
+        return normalize_task_export_metadata(self.task_export_metadata)
 
 
 class AllowedServer(models.Model):

@@ -9,7 +9,7 @@ import uuid
 import zipfile
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Mapping, Optional
+from typing import Any, List, Mapping, Optional
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -27,10 +27,11 @@ from django.views.decorators.csrf import csrf_exempt
 from markdown import markdown
 from rest_framework.decorators import authentication_classes, permission_classes
 from tira.check_format import _fmt, check_format
-from tira.io_utils import requires_mount_workflow, sanitize_text
+from tira.io_utils import hostnames_required_for_network_access, requires_mount_workflow, sanitize_text
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
+from ..authentication import auth
 from ..checks import (
     check_conditional_permissions,
     check_permissions,
@@ -92,6 +93,21 @@ def _sanitize_build_environment(build_environment: Any) -> "Optional[dict[str, s
     return sanitized
 
 
+def _disallowed_hostnames(
+    required_hostnames: "Optional[List[str]]", allowed_hostnames: "Optional[List[str]]"
+) -> "List[str]":
+    """Return the required hostnames that are not present in the task's allow-list.
+
+    If no hostnames are required, the check always passes (empty list is returned). If hostnames are required but
+    no allow-list is configured for the task (None or empty), all required hostnames are considered disallowed.
+    """
+    if not required_hostnames:
+        return []
+
+    allowed = set(allowed_hostnames or [])
+    return [hostname for hostname in required_hostnames if hostname not in allowed]
+
+
 def _sanitize_upload_metadata(upload_metadata: Any) -> "Optional[dict[str, str]]":
     normalized_upload_metadata = normalize_upload_metadata(upload_metadata)
     if normalized_upload_metadata is None:
@@ -122,7 +138,11 @@ def _upload_display_name_from_metadata(upload_metadata: "Optional[dict[str, str]
 @add_context
 @check_permissions
 def docker_software_details(request: "HttpRequest", context, vm_id: str, docker_software_id: str) -> HttpResponse:
-    context["docker_software_details"] = model.get_docker_software(int(docker_software_id))
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    is_admin = role in (auth.ROLE_ADMIN, auth.ROLE_TIRA)
+    context["docker_software_details"] = model.get_docker_software(
+        int(docker_software_id), include_try_run_metadata=is_admin
+    )
 
     if "mount_hf_model" in context["docker_software_details"] and context["docker_software_details"]["mount_hf_model"]:
         mount_hf_model = []
@@ -1220,6 +1240,27 @@ def run_execute_docker_software(
         for k in required_env_vars:
             if k not in env_to_forward:
                 return JsonResponse({"status": 1, "message": f"Environment variable is required: {k}."})
+
+    if env_to_forward:
+        required_hostnames = hostnames_required_for_network_access(env_to_forward)
+        task = model.get_task(task_id)
+        allowed_hostnames = task.get("allowed_hostnames") if task else None
+        disallowed_hostnames = _disallowed_hostnames(required_hostnames, allowed_hostnames)
+        if disallowed_hostnames:
+            logger.warning(
+                "Refusing to run software for task %s: network access to %s is not in the task's allow-list.",
+                task_id,
+                disallowed_hostnames,
+            )
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": (
+                        "The forwarded environment variables require network access that is not permitted for"
+                        " this task. Please contact the task organizers."
+                    ),
+                }
+            )
 
     dynamic_mounts = None
     required_mount_config = docker_software["mount_config"]

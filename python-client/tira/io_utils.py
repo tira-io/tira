@@ -932,11 +932,21 @@ def all_environment_variables_for_github_action_or_fail(params):
 # Groups of environment variables that, when all present, indicate that the software/evaluator
 # needs network access to reach an external service (e.g., an LLM API). To allow network access
 # for another external service, add a new group of the environment variables that are required to
-# access that service.
+# access that service, and, if the service's hostname/URL can be read from one of the variables of the
+# group, add an entry to NETWORK_ACCESS_HOSTNAME_VARIABLE_BY_GROUP so that network access can be
+# restricted to only that hostname (instead of granting unrestricted network access).
 NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS = [
     {"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"},
     {"ORBIT_API_BASE"},
 ]
+
+# Maps a group of environment variables (as a frozenset, so it can be used as a dict key) to the
+# environment variable of that group that holds the hostname or URL of the external service that must
+# be reachable for the group to work.
+NETWORK_ACCESS_HOSTNAME_VARIABLE_BY_GROUP = {
+    frozenset({"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"}): "OPENAI_BASE_URL",
+    frozenset({"ORBIT_API_BASE"}): "ORBIT_API_BASE",
+}
 
 
 def environment_variables_require_network_access(environment):
@@ -948,6 +958,30 @@ def environment_variables_require_network_access(environment):
             return True
 
     return False
+
+
+def hostnames_required_for_network_access(environment) -> "List[str]":
+    """Returns the hostnames that must be reachable so that the external services configured via the
+    passed environment (a dict) can be used, e.g., to grant network access to only those hostnames
+    instead of unrestricted network access. Groups without a known hostname-holding variable (i.e.,
+    without an entry in NETWORK_ACCESS_HOSTNAME_VARIABLE_BY_GROUP) are ignored."""
+    from urllib.parse import urlparse
+
+    hostnames = []
+    for required_variables in NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS:
+        if not all(k in environment for k in required_variables):
+            continue
+
+        hostname_variable = NETWORK_ACCESS_HOSTNAME_VARIABLE_BY_GROUP.get(frozenset(required_variables))
+        if not hostname_variable:
+            continue
+
+        value = environment[hostname_variable]
+        hostname = urlparse(value).hostname or value
+        if hostname and hostname not in hostnames:
+            hostnames.append(hostname)
+
+    return hostnames
 
 
 def environment_variables_to_forward(required_variables=None):

@@ -121,6 +121,20 @@
                     persistent-hint
                     :rules="[validateSubmissionTabsJson]"
                   />
+                  <v-textarea
+                    v-model="allowed_hostnames_json"
+                    label="Allowed Hostnames for Network Access (JSON)"
+                    :hint="allowed_hostnames_hint"
+                    persistent-hint
+                    :rules="[validateAllowedHostnamesJson]"
+                  />
+                  <v-textarea
+                    v-model="task_export_metadata_json"
+                    label="Task Export Metadata (JSON)"
+                    :hint="task_export_metadata_hint"
+                    persistent-hint
+                    :rules="[validateTaskExportMetadataJson]"
+                  />
 
                   <v-divider />
                   <h2 class="my-1">IR-Datasets integration</h2>
@@ -198,6 +212,12 @@ export default {
     upload_form_fields: null as null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[],
     upload_form_fields_json: '',
     upload_form_fields_hint: 'Optional JSON array of fields, e.g. [{"name":"run_id","display_name":"Run ID","type":"text"},{"name":"track","display_name":"Track","type":"select","options":[{"id":"main","display_value":"Main Track"},{"id":"bio","display_value":"Biomedical Track"}]}]. Select fields require a non-empty options array with id and display_value.',
+    allowed_hostnames: null as null | string[],
+    allowed_hostnames_json: '',
+    allowed_hostnames_hint: 'Optional JSON array of hostnames that submitted software is allowed to access over the network, e.g. ["api.openai.com"]. Leave empty to disallow network access for this task.',
+    task_export_metadata: null as any,
+    task_export_metadata_json: '',
+    task_export_metadata_hint: 'Optional metadata used when exporting this task, e.g. {"key": "value"}. Must be valid JSON, the structure itself is flexible.',
     rest_endpoint: inject("REST base URL") as string
   }),
   computed: {
@@ -211,12 +231,16 @@ export default {
         this.loading = false
         this.submission_tabs_json = this.formatSubmissionTabs(null)
         this.upload_form_fields_json = this.formatUploadFormFields(null)
+        this.allowed_hostnames_json = this.formatAllowedHostnames(null)
+        this.task_export_metadata_json = this.formatTaskExportMetadata(null)
       } else {
         get(this.rest_endpoint + '/api/task/' + this.task_id_for_edit)
           .then(inject_response(this, { 'loading': false }, true, 'task'))
           .then(() => {
             this.submission_tabs_json = this.formatSubmissionTabs(this.submission_tabs)
             this.upload_form_fields_json = this.formatUploadFormFields(this.upload_form_fields)
+            this.allowed_hostnames_json = this.formatAllowedHostnames(this.allowed_hostnames)
+            this.task_export_metadata_json = this.formatTaskExportMetadata(this.task_export_metadata)
           })
           .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
       }
@@ -226,6 +250,12 @@ export default {
     },
     formatUploadFormFields: function (uploadFormFields: null | { name: string, display_name: string, type: string, required?: boolean, options?: { id: string, display_value: string }[] }[]) {
       return uploadFormFields && uploadFormFields.length > 0 ? JSON.stringify(uploadFormFields, null, 2) : ''
+    },
+    formatAllowedHostnames: function (allowedHostnames: null | string[]) {
+      return allowedHostnames && allowedHostnames.length > 0 ? JSON.stringify(allowedHostnames, null, 2) : ''
+    },
+    formatTaskExportMetadata: function (taskExportMetadata: any) {
+      return taskExportMetadata !== null && taskExportMetadata !== undefined ? JSON.stringify(taskExportMetadata, null, 2) : ''
     },
     parseSubmissionTabs: function () {
       if (!this.submission_tabs_json.trim()) {
@@ -305,6 +335,47 @@ export default {
       const parsed = this.parseUploadFormFields()
       return parsed !== undefined || 'Please provide a valid JSON array of fields with name, display_name, and type. Select fields must also define non-empty options with id and display_value.'
     },
+    parseAllowedHostnames: function () {
+      if (!this.allowed_hostnames_json.trim()) {
+        return null
+      }
+
+      try {
+        const parsed = JSON.parse(this.allowed_hostnames_json)
+        if (!Array.isArray(parsed)) {
+          return undefined
+        }
+
+        for (const hostname of parsed) {
+          if (typeof hostname !== 'string' || hostname.trim() === '') {
+            return undefined
+          }
+        }
+
+        return parsed.map(hostname => hostname.trim())
+      } catch {
+        return undefined
+      }
+    },
+    validateAllowedHostnamesJson: function () {
+      const parsed = this.parseAllowedHostnames()
+      return parsed !== undefined || 'Please provide a valid JSON array of hostnames, e.g. ["api.openai.com"].'
+    },
+    parseTaskExportMetadata: function () {
+      if (!this.task_export_metadata_json.trim()) {
+        return null
+      }
+
+      try {
+        return { value: JSON.parse(this.task_export_metadata_json) }
+      } catch {
+        return undefined
+      }
+    },
+    validateTaskExportMetadataJson: function () {
+      const parsed = this.parseTaskExportMetadata()
+      return parsed !== undefined || 'Please provide valid JSON, e.g. {"key": "value"}.'
+    },
     validateSubmissionTabsJson: function () {
       const parsed = this.parseSubmissionTabs()
       return parsed !== undefined || `Please provide a valid JSON array of submission tab IDs: ${AVAILABLE_SUBMISSION_TABS.join(', ')}.`
@@ -351,6 +422,8 @@ export default {
       this.submitInProgress = true
       const submissionTabs = this.parseSubmissionTabs()
       const uploadFormFields = this.parseUploadFormFields()
+      const allowedHostnames = this.parseAllowedHostnames()
+      const taskExportMetadata = this.parseTaskExportMetadata()
       if (submissionTabs === undefined) {
         this.submitInProgress = false
         window.alert('Please provide valid submission tab JSON.')
@@ -361,6 +434,20 @@ export default {
       if (uploadFormFields === undefined) {
         this.submitInProgress = false
         window.alert('Please provide valid upload form field JSON.')
+        this.step = 2
+        return
+      }
+
+      if (allowedHostnames === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid allowed hostnames JSON.')
+        this.step = 2
+        return
+      }
+
+      if (taskExportMetadata === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid task export metadata JSON.')
         this.step = 2
         return
       }
@@ -381,6 +468,8 @@ export default {
       const organizer = this.task_id_for_edit === '' ? this.selected_organizer : this.organizer_id
       const submissionTabs = this.parseSubmissionTabs()
       const uploadFormFields = this.parseUploadFormFields()
+      const allowedHostnames = this.parseAllowedHostnames()
+      const taskExportMetadata = this.parseTaskExportMetadata()
 
       return {
         'task_id': task_id, 'name': this.task_name, 'featured': this.featured,
@@ -391,6 +480,8 @@ export default {
         'submission_tabs': submissionTabs === undefined ? null : submissionTabs,
         'upload_form_fields': uploadFormFields === undefined ? null : uploadFormFields,
         'hide_upload_via_cli': this.hide_upload_via_cli,
+        'allowed_hostnames': allowedHostnames === undefined ? null : allowedHostnames,
+        'task_export_metadata': (taskExportMetadata === undefined || taskExportMetadata === null) ? null : taskExportMetadata.value,
       }
     }
   },

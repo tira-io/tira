@@ -45,6 +45,8 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
    organizers/intro
    organizers/local-shared-task
    organizers/organizing-tasks
+   organizers/coding-agent-tasks
+   organizers/hot-phase-routine
    organizers/deployment/index
 
 .. toctree::
