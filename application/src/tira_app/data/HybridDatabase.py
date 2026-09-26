@@ -400,10 +400,11 @@ class HybridDatabase(object):
         else:
             return [self._dataset_to_dict(d.dataset) for d in ret]
 
-    def get_docker_software(self, docker_software_id: int) -> "dict[str, Any]":
+    def get_docker_software(self, docker_software_id: int, include_try_run_metadata: bool = False) -> "dict[str, Any]":
         try:
             return self._docker_software_to_dict(
-                modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+                modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id),
+                include_try_run_metadata=include_try_run_metadata,
             )
         except modeldb.Dataset.DoesNotExist:
             return {}
@@ -676,7 +677,9 @@ class HybridDatabase(object):
         else:
             return ret
 
-    def _docker_software_to_dict(self, ds: modeldb.DockerSoftware) -> "dict[str, Any]":
+    def _docker_software_to_dict(
+        self, ds: modeldb.DockerSoftware, include_try_run_metadata: bool = False
+    ) -> "dict[str, Any]":
         input_docker_software = None
         previous_stages = None
         if ds.input_docker_software:
@@ -739,6 +742,17 @@ class HybridDatabase(object):
                             + ds.source_code_commit
                         )
 
+        try_run_metadata = None
+        if include_try_run_metadata and ds.try_run_metadata:
+            try_run_metadata = {
+                "uuid": ds.try_run_metadata.uuid,
+                "dataset_id": ds.try_run_metadata.dataset.dataset_id,
+                "created": ds.try_run_metadata.created,
+                "has_metadata": ds.try_run_metadata.has_metadata,
+                "metadata_git_repo": ds.try_run_metadata.metadata_git_repo,
+                "metadata_has_notebook": ds.try_run_metadata.metadata_has_notebook,
+            }
+
         return {
             "docker_software_id": ds.docker_software_id,
             "display_name": ds.display_name,
@@ -768,6 +782,7 @@ class HybridDatabase(object):
             "forward_environment_variable": forward_environment_variable,
             "cache_behaviour": ds.cache_behaviour,
             "mount_config": ds.get_mount_config(),
+            "try_run_metadata": try_run_metadata,
         }
 
     @staticmethod

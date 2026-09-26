@@ -31,6 +31,7 @@ from tira.io_utils import hostnames_required_for_network_access, requires_mount_
 from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
+from ..authentication import auth
 from ..checks import (
     check_conditional_permissions,
     check_permissions,
@@ -137,7 +138,11 @@ def _upload_display_name_from_metadata(upload_metadata: "Optional[dict[str, str]
 @add_context
 @check_permissions
 def docker_software_details(request: "HttpRequest", context, vm_id: str, docker_software_id: str) -> HttpResponse:
-    context["docker_software_details"] = model.get_docker_software(int(docker_software_id))
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    is_admin = role in (auth.ROLE_ADMIN, auth.ROLE_TIRA)
+    context["docker_software_details"] = model.get_docker_software(
+        int(docker_software_id), include_try_run_metadata=is_admin
+    )
 
     if "mount_hf_model" in context["docker_software_details"] and context["docker_software_details"]["mount_hf_model"]:
         mount_hf_model = []

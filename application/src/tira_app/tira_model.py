@@ -330,13 +330,13 @@ def run_is_public_and_unblinded(run_id: str) -> bool:
     return False
 
 
-def get_docker_software(docker_software_id: int) -> "dict[str, Any]":
+def get_docker_software(docker_software_id: int, include_try_run_metadata: bool = False) -> "dict[str, Any]":
     """
     Return the docker software as dict with keys:
 
     {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
     """
-    return model.get_docker_software(docker_software_id)
+    return model.get_docker_software(docker_software_id, include_try_run_metadata)
 
 
 def get_all_uploads_for_vm(vm_id: str):
