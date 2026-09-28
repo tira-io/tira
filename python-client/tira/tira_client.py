@@ -490,7 +490,13 @@ class TiraClient(ABC):
         else:
             print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
         print("Build Docker image...")
-        zipped_code = self._zip_tracked_files(repo, directory_in_path)
+        if dry_run:
+            # Packaging the code (i.e., zipping the tracked files) is only needed to upload a private
+            # copy of the submitted source code alongside the submission. Since dry-runs are not
+            # uploaded to TIRA, packaging the code can be skipped to save time.
+            zipped_code = None
+        else:
+            zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
         self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args, platform)
 
@@ -795,7 +801,7 @@ class TiraClient(ABC):
                 " be inspected or rebuilt later on (e.g., via 'tira-cli run local --compile-from-code').",
                 _fmt.WARN,
             )
-        else:
+        elif zipped_code:
             shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
 
         if cache_behaviour and cache_behaviour == "deterministic":

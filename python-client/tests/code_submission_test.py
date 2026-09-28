@@ -31,19 +31,35 @@ class CodeSubmissionTest(unittest.TestCase):
                 zip_ref.extractall(tmp_file)
 
             os.chmod(str(Path(tmp_file) / "git-repo-clean" / "some-directory" / "script.sh"), 0o0766)
-            actual = tira.submit_code(
-                Path(tmp_file) / "git-repo-clean" / "some-directory", "task-does-not-exist", dry_run=True
+            docker_tag, zipped_code, remotes, commit, active_branch, _ = tira.build_docker_image_from_code(
+                Path(tmp_file) / "git-repo-clean" / "some-directory", lambda message, level: None, dry_run=False
             )
 
-        zipObj = ZipFile(actual["code"])
+        zipObj = ZipFile(zipped_code)
         files_in_zip = [i.filename for i in zipObj.infolist()]
 
-        self.assertEqual({"origin": "foo"}, actual["remotes"])
-        self.assertEqual("976c6949b9992aabc785ccb8544652dc3b149fb5", actual["commit"])
-        self.assertEqual("main", actual["active_branch"])
-        self.assertTrue(actual["image"].startswith("some-directory"))
+        self.assertEqual({"origin": "foo"}, remotes)
+        self.assertEqual("976c6949b9992aabc785ccb8544652dc3b149fb5", commit)
+        self.assertEqual("main", active_branch)
+        self.assertTrue(docker_tag.startswith("some-directory"))
 
         self.assertEqual(files_in_zip, expected_code_files)
+
+    def test_code_submission_skips_packaging_the_code_on_dry_run(self):
+        """When --dry-run is active, the code should not be packaged (i.e., zipped), since a dry-run
+        never uploads the code to TIRA and packaging the code is therefore unnecessary overhead."""
+        tira = Client(tira_cache_dir="./tests/resources/local_cached_zip")
+
+        with tempfile.TemporaryDirectory() as tmp_file:
+            with ZipFile(Path("tests") / "resources" / "example-git-repositories.zip", "r") as zip_ref:
+                zip_ref.extractall(tmp_file)
+
+            os.chmod(str(Path(tmp_file) / "git-repo-clean" / "some-directory" / "script.sh"), 0o0766)
+            _, zipped_code, _, _, _, _ = tira.build_docker_image_from_code(
+                Path(tmp_file) / "git-repo-clean" / "some-directory", lambda message, level: None, dry_run=True
+            )
+
+        self.assertIsNone(zipped_code)
 
     def test_code_submission_zip_contains_tracked_files_when_submitting_from_repository_root(self):
         """When the submission path is the git repository root itself (i.e., not a subdirectory of the
@@ -78,11 +94,13 @@ class CodeSubmissionTest(unittest.TestCase):
             repo.git.add(A=True)
             repo.index.commit("init")
 
-            actual = tira.submit_code(repo_dir, "task-does-not-exist", dry_run=True)
+            _, zipped_code, remotes, _, active_branch, _ = tira.build_docker_image_from_code(
+                repo_dir, lambda message, level: None, dry_run=False
+            )
 
-        zipObj = ZipFile(actual["code"])
+        zipObj = ZipFile(zipped_code)
         files_in_zip = [i.filename for i in zipObj.infolist()]
 
         self.assertEqual(sorted(files_in_zip), ["Dockerfile", "script.sh"])
-        self.assertEqual({"origin": "foo"}, actual["remotes"])
-        self.assertEqual("main", actual["active_branch"])
+        self.assertEqual({"origin": "foo"}, remotes)
+        self.assertEqual("main", active_branch)
