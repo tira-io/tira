@@ -156,8 +156,8 @@ class TestReconstructCodeSubmissionCommand(unittest.TestCase):
         )
         self.assertEqual(
             actual,
-            "tira-cli code-submission --path some/path --task some-task --command \"python3 run.py\" "
-            "--dataset my-dataset --build-args \"--output type=docker\" "
+            'tira-cli code-submission --path some/path --task some-task --command "python3 run.py" '
+            '--dataset my-dataset --build-args "--output type=docker" '
             "--external-docker-registry ghcr.io/some/registry --tira-vm-id team-1 --file Dockerfile.gpu "
             "--platform linux/amd64 --cache-behaviour deterministic",
         )

@@ -61,7 +61,9 @@ class CodeSubmissionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_file:
             repo_dir = Path(tmp_file) / "repo-at-root"
             repo_dir.mkdir()
-            (repo_dir / "Dockerfile").write_text('FROM bash\n\nADD script.sh /script.sh\n\nENTRYPOINT [ "./script.sh" ]\n')
+            (repo_dir / "Dockerfile").write_text(
+                'FROM bash\n\nADD script.sh /script.sh\n\nENTRYPOINT [ "./script.sh" ]\n'
+            )
             (repo_dir / "script.sh").write_text(
                 "#!/usr/bin/env bash\n"
                 'echo \'{"id": "foo-1", "text": "a"}\' > ${TIRA_OUTPUT_DIR}/preds.jsonl\n'
@@ -84,4 +86,3 @@ class CodeSubmissionTest(unittest.TestCase):
         self.assertEqual(sorted(files_in_zip), ["Dockerfile", "script.sh"])
         self.assertEqual({"origin": "foo"}, actual["remotes"])
         self.assertEqual("main", actual["active_branch"])
-

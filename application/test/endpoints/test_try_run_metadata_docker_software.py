@@ -89,9 +89,7 @@ class TestTryRunMetadataOnDockerSoftware(TestCase):
             HTTP_X_DISRAPTOR_USER="some-participant-user",
             HTTP_X_DISRAPTOR_GROUPS=groups,
         )
-        return docker_software_details(
-            request, vm_id=PARTICIPANT, docker_software_id=str(docker_software_id)
-        )
+        return docker_software_details(request, vm_id=PARTICIPANT, docker_software_id=str(docker_software_id))
 
     def test_admin_sees_try_run_metadata_in_endpoint_response(self):
         response = self._request(self.software_with_try_run_metadata.docker_software_id, groups="admins")

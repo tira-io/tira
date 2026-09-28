@@ -197,9 +197,7 @@ class TiraClient(ABC):
         """
         # TODO: Replace with call to tirex_tracker.
         tracked_files = [
-            i.path
-            for i in repo.commit().tree.traverse()
-            if not directory or i.path.startswith(f"{directory}/")
+            i.path for i in repo.commit().tree.traverse() if not directory or i.path.startswith(f"{directory}/")
         ]
         zip_path = Path(tempfile.TemporaryDirectory().name) / "repo.zip"
         zip_path.parent.mkdir(exist_ok=True, parents=True)
@@ -398,9 +396,7 @@ class TiraClient(ABC):
 
         return baseline_path, baseline_path, None
 
-    def _resolve_evaluator_image(
-        self, dataset_path: Path, evaluator_config: dict, image: str, print_message
-    ) -> str:
+    def _resolve_evaluator_image(self, dataset_path: Path, evaluator_config: dict, image: str, print_message) -> str:
         """If `image` refers to a local directory (or a Git '/tree/main/' link, using the same
         convention as the baseline's `link`), the evaluator is always built into a Docker image from
         that code using the existing baseline build methodology (`_resolve_baseline_source` and
@@ -410,10 +406,7 @@ class TiraClient(ABC):
         normalized_image = image.replace("/tree/master/", "/tree/main/")
         is_git_link = "/tree/main/" in normalized_image
         looks_like_local_directory = (
-            not is_git_link
-            and "://" not in image
-            and not Path(image).is_absolute()
-            and (dataset_path / image).is_dir()
+            not is_git_link and "://" not in image and not Path(image).is_absolute() and (dataset_path / image).is_dir()
         )
 
         if not is_git_link and not looks_like_local_directory:
@@ -1187,9 +1180,7 @@ class TiraClient(ABC):
 
         if not skip_baseline:
             if eval_image is not None:
-                eval_image = self._resolve_evaluator_image(
-                    path, tira_configs["evaluator"], eval_image, print_message
-                )
+                eval_image = self._resolve_evaluator_image(path, tira_configs["evaluator"], eval_image, print_message)
 
             baseline_path, docker_file_root, git_url = self._resolve_baseline_source(
                 path, tira_configs["baseline"]["link"]

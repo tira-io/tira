@@ -177,7 +177,9 @@ class TestTaskSubmissions(unittest.TestCase):
         self.assertEqual("predictions.jsonl", post_mock.call_args_list[0].kwargs["json"]["upload_name"])
 
 
-def _submit_code_with_mocks(tmp_upload_dir, skip_code_upload=False, directory_in_path="some-directory", **submit_code_kwargs):
+def _submit_code_with_mocks(
+    tmp_upload_dir, skip_code_upload=False, directory_in_path="some-directory", **submit_code_kwargs
+):
     """Runs TiraClient.submit_code with all of its network/docker/git dependencies mocked out, so that only
     the pure bookkeeping logic (e.g., what gets written/uploaded) is exercised."""
     client = TiraClient()
@@ -298,4 +300,3 @@ class TestSubmissionMetadataYmlContent(unittest.TestCase):
                 submission_metadata = yaml.safe_load(f)
 
         self.assertEqual("", submission_metadata["source_code_directory"])
-
