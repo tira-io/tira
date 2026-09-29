@@ -253,8 +253,19 @@ class TiraClient(ABC):
             print(msg)
             raise ValueError(msg)
 
-    def evaluate(self, predictions: Path, truths: Path, dataset: str = None) -> None:
-        """TBD"""
+    def evaluate(
+        self, predictions: Path, truths: Path, dataset: str = None, output_dir: "Optional[Path]" = None
+    ) -> None:
+        """TBD
+
+        Args:
+            predictions (Path): The directory that contains the predictions to be evaluated.
+            truths (Path): The directory that contains the ground truth to evaluate the predictions against. If
+                falsy, the ground truth is downloaded automatically based on the resolved dataset configuration.
+            dataset (str, optional): The identifier of the TIRA dataset to evaluate against.
+            output_dir (Optional[Path], optional): The directory in which the evaluation results are stored. If
+                not passed, a temporary directory is created and used instead.
+        """
         eval_config = self.get_dataset(dataset)
         if not truths:
             if "task_id" in eval_config:
@@ -277,13 +288,15 @@ class TiraClient(ABC):
             pass
 
         if use_unsandboxed_evaluator:
-            return evaluate(Path(predictions), Path(truths), eval_config)
+            return evaluate(Path(predictions), Path(truths), eval_config, output_dir)
         else:
-            from tira.third_party_integrations import temporary_directory
+            if output_dir is None:
+                from tira.third_party_integrations import temporary_directory
 
-            ret = temporary_directory()
-            self.evaluate_sandboxed(Path(predictions), dataset, ret)
-            return ret
+                output_dir = temporary_directory()
+
+            self.evaluate_sandboxed(Path(predictions), dataset, output_dir)
+            return output_dir
 
     def evaluate_sandboxed(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
         """Evaluate some predictions made for some dataset on your local machine.
