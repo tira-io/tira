@@ -247,6 +247,92 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         self.assertEqual({}, integration.running_docker_images)
         self.assertEqual({"unknown-software-id": os.path.abspath(output_dir)}, actual)
 
+    def test_run_translates_volume_sources_via_tira_docker_tmpdir(self):
+        integration = LocalExecutionIntegration()
+
+        container = Mock()
+        container.id = "container-1"
+        container.attach = lambda **_kwargs: iter([b""])
+        container.wait = lambda: {"StatusCode": 0}
+
+        client = Mock()
+        client.containers.run.return_value = container
+
+        with tempfile.TemporaryDirectory() as input_dir, tempfile.TemporaryDirectory() as output_dir:
+            with (
+                patch(
+                    "tira.local_execution_integration.environment_variables_to_forward",
+                    return_value={},
+                ),
+                patch.dict(os.environ, {"TIRA_DOCKER_TMPDIR": "/host-tmp"}),
+                patch("tira.local_execution_integration.tempfile.gettempdir", return_value=tempfile.gettempdir()),
+            ):
+                integration.ensure_image_available_locally = Mock()
+                integration.tirex_tracker_available_in_docker_image = Mock(return_value=False)
+                integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+
+                integration.run(
+                    image="test-image",
+                    command="echo hello",
+                    input_dir=input_dir,
+                    output_dir=output_dir,
+                )
+
+        actual_volumes = client.containers.run.call_args.kwargs["volumes"]
+        real_tmp_dir = tempfile.gettempdir()
+        expected_input = "/host-tmp" + input_dir[len(real_tmp_dir) :]
+        expected_output = "/host-tmp" + output_dir[len(real_tmp_dir) :]
+
+        self.assertIn(expected_input, actual_volumes)
+        self.assertIn(expected_output, actual_volumes)
+        self.assertNotIn(input_dir, actual_volumes)
+        self.assertNotIn(output_dir, actual_volumes)
+
+    def test_evaluate_translates_volume_sources_via_tira_docker_tmpdir(self):
+        integration = LocalExecutionIntegration()
+        client = Mock()
+        container = Mock()
+        container.attach.return_value = []
+        client.containers.run.return_value = container
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            eval_dir = root / "evaluation"
+            output_dir = root / "run"
+            truths_dir = root / "truths"
+            eval_dir.mkdir()
+            output_dir.mkdir()
+            truths_dir.mkdir()
+
+            with (
+                patch.dict(os.environ, {"TIRA_DOCKER_TMPDIR": "/host-tmp"}),
+                patch("tira.local_execution_integration.tempfile.gettempdir", return_value=str(root)),
+            ):
+                integration.evaluate(
+                    eval_dir,
+                    output_dir,
+                    allow_network=False,
+                    evaluate={
+                        "evaluator_id": "evaluator",
+                        "evaluator_git_runner_image": "evaluator-image",
+                        "evaluator_git_runner_command": "evaluate",
+                        "truth_directory": str(truths_dir),
+                    },
+                    client=client,
+                )
+
+        actual_volumes = client.containers.run.call_args.kwargs["volumes"]
+        expected_eval_dir = "/host-tmp" + str(eval_dir)[len(str(root)) :]
+        expected_output_dir = "/host-tmp" + str(output_dir)[len(str(root)) :]
+        expected_truths_dir = "/host-tmp" + str(truths_dir)[len(str(root)) :]
+
+        self.assertIn(expected_eval_dir, actual_volumes)
+        self.assertIn(expected_output_dir, actual_volumes)
+        self.assertIn(expected_truths_dir, actual_volumes)
+        self.assertNotIn(str(eval_dir), actual_volumes)
+        self.assertNotIn(str(output_dir), actual_volumes)
+        self.assertNotIn(str(truths_dir), actual_volumes)
+
     def test_stop_run_kills_tracked_container(self):
         integration = LocalExecutionIntegration()
         container = Mock()

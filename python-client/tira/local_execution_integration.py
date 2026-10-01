@@ -29,6 +29,71 @@ if TYPE_CHECKING:
     from .tira_client import TiraClient
 
 
+def translate_tmp_dir_for_docker_mount(path: "str | Path") -> str:
+    """Translate a path below the local temporary directory into the path that should be used as the
+    *source* of a Docker/Podman bind mount.
+
+    Background: tira-run creates temporary input/output directories (below tempfile.gettempdir(), i.e.,
+    normally '/tmp', unless TMPDIR is configured differently) and mounts them into containers via
+    something like 'docker run -v <host-path>:<container-path>'. The Docker/Podman daemon resolves
+    <host-path> on the machine *it* runs on. Usually, this is the same machine that runs tira-run, so no
+    translation is needed. However, if tira-run itself runs inside a container (e.g., when the host's
+    Docker socket is bind-mounted into the tira-run container, a.k.a. "Docker outside of Docker"), the
+    Docker/Podman daemon runs on the outer host and does not see tira-run's own filesystem. In that
+    case, <host-path> has to be rewritten to the path under which the outer host's equivalent of
+    tira-run's temporary directory is reachable.
+
+    This translation is controlled via the TIRA_DOCKER_TMPDIR environment variable: if it is set, any
+    path below the local temporary directory (tempfile.gettempdir(), which honors TMPDIR/TEMP/TMP, i.e.,
+    usually '/tmp') is rewritten so that this prefix is replaced with the value of TIRA_DOCKER_TMPDIR.
+    Paths outside of the local temporary directory are returned unchanged, and so is every path if
+    TIRA_DOCKER_TMPDIR is not set.
+
+    Both environment variables (TMPDIR and TIRA_DOCKER_TMPDIR) are read directly from the environment on
+    every call, so changing them (e.g., via os.environ) takes effect immediately.
+
+    Args:
+        path: the path on the local filesystem (as seen by this Python process) that is about to be
+            used as the source of a Docker/Podman bind mount.
+
+    Returns:
+        str: the (possibly translated) path to use as the source of the bind mount.
+
+    Examples:
+        Without TIRA_DOCKER_TMPDIR configured, paths are passed through unchanged::
+
+            >>> import os
+            >>> os.environ.pop("TIRA_DOCKER_TMPDIR", None) is None or True
+            True
+            >>> translate_tmp_dir_for_docker_mount("/tmp/tira-abc123")
+            '/tmp/tira-abc123'
+
+        With TIRA_DOCKER_TMPDIR configured, the local temporary directory prefix (e.g. '/tmp') is
+        replaced::
+
+            >>> os.environ["TIRA_DOCKER_TMPDIR"] = "/host-tmp"
+            >>> translate_tmp_dir_for_docker_mount("/tmp/tira-abc123")
+            '/host-tmp/tira-abc123'
+
+        Paths outside of the local temporary directory are left untouched::
+
+            >>> translate_tmp_dir_for_docker_mount("/srv/other-dir")
+            '/srv/other-dir'
+    """
+    docker_tmp_dir = os.environ.get("TIRA_DOCKER_TMPDIR")
+
+    if not docker_tmp_dir:
+        return str(path)
+
+    path = str(path)
+    host_tmp_dir = tempfile.gettempdir().rstrip("/") or "/"
+
+    if path != host_tmp_dir and not path.startswith(host_tmp_dir + "/"):
+        return path
+
+    return docker_tmp_dir.rstrip("/") + path[len(host_tmp_dir) :]
+
+
 class LocalExecutionIntegration:
     def __init__(self, tira_client=None):
         self.tira_client = tira_client
@@ -621,6 +686,10 @@ class LocalExecutionIntegration:
         if network_proxy:
             environment.update(network_proxy.environment_variables)
 
+        # Translate temporary-directory mount sources (e.g., when tira-run itself runs inside a
+        # container, see translate_tmp_dir_for_docker_mount() for details).
+        evaluation_volumes = {translate_tmp_dir_for_docker_mount(k): v for k, v in evaluation_volumes.items()}
+
         container = client.containers.run(
             image,
             entrypoint="sh",
@@ -946,6 +1015,10 @@ class LocalExecutionIntegration:
         )
         if network_proxy:
             environment.update(network_proxy.environment_variables)
+
+        # Translate temporary-directory mount sources (e.g., when tira-run itself runs inside a
+        # container, see translate_tmp_dir_for_docker_mount() for details).
+        volumes = {translate_tmp_dir_for_docker_mount(k): v for k, v in volumes.items()}
 
         container = client.containers.run(
             image,
