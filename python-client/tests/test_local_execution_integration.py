@@ -564,16 +564,30 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         content = (input_dir / "input.txt").read_text()
         (output_dir / "output.txt").write_text(content + "-appended")
 
+        container = Mock()
+        container.id = "container-1"
+        container.attach = lambda **_kwargs: iter([b""])
+        container.wait = lambda: {"StatusCode": 0}
+        return container
+
+    def __mock_run_dependencies_for_verify_tmp_directory(self, integration, client):
+        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+        integration.ensure_image_available_locally = Mock()
+        integration.tirex_tracker_available_in_docker_image = Mock(return_value=False)
+        integration.get_container_cli = Mock(return_value="docker")
+
     def test_verify_tmp_directory_is_usable_by_docker_succeeds_for_working_tmp_dir(self):
         integration = LocalExecutionIntegration()
         client = Mock()
         client.containers.run.side_effect = self.__simulate_container_appending_input_to_output
-        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
-        integration.ensure_image_available_locally = Mock()
-        integration.get_container_cli = Mock(return_value="docker")
+        self.__mock_run_dependencies_for_verify_tmp_directory(integration, client)
 
-        # Should not raise.
-        integration.verify_tmp_directory_is_usable_by_docker()
+        with patch(
+            "tira.local_execution_integration.environment_variables_to_forward",
+            return_value={},
+        ):
+            # Should not raise.
+            integration.verify_tmp_directory_is_usable_by_docker()
 
         client.containers.run.assert_called_once()
 
@@ -581,11 +595,15 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         integration = LocalExecutionIntegration()
         client = Mock()
         client.containers.run.side_effect = ConnectionError("no permission to mount /tmp")
-        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
-        integration.ensure_image_available_locally = Mock()
-        integration.get_container_cli = Mock(return_value="docker")
+        self.__mock_run_dependencies_for_verify_tmp_directory(integration, client)
 
-        with self.assertRaises(ValueError) as cm:
+        with (
+            patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ),
+            self.assertRaises(ValueError) as cm,
+        ):
             integration.verify_tmp_directory_is_usable_by_docker()
 
         self.assertIn("TMPDIR", str(cm.exception))
@@ -596,12 +614,46 @@ class TestLocalExecutionIntegration(unittest.TestCase):
         client = Mock()
         # The container does not write the expected output (e.g., because the mounted directory was
         # actually empty due to a misconfigured TMPDIR).
-        client.containers.run.return_value = Mock()
-        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
-        integration.ensure_image_available_locally = Mock()
-        integration.get_container_cli = Mock(return_value="docker")
+        container = Mock()
+        container.id = "container-1"
+        container.attach = lambda **_kwargs: iter([b""])
+        container.wait = lambda: {"StatusCode": 0}
+        client.containers.run.return_value = container
+        self.__mock_run_dependencies_for_verify_tmp_directory(integration, client)
 
-        with self.assertRaises(ValueError) as cm:
+        with (
+            patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ),
+            self.assertRaises(ValueError) as cm,
+        ):
             integration.verify_tmp_directory_is_usable_by_docker()
 
         self.assertIn("TMPDIR", str(cm.exception))
+
+    def test_verify_tmp_directory_is_usable_by_docker_uses_tira_docker_tmpdir_translation(self):
+        integration = LocalExecutionIntegration()
+        client = Mock()
+        client.containers.run.side_effect = self.__simulate_container_appending_input_to_output
+        self.__mock_run_dependencies_for_verify_tmp_directory(integration, client)
+
+        with (
+            patch(
+                "tira.local_execution_integration.environment_variables_to_forward",
+                return_value={},
+            ),
+            patch.dict(os.environ, {"TIRA_DOCKER_TMPDIR": "/host-tmp"}),
+            patch("tira.local_execution_integration.tempfile.gettempdir", return_value=tempfile.gettempdir()),
+            self.assertRaises(ValueError) as cm,
+        ):
+            # The simulated container writes to the (untranslated) host paths it receives in `volumes`,
+            # but the real Docker/Podman daemon would only see the translated "/host-tmp/..." paths, so
+            # this must fail when TIRA_DOCKER_TMPDIR is set and does not match the actual Docker mounts.
+            integration.verify_tmp_directory_is_usable_by_docker()
+
+        self.assertIn("TMPDIR", str(cm.exception))
+
+        actual_volumes = client.containers.run.call_args.kwargs["volumes"]
+        self.assertTrue(actual_volumes)
+        self.assertTrue(all(k.startswith("/host-tmp") for k in actual_volumes))

@@ -331,14 +331,15 @@ class LocalExecutionIntegration:
         exchange data with Docker/Podman containers via bind mounts.
 
         This creates one temporary input directory and one temporary output directory, writes a marker
-        file into the input directory, mounts both directories into a minimal container that reads the
-        marker file and appends to it in the output directory, and then verifies that the expected
-        content was produced on the host.
+        file into the input directory, and runs them through the same code path (run()) used to execute
+        real software submissions, which mounts the directories into a minimal container that reads the
+        marker file and appends to it in the output directory. This implicitly also exercises
+        translate_tmp_dir_for_docker_mount(), i.e., a misconfigured TIRA_DOCKER_TMPDIR is caught here as
+        well. Afterwards, this verifies that the expected content was produced on the host.
 
         Raises a ValueError with a human-readable explanation (hinting at a possibly misconfigured
         TMPDIR) if the check fails.
         """
-        client = self.__docker_client()
         marker = str(uuid.uuid4())
         appended = "-appended"
         expected = marker + appended
@@ -347,19 +348,14 @@ class LocalExecutionIntegration:
             (Path(input_dir) / "input.txt").write_text(marker)
 
             try:
-                self.ensure_image_available_locally(image, client)
-                client.containers.run(
-                    image,
-                    entrypoint="sh",
+                self.run(
+                    image=image,
                     command=(
-                        '-c "cat /tira-data/input/input.txt > /tira-data/output/output.txt && '
-                        f"printf '%s' '{appended}' >> /tira-data/output/output.txt\""
+                        "cat /tira-data/input/input.txt > /tira-data/output/output.txt && "
+                        f"printf '%s' '{appended}' >> /tira-data/output/output.txt"
                     ),
-                    volumes={
-                        input_dir: {"bind": "/tira-data/input", "mode": "ro"},
-                        output_dir: {"bind": "/tira-data/output", "mode": "rw"},
-                    },
-                    remove=True,
+                    input_dir=input_dir,
+                    output_dir=output_dir,
                 )
             except Exception as e:
                 raise ValueError(
