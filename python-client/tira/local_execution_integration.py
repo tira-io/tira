@@ -260,6 +260,62 @@ class LocalExecutionIntegration:
     def docker_is_installed_failsave(self) -> bool:
         return self.__docker_client() is not None
 
+    def verify_tmp_directory_is_usable_by_docker(self, image: str = "docker.io/bash:alpine3.16") -> None:
+        """Verify that the configured temporary directory (i.e., the directory returned by
+        tempfile.gettempdir(), which honors the TMPDIR/TEMP/TMP environment variables) can be used to
+        exchange data with Docker/Podman containers via bind mounts.
+
+        This creates one temporary input directory and one temporary output directory, writes a marker
+        file into the input directory, mounts both directories into a minimal container that reads the
+        marker file and appends to it in the output directory, and then verifies that the expected
+        content was produced on the host.
+
+        Raises a ValueError with a human-readable explanation (hinting at a possibly misconfigured
+        TMPDIR) if the check fails.
+        """
+        client = self.__docker_client()
+        marker = str(uuid.uuid4())
+        appended = "-appended"
+        expected = marker + appended
+
+        with tempfile.TemporaryDirectory() as input_dir, tempfile.TemporaryDirectory() as output_dir:
+            (Path(input_dir) / "input.txt").write_text(marker)
+
+            try:
+                self.ensure_image_available_locally(image, client)
+                client.containers.run(
+                    image,
+                    entrypoint="sh",
+                    command=(
+                        '-c "cat /tira-data/input/input.txt > /tira-data/output/output.txt && '
+                        f"printf '%s' '{appended}' >> /tira-data/output/output.txt\""
+                    ),
+                    volumes={
+                        input_dir: {"bind": "/tira-data/input", "mode": "ro"},
+                        output_dir: {"bind": "/tira-data/output", "mode": "rw"},
+                    },
+                    remove=True,
+                )
+            except Exception as e:
+                raise ValueError(
+                    f"Could not use the temporary directory '{tempfile.gettempdir()}' to exchange data with"
+                    f" {self.get_container_cli().capitalize()}: {e!r}\n\tThis might indicate that TMPDIR is"
+                    " configured incorrectly, e.g., pointing to a location that is not shared with/accessible"
+                    " by the Docker/Podman daemon."
+                ) from e
+
+            output_file = Path(output_dir) / "output.txt"
+            actual = output_file.read_text() if output_file.exists() else None
+
+            if actual != expected:
+                raise ValueError(
+                    f"Reading from and writing to the temporary directory '{tempfile.gettempdir()}' via"
+                    f" {self.get_container_cli().capitalize()} did not produce the expected result (expected"
+                    f" '{expected}', got '{actual}').\n\tThis might indicate that TMPDIR is configured"
+                    " incorrectly, e.g., pointing to a location that is not shared with/accessible by the"
+                    " Docker/Podman daemon."
+                )
+
     def __docker_client_for_environment(self, environ: dict[str, str]) -> docker.DockerClient:
         client = docker.from_env(environment=environ)
         try:

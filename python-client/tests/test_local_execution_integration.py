@@ -469,3 +469,53 @@ class TestLocalExecutionIntegration(unittest.TestCase):
 
             self.assertEqual("some-prediction", (output_dir / "run.txt").read_text())
             self.assertFalse((output_dir.parent / "network-access.log").is_file())
+
+    def __simulate_container_appending_input_to_output(self, *_args, **run_kwargs):
+        volumes = run_kwargs["volumes"]
+        input_dir = next(Path(k) for k, v in volumes.items() if v["bind"] == "/tira-data/input")
+        output_dir = next(Path(k) for k, v in volumes.items() if v["bind"] == "/tira-data/output")
+
+        content = (input_dir / "input.txt").read_text()
+        (output_dir / "output.txt").write_text(content + "-appended")
+
+    def test_verify_tmp_directory_is_usable_by_docker_succeeds_for_working_tmp_dir(self):
+        integration = LocalExecutionIntegration()
+        client = Mock()
+        client.containers.run.side_effect = self.__simulate_container_appending_input_to_output
+        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+        integration.ensure_image_available_locally = Mock()
+        integration.get_container_cli = Mock(return_value="docker")
+
+        # Should not raise.
+        integration.verify_tmp_directory_is_usable_by_docker()
+
+        client.containers.run.assert_called_once()
+
+    def test_verify_tmp_directory_is_usable_by_docker_raises_if_container_run_fails(self):
+        integration = LocalExecutionIntegration()
+        client = Mock()
+        client.containers.run.side_effect = ConnectionError("no permission to mount /tmp")
+        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+        integration.ensure_image_available_locally = Mock()
+        integration.get_container_cli = Mock(return_value="docker")
+
+        with self.assertRaises(ValueError) as cm:
+            integration.verify_tmp_directory_is_usable_by_docker()
+
+        self.assertIn("TMPDIR", str(cm.exception))
+        self.assertIn("no permission to mount /tmp", str(cm.exception))
+
+    def test_verify_tmp_directory_is_usable_by_docker_raises_if_output_is_not_as_expected(self):
+        integration = LocalExecutionIntegration()
+        client = Mock()
+        # The container does not write the expected output (e.g., because the mounted directory was
+        # actually empty due to a misconfigured TMPDIR).
+        client.containers.run.return_value = Mock()
+        integration._LocalExecutionIntegration__docker_client = Mock(return_value=client)
+        integration.ensure_image_available_locally = Mock()
+        integration.get_container_cli = Mock(return_value="docker")
+
+        with self.assertRaises(ValueError) as cm:
+            integration.verify_tmp_directory_is_usable_by_docker()
+
+        self.assertIn("TMPDIR", str(cm.exception))
