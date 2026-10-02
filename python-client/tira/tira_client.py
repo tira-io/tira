@@ -196,7 +196,9 @@ class TiraClient(ABC):
         :param zip_filename: Name of the output zip file.
         """
         # TODO: Replace with call to tirex_tracker.
-        tracked_files = [i.path for i in repo.commit().tree.traverse() if i.path.startswith(f"{directory}/")]
+        tracked_files = [
+            i.path for i in repo.commit().tree.traverse() if not directory or i.path.startswith(f"{directory}/")
+        ]
         zip_path = Path(tempfile.TemporaryDirectory().name) / "repo.zip"
         zip_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -251,8 +253,19 @@ class TiraClient(ABC):
             print(msg)
             raise ValueError(msg)
 
-    def evaluate(self, predictions: Path, truths: Path, dataset: str = None) -> None:
-        """TBD"""
+    def evaluate(
+        self, predictions: Path, truths: Path, dataset: str = None, output_dir: "Optional[Path]" = None
+    ) -> None:
+        """TBD
+
+        Args:
+            predictions (Path): The directory that contains the predictions to be evaluated.
+            truths (Path): The directory that contains the ground truth to evaluate the predictions against. If
+                falsy, the ground truth is downloaded automatically based on the resolved dataset configuration.
+            dataset (str, optional): The identifier of the TIRA dataset to evaluate against.
+            output_dir (Optional[Path], optional): The directory in which the evaluation results are stored. If
+                not passed, a temporary directory is created and used instead.
+        """
         eval_config = self.get_dataset(dataset)
         if not truths:
             if "task_id" in eval_config:
@@ -275,13 +288,15 @@ class TiraClient(ABC):
             pass
 
         if use_unsandboxed_evaluator:
-            return evaluate(Path(predictions), Path(truths), eval_config)
+            return evaluate(Path(predictions), Path(truths), eval_config, output_dir)
         else:
-            from tira.third_party_integrations import temporary_directory
+            if output_dir is None:
+                from tira.third_party_integrations import temporary_directory
 
-            ret = temporary_directory()
-            self.evaluate_sandboxed(Path(predictions), dataset, ret)
-            return ret
+                output_dir = temporary_directory()
+
+            self.evaluate_sandboxed(Path(predictions), dataset, output_dir)
+            return output_dir
 
     def evaluate_sandboxed(self, directory: Path, dataset_id: str, results_dir: Optional[Path] = None) -> None:
         """Evaluate some predictions made for some dataset on your local machine.
@@ -394,6 +409,38 @@ class TiraClient(ABC):
 
         return baseline_path, baseline_path, None
 
+    def _resolve_evaluator_image(self, dataset_path: Path, evaluator_config: dict, image: str, print_message) -> str:
+        """If `image` refers to a local directory (or a Git '/tree/main/' link, using the same
+        convention as the baseline's `link`), the evaluator is always built into a Docker image from
+        that code using the existing baseline build methodology (`_resolve_baseline_source` and
+        `build_docker_image_from_code`), and the resulting docker tag is returned. Otherwise, `image`
+        is assumed to already be a pullable Docker image reference and is returned unchanged.
+        """
+        normalized_image = image.replace("/tree/master/", "/tree/main/")
+        is_git_link = "/tree/main/" in normalized_image
+        looks_like_local_directory = (
+            not is_git_link and "://" not in image and not Path(image).is_absolute() and (dataset_path / image).is_dir()
+        )
+
+        if not is_git_link and not looks_like_local_directory:
+            return image
+
+        evaluator_path, docker_file_root, git_url = self._resolve_baseline_source(dataset_path, image)
+        if git_url is not None:
+            print_message(f"Repository for the evaluator is cloned from {git_url}.", _fmt.OK)
+        else:
+            print_message(f"The evaluator is loaded from {evaluator_path}.", _fmt.OK)
+
+        docker_file = None
+        if "file" in evaluator_config:
+            docker_file = docker_file_root / Path(evaluator_config["file"])
+
+        docker_tag, _, _, _, _, _ = self.build_docker_image_from_code(
+            evaluator_path, print_message, False, docker_file=docker_file
+        )
+        print_message(f"The evaluator {evaluator_path} is embedded in a Docker image.", _fmt.OK)
+        return docker_tag
+
     def build_docker_image_from_code(
         self,
         path: Path,
@@ -434,12 +481,16 @@ class TiraClient(ABC):
         if not docker_file.exists():
             raise ValueError(f"No dockerfile {docker_file} exists.")
 
-        directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
-        if Path(repo.working_tree_dir).name in directory_in_path:
-            directory_in_path = Path(repo.working_tree_dir).name
+        directory_in_path = str(Path(path).resolve().relative_to(Path(repo.working_tree_dir).resolve()))
+        if directory_in_path == ".":
+            directory_in_path = ""
         submission_name = (
             directory_in_path.replace("/", "-").lower().replace(" ", "-").replace("\n", "").replace("\r", "")
         )
+        if not submission_name:
+            # The submission is made from the repository root itself (no subdirectory), so there is no
+            # directory name to derive the submission name from. Fall back to the repository's own name.
+            submission_name = Path(repo.working_tree_dir).name.replace(" ", "-").lower()
         docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
 
         if repo.is_dirty(untracked_files=True):
@@ -452,12 +503,82 @@ class TiraClient(ABC):
         else:
             print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
         print("Build Docker image...")
-        zipped_code = self._zip_tracked_files(repo, directory_in_path)
+        if dry_run:
+            # Packaging the code (i.e., zipping the tracked files) is only needed to upload a private
+            # copy of the submitted source code alongside the submission. Since dry-runs are not
+            # uploaded to TIRA, packaging the code can be skipped to save time.
+            zipped_code = None
+        else:
+            zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
         self.local_execution.build_docker_image(path, docker_tag, docker_file, build_args, platform)
 
         print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
-        return docker_tag, zipped_code, remotes, commit, active_branch
+        return docker_tag, zipped_code, remotes, commit, active_branch, directory_in_path
+
+    def build_docker_image_from_try_run_metadata(self, system_details: dict, print_message) -> str:
+        """Compiles a fresh Docker image locally from the source code that was captured in the
+        try-run metadata of a software submission (uploaded during `tira-cli code-submission`),
+        instead of using the (potentially mutable) pre-built image referenced by the software.
+
+        This uses the `submission-metadata.yml` (part of the try-run metadata) to determine the
+        directory (within the submitted source code) from which the Docker image must be built.
+
+        :param system_details: The details of the software, as returned by `docker-softwares-details`.
+            Must contain a `try_run_metadata` entry, which is only returned for admin users.
+        :param print_message: Callback used to report progress, analogous to `submit_code`.
+        :return: The tag of the freshly built local Docker image.
+        """
+        import yaml
+
+        from tira.io_utils import dockerfile_for_architecture
+        from tira.third_party_integrations import temporary_directory
+
+        try_run_metadata = system_details.get("try_run_metadata")
+        if not try_run_metadata or not try_run_metadata.get("uuid"):
+            raise ValueError(
+                "No try-run metadata is available for this software, so a Docker image can not be compiled"
+                " from its source code. This requires that you are an admin and that the software was"
+                " submitted with 'tira-cli code-submission'."
+            )
+
+        submission_uuid = try_run_metadata["uuid"]
+        try_run_dir = Path(temporary_directory())
+        self.download_and_extract_zip(f"{self.base_url}/v1/anonymous/{submission_uuid}.zip", str(try_run_dir))
+        # The zip served by the anonymous-uploads endpoint nests all files inside a
+        # directory named after the submission uuid.
+        try_run_dir = try_run_dir / submission_uuid
+
+        submission_metadata_file = try_run_dir / "submission-metadata.yml"
+        if not submission_metadata_file.exists():
+            raise ValueError(
+                f"The try-run metadata (uuid {submission_uuid}) does not contain a submission-metadata.yml."
+                " The software was likely submitted before this feature was introduced."
+            )
+        submission_metadata = yaml.safe_load(submission_metadata_file.read_text()) or {}
+
+        source_code_zip = try_run_dir / "source-code.zip"
+        if not source_code_zip.exists():
+            raise ValueError(f"The try-run metadata (uuid {submission_uuid}) does not contain a source-code.zip.")
+
+        source_code_dir = Path(temporary_directory())
+        with zipfile.ZipFile(source_code_zip) as zip_ref:
+            zip_ref.extractall(source_code_dir)
+
+        directory = submission_metadata.get("source_code_directory") or ""
+        build_dir = (source_code_dir / directory) if directory else source_code_dir
+
+        docker_file = Path(dockerfile_for_architecture(build_dir))
+        if not docker_file.exists():
+            raise ValueError(f"No Dockerfile found at {docker_file} in the submitted source code.")
+
+        print_message(f"Downloaded the code and metadata to compile the software (see {build_dir}).", _fmt.OK)
+
+        docker_tag = "compiled-from-code-" + str(uuid.uuid4())[:5]
+        self.local_execution.build_docker_image(build_dir, docker_tag, docker_file, None, "linux/amd64")
+        print_message("The Docker image was compiled from the source code.", _fmt.OK)
+
+        return docker_tag
 
     def submit_code(
         self,
@@ -479,6 +600,8 @@ class TiraClient(ABC):
         platform: "Optional[str]" = None,
         gpus: "Optional[str]" = None,
         cache_behaviour: "Optional[str]" = None,
+        tira_cli_command: "Optional[str]" = None,
+        skip_code_upload: "Optional[bool]" = False,
     ):
         """Build a tira submission from a git repository.
 
@@ -488,6 +611,10 @@ class TiraClient(ABC):
             dataset_id (str, optional): The ID of the TIRA dataset on which the submission is to be tested. If no dataset is passed, the submission will be tested on a small publicly available smoke test dataset for the task.
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
+            skip_code_upload (bool, optional): NOT RECOMMENDED. Skip including a copy of the submitted source
+                code (source-code.zip) in the metadata uploaded to TIRA. This reduces reproducibility, since the
+                exact submitted source code can not be inspected or rebuilt later on (e.g., via
+                'tira-cli run local --compile-from-code'). Defaults to False.
         """
         from tira.io_utils import get_manifest_of_ghcr_docker_image, resolve_mount_directory
         from tira.third_party_integrations import temporary_directory
@@ -596,7 +723,7 @@ class TiraClient(ABC):
 
             platform = docker_supported_target_platform()
 
-        docker_tag, zipped_code, remotes, commit, active_branch = self.build_docker_image_from_code(
+        docker_tag, zipped_code, remotes, commit, active_branch, directory_in_path = self.build_docker_image_from_code(
             path, print_message, dry_run, docker_file, build_args, platform
         )
         print("Test Docker image...")
@@ -680,7 +807,15 @@ class TiraClient(ABC):
             f"The docker image produced valid outputs on the dataset {dataset_id}. (You can verify them at {tmp_dir})",
             _fmt.OK,
         )
-        shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
+        if skip_code_upload:
+            print_message(
+                "NOT RECOMMENDED: --skip-code-upload is set, so no private copy of the submitted source code is"
+                " uploaded to TIRA. This reduces reproducibility, since the exact submitted source code can not"
+                " be inspected or rebuilt later on (e.g., via 'tira-cli run local --compile-from-code').",
+                _fmt.WARN,
+            )
+        elif zipped_code:
+            shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
 
         if cache_behaviour and cache_behaviour == "deterministic":
             print("Re-execute ...")
@@ -709,10 +844,34 @@ class TiraClient(ABC):
             workflow_software_configuration = None
 
         if not dry_run:
+            import yaml
+
+            submission_metadata = {
+                "tira_cli_command": tira_cli_command,
+                "task_id": task_id,
+                "user_id": user_id,
+                "dataset_id": dataset_id,
+                "command": command,
+                "source_code_remotes": remotes,
+                "source_code_commit": commit,
+                "source_code_active_branch": active_branch,
+                "source_code_directory": directory_in_path,
+                "mount_hf_model": mount_hf_model,
+                "workflow_configuration": workflow_software_configuration,
+                "forward_environment_variable": forward_environment_variable if forward_environment_variable else None,
+                "cache_behaviour": cache_behaviour,
+                "mount_config": mount_config,
+            }
+            with open(Path(tmp_dir) / "submission-metadata.yml", "w") as f:
+                yaml.safe_dump(submission_metadata, f, sort_keys=False)
+
             print("Upload Code Submission image...")
             metadata_uuid = self.upload_run_anonymous(tmp_dir, dataset_id)["uuid"]
 
-            print_message("The meta data is uploaded to TIRA.", _fmt.OK)
+            print_message(
+                "The meta data is uploaded to TIRA (including a private copy of the code to improve reproducibility).",
+                _fmt.OK,
+            )
 
             if not external_docker_registry:
                 print("Push Docker image to TIRA...")
@@ -1039,6 +1198,9 @@ class TiraClient(ABC):
         print_message("The truth data is valid.", _fmt.OK)
 
         if not skip_baseline:
+            if eval_image is not None:
+                eval_image = self._resolve_evaluator_image(path, tira_configs["evaluator"], eval_image, print_message)
+
             baseline_path, docker_file_root, git_url = self._resolve_baseline_source(
                 path, tira_configs["baseline"]["link"]
             )
@@ -1051,7 +1213,7 @@ class TiraClient(ABC):
             if "file" in tira_configs["baseline"]:
                 docker_file = docker_file_root / Path(tira_configs["baseline"]["file"])
 
-            docker_tag, _, _, _, _ = self.build_docker_image_from_code(
+            docker_tag, _, _, _, _, _ = self.build_docker_image_from_code(
                 baseline_path, log_message, False, docker_file=docker_file
             )
 

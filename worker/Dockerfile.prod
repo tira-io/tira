@@ -11,6 +11,10 @@ COPY ./python-client ../python-client
 
 RUN pip3 install -q --no-cache-dir ../python-client "./[test]"
 
+# Pre-download and cache the huggingface `evaluate` metrics used by HuggingFaceEvaluator so that
+# evaluations (and the test suite below) do not depend on network access at runtime/test time.
+RUN python3 -c "import evaluate; [evaluate.load(m) for m in ['accuracy', 'precision', 'recall', 'f1']]"
+
 RUN TIRA_WORKER_CONFIG=/tira/tira-worker-config.yml PYTHONPATH=/tira/src pytest -q tests
 
 RUN <<EOF

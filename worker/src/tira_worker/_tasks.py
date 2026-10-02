@@ -262,7 +262,7 @@ def evaluate(run_id: str, dataset: str, evaluator_id: str, task: str, team: str,
     run_dir = client.download_zip_to_cache_directory(run_id=run_id, dataset=dataset, task=task, team=team)
     print("Run is available locally:", run_dir)
 
-    eval_results = execute_monitored(lambda i: client.evaluate(run_dir, dataset, i), client=client, job_id=job_id)
+    eval_results = execute_monitored(lambda i: client.evaluate(run_dir, truths, dataset, i), client=client, job_id=job_id)
     persist_tira_metadata_for_job(
         eval_results,
         f"{get_tira_id()}-evaluates-{run_id}",

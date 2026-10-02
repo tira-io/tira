@@ -608,6 +608,7 @@ def run_local(
     forward_environment_variable: Optional[list[str]],
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
+    compile_from_code: bool = False,
     **kwargs,
 ) -> int:
     from glob import glob
@@ -622,21 +623,35 @@ def run_local(
 
     print("Load system details...")
 
-    try:
-        system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
-    except Exception as e:
+    if compile_from_code:
+        # Compiling the image from the source code requires the try-run metadata, which is only
+        # returned to admins via the private (docker-softwares-details) endpoint.
         role = client.json_response("/api/role")["context"]
+        if "role" not in role or "admin" != role["role"]:
+            raise ValueError(
+                "--compile-from-code requires admin access, since it needs the try-run metadata that"
+                " is only returned to admins."
+            )
+        system_details = client.private_system_details(approach)
+    else:
+        try:
+            system_details = client.public_system_details(approach.split("/")[1], approach.split("/")[2])
+        except Exception as e:
+            role = client.json_response("/api/role")["context"]
 
-        if "role" in role and "admin" == role["role"]:
-            system_details = client.private_system_details(approach)
-        else:
-            raise e
+            if "role" in role and "admin" == role["role"]:
+                system_details = client.private_system_details(approach)
+            else:
+                raise e
 
     if "public_image_name" in system_details and system_details["public_image_name"]:
         system_details["tira_image_name"] = system_details["public_image_name"]
 
     system_pretty = "/".join(approach.split("/")[1:])
-    log_message_clean(f"System {system_pretty} exists and is public.", level=_fmt.OK)
+    if compile_from_code:
+        log_message_clean(f"System {system_pretty} exists.", level=_fmt.OK)
+    else:
+        log_message_clean(f"System {system_pretty} exists and is public.", level=_fmt.OK)
 
     if out:
         for i in glob(f"{out}/*/execution-details.json"):
@@ -662,6 +677,11 @@ def run_local(
         print("Download dataset.")
         system_inputs = client.download_dataset(None, input)
         log_message_clean(f"Dataset {input} available locally.", level=_fmt.OK)
+
+    if compile_from_code:
+        system_details["tira_image_name"] = client.build_docker_image_from_try_run_metadata(
+            system_details, log_message_clean
+        )
 
     monitored_execution = MonitoredExecution()
 
@@ -923,6 +943,15 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         type=str,
         help="The output directory.",
     )
+    local.add_argument(
+        "--compile-from-code",
+        action="store_true",
+        help=(
+            "Instead of using the pre-built image of the approach, compile a fresh Docker image locally"
+            " from the source code that was captured during the code submission of the approach"
+            " (requires admin access and that the approach was submitted with 'tira-cli code-submission')."
+        ),
+    )
 
     local.set_defaults(executable=run_local)
 
@@ -1123,6 +1152,17 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="The expected cache-behaviour of the to-be-uploaded software. Proper cache handling is important for submissions that use LLMs. TBD, CACHE_DIR...",
     )
+    parser.add_argument(
+        "--skip-code-upload",
+        required=False,
+        default=False,
+        action="store_true",
+        help=(
+            "NOT RECOMMENDED: Skip including a copy of the submitted source code in the metadata uploaded to TIRA."
+            " This reduces reproducibility, since the exact submitted source code can not be inspected or"
+            " rebuilt later on (e.g., via 'tira-cli run local --compile-from-code')."
+        ),
+    )
 
     parser.set_defaults(executable=code_submission_command)
 
@@ -1279,6 +1319,73 @@ def dataset_submission_command(
     return 0 if ret and "inputs_zip" in ret else 1
 
 
+def _reconstruct_code_submission_command(
+    path: Path,
+    task: str,
+    dry_run: bool,
+    allow_network: bool,
+    command: "Optional[str]",
+    dataset: "Optional[str]",
+    mount_hf_model: "Optional[list[str]]",
+    tira_vm_id: "Optional[str]",
+    set_properties: "Optional[list[str]]",
+    file: "Optional[Path]",
+    external_docker_registry: "Optional[str]",
+    forward_environment_variable: "Optional[list[str]]",
+    build_args: "Optional[str]",
+    mount_directory: "Optional[list[str]]",
+    mount_cache: "Optional[list[str]]",
+    platform: "Optional[str]",
+    cache_behaviour: "Optional[str]",
+    skip_code_upload: "Optional[bool]" = False,
+) -> str:
+    """Reconstruct the tira-cli code-submission command from the arguments passed to code_submission_command.
+
+    The command is reconstructed from the parsed arguments (not from sys.argv) so that it can not
+    accidentally contain unrelated/unwanted parameters that happened to be present on the command line.
+    """
+
+    def quoted(value: str) -> str:
+        return f'"{value}"' if " " in value else value
+
+    parts = ["tira-cli", "code-submission", "--path", quoted(str(path)), "--task", quoted(task)]
+
+    if command:
+        parts += ["--command", quoted(command)]
+    if dataset:
+        parts += ["--dataset", quoted(dataset)]
+    if dry_run:
+        parts.append("--dry-run")
+    if allow_network:
+        parts.append("--allow-network")
+    for i in set_properties or []:
+        parts += ["--set", quoted(i)]
+    if build_args:
+        parts += ["--build-args", quoted(build_args)]
+    if external_docker_registry:
+        parts += ["--external-docker-registry", quoted(external_docker_registry)]
+    if mount_hf_model:
+        parts += ["--mount-hf-model"] + [quoted(i) for i in mount_hf_model]
+    if mount_directory:
+        parts += ["--mount-directory"] + [quoted(i) for i in mount_directory]
+    if mount_cache:
+        parts += ["--mount-cache"] + [quoted(i) for i in mount_cache]
+    if forward_environment_variable:
+        parts += ["--forward-environment-variable"] + [quoted(i) for i in forward_environment_variable]
+    if tira_vm_id:
+        parts += ["--tira-vm-id", quoted(tira_vm_id)]
+    if file:
+        parts += ["--file", quoted(str(file))]
+    if platform:
+        parts += ["--platform", quoted(platform)]
+    if cache_behaviour:
+        parts += ["--cache-behaviour", quoted(cache_behaviour)]
+    if skip_code_upload:
+        parts.append("--skip-code-upload")
+
+    return " ".join(parts)
+
+
 def code_submission_command(
     path: Path,
     task: str,
@@ -1297,9 +1404,30 @@ def code_submission_command(
     mount_cache: "Optional[list[str]]",
     platform: "Optional[str]",
     cache_behaviour: "Optional[str]",
+    skip_code_upload: "Optional[bool]" = False,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
+    tira_cli_command = _reconstruct_code_submission_command(
+        path,
+        task,
+        dry_run,
+        allow_network,
+        command,
+        dataset,
+        mount_hf_model,
+        tira_vm_id,
+        set,
+        file,
+        external_docker_registry,
+        forward_environment_variable,
+        build_args,
+        mount_directory,
+        mount_cache,
+        platform,
+        cache_behaviour,
+        skip_code_upload,
+    )
     set = dict(x.split("=", 1) for x in set if "=" in x) if set else None
 
     client.submit_code(
@@ -1320,6 +1448,8 @@ def code_submission_command(
         mount_cache=mount_cache,
         platform=platform,
         cache_behaviour=cache_behaviour,
+        tira_cli_command=tira_cli_command,
+        skip_code_upload=skip_code_upload,
     )
 
     return 0

@@ -40,6 +40,11 @@
         </span>
         <br>(Branch: {{ docker_software_details.source_code_active_branch }}. Commit: {{ docker_software_details.source_code_commit }}).<br>
         </div>
+
+        <div v-if="docker_software_details.try_run_metadata">
+        The try-run metadata submitted for this software can be downloaded
+        <a :href="rest_url + '/v1/anonymous/' + docker_software_details.try_run_metadata.uuid + '.zip'" target="_blank">here</a>.
+        </div>
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
         <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" v-if="workflow_fields.length == 0" readonly/>
         <v-text-field :label="w.label" v-model="w.command" readonly v-for="w in workflow_fields"/>
@@ -144,7 +149,8 @@ export default {
         'source_code_active_branch': undefined, 'source_code_commit': undefined, 'source_code_remotes': [{'href': 'loading...', 'name': 'loading...'}],
         'workflow_configuration': {} as { [key: string]: string },
         'forward_environment_variable': [] as string[],
-        'mount_config': {} as Record<string, string>
+        'mount_config': {} as Record<string, string>,
+        'try_run_metadata': undefined as { uuid: string } | undefined
       },
       forward_environment_variable_values: {} as Record<string, string>,
       mount_config_values: {} as Record<string, string>,
