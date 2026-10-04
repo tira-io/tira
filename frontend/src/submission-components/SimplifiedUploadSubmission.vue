@@ -153,19 +153,21 @@ export default {
       return this.hide_upload_via_cli ? items.slice(1) : items
     },
     activeUploadFormFields() {
-      if (!Array.isArray(this.upload_form_fields) || this.upload_form_fields.length === 0) {
-        return this.default_upload_form_fields
-      }
-
-      const configuredFields = this.upload_form_fields.filter(field =>
+      // The default run_id/description fields are always shown; any
+      // configured upload_form_fields are only ever additions on top of
+      // those two, so a configured field reusing one of those two names is
+      // dropped to avoid showing/editing the same value twice.
+      const configuredFields = Array.isArray(this.upload_form_fields) ? this.upload_form_fields.filter(field =>
         field
         && typeof field.name === 'string'
         && typeof field.display_name === 'string'
         && typeof field.type === 'string'
+        && field.name !== 'run_id'
+        && field.name !== 'description'
         && (field.type !== 'select' || this.hasValidSelectOptions(field))
-      )
+      ) : []
 
-      return configuredFields.length > 0 ? configuredFields : this.default_upload_form_fields
+      return [...this.default_upload_form_fields, ...configuredFields]
     },
     run_name() {
       return this.upload_metadata_values['run_id'] || this.upload_metadata_values['display_name'] || this.firstMetadataValue()
