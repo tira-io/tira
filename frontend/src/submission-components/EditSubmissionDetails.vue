@@ -9,8 +9,10 @@
 
       <v-card-text v-if="!loading">
         <v-form>
-          <template v-if="activeUploadFormFields.length > 0">
-            <template v-for="field in activeUploadFormFields" :key="field.name">
+          <v-text-field v-model="display_name" label="Name"/>
+          <v-textarea v-model="description" label="Description"/>
+          <template v-if="additionalUploadFormFields.length > 0">
+            <template v-for="field in additionalUploadFormFields" :key="field.name">
               <v-select
                 v-if="field.type === 'select'"
                 v-model="field_values[field.name]"
@@ -34,10 +36,6 @@
                 :rules="fieldRules(field)"
               />
             </template>
-          </template>
-          <template v-else>
-            <v-text-field v-model="display_name" label="Name"/>
-            <v-textarea v-model="description" label="Description"/>
           </template>
           <v-text-field v-model="paper_link" label="Link your Paper"/>
           <v-checkbox v-model="ir_re_ranker" label="Is this software an re-ranker?" v-if="is_ir_task && type == 'docker'"/>
@@ -80,16 +78,22 @@ export default {
   },
   computed: {
     component_name() {return this.type === 'docker' ? 'Edit Software' : 'Edit Upload Group'},
-    activeUploadFormFields() {
+    additionalUploadFormFields() {
       if (!Array.isArray(this.upload_form_fields) || this.upload_form_fields.length === 0) {
         return []
       }
 
+      // The Name/Description fields are always shown on their own (see the
+      // template above); upload_form_fields only ever adds further fields on
+      // top of those two, so any configured field reusing one of those two
+      // names is dropped here to avoid showing/editing the same value twice.
       return this.upload_form_fields.filter(field =>
         field
         && typeof field.name === 'string'
         && typeof field.display_name === 'string'
         && typeof field.type === 'string'
+        && field.name !== 'display_name'
+        && field.name !== 'description'
         && (field.type !== 'select' || this.hasValidSelectOptions(field))
       )
     },
@@ -120,21 +124,6 @@ export default {
     textFieldType(field) {
       return field.type === 'number' || field.type === 'url' || field.type === 'email' ? field.type : 'text'
     },
-    displayNameFromFieldValues() {
-      for (const key of ['display_name', 'run_id', 'name']) {
-        if (this.field_values[key]) {
-          return this.field_values[key]
-        }
-      }
-
-      for (const value of Object.values(this.field_values)) {
-        if (value) {
-          return value
-        }
-      }
-
-      return ''
-    },
     showEditModal() {
       this.loading = true
       let url = null
@@ -155,7 +144,7 @@ export default {
       const rawMetadata = (this.type === 'docker' ? this.metadata : this.upload_metadata) || {}
       const nextValues = {}
 
-      for (const field of this.activeUploadFormFields) {
+      for (const field of this.additionalUploadFormFields) {
         nextValues[field.name] = rawMetadata[field.name] ?? ''
       }
 
@@ -169,12 +158,16 @@ export default {
       this.submit_in_progress = true;
       const url = this.type === 'docker' ? `/task/${this.task_id}/vm/${this.user_id}/save_software/docker/${this.id}` : `/task/${this.task_id}/vm/${this.user_id}/save_software/upload/${this.id}`
 
-      const hasActiveFields = this.activeUploadFormFields.length > 0
+      const hasAdditionalFields = this.additionalUploadFormFields.length > 0
       const rawMetadata = (this.type === 'docker' ? this.metadata : this.upload_metadata) || {}
-      const metadataToSubmit = hasActiveFields ? this.field_values : rawMetadata
+      // Name/Description are always directly editable now (see the template
+      // above); upload_form_fields only ever contribute further metadata on
+      // top of those two, so the metadata submitted here is the merge of
+      // whatever was already there plus the (possibly empty) extra fields.
+      const metadataToSubmit = hasAdditionalFields ? { ...rawMetadata, ...this.field_values } : rawMetadata
 
-      const display_name = hasActiveFields ? this.displayNameFromFieldValues() : this.display_name
-      const description = hasActiveFields ? (this.field_values['description'] || '') : this.description
+      const display_name = this.display_name
+      const description = this.description
 
       let params = {'display_name': display_name, 'description': description, 'paper_link': this.paper_link}
 
