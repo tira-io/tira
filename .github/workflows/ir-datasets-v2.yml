@@ -1,0 +1,40 @@
+name: ir_datasets v2 Integration
+
+# Installs ir_datasets from its "v2" feature branch (ir-datasets/ir-datasets@v2,
+# still unreleased at the time of writing) on top of the regular TIRA python
+# client install, and runs the tests covering tira's ir_datasets.v2 provider
+# (tira/ir_datasets_v2.py) against it -- both the duck-typed unit tests, which
+# never import ir_datasets.v2 themselves, and the entry-point test, which does
+# (tests/test_ir_datasets_v2.py, tests/test_ir_datasets_v2_entrypoint.py). A
+# separate workflow from tests.yml since it depends on an unreleased,
+# frequently-changing branch of a third-party project rather than its stable,
+# released version.
+
+on:
+  push:
+  workflow_dispatch: {}
+  pull_request: {}
+
+jobs:
+  ir-datasets-v2-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install TIRA Python Client from Repo
+        working-directory: ${{github.workspace}}/python-client
+        run: |
+          # Install tira from the repository since the pip version may not be up-to-date enough.
+          pip3 install .[test,dev,ir]
+      - name: Install ir_datasets v2 from ir-datasets/ir-datasets@v2
+        run: |
+          pip3 install --force-reinstall --no-deps "git+https://github.com/ir-datasets/ir-datasets.git@v2"
+          python3 -c "import ir_datasets.v2"
+      - name: Run ir_datasets v2 tests
+        working-directory: ${{github.workspace}}/python-client
+        run: pytest -v tests/test_ir_datasets_v2.py tests/test_ir_datasets_v2_entrypoint.py

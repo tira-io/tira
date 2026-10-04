@@ -1,0 +1,49 @@
+[
+  {
+    "id": "tiny-example-20251002_0-training",
+    "dataset_id": "tiny-example-20251002_0-training",
+    "description": "<p>todo</p>",
+    "default_task": "lsr-benchmark",
+    "default_task_name": "lsr-benchmark",
+    "display_name": "tiny-example",
+    "is_confidential": false,
+    "is_deprecated": false,
+    "ir_datasets_id": null,
+    "chatnoir_id": null,
+    "mirrors": {
+      "truths": {},
+      "inputs": {}
+    },
+    "file_listing": [
+      {
+        "title": "$inputDir"
+      },
+      {
+        "title": "$inputDataset"
+      }
+    ],
+    "format": [
+      "run.txt",
+      "lightning-ir-document-embeddings",
+      "lightning-ir-query-embeddings"
+    ],
+    "format_configuration": null,
+    "evaluator": {
+      "image": "ubuntu:18.04",
+      "command": "echo 'this is no real evaluator'"
+    },
+    "truth_format_configuration": null,
+    "truth_format": [
+      "qrels.txt"
+    ],
+    "trusted_eval": {
+      "measures": [
+        "nDCG@10",
+        "P@10"
+      ],
+      "format_configuration": {},
+      "truth_format_configuration": {}
+    },
+    "workflow_configuration": null
+  }
+]
