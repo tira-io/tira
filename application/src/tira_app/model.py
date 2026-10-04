@@ -547,6 +547,10 @@ class DockerSoftware(models.Model):
         choices=CacheBehaviour.choices,
     )
     mount_config = models.TextField(default=None, null=True)
+    metadata = models.TextField(default=None, null=True)
+
+    def get_metadata(self) -> "Optional[Dict[str, str]]":
+        return normalize_upload_metadata(self.metadata)
 
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:

@@ -783,6 +783,7 @@ class HybridDatabase(object):
             "cache_behaviour": ds.cache_behaviour,
             "mount_config": ds.get_mount_config(),
             "try_run_metadata": try_run_metadata,
+            "metadata": ds.get_metadata(),
         }
 
     @staticmethod
@@ -1229,7 +1230,7 @@ class HybridDatabase(object):
             tira_run_review.no_errors, tira_run_review.has_errors,
             tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats,
             evaluation_run.run_id, tira_evaluation_review.published, tira_evaluation_review.blinded,
-            tira_evaluation.measure_key, tira_evaluation.measure_value
+            tira_evaluation.measure_key, tira_evaluation.measure_value, tira_upload.id
         FROM
             tira_run as input_run
         INNER JOIN
@@ -1272,6 +1273,7 @@ class HybridDatabase(object):
             eval_blinded,
             m_key,
             m_value,
+            upload_id,
         ) in rows:
             if run_id not in input_run_to_evaluation:
                 input_run_to_evaluation[run_id] = {"measures": {}}
@@ -1285,6 +1287,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["input_software_name"] = display_name
             input_run_to_evaluation[run_id]["input_run_id"] = run_id
             input_run_to_evaluation[run_id]["is_upload"] = True
+            input_run_to_evaluation[run_id]["upload_id"] = upload_id
             input_run_to_evaluation[run_id]["review_state"] = review_state
             input_run_to_evaluation[run_id]["review_comment"] = review_comment
 
@@ -2601,7 +2604,10 @@ class HybridDatabase(object):
         paper_link: str,
         ir_re_ranker: str,
         ir_re_ranking_input: str,
+        metadata: "Optional[dict[str, Any]]" = None,
     ) -> None:
+        normalized_metadata = modeldb.normalize_upload_metadata(metadata)
+        metadata_json = None if normalized_metadata is None else json.dumps(normalized_metadata)
         modeldb.DockerSoftware.objects.update_or_create(
             docker_software_id=docker_software_id,
             defaults={
@@ -2610,6 +2616,7 @@ class HybridDatabase(object):
                 "paper_link": paper_link,
                 "ir_re_ranker": ir_re_ranker,
                 "ir_re_ranking_input": ir_re_ranking_input,
+                "metadata": metadata_json,
             },
         )
 

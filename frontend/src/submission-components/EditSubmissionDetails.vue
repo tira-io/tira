@@ -9,8 +9,36 @@
 
       <v-card-text v-if="!loading">
         <v-form>
-          <v-text-field v-model="display_name" label="Name"/>
-          <v-textarea v-model="description" label="Description"/>
+          <template v-if="activeUploadFormFields.length > 0">
+            <template v-for="field in activeUploadFormFields" :key="field.name">
+              <v-select
+                v-if="field.type === 'select'"
+                v-model="field_values[field.name]"
+                :label="field.display_name"
+                :items="field.options"
+                item-title="display_value"
+                item-value="id"
+                :rules="fieldRules(field)"
+              />
+              <v-textarea
+                v-else-if="field.type === 'textarea'"
+                v-model="field_values[field.name]"
+                :label="field.display_name"
+                :rules="fieldRules(field)"
+              />
+              <v-text-field
+                v-else
+                v-model="field_values[field.name]"
+                :label="field.display_name"
+                :type="textFieldType(field)"
+                :rules="fieldRules(field)"
+              />
+            </template>
+          </template>
+          <template v-else>
+            <v-text-field v-model="display_name" label="Name"/>
+            <v-textarea v-model="description" label="Description"/>
+          </template>
           <v-text-field v-model="paper_link" label="Link your Paper"/>
           <v-checkbox v-model="ir_re_ranker" label="Is this software an re-ranker?" v-if="is_ir_task && type == 'docker'"/>
           <v-checkbox v-model="ir_re_ranking_input" label="Is the output of this component a run file to be re-ranked by others?" v-if="is_ir_task"/>
@@ -38,7 +66,7 @@ import {Loading} from "@/components";
 export default {
   name: 'edit-submission-details',
   components: {Loading},
-  props: ['type', 'id', 'user_id', 'is_ir_task'],
+  props: ['type', 'id', 'user_id', 'is_ir_task', 'upload_form_fields'],
   emits: ['edit'],
   data() {
     return {
@@ -46,13 +74,67 @@ export default {
       task_id: extractTaskFromCurrentUrl(), display_name: 'loading ...',
       description: 'loading ...', paper_link: 'loading...',
       ir_re_ranker: false, ir_re_ranking_input: false,
+      metadata: null, upload_metadata: null, field_values: {},
       rest_url: inject("REST base URL")
     }
   },
   computed: {
     component_name() {return this.type === 'docker' ? 'Edit Software' : 'Edit Upload Group'},
+    activeUploadFormFields() {
+      if (!Array.isArray(this.upload_form_fields) || this.upload_form_fields.length === 0) {
+        return []
+      }
+
+      return this.upload_form_fields.filter(field =>
+        field
+        && typeof field.name === 'string'
+        && typeof field.display_name === 'string'
+        && typeof field.type === 'string'
+        && (field.type !== 'select' || this.hasValidSelectOptions(field))
+      )
+    },
   },
   methods: {
+    hasValidSelectOptions(field) {
+      return Array.isArray(field.options)
+        && field.options.length > 0
+        && field.options.every(option =>
+          option
+          && typeof option.id === 'string'
+          && option.id.trim() !== ''
+          && typeof option.display_value === 'string'
+          && option.display_value.trim() !== ''
+        )
+    },
+    fieldRules(field) {
+      if (field.required === false) {
+        return []
+      }
+
+      if (field.type === 'select') {
+        return [v => !!(v && v.toString().trim().length > 0) || `Please select ${field.display_name.toLowerCase()}.`]
+      }
+
+      return [v => !!(v && v.toString().trim().length > 0) || `Please provide ${field.display_name.toLowerCase()}.`]
+    },
+    textFieldType(field) {
+      return field.type === 'number' || field.type === 'url' || field.type === 'email' ? field.type : 'text'
+    },
+    displayNameFromFieldValues() {
+      for (const key of ['display_name', 'run_id', 'name']) {
+        if (this.field_values[key]) {
+          return this.field_values[key]
+        }
+      }
+
+      for (const value of Object.values(this.field_values)) {
+        if (value) {
+          return value
+        }
+      }
+
+      return ''
+    },
     showEditModal() {
       this.loading = true
       let url = null
@@ -65,8 +147,19 @@ export default {
 
       get(url)
           .then(inject_response(this, {'loading': false}, false, ['docker_software_details', 'upload_group_details']))
+          .then(() => { this.initializeFieldValues() })
           .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
       this.showModal = true;
+    },
+    initializeFieldValues() {
+      const rawMetadata = (this.type === 'docker' ? this.metadata : this.upload_metadata) || {}
+      const nextValues = {}
+
+      for (const field of this.activeUploadFormFields) {
+        nextValues[field.name] = rawMetadata[field.name] ?? ''
+      }
+
+      this.field_values = nextValues
     },
 
     cancelEdit() {
@@ -76,7 +169,20 @@ export default {
       this.submit_in_progress = true;
       const url = this.type === 'docker' ? `/task/${this.task_id}/vm/${this.user_id}/save_software/docker/${this.id}` : `/task/${this.task_id}/vm/${this.user_id}/save_software/upload/${this.id}`
 
-      let params = {'display_name': this.display_name, 'description': this.description, 'paper_link': this.paper_link}
+      const hasActiveFields = this.activeUploadFormFields.length > 0
+      const rawMetadata = (this.type === 'docker' ? this.metadata : this.upload_metadata) || {}
+      const metadataToSubmit = hasActiveFields ? this.field_values : rawMetadata
+
+      const display_name = hasActiveFields ? this.displayNameFromFieldValues() : this.display_name
+      const description = hasActiveFields ? (this.field_values['description'] || '') : this.description
+
+      let params = {'display_name': display_name, 'description': description, 'paper_link': this.paper_link}
+
+      if (this.type === 'docker') {
+        params['metadata'] = metadataToSubmit
+      } else {
+        params['upload_metadata'] = metadataToSubmit
+      }
 
       if(this.is_ir_task) {
         params['ir_re_ranking_input'] = this.ir_re_ranking_input
@@ -88,7 +194,7 @@ export default {
 
       post(url, params, true)
       .then(() => {
-        this.$emit('edit', {'id': this.id, 'display_name': this.display_name, 'description': this.description, 'paper_link': this.paper_link})
+        this.$emit('edit', {'id': this.id, 'display_name': display_name, 'description': description, 'paper_link': this.paper_link})
         this.showModal = false
       })
       .catch(reportError("Problem while Saving Submission Details.", "This might be a short-term hiccup, please try again. We got the following error: "))

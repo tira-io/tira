@@ -766,6 +766,7 @@ def docker_software_save(request: "HttpRequest", task_id: str, vm_id: str, docke
                 data.get("paper_link"),
                 data.get("ir_re_ranker", False),
                 data.get("ir_re_ranking_input", False),
+                _sanitize_upload_metadata(data.get("metadata")),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:

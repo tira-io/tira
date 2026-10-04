@@ -88,7 +88,7 @@
   </v-dialog>
 
   <h2>Your Uploaded Runs</h2>
-  <uploaded-run-list :task_id="task_id" :vm_id="user_id_for_task" ref="simplified-upload-run-list"/>
+  <uploaded-run-list :task_id="task_id" :vm_id="user_id_for_task" :upload_form_fields="upload_form_fields" ref="simplified-upload-run-list"/>
 
   
 </template>

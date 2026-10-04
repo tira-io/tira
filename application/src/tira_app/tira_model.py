@@ -577,9 +577,10 @@ def update_docker_software_metadata(
     paper_link: str,
     ir_re_ranker: str,
     ir_re_ranking_input: str,
+    metadata: "Optional[dict[str, Any]]" = None,
 ) -> None:
     return model.update_docker_software_metadata(
-        docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input
+        docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input, metadata
     )
 
 

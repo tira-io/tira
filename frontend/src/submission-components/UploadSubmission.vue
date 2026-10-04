@@ -121,6 +121,7 @@
 
         <div class="d-flex justify-end">
           <edit-submission-details class="mr-3" type='upload' :id="us.id" :user_id="user_id_for_task"
+            :upload_form_fields="upload_form_fields"
             @edit="(i) => updateUploadDetails(i)" />
           <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip activator="parent"
               location="bottom">Attention! This deletes the container and ALL runs associated with
@@ -189,7 +190,7 @@ import UploadSubmissionViaCli from "./UploadSubmissionViaCli.vue"
 export default {
   name: "upload-submission",
   components: { EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList, ImportSubmission, CodeSnippet, UploadSubmissionViaCli },
-  props: ['organizer', 'organizer_id'],
+  props: ['organizer', 'organizer_id', 'upload_form_fields'],
   emits: ['refresh_running_submissions'],
   data() {
     return {
