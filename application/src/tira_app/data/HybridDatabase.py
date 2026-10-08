@@ -226,6 +226,7 @@ class HybridDatabase(object):
         upload_form_fields = task.get_upload_form_fields()
         allowed_hostnames = task.get_allowed_hostnames()
         task_export_metadata = task.get_task_export_metadata()
+        export_buttons = task.get_export_buttons()
 
         result = {
             "task_id": task.task_id,
@@ -262,6 +263,7 @@ class HybridDatabase(object):
             "hide_upload_via_cli": task.hide_upload_via_cli,
             "allowed_hostnames": allowed_hostnames,
             "task_export_metadata": task_export_metadata,
+            "export_buttons": export_buttons,
         }
 
         if include_dataset_stats:
@@ -2018,6 +2020,7 @@ class HybridDatabase(object):
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
         task_export_metadata: "Any" = None,
+        export_buttons: "Optional[List[dict[str, str]]]" = None,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
@@ -2041,6 +2044,11 @@ class HybridDatabase(object):
         if normalized_task_export_metadata is not None:
             task_export_metadata_json = json.dumps(normalized_task_export_metadata)
 
+        export_buttons_json = None
+        normalized_export_buttons = modeldb.normalize_export_buttons(export_buttons)
+        if normalized_export_buttons:
+            export_buttons_json = json.dumps(normalized_export_buttons)
+
         new_task = modeldb.Task.objects.create(
             task_id=task_id,
             task_name=task_name,
@@ -2058,6 +2066,7 @@ class HybridDatabase(object):
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
             task_export_metadata=task_export_metadata_json,
+            export_buttons=export_buttons_json,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2645,6 +2654,7 @@ class HybridDatabase(object):
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
         task_export_metadata: "Any" = None,
+        export_buttons: "Optional[List[dict[str, str]]]" = None,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2687,6 +2697,11 @@ class HybridDatabase(object):
         if normalized_task_export_metadata is not None:
             task_export_metadata_json = json.dumps(normalized_task_export_metadata)
 
+        export_buttons_json = None
+        normalized_export_buttons = modeldb.normalize_export_buttons(export_buttons)
+        if normalized_export_buttons:
+            export_buttons_json = json.dumps(normalized_export_buttons)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
             task_name=task_name,
@@ -2708,6 +2723,7 @@ class HybridDatabase(object):
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
             task_export_metadata=task_export_metadata_json,
+            export_buttons=export_buttons_json,
         )
 
         if help_command:

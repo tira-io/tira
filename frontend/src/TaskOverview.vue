@@ -45,6 +45,13 @@
             <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
           </v-row>
         </v-card-actions>
+        <v-card-actions v-if="userinfo.role === 'admin' && task.export_buttons && task.export_buttons.length > 0">
+          <v-row>
+            <v-col cols="6" v-for="button in task.export_buttons" :key="button.value">
+              <v-btn variant="outlined" :href="'/task/' + task.task_id + '/export/' + task.master_vm_id + '/' + button.value" block>{{ button.display_name }}</v-btn>
+            </v-col>
+          </v-row>
+        </v-card-actions>
         <v-card-actions v-if="task_id === 'ir-benchmarks'">
           <v-row>
             <v-dialog transition="dialog-bottom-transition" width="auto">

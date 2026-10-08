@@ -25,6 +25,7 @@
             "command_placeholder": "help_command",
             "dataset_count": 2,
             "dataset_label": "Input dataset",
+            "export_buttons": null,
             "featured": false,
             "hide_upload_via_cli": false,
             "irds_re_ranking_command": "",

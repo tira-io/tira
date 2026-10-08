@@ -3,7 +3,7 @@ from typing import Union
 from django.urls import URLPattern, URLResolver, include, path
 
 from . import views
-from .endpoints import admin_api, data_api, diffir_api, organizer_api, serp_api, vm_api
+from .endpoints import admin_api, data_api, diffir_api, organizer_api, serp_api, task_exports, vm_api
 from .endpoints.misc import endpoints as misc_endpoints
 from .endpoints.v1 import endpoints as v1_endpoints
 
@@ -18,6 +18,7 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         views.view_ir_metadata_of_run,
         name="view_ir_metadata_of_run",
     ),
+    path("task/<str:task_id>/export/<str:vm_id>/<str:value>", task_exports.task_export, name="task_export"),
     path(
         "data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip",
         views.download_repo_template,

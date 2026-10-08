@@ -95,6 +95,7 @@ def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpRespons
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
             task_export_metadata=data.get("task_export_metadata"),
+            export_buttons=data.get("export_buttons"),
         )
 
         new_task_str = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -150,6 +151,7 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
             task_export_metadata=data.get("task_export_metadata"),
+            export_buttons=data.get("export_buttons"),
         )
 
         return JsonResponse(
