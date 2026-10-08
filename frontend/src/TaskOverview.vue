@@ -45,11 +45,10 @@
             <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
           </v-row>
         </v-card-actions>
-        <v-card-actions v-if="userinfo.role === 'admin' && task.export_buttons && task.export_buttons.length > 0">
+        <v-card-actions v-if="task.export_buttons && task.export_buttons.length > 0">
           <v-row>
-            <v-col cols="6" v-for="button in task.export_buttons" :key="button.value">
-              <v-btn variant="outlined" :href="'/task/' + task.task_id + '/export/' + task.master_vm_id + '/' + button.value" block>{{ button.display_name }}</v-btn>
-            </v-col>
+            <export-buttons :task="task" :vm="vm" :user_id="user_id" :user_vms_for_task="user_vms_for_task"
+              :userinfo="userinfo" />
           </v-row>
         </v-card-actions>
         <v-card-actions v-if="task_id === 'ir-benchmarks'">
@@ -112,13 +111,13 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { TiraBreadcrumb, TiraTaskAdmin, RunList, AggregatedResultList, Loading, SubmitButton, TaskDocumentation } from './components'
+import { TiraBreadcrumb, TiraTaskAdmin, RunList, AggregatedResultList, Loading, SubmitButton, ExportButtons, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
 import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get_from_archive, inject_response, reportError, type UserInfo, DatasetInfo, TaskInfo } from './utils'
 export default {
   name: "task-list",
-  components: { AggregatedResultList, TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
+  components: { AggregatedResultList, TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, ExportButtons, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,

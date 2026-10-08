@@ -18,7 +18,7 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         views.view_ir_metadata_of_run,
         name="view_ir_metadata_of_run",
     ),
-    path("task/<str:task_id>/export/<str:vm_id>/<str:value>", task_exports.task_export, name="task_export"),
+    path("task/<str:task_id>/export/<str:vm_id>/<str:value>.zip", task_exports.task_export, name="task_export"),
     path(
         "data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip",
         views.download_repo_template,
