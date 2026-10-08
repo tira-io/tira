@@ -1,6 +1,6 @@
 <template>
   <v-col cols="12" v-for="button in task.export_buttons" :key="button.value">
-    <v-btn v-if="vm_id" variant="outlined" :href="export_url(button, vm_id)" block>{{ button.display_name }}</v-btn>
+    <v-btn v-if="vm_id" variant="outlined" :href="export_url(button, vm_id)" target="_blank" block>{{ button.display_name }}</v-btn>
 
     <v-menu v-else-if="vm_ids" transition="slide-y-transition">
       <template v-slot:activator="{ props }">
@@ -8,7 +8,7 @@
       </template>
       <v-list>
         <v-list-item v-for="(item, i) in vm_ids" :key="i">
-          <v-btn :href="export_url(button, item)" variant="outlined" block>{{ button.display_name }} for {{ item }}</v-btn>
+          <v-btn :href="export_url(button, item)" variant="outlined" target="_blank" block>{{ button.display_name }} for {{ item }}</v-btn>
         </v-list-item>
       </v-list>
     </v-menu>
