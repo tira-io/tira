@@ -13,6 +13,7 @@ from utils_for_testing import method_for_url_pattern, set_up_tira_environment
 import tira_app.model as modeldb
 import tira_app.tira_model as tira_model
 from tira_app.endpoints.task_exports import (
+    ExportError,
     _is_included_in_trec_auto_judge,
     _priority_of_submission,
     _run_output_files,
@@ -266,10 +267,9 @@ class TestTrecAutoJudgeExport(TestCase):
             self._software(3, "Priority Zero", {"priority": "0"}, [self._run("run-3", "rag26-20260827_1-test")]),
         ]
 
-        response = _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+        with self.assertRaises(ExportError):
+            _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
 
-        zipf = zipfile.ZipFile(BytesIO(response.content))
-        self.assertEqual([], zipf.namelist())
         add_run_to_zip.assert_not_called()
 
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
@@ -313,10 +313,8 @@ class TestTrecAutoJudgeExport(TestCase):
     def test_handles_no_qualifying_software(self, get_docker_softwares_with_runs):
         get_docker_softwares_with_runs.return_value = []
 
-        response = _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
-
-        zipf = zipfile.ZipFile(BytesIO(response.content))
-        self.assertEqual([], zipf.namelist())
+        with self.assertRaises(ExportError):
+            _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
 
 
 class TestTrecAutoJudgeExportEndpoint(TestCase):
@@ -331,8 +329,28 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
         )
 
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_admin_can_download_trec_auto_judge_export(self, get_docker_softwares_with_runs):
+    def test_admin_gets_400_with_message_when_export_would_be_empty(self, get_docker_softwares_with_runs):
         get_docker_softwares_with_runs.return_value = []
+
+        response = task_export(
+            _request(ADMIN), task_id="shared-task-1", vm_id="master-vm-for-task-1", value="trec-auto-judge"
+        )
+
+        self.assertEqual(400, response.status_code)
+        content = json.loads(response.content)
+        self.assertIn("would be empty", content["message"])
+        get_docker_softwares_with_runs.assert_called_once_with("shared-task-1", "master-vm-for-task-1")
+
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_admin_can_download_trec_auto_judge_export_with_qualifying_submission(self, get_docker_softwares_with_runs):
+        get_docker_softwares_with_runs.return_value = [
+            {
+                "docker_software_id": 1,
+                "display_name": "Xy hello",
+                "metadata": {"priority": "5"},
+                "runs": [],
+            }
+        ]
 
         response = task_export(
             _request(ADMIN), task_id="shared-task-1", vm_id="master-vm-for-task-1", value="trec-auto-judge"
@@ -340,4 +358,5 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual("application/zip", response["Content-Type"])
-        get_docker_softwares_with_runs.assert_called_once_with("shared-task-1", "master-vm-for-task-1")
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"Xy hello.zip", "Xy hello.yaml"}, set(zipf.namelist()))

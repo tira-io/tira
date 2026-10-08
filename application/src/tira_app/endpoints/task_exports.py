@@ -24,6 +24,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("tira")
 
+
+class ExportError(Exception):
+    """Raised by an export function when the requested export cannot be produced (e.g., it would be empty).
+    The exception's message is returned to and shown by the client."""
+
+
 # Datasets considered by the "trec-auto-judge" export, mapped to the short directory name used inside the
 # per-software export zip (see _trec_auto_judge_export).
 TREC_AUTO_JUDGE_DATASETS = {
@@ -96,10 +102,12 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id)
 
     buffer = io.BytesIO()
+    included_any = False
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as outer_zip:
         for software in docker_softwares:
             if not _is_included_in_trec_auto_judge(software.get("metadata")):
                 continue
+            included_any = True
 
             display_name = software.get("display_name") or f"software-{software.get('docker_software_id')}"
 
@@ -126,6 +134,12 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
 
             outer_zip.writestr(f"{display_name}.zip", software_zip_bytes)
             outer_zip.writestr(f"{display_name}.yaml", metadata_yaml)
+
+    if not included_any:
+        raise ExportError(
+            f"No code submission of team '{vm_id}' for task '{task_id}' has a 'priority' metadata property "
+            "between 1 and 10, so the trec-auto-judge export would be empty."
+        )
 
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{task_id}-trec-auto-judge-export.zip"'
@@ -155,4 +169,7 @@ def task_export(request: "HttpRequest", task_id: str, vm_id: str, value: str) ->
         logger.error(f"Export function '{value}' is configured for task {task_id} but not implemented.")
         return JsonResponse({"status": 1, "message": f"Export '{value}' is not implemented."}, status=501)
 
-    return export_function(task_id, task, vm_id)
+    try:
+        return export_function(task_id, task, vm_id)
+    except ExportError as e:
+        return JsonResponse({"status": 1, "message": str(e)}, status=400)
