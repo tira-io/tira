@@ -964,12 +964,14 @@ class TiraClient(ABC):
             "clef26-team-09",
             "clef26-open-web-search",
             "maik-test-3-30",
+            "maik-test-05-08",
             "devtest",
             "lightning-ir",
             "baseline",
             "baselineavengers",
             "basel1nerz",
             "webis",
+            "fileshredder",
         )
         if role["role"] != "user" and team not in admin_teams:
             msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"
