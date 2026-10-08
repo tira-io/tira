@@ -25,6 +25,8 @@ SUPPORTED_SUBMISSION_TABS = {
 # The set of export functions implemented server-side (see endpoints/task_exports.py). An admin can only
 # configure export_buttons whose "value" is one of these, so that every configured button is backed by an
 # actually implemented export function.
+# IMPORTANT: Keep this in sync with AVAILABLE_TASK_EXPORT_FUNCTIONS in frontend/src/components/EditTask.vue,
+# which independently validates export button values client-side.
 SUPPORTED_TASK_EXPORT_FUNCTIONS = {
     "example-zip-export",
     "trec-auto-judge",

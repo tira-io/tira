@@ -194,6 +194,8 @@ const AVAILABLE_SUBMISSION_TABS = [
   'upload-models',
 ]
 
+// IMPORTANT: Keep this in sync with SUPPORTED_TASK_EXPORT_FUNCTIONS in
+// application/src/tira_app/model.py, which independently validates export button values server-side.
 const AVAILABLE_TASK_EXPORT_FUNCTIONS = [
   'example-zip-export',
   'trec-auto-judge',
