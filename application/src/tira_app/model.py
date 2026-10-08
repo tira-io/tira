@@ -27,6 +27,7 @@ SUPPORTED_SUBMISSION_TABS = {
 # actually implemented export function.
 SUPPORTED_TASK_EXPORT_FUNCTIONS = {
     "example-zip-export",
+    "trec-auto-judge",
 }
 
 
