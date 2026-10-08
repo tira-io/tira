@@ -135,6 +135,13 @@
                     persistent-hint
                     :rules="[validateTaskExportMetadataJson]"
                   />
+                  <v-textarea
+                    v-model="export_buttons_json"
+                    label="Custom Export Buttons (JSON)"
+                    :hint="export_buttons_hint"
+                    persistent-hint
+                    :rules="[validateExportButtonsJson]"
+                  />
 
                   <v-divider />
                   <h2 class="my-1">IR-Datasets integration</h2>
@@ -187,6 +194,10 @@ const AVAILABLE_SUBMISSION_TABS = [
   'upload-models',
 ]
 
+const AVAILABLE_TASK_EXPORT_FUNCTIONS = [
+  'example-zip-export',
+]
+
 export default {
   name: "edit-task",
   components: { Loading, VAutocomplete },
@@ -218,6 +229,9 @@ export default {
     task_export_metadata: null as any,
     task_export_metadata_json: '',
     task_export_metadata_hint: 'Optional metadata used when exporting this task, e.g. {"key": "value"}. Must be valid JSON, the structure itself is flexible.',
+    export_buttons: null as null | { display_name: string, value: string }[],
+    export_buttons_json: '',
+    export_buttons_hint: `Optional JSON array of custom export buttons shown to authenticated users on the task overview page, e.g. [{"display_name":"Export Example","value":"example-zip-export"}]. The "value" must be one of the server-implemented export functions: ${AVAILABLE_TASK_EXPORT_FUNCTIONS.join(', ')}.`,
     rest_endpoint: inject("REST base URL") as string
   }),
   computed: {
@@ -233,6 +247,7 @@ export default {
         this.upload_form_fields_json = this.formatUploadFormFields(null)
         this.allowed_hostnames_json = this.formatAllowedHostnames(null)
         this.task_export_metadata_json = this.formatTaskExportMetadata(null)
+        this.export_buttons_json = this.formatExportButtons(null)
       } else {
         get(this.rest_endpoint + '/api/task/' + this.task_id_for_edit)
           .then(inject_response(this, { 'loading': false }, true, 'task'))
@@ -241,6 +256,7 @@ export default {
             this.upload_form_fields_json = this.formatUploadFormFields(this.upload_form_fields)
             this.allowed_hostnames_json = this.formatAllowedHostnames(this.allowed_hostnames)
             this.task_export_metadata_json = this.formatTaskExportMetadata(this.task_export_metadata)
+            this.export_buttons_json = this.formatExportButtons(this.export_buttons)
           })
           .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
       }
@@ -256,6 +272,9 @@ export default {
     },
     formatTaskExportMetadata: function (taskExportMetadata: any) {
       return taskExportMetadata !== null && taskExportMetadata !== undefined ? JSON.stringify(taskExportMetadata, null, 2) : ''
+    },
+    formatExportButtons: function (exportButtons: null | { display_name: string, value: string }[]) {
+      return exportButtons && exportButtons.length > 0 ? JSON.stringify(exportButtons, null, 2) : ''
     },
     parseSubmissionTabs: function () {
       if (!this.submission_tabs_json.trim()) {
@@ -376,6 +395,42 @@ export default {
       const parsed = this.parseTaskExportMetadata()
       return parsed !== undefined || 'Please provide valid JSON, e.g. {"key": "value"}.'
     },
+    parseExportButtons: function () {
+      if (!this.export_buttons_json.trim()) {
+        return null
+      }
+
+      try {
+        const parsed = JSON.parse(this.export_buttons_json)
+        if (!Array.isArray(parsed)) {
+          return undefined
+        }
+
+        for (const button of parsed) {
+          if (
+            !button
+            || typeof button.display_name !== 'string'
+            || typeof button.value !== 'string'
+            || button.display_name.trim() === ''
+            || button.value.trim() === ''
+            || !AVAILABLE_TASK_EXPORT_FUNCTIONS.includes(button.value.trim())
+          ) {
+            return undefined
+          }
+        }
+
+        return parsed.map((button: { display_name: string, value: string }) => ({
+          display_name: button.display_name.trim(),
+          value: button.value.trim(),
+        }))
+      } catch {
+        return undefined
+      }
+    },
+    validateExportButtonsJson: function () {
+      const parsed = this.parseExportButtons()
+      return parsed !== undefined || `Please provide a valid JSON array of {display_name, value} objects. "value" must be one of: ${AVAILABLE_TASK_EXPORT_FUNCTIONS.join(', ')}.`
+    },
     validateSubmissionTabsJson: function () {
       const parsed = this.parseSubmissionTabs()
       return parsed !== undefined || `Please provide a valid JSON array of submission tab IDs: ${AVAILABLE_SUBMISSION_TABS.join(', ')}.`
@@ -424,6 +479,7 @@ export default {
       const uploadFormFields = this.parseUploadFormFields()
       const allowedHostnames = this.parseAllowedHostnames()
       const taskExportMetadata = this.parseTaskExportMetadata()
+      const exportButtons = this.parseExportButtons()
       if (submissionTabs === undefined) {
         this.submitInProgress = false
         window.alert('Please provide valid submission tab JSON.')
@@ -452,6 +508,13 @@ export default {
         return
       }
 
+      if (exportButtons === undefined) {
+        this.submitInProgress = false
+        window.alert('Please provide valid export buttons JSON.')
+        this.step = 2
+        return
+      }
+
       post(this.url(), this.task_representation(), this.userinfo)
         .then(() => {
           isActive.value = false
@@ -470,6 +533,7 @@ export default {
       const uploadFormFields = this.parseUploadFormFields()
       const allowedHostnames = this.parseAllowedHostnames()
       const taskExportMetadata = this.parseTaskExportMetadata()
+      const exportButtons = this.parseExportButtons()
 
       return {
         'task_id': task_id, 'name': this.task_name, 'featured': this.featured,
@@ -482,6 +546,7 @@ export default {
         'hide_upload_via_cli': this.hide_upload_via_cli,
         'allowed_hostnames': allowedHostnames === undefined ? null : allowedHostnames,
         'task_export_metadata': (taskExportMetadata === undefined || taskExportMetadata === null) ? null : taskExportMetadata.value,
+        'export_buttons': exportButtons === undefined ? null : exportButtons,
       }
     }
   },

@@ -2130,6 +2130,19 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
         },
     ),
+    route_to_test(
+        # No export button is configured for "shared-task-1" by default, so admins reach the view but get a 404
+        # for the unconfigured value; non-admins are redirected to login since they don't own "master-vm-for-task-1".
+        url_pattern="task/<str:task_id>/export/<str:vm_id>/<str:value>",
+        params={"task_id": "shared-task-1", "vm_id": "master-vm-for-task-1", "value": "example-zip-export"},
+        group_to_expected_status_code={
+            ADMIN: 404,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
 ]
 
 

@@ -45,6 +45,13 @@
             <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
           </v-row>
         </v-card-actions>
+        <v-card-actions v-if="userinfo.role === 'admin' && task.export_buttons && task.export_buttons.length > 0">
+          <v-row>
+            <v-col cols="6" v-for="button in task.export_buttons" :key="button.value">
+              <v-btn variant="outlined" :href="'/task/' + task.task_id + '/export/' + task.master_vm_id + '/' + button.value" block>{{ button.display_name }}</v-btn>
+            </v-col>
+          </v-row>
+        </v-card-actions>
         <v-card-actions v-if="task_id === 'ir-benchmarks'">
           <v-row>
             <v-dialog transition="dialog-bottom-transition" width="auto">
@@ -122,7 +129,9 @@ export default {
         "task_id": "", "task_name": "", "task_description": "",
         "organizer": "", "organizer_id": "", "web": "", "year": "",
         "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false,
-        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}]
+        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}],
+        "master_vm_id": "",
+        "export_buttons": null as null | { display_name: string, value: string }[],
       },
       vm: '',
       user_id: '',
