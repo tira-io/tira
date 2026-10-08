@@ -339,7 +339,9 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
         self.assertEqual(400, response.status_code)
         content = json.loads(response.content)
         self.assertIn("would be empty", content["message"])
-        get_docker_softwares_with_runs.assert_called_once_with("shared-task-1", "master-vm-for-task-1")
+        get_docker_softwares_with_runs.assert_called_once_with(
+            "shared-task-1", "master-vm-for-task-1", return_code_submissions=True
+        )
 
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
     def test_admin_can_download_trec_auto_judge_export_with_qualifying_submission(self, get_docker_softwares_with_runs):

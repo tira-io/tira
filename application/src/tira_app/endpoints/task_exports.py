@@ -99,7 +99,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     all its runs on the TREC_AUTO_JUDGE_DATASETS datasets into a zip named after the software, plus a sibling
     yaml file with metadata about that zip (size, md5sum) and the submission itself. All these per-software
     zip/yaml pairs are collected into one zip that is returned to the caller."""
-    docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id)
+    docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=True)
 
     buffer = io.BytesIO()
     included_any = False

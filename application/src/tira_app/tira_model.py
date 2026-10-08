@@ -511,11 +511,13 @@ def get_upload(task_id: str, vm_id: str, upload_id: str) -> "dict[str, Any]":
     return model.get_upload(task_id, vm_id, upload_id)
 
 
-def get_docker_softwares_with_runs(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+def get_docker_softwares_with_runs(
+    task_id: str, vm_id: str, return_code_submissions: bool = False
+) -> "list[dict[str, Any]]":
     """
     Returns all docker software for a task and vm with runs as dictionaries.
     """
-    return model.get_docker_softwares_with_runs(task_id, vm_id)
+    return model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=return_code_submissions)
 
 
 def get_docker_softwares(task_id: str, vm_id: str, return_code_submissions: bool = False) -> "list[dict[str, Any]]":

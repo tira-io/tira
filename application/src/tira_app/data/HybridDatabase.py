@@ -1425,7 +1425,9 @@ class HybridDatabase(object):
 
         return ret[0], (ret[1] + from_uploads)
 
-    def get_docker_softwares_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+    def get_docker_softwares_with_runs(
+        self, task_id: str, vm_id: str, return_code_submissions: bool = False
+    ) -> "list[dict[str, Any]]":
         def _runs_by_docker_software(ds: modeldb.DockerSoftware) -> "list[dict[str, Any]]":
             reviews = (
                 modeldb.Review.objects.select_related(
@@ -1437,7 +1439,9 @@ class HybridDatabase(object):
 
             return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
 
-        docker_softwares = self.get_docker_softwares(task_id, vm_id, return_only_names=False)
+        docker_softwares = self.get_docker_softwares(
+            task_id, vm_id, return_only_names=False, return_code_submissions=return_code_submissions
+        )
 
         docker_softwares = [
             {**self._docker_software_to_dict(ds), "runs": _runs_by_docker_software(ds)} for ds in docker_softwares
