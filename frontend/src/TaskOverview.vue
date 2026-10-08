@@ -129,7 +129,9 @@ export default {
         "task_id": "", "task_name": "", "task_description": "",
         "organizer": "", "organizer_id": "", "web": "", "year": "",
         "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false,
-        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}]
+        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}],
+        "master_vm_id": "",
+        "export_buttons": null as null | { display_name: string, value: string }[],
       },
       vm: '',
       user_id: '',
