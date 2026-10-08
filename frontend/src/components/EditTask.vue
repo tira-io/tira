@@ -196,6 +196,7 @@ const AVAILABLE_SUBMISSION_TABS = [
 
 const AVAILABLE_TASK_EXPORT_FUNCTIONS = [
   'example-zip-export',
+  'trec-auto-judge',
 ]
 
 export default {
