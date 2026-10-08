@@ -6,8 +6,10 @@ from tira.tira_cli import (
     _reconstruct_code_submission_command,
     code_submission_command,
     dataset_submission_command,
+    parse_metadata_args,
     requires_mount_workflow,
     setup_dataset_submission_command,
+    setup_upload_command,
 )
 
 
@@ -279,3 +281,103 @@ class TestCodeSubmissionCommandForwardsReconstructedCliCommand(unittest.TestCase
             kwargs["tira_cli_command"],
             "tira-cli code-submission --path some/path --task some-task",
         )
+
+
+class TestParseMetadataArgs(unittest.TestCase):
+    def test_none_returns_none(self):
+        self.assertIsNone(parse_metadata_args(None))
+
+    def test_empty_list_returns_none(self):
+        self.assertIsNone(parse_metadata_args([]))
+
+    def test_single_entry_is_parsed(self):
+        self.assertEqual({"track": "main"}, parse_metadata_args(["track=main"]))
+
+    def test_multiple_entries_are_parsed(self):
+        self.assertEqual(
+            {"track": "main", "team_name": "Group 42"},
+            parse_metadata_args(["track=main", "team_name=Group 42"]),
+        )
+
+    def test_value_may_contain_equals_sign(self):
+        self.assertEqual({"formula": "a=b+c"}, parse_metadata_args(["formula=a=b+c"]))
+
+    def test_missing_equals_sign_raises(self):
+        with self.assertRaises(ValueError):
+            parse_metadata_args(["track"])
+
+
+class TestUploadCommandMetadataArgument(unittest.TestCase):
+    def _parse(self, argv):
+        import argparse
+
+        parser = argparse.ArgumentParser()
+        setup_upload_command(parser)
+        return parser.parse_args(argv)
+
+    def test_metadata_defaults_to_none(self):
+        args = self._parse(["--directory", "some/path"])
+        self.assertIsNone(args.metadata)
+
+    def test_metadata_can_be_passed_multiple_times(self):
+        args = self._parse(
+            ["--directory", "some/path", "--metadata", "track=main", "--metadata", "team_name=Group 42"]
+        )
+        self.assertEqual(["track=main", "team_name=Group 42"], args.metadata)
+
+
+class TestUploadCommandAttachesMetadata(unittest.TestCase):
+    """Covers the authenticated-upload flow that calls update_upload_metadata() after claim_ownership()."""
+
+    def _run_upload_command(self, tmp_path, metadata, mock_rest_client, system_description="auto-detected description"):
+        mock_client = mock_rest_client.return_value
+        mock_client.api_key_is_valid.return_value = True
+        mock_client.get_dataset.return_value = {"default_task": "some-task"}
+        mock_client.validate_upload_metadata.side_effect = lambda task_id, md: md
+        mock_client.upload_run_anonymous.return_value = {"uuid": "some-uuid"}
+        mock_client.claim_ownership.return_value = {"status": "0", "upload_group": "some-upload-id"}
+
+        with patch("tira.tira_cli.guess_system_details") as mock_guess_system_details, patch(
+            "tira.tira_cli.guess_vm_id_of_user"
+        ) as mock_guess_vm_id_of_user:
+            mock_guess_system_details.return_value = {
+                "tag": "my-system",
+                "description": system_description,
+                "team": "my-team",
+            }
+            mock_guess_vm_id_of_user.return_value = "my-team"
+
+            from tira.tira_cli import upload_command
+
+            ret = upload_command(
+                dataset="some-dataset",
+                directory=tmp_path,
+                dry_run=False,
+                system=None,
+                metadata=metadata,
+            )
+
+        self.assertEqual(0, ret)
+        return mock_client
+
+    @patch("tira.tira_cli.RestClient")
+    def test_metadata_with_description_overrides_auto_detected_description(self, mock_rest_client):
+        mock_client = self._run_upload_command(
+            Path("."), ["description=my cool description goes here", "track=main"], mock_rest_client
+        )
+
+        args, _ = mock_client.update_upload_metadata.call_args
+        self.assertEqual("my cool description goes here", args[4])
+
+    @patch("tira.tira_cli.RestClient")
+    def test_metadata_without_description_falls_back_to_auto_detected_description(self, mock_rest_client):
+        mock_client = self._run_upload_command(Path("."), ["track=main"], mock_rest_client)
+
+        args, _ = mock_client.update_upload_metadata.call_args
+        self.assertEqual("auto-detected description", args[4])
+
+    @patch("tira.tira_cli.RestClient")
+    def test_update_upload_metadata_is_not_called_without_metadata(self, mock_rest_client):
+        mock_client = self._run_upload_command(Path("."), None, mock_rest_client)
+
+        mock_client.update_upload_metadata.assert_not_called()

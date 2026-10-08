@@ -5,7 +5,7 @@ import logging
 import time
 from pathlib import Path
 from platform import python_version
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
@@ -1225,6 +1225,17 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
+    parser.add_argument(
+        "--metadata",
+        action="append",
+        default=None,
+        metavar="KEY=VALUE",
+        help=(
+            "Custom metadata field to attach to the uploaded run, e.g. --metadata track=main. Can be passed"
+            " multiple times. Available fields depend on the task's upload configuration. Only supported for"
+            " authenticated uploads (not --anonymous)."
+        ),
+    )
     parser.set_defaults(executable=upload_command)
 
 
@@ -1470,6 +1481,24 @@ def verify_installation_command(task, team, local_only=False, **kwargs) -> int:
     return 0 if status == _fmt.OK else 1
 
 
+def parse_metadata_args(metadata_args: "Optional[List[str]]") -> "Optional[dict]":
+    """Parse repeated --metadata KEY=VALUE CLI arguments into a dict."""
+    if not metadata_args:
+        return None
+
+    parsed = {}
+    for entry in metadata_args:
+        if "=" not in entry:
+            raise ValueError(
+                f'Invalid --metadata entry "{entry}". Please use the form --metadata KEY=VALUE, e.g. --metadata'
+                " track=main."
+            )
+        key, value = entry.split("=", 1)
+        parsed[key.strip()] = value
+
+    return parsed
+
+
 def upload_command(
     dataset: "Optional[str]",
     directory: Path,
@@ -1478,12 +1507,20 @@ def upload_command(
     default_task: "Optional[str]" = None,
     tira_vm_id: "Optional[str]" = None,
     anonymous: "Optional[bool]" = False,
+    metadata: "Optional[List[str]]" = None,
     **kwargs,
 ) -> int:
     if not directory or not Path(directory).is_dir():
         msg = f"The directory passed via --directory does not exist. Got {directory}"
         print(fmt_message(msg, _fmt.ERROR))
         return 1
+
+    try:
+        upload_metadata = parse_metadata_args(metadata)
+    except ValueError as e:
+        print(fmt_message(str(e), _fmt.ERROR))
+        return 1
+
     client: "RestClient" = RestClient()
     api_key_is_valid = client.api_key_is_valid()
 
@@ -1524,6 +1561,8 @@ def upload_command(
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
+        if upload_metadata and default_task:
+            upload_metadata = client.validate_upload_metadata(default_task, upload_metadata)
         if system_details and "team" in system_details and not system:
             tira_vm_id = str(system_details["team"])
             system = tira_vm_id
@@ -1555,6 +1594,15 @@ def upload_command(
 
     if dry_run and not system:
         system = "vm_id"
+
+    if upload_metadata and (not system or not vm_id) and not dry_run:
+        print(
+            fmt_message(
+                "Custom --metadata fields are only supported for authenticated uploads. The run will be"
+                " uploaded without the custom metadata fields.",
+                _fmt.WARN,
+            )
+        )
 
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
 
@@ -1589,6 +1637,20 @@ def upload_command(
                 )
             )
             return 1
+
+        if upload_metadata:
+            description = upload_metadata.get("description") or system_details.get(
+                "description", "todo: Add a description"
+            )
+            client.update_upload_metadata(
+                default_task,
+                vm_id,
+                resp["upload_group"],
+                system_details["tag"],
+                description,
+                upload_metadata,
+            )
+
         msg = (
             f"Done. Your run is available as {system_details['tag']} "
             + f"at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission"

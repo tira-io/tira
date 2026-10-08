@@ -196,6 +196,29 @@ class Client(TiraClient):
         ret = response.content.decode("utf8")
         return json.loads(ret)
 
+    def update_upload_metadata(
+        self,
+        task_id: str,
+        vm_id: str,
+        upload_id: str,
+        display_name: str,
+        description: str,
+        upload_metadata: "Optional[Dict[str, str]]" = None,
+    ) -> Dict:
+        """Attach custom metadata fields (and display_name/description) to an already-uploaded run's upload group,
+        using the same "edit upload" endpoint the web UI uses. Intended to be called once right after
+        upload_run_anonymous + claim_ownership, since that flow itself has no way to carry custom metadata."""
+        url = f"/task/{task_id}/vm/{vm_id}/save_software/upload/{upload_id}"
+        return self.execute_post_return_json(
+            url,
+            json_payload={
+                "display_name": display_name,
+                "description": description,
+                "paper_link": "",
+                "upload_metadata": upload_metadata,
+            },
+        )
+
     def get_dataset(self, dataset) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
@@ -1378,6 +1401,89 @@ class Client(TiraClient):
         else:
             print("\t" + fmt_message(f"The data is uploaded.", _fmt.OK))
         return resp
+
+    def upload_form_fields_for_task(self, task_id: str, force_reload: bool = False) -> "Optional[List[Dict[str, Any]]]":
+        """The custom upload metadata fields configured for a task (if any), via the cached /api/task/<task_id>
+        response. Mirrors the archived/cached-then-refresh pattern used elsewhere in this client (e.g. datasets())."""
+        try:
+            resp = self.archived_json_response(f"/api/task/{task_id}", force_reload=force_reload)
+        except Exception:
+            resp = self.archived_json_response(f"/api/task/{task_id}", force_reload=True)
+
+        return resp.get("context", {}).get("task", {}).get("upload_form_fields")
+
+    def validate_upload_metadata(
+        self, task_id: str, upload_metadata: "Optional[Dict[str, str]]"
+    ) -> "Optional[Dict[str, str]]":
+        """Validate custom metadata passed via --metadata against the task's configured upload_form_fields.
+
+        Uses the locally cached task configuration first. If the metadata does not match it (unknown field
+        names, or invalid values for "select" fields), the cache is refreshed once and the validation is retried
+        against the fresh configuration. If a mismatch still remains afterwards, the offending entries are
+        dropped (with a warning) instead of failing the whole upload.
+        """
+        if not upload_metadata:
+            return upload_metadata
+
+        fields = self.upload_form_fields_for_task(task_id, force_reload=False)
+        if fields and self._upload_metadata_mismatches(upload_metadata, fields):
+            fields = self.upload_form_fields_for_task(task_id, force_reload=True)
+
+        if not fields:
+            return upload_metadata
+
+        return self._sanitize_upload_metadata_against_fields(upload_metadata, fields)
+
+    @staticmethod
+    def _upload_metadata_mismatches(upload_metadata: "Dict[str, str]", fields: "List[Dict[str, Any]]") -> bool:
+        allowed_names = {f["name"] for f in fields if "name" in f}
+        for key, value in upload_metadata.items():
+            if key == "description":
+                continue
+            if key not in allowed_names:
+                return True
+            field = next((f for f in fields if f.get("name") == key), None)
+            if field and field.get("type") == "select":
+                allowed_options = {o["id"] for o in field.get("options", []) if "id" in o}
+                if value not in allowed_options:
+                    return True
+        return False
+
+    @staticmethod
+    def _sanitize_upload_metadata_against_fields(
+        upload_metadata: "Dict[str, str]", fields: "List[Dict[str, Any]]"
+    ) -> "Dict[str, str]":
+        allowed_names = {f["name"] for f in fields if "name" in f}
+        fields_by_name = {f["name"]: f for f in fields if "name" in f}
+        sanitized = {}
+
+        for key, value in upload_metadata.items():
+            if key != "description" and key not in allowed_names:
+                print(
+                    fmt_message(
+                        f'The metadata field "{key}" is not configured for this task and will be ignored.'
+                        " Please check --metadata or the task's submission page for the available fields.",
+                        _fmt.WARN,
+                    )
+                )
+                continue
+
+            field = fields_by_name.get(key)
+            if field and field.get("type") == "select":
+                allowed_options = {o["id"] for o in field.get("options", []) if "id" in o}
+                if value not in allowed_options:
+                    print(
+                        fmt_message(
+                            f'The value "{value}" is not a valid option for the metadata field "{key}"'
+                            f" (allowed: {sorted(allowed_options)}). This field will be ignored.",
+                            _fmt.WARN,
+                        )
+                    )
+                    continue
+
+            sanitized[key] = value
+
+        return sanitized
 
     def create_group(self, vm_id):
         if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:
