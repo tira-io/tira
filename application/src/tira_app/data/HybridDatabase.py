@@ -546,10 +546,12 @@ class HybridDatabase(object):
         is_evaluation = HybridDatabase._is_evaluation_run(run)
         software = None
         vm = None
+        software_deleted = False
         software_id, evaluator_id, docker_software_id, upload_id = None, None, None, None
         if run.software:
             software = run.software.software_id
             software_id = run.software.software_id
+            software_deleted = run.software.deleted
         elif run.evaluator:
             software = run.evaluator.evaluator_id
             evaluator_id = software
@@ -557,10 +559,12 @@ class HybridDatabase(object):
             software = run.docker_software.display_name
             vm = run.docker_software.vm.vm_id
             docker_software_id = run.docker_software.docker_software_id
+            software_deleted = run.docker_software.deleted
         elif run.upload:
             software = run.upload.display_name
             upload_id = run.upload.id
             vm = run.upload.vm.vm_id
+            software_deleted = run.upload.deleted
 
         return {
             "software": software,
@@ -581,6 +585,9 @@ class HybridDatabase(object):
             "upload_id": upload_id,
             "from_upload": run.from_upload.uuid if run.from_upload else None,
             "deleted": run.deleted,
+            # whether the software/docker-software/upload (i.e., the code submission) that produced this run
+            # has itself been deleted (independent of 'deleted', which is the deletion flag of the run itself)
+            "software_deleted": software_deleted,
         }
 
     def get_run(

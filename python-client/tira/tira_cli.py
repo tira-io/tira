@@ -565,7 +565,8 @@ def _evaluation_timestamp(evaluation_run_id: str) -> "Optional[datetime]":
 
 def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "datetime") -> list:
     """Return submissions (as dicts with run_id/team/latest_evaluation) that have no evaluation after
-    ``after_datetime``, excluding evaluation runs themselves and deleted runs."""
+    ``after_datetime``, excluding evaluation runs themselves, deleted runs, and runs whose software/code
+    submission (i.e., the software, docker-software, or upload that produced the run) has been deleted."""
     latest_evaluation_of_run: "dict[str, datetime]" = {}
     for _, evaluation in evaluations.iterrows():
         timestamp = _evaluation_timestamp(evaluation["evaluation_run_id"])
@@ -578,7 +579,7 @@ def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "d
 
     ret = []
     for _, run in submissions.iterrows():
-        if run.get("is_evaluation", False) or run.get("deleted", False):
+        if run.get("is_evaluation", False) or run.get("deleted", False) or run.get("software_deleted", False):
             continue
 
         run_id = run["run_id"]
@@ -613,6 +614,46 @@ def _evaluate_run_with_retries(client: "TiraClient", dataset: str, run: dict, ma
     )
 
 
+def _old_evaluations_to_delete(evaluations, after_datetime: "datetime", triggered_run_ids: set) -> list:
+    """Return evaluation runs (dicts with run_id, evaluation_run_id, team) that are older than
+    ``after_datetime`` and whose evaluated run is not in ``triggered_run_ids`` (i.e., no new evaluation was
+    triggered for it in this invocation). These are now-stale/superseded evaluations: since the run was not
+    in ``triggered_run_ids``, it already has a more recent evaluation (see ``_runs_without_recent_evaluation``),
+    so deleting the old one is safe."""
+    ret = []
+    for _, evaluation in evaluations.iterrows():
+        run_id = evaluation["run_id"]
+        if run_id in triggered_run_ids:
+            continue
+
+        timestamp = _evaluation_timestamp(evaluation["evaluation_run_id"])
+        if timestamp is None or timestamp > after_datetime:
+            continue
+
+        ret.append({"run_id": run_id, "evaluation_run_id": evaluation["evaluation_run_id"], "team": evaluation["team"]})
+
+    return ret
+
+
+def _delete_old_evaluation(client: "TiraClient", dataset: str, evaluation: dict) -> None:
+    """Print what is about to be deleted, wait 5 seconds, and then delete the (now stale) evaluation run."""
+    import time
+
+    print(
+        fmt_message(
+            f"Deleting outdated evaluation {evaluation['evaluation_run_id']} of run {evaluation['run_id']} (team"
+            f" {evaluation['team']}, dataset {dataset})...",
+            _fmt.WARN,
+        )
+    )
+    time.sleep(5)
+
+    try:
+        client.delete_run(evaluation["team"], dataset, evaluation["evaluation_run_id"])
+    except Exception as e:
+        log_message(f"Could not delete outdated evaluation {evaluation['evaluation_run_id']}: {e}", _fmt.WARN)
+
+
 def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
     import time
 
@@ -634,23 +675,33 @@ def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
 
     if not runs_without_recent_evaluation:
         print(fmt_message(f"All runs of dataset {dataset} have an evaluation after {after}.", _fmt.OK))
-        return 0
-
-    print(
-        fmt_message(
-            f"Found {len(runs_without_recent_evaluation)} run(s) of dataset {dataset} without an evaluation after"
-            f" {after}:",
-            _fmt.WARN,
+    else:
+        print(
+            fmt_message(
+                f"Found {len(runs_without_recent_evaluation)} run(s) of dataset {dataset} without an evaluation"
+                f" after {after}:",
+                _fmt.WARN,
+            )
         )
-    )
-    for i in runs_without_recent_evaluation:
-        reason = "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
-        print(f"  - run {i['run_id']} (team {i['team']}): {reason}")
+        for i in runs_without_recent_evaluation:
+            reason = (
+                "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
+            )
+            print(f"  - run {i['run_id']} (team {i['team']}): {reason}")
 
-    print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
-    for i in tqdm(runs_without_recent_evaluation, "Starting evaluations"):
-        _evaluate_run_with_retries(client, dataset, i)
-        time.sleep(10)
+        print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
+        for i in tqdm(runs_without_recent_evaluation, "Starting evaluations"):
+            _evaluate_run_with_retries(client, dataset, i)
+            time.sleep(10)
+
+    # Only delete outdated evaluations for runs for which no new evaluation was triggered above: those runs
+    # already have a more recent evaluation, so any older evaluation of them is a safe-to-remove duplicate.
+    triggered_run_ids = {i["run_id"] for i in runs_without_recent_evaluation}
+    old_evaluations = _old_evaluations_to_delete(evaluations, after_datetime, triggered_run_ids)
+    if old_evaluations:
+        print(fmt_message(f"Deleting {len(old_evaluations)} outdated evaluation(s)...", _fmt.OK))
+        for i in old_evaluations:
+            _delete_old_evaluation(client, dataset, i)
 
     return 0
 
@@ -720,7 +771,8 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         "re-run-evaluations",
         help=(
             "Identify runs of a dataset that have no evaluation after a given datetime (e.g., after an evaluator"
-            " update), and start a new evaluation for each of them."
+            " update), start a new evaluation for each of them, and delete now-outdated evaluations of runs for"
+            " which no new evaluation needed to be triggered."
         ),
     )
     re_run_evaluations_parser.add_argument("--dataset", required=True, help="The dataset to check.")

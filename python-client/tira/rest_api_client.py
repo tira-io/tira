@@ -1046,6 +1046,16 @@ class Client(TiraClient):
 
         return ret
 
+    def delete_run(self, team, dataset, run_id):
+        """Delete the run of the specified team and identified by the run_id (the run must be submitted on the
+        specified dataset). Raises a ValueError if the run could not be deleted (e.g., it is still needed)."""
+        ret = self.json_response(f"/grpc/{team}/run_delete/{dataset}/{run_id}")
+
+        if "status" not in ret or "0" != str(ret["status"]):
+            raise ValueError(f"Failed to delete the run. Got {ret}")
+
+        return ret
+
     def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory, rename_to=None):
         if expected_md5 is None or not expected_md5:
             raise ValueError("foo")

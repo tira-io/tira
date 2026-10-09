@@ -568,6 +568,33 @@ class TestAdminReRunEvaluations(unittest.TestCase):
 
     @patch("time.sleep")
     @patch("tira.tira_cli.RestClient")
+    def test_runs_of_deleted_software_without_evaluation_are_not_reported_nor_re_evaluated(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "deleted": False,
+                    "software_deleted": True,
+                }
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-10-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
     def test_re_evaluation_is_retried_and_eventually_reported_as_failed(self, mock_rest_client, mock_sleep):
         mock_client = mock_rest_client.return_value
         mock_client.get_dataset.return_value = {"default_task": "my-task"}
@@ -600,3 +627,96 @@ class TestAdminReRunEvaluations(unittest.TestCase):
         self.assertEqual(0, ret)
         self.assertEqual(2, mock_client.evaluate_run.call_count)
         self.assertNotIn("Failed to start evaluation", output)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_evaluation_of_an_untriggered_run_is_deleted(self, mock_rest_client, mock_sleep):
+        # The run already has a recent evaluation, so no new evaluation is triggered for it. Its older,
+        # now-superseded evaluation should be deleted.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.evaluate_run.assert_not_called()
+        mock_client.delete_run.assert_called_once_with(
+            "team-1", "my-dataset", "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00"
+        )
+        self.assertIn("Deleting outdated evaluation", output)
+        self.assertIn("2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00", output)
+        mock_sleep.assert_called_once_with(5)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_evaluation_of_a_triggered_run_is_not_deleted(self, mock_rest_client, mock_sleep):
+        # The run has no recent evaluation, so a new one is triggered for it. Its only (stale) evaluation
+        # must not be deleted, regardless of whether the triggered re-evaluation succeeds.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+        mock_client.delete_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_failure_to_delete_an_old_evaluation_is_logged_and_does_not_fail_the_command(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+            ]
+        )
+        mock_client.delete_run.side_effect = ValueError("run is still needed")
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.delete_run.assert_called_once()
