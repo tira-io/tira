@@ -3,7 +3,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tira.tira_cli import (
+    _evaluation_timestamp,
+    _parse_tira_id_timestamp,
     _reconstruct_code_submission_command,
+    admin_re_run_evaluations,
     code_submission_command,
     dataset_submission_command,
     parse_metadata_args,
@@ -320,9 +323,7 @@ class TestUploadCommandMetadataArgument(unittest.TestCase):
         self.assertIsNone(args.metadata)
 
     def test_metadata_can_be_passed_multiple_times(self):
-        args = self._parse(
-            ["--directory", "some/path", "--metadata", "track=main", "--metadata", "team_name=Group 42"]
-        )
+        args = self._parse(["--directory", "some/path", "--metadata", "track=main", "--metadata", "team_name=Group 42"])
         self.assertEqual(["track=main", "team_name=Group 42"], args.metadata)
 
 
@@ -381,3 +382,221 @@ class TestUploadCommandAttachesMetadata(unittest.TestCase):
         mock_client = self._run_upload_command(Path("."), None, mock_rest_client)
 
         mock_client.update_upload_metadata.assert_not_called()
+
+
+class TestParseTiraIdTimestamp(unittest.TestCase):
+    def test_valid_timestamp_is_parsed(self):
+        from datetime import datetime
+
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _parse_tira_id_timestamp("2026-10-02-21-09-11"))
+
+    def test_invalid_timestamp_returns_none(self):
+        self.assertIsNone(_parse_tira_id_timestamp("not-a-timestamp"))
+
+    def test_empty_string_returns_none(self):
+        self.assertIsNone(_parse_tira_id_timestamp(""))
+
+
+class TestEvaluationTimestamp(unittest.TestCase):
+    def test_extracts_timestamp_from_evaluation_run_id(self):
+        from datetime import datetime
+
+        run_id = "2026-10-02-21-09-11-evaluates-2026-10-02-23-08-58"
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _evaluation_timestamp(run_id))
+
+    def test_returns_none_without_evaluates_marker(self):
+        self.assertIsNone(_evaluation_timestamp("2026-10-02-21-09-11"))
+
+    def test_returns_none_for_unparsable_prefix(self):
+        self.assertIsNone(_evaluation_timestamp("not-a-timestamp-evaluates-2026-10-02-23-08-58"))
+
+
+class TestAdminReRunEvaluations(unittest.TestCase):
+    def _submissions_df(self, rows):
+        import pandas as pd
+
+        return pd.DataFrame(rows)
+
+    def _evaluations_df(self, rows):
+        import pandas as pd
+
+        return pd.DataFrame(rows)
+
+    def _run_and_capture_stdout(self, **kwargs):
+        import io
+        from contextlib import redirect_stdout
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = admin_re_run_evaluations(**kwargs)
+        return ret, buf.getvalue()
+
+    @patch("tira.tira_cli.RestClient")
+    def test_invalid_after_datetime_returns_error_without_calling_client(self, mock_rest_client):
+        mock_client = mock_rest_client.return_value
+
+        ret = admin_re_run_evaluations(dataset="some-dataset", after="not-a-datetime")
+
+        self.assertEqual(1, ret)
+        mock_client.get_dataset.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_without_any_evaluation_is_reported_and_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-10-01-00-00-00", output)
+        self.assertIn("no evaluation", output)
+        mock_client.submissions.assert_called_once_with("my-task", "my-dataset")
+        mock_client.evaluations.assert_called_once_with("my-task", "my-dataset", join_submissions=False)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-10-01-00-00-00")
+        mock_sleep.assert_called_once_with(10)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_stale_evaluation_is_reported_and_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-01-01-00-00-00", output)
+        self.assertIn("last evaluated at", output)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_recent_evaluation_is_not_reported_nor_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-01-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_runs_are_excluded_from_submissions_check(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False},
+                {
+                    "run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": True,
+                },
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2025-12-31-00-00-00-evaluates", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_deleted_runs_without_evaluation_are_not_reported_nor_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "deleted": True,
+                }
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-10-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_re_evaluation_is_retried_and_eventually_reported_as_failed(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluate_run.side_effect = ValueError("evaluator is unavailable")
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertEqual(3, mock_client.evaluate_run.call_count)
+        self.assertIn("Failed to start evaluation", output)
+        self.assertIn("evaluator is unavailable", output)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_re_evaluation_succeeds_after_a_retry(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluate_run.side_effect = [ValueError("transient error"), None]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertEqual(2, mock_client.evaluate_run.call_count)
+        self.assertNotIn("Failed to start evaluation", output)

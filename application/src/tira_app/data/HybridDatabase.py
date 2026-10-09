@@ -524,10 +524,26 @@ class HybridDatabase(object):
         return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
 
     @staticmethod
+    def _is_evaluation_run(run: modeldb.Run) -> bool:
+        """Whether the passed run is an evaluation run, i.e., it evaluates another ("input") run.
+
+        This is the single source of truth for identifying evaluation runs: an evaluation run has an
+        'input_run' (the run it evaluates) and its own run_id follows the '<ts>-evaluates-<input-run-id>'
+        naming convention. It is used both to render the 'is_evaluation' flag in `_run_as_dict` and to
+        decide the deletion strategy in `delete_run`/`_delete_evaluation_run`: keep both call sites in sync
+        with this method instead of duplicating its logic.
+        """
+        if not run.input_run or run.input_run.run_id == "none" or run.input_run.run_id == "None":
+            return False
+        if "-evaluates-" not in run.run_id:
+            return False
+        if run.docker_software:
+            return False
+        return True
+
+    @staticmethod
     def _run_as_dict(run: modeldb.Run) -> "dict[str, Any]":
-        is_evaluation = (
-            False if not run.input_run or run.input_run.run_id == "none" or run.input_run.run_id == "None" else True
-        )
+        is_evaluation = HybridDatabase._is_evaluation_run(run)
         software = None
         vm = None
         software_id, evaluator_id, docker_software_id, upload_id = None, None, None, None
@@ -540,7 +556,6 @@ class HybridDatabase(object):
         elif run.docker_software:
             software = run.docker_software.display_name
             vm = run.docker_software.vm.vm_id
-            is_evaluation = False
             docker_software_id = run.docker_software.docker_software_id
         elif run.upload:
             software = run.upload.display_name
@@ -565,6 +580,7 @@ class HybridDatabase(object):
             "dynamic_mounts": None if not run.dynamic_mounts else json.loads(run.dynamic_mounts),
             "upload_id": upload_id,
             "from_upload": run.from_upload.uuid if run.from_upload else None,
+            "deleted": run.deleted,
         }
 
     def get_run(
@@ -2862,16 +2878,49 @@ class HybridDatabase(object):
 
         return found
 
+    def _delete_evaluation_run(self, run: modeldb.Run) -> bool:
+        """Delete an evaluation run, including its rows in the Evaluation table (used to render the leaderboards).
+
+        Deletion is denied if, after removing this run's Evaluation rows, the submitted run that this run
+        evaluates (run.input_run) would be left without any other evaluation run that still has Evaluation
+        rows (i.e., the submission would have no remaining scored evaluation on the leaderboard). This check
+        is done before any Evaluation rows are deleted.
+
+        NOTE: this is called from `delete_run` as an early check and return when `_is_evaluation_run` is
+        true for the run being deleted; keep both in sync.
+
+        @return: true if it was deleted, false if it can not be deleted
+        """
+        remaining_evaluations_of_submission = (
+            modeldb.Run.objects.filter(input_run=run.input_run, deleted=False)
+            .exclude(run_id=run.run_id)
+            .filter(evaluation__isnull=False)
+        )
+        if not remaining_evaluations_of_submission.exists():
+            return False
+
+        modeldb.Evaluation.objects.filter(run=run).delete()
+        run.deleted = True
+        run.save()
+        return True
+
     def delete_run(self, dataset_id: str, vm_id: str, run_id: str) -> bool:
         """delete the run in the database.
 
         Do not delete if:
           - the run is on the leaderboard.
           - the run is valid
+          - (for evaluation runs) it would leave the evaluated submission without a remaining evaluation
+            that still has lines in the Evaluation table (see `_delete_evaluation_run`)
 
             @return: true if it was deleted, false if it can not be deleted
         """
         run = modeldb.Run.objects.get(run_id=run_id)
+
+        # NOTE: this is the single entry point for deleting evaluation runs; keep in sync with
+        # `_is_evaluation_run`/`_delete_evaluation_run`.
+        if self._is_evaluation_run(run):
+            return self._delete_evaluation_run(run)
 
         review = modeldb.Review.objects.get(run=run)
         if review and (review.published or review.no_errors):

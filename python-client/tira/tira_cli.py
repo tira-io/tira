@@ -25,6 +25,8 @@ from tira.rest_api_client import RunSoftwareError
 from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from .tira_client import TiraClient
 
 
@@ -537,6 +539,122 @@ def admin_batch_unblind(task: str, **kwargs) -> int:
     return 0
 
 
+def _parse_tira_id_timestamp(value: str) -> "Optional[datetime]":
+    """Parse a TIRA-style timestamp (as produced by ``tira.io_utils.get_tira_id``,
+    i.e., ``%Y-%m-%d-%H-%M-%S``) and return ``None`` if it can not be parsed."""
+    from datetime import datetime
+
+    try:
+        return datetime.strptime(value, "%Y-%m-%d-%H-%M-%S")
+    except ValueError:
+        return None
+
+
+def _evaluation_timestamp(evaluation_run_id: str) -> "Optional[datetime]":
+    """Extract the datetime at which an evaluation run was created from its run_id.
+
+    Evaluation run_ids have the form ``<evaluation-timestamp>-evaluates-<evaluated-run-id>``
+    (e.g., ``2026-10-02-21-09-11-evaluates-2026-10-02-23-08-58``), so the timestamp is the
+    prefix before ``-evaluates-``.
+    """
+    if "-evaluates-" not in evaluation_run_id:
+        return None
+
+    return _parse_tira_id_timestamp(evaluation_run_id.split("-evaluates-")[0])
+
+
+def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "datetime") -> list:
+    """Return submissions (as dicts with run_id/team/latest_evaluation) that have no evaluation after
+    ``after_datetime``, excluding evaluation runs themselves and deleted runs."""
+    latest_evaluation_of_run: "dict[str, datetime]" = {}
+    for _, evaluation in evaluations.iterrows():
+        timestamp = _evaluation_timestamp(evaluation["evaluation_run_id"])
+        if timestamp is None:
+            continue
+
+        run_id = evaluation["run_id"]
+        if run_id not in latest_evaluation_of_run or timestamp > latest_evaluation_of_run[run_id]:
+            latest_evaluation_of_run[run_id] = timestamp
+
+    ret = []
+    for _, run in submissions.iterrows():
+        if run.get("is_evaluation", False) or run.get("deleted", False):
+            continue
+
+        run_id = run["run_id"]
+        latest_evaluation = latest_evaluation_of_run.get(run_id)
+        if latest_evaluation is None or latest_evaluation <= after_datetime:
+            ret.append({"run_id": run_id, "team": run["team"], "latest_evaluation": latest_evaluation})
+
+    return ret
+
+
+def _evaluate_run_with_retries(client: "TiraClient", dataset: str, run: dict, max_attempts: int = 3) -> None:
+    """Try to (re-)start the evaluation of ``run`` up to ``max_attempts`` times, sleeping 10s between attempts.
+    Prints a warning for each failed attempt and an error if all attempts failed."""
+    import time
+
+    last_error: "Optional[Exception]" = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            client.evaluate_run(run["team"], dataset, run["run_id"])
+            return
+        except Exception as e:
+            last_error = e
+            log_message(f"Attempt {attempt}/{max_attempts} to evaluate run {run['run_id']} failed: {e}", _fmt.WARN)
+        time.sleep(10)
+
+    print(
+        fmt_message(
+            f"Failed to start evaluation for run {run['run_id']} (team {run['team']}) after {max_attempts}"
+            f" attempts: {last_error}",
+            _fmt.ERROR,
+        )
+    )
+
+
+def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
+    import time
+
+    from tqdm import tqdm
+
+    client: "TiraClient" = RestClient()
+
+    after_datetime = _parse_tira_id_timestamp(after)
+    if after_datetime is None:
+        print(fmt_message(f'Could not parse "{after}" as a datetime of the form "YYYY-MM-DD-HH-MM-SS".', _fmt.ERROR))
+        return 1
+
+    dataset_details = client.get_dataset(dataset)
+    task = dataset_details["default_task"]
+
+    submissions = client.submissions(task, dataset)
+    evaluations = client.evaluations(task, dataset, join_submissions=False)
+    runs_without_recent_evaluation = _runs_without_recent_evaluation(submissions, evaluations, after_datetime)
+
+    if not runs_without_recent_evaluation:
+        print(fmt_message(f"All runs of dataset {dataset} have an evaluation after {after}.", _fmt.OK))
+        return 0
+
+    print(
+        fmt_message(
+            f"Found {len(runs_without_recent_evaluation)} run(s) of dataset {dataset} without an evaluation after"
+            f" {after}:",
+            _fmt.WARN,
+        )
+    )
+    for i in runs_without_recent_evaluation:
+        reason = "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
+        print(f"  - run {i['run_id']} (team {i['team']}): {reason}")
+
+    print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
+    for i in tqdm(runs_without_recent_evaluation, "Starting evaluations"):
+        _evaluate_run_with_retries(client, dataset, i)
+        time.sleep(10)
+
+    return 0
+
+
 def admin_export_rag_responses(runs: str, evals: str, output: str, **kwargs) -> int:
     output_file = export_rag_responses(Path(runs), Path(evals), Path(output))
     print(fmt_message(f"Wrote {output_file}.", _fmt.OK))
@@ -597,6 +715,24 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="Directory that receives aggregated-results.json.",
     )
     export_parser.set_defaults(executable=admin_export_rag_responses)
+
+    re_run_evaluations_parser = subparsers.add_parser(
+        "re-run-evaluations",
+        help=(
+            "Identify runs of a dataset that have no evaluation after a given datetime (e.g., after an evaluator"
+            " update), and start a new evaluation for each of them."
+        ),
+    )
+    re_run_evaluations_parser.add_argument("--dataset", required=True, help="The dataset to check.")
+    re_run_evaluations_parser.add_argument(
+        "--after",
+        required=True,
+        help=(
+            "Only evaluations created after this datetime (format: YYYY-MM-DD-HH-MM-SS, like the TIRA run-id"
+            " timestamps) count as up to date."
+        ),
+    )
+    re_run_evaluations_parser.set_defaults(executable=admin_re_run_evaluations)
 
 
 def run_local(
