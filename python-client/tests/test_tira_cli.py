@@ -442,6 +442,99 @@ class TestAdminReRunEvaluations(unittest.TestCase):
 
     @patch("time.sleep")
     @patch("tira.tira_cli.RestClient")
+    def test_scored_evaluation_of_no_error_run_is_marked_as_no_error(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "review_hasNoErrors": True,
+                    "review_noErrors": True,
+                },
+                {
+                    "run_id": "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": True,
+                },
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "evaluation_run_id": "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00",
+                    "team": "team-1",
+                }
+            ]
+        )
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.review_run.assert_called_once_with(
+            "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00", "my-dataset", "team-1", True, False, False, ""
+        )
+
+    def _mark_no_error_scenario(self, mock_rest_client, run_review, evaluation_review, evaluation_run_id):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False, **run_review},
+                {"run_id": evaluation_run_id, "team": "team-1", "is_evaluation": True, **evaluation_review},
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [{"run_id": "2026-10-01-00-00-00", "evaluation_run_id": evaluation_run_id, "team": "team-1"}]
+        )
+        mock_client.evaluations_of_run.return_value = []
+        self._run_and_capture_stdout(dataset="my-dataset", after="2026-10-08-00-00-00")
+        return mock_client
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_scored_evaluation_of_no_error_run_is_also_marked_as_no_error(self, mock_rest_client, mock_sleep):
+        no_error = {"review_hasNoErrors": True, "review_noErrors": True}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, no_error, {}, "2020-01-01-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_called_once()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_of_run_not_reviewed_as_no_error_is_not_marked(self, mock_rest_client, mock_sleep):
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, {}, {}, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_of_run_reviewed_with_errors_is_not_marked(self, mock_rest_client, mock_sleep):
+        has_errors = {"review_hasNoErrors": False, "review_hasErrors": True, "review_noErrors": False}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, has_errors, {}, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_already_reviewed_as_no_error_is_not_marked_again(self, mock_rest_client, mock_sleep):
+        no_error = {"review_hasNoErrors": True, "review_noErrors": True}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, no_error, no_error, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
     def test_run_without_any_evaluation_is_reported_and_re_evaluated(self, mock_rest_client, mock_sleep):
         mock_client = mock_rest_client.return_value
         mock_client.get_dataset.return_value = {"default_task": "my-task"}
@@ -449,6 +542,7 @@ class TestAdminReRunEvaluations(unittest.TestCase):
             [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
         )
         mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = []
 
         ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
 
@@ -477,12 +571,75 @@ class TestAdminReRunEvaluations(unittest.TestCase):
                 }
             ]
         )
+        mock_client.evaluations_of_run.return_value = []
 
         ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
 
         self.assertEqual(0, ret)
         self.assertIn("2026-01-01-00-00-00", output)
         self.assertIn("last evaluated at", output)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_recent_failed_evaluation_attempt_is_reported_but_not_re_evaluated(
+        self, mock_rest_client, mock_sleep
+    ):
+        # client.evaluations() only lists successful evaluations (those with measures), so a run whose only
+        # evaluation attempt failed never shows up there. evaluations_of_run, however, lists all attempts
+        # (including failed ones), so a recent-but-failed attempt should suppress re-triggering.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = ["2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00"]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-01-01-00-00-00", output)
+        self.assertIn("recently attempted", output)
+        self.assertIn("2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00", output)
+        mock_client.evaluations_of_run.assert_called_once_with("team-1", "2026-01-01-00-00-00")
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_only_old_failed_evaluation_attempt_is_still_re_evaluated(self, mock_rest_client, mock_sleep):
+        # The only evaluation attempt is older than --after, so it does not count as "recently attempted" and
+        # the run must still be re-evaluated.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = ["2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00"]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertNotIn("recently attempted", output)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_failure_to_check_recent_evaluation_attempts_falls_back_to_re_evaluating(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.side_effect = ValueError("endpoint unavailable")
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
         mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
 
     @patch("time.sleep")
@@ -683,6 +840,7 @@ class TestAdminReRunEvaluations(unittest.TestCase):
                 }
             ]
         )
+        mock_client.evaluations_of_run.return_value = []
 
         ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
 

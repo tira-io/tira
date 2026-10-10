@@ -1056,6 +1056,16 @@ class Client(TiraClient):
 
         return ret
 
+    def evaluations_of_run(self, team, run_id):
+        """Return the run_ids of all evaluations that were run against the given run_id (the run must be
+        submitted by the given team), regardless of whether the evaluation succeeded or failed."""
+        ret = self.json_response(f"/api/evaluations_of_run/{team}/{run_id}")
+
+        if "status" not in ret or "0" != str(ret["status"]):
+            raise ValueError(f"Failed to load the evaluations of the run. Got {ret}")
+
+        return ret["context"]["evaluations"]
+
     def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory, rename_to=None):
         if expected_md5 is None or not expected_md5:
             raise ValueError("foo")
@@ -1246,8 +1256,6 @@ class Client(TiraClient):
         software_error: bool,
         comment: str,
     ):
-        dataset_id = "trec-28-deep-learning-passages-20250926-training"
-        team = "reneuir-baselines"
         review = {
             "no_errors": no_errors,
             "output_error": output_error,
@@ -1258,7 +1266,6 @@ class Client(TiraClient):
         ret = self.execute_post_return_json(
             f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review
         )
-        print(ret)
 
         assert ret["status"] == 0
 

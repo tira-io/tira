@@ -563,6 +563,15 @@ def _evaluation_timestamp(evaluation_run_id: str) -> "Optional[datetime]":
     return _parse_tira_id_timestamp(evaluation_run_id.split("-evaluates-")[0])
 
 
+def _is_reviewed_as_erroneous(run) -> bool:
+    """True if the run's review marks it as having errors (so evaluating it would be pointless)."""
+    for key in ("review_hasErrors", "review_hasErrorOutput"):
+        value = run.get(key, False)
+        if value is True or (isinstance(value, (int, float)) and value == value and bool(value)):
+            return True
+    return False
+
+
 def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "datetime") -> list:
     """Return submissions (as dicts with run_id/team/latest_evaluation) that have no evaluation after
     ``after_datetime``, excluding evaluation runs themselves, deleted runs, and runs whose software/code
@@ -585,9 +594,53 @@ def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "d
         run_id = run["run_id"]
         latest_evaluation = latest_evaluation_of_run.get(run_id)
         if latest_evaluation is None or latest_evaluation <= after_datetime:
-            ret.append({"run_id": run_id, "team": run["team"], "latest_evaluation": latest_evaluation})
+            software = run.get("software")
+            ret.append(
+                {
+                    "run_id": run_id,
+                    "team": run["team"],
+                    "software": software if isinstance(software, str) and software else "unknown",
+                    "latest_evaluation": latest_evaluation,
+                    "reviewed_as_erroneous": _is_reviewed_as_erroneous(run),
+                }
+            )
 
     return ret
+
+
+def _is_reviewed_as_no_error(run) -> bool:
+    # missing values in the submissions data frame are NaN, which must not count as true
+    return all(
+        run.get(key, False) is True or run.get(key, False) == 1 for key in ("review_hasNoErrors", "review_noErrors")
+    )
+
+
+def _evaluations_to_mark_as_no_error(submissions, evaluations) -> list:
+    """Return evaluation runs (dicts with run_id, evaluation_run_id, team) that produced scores (i.e., are listed in
+    ``evaluations``) and are not yet reviewed as "no errors", although the evaluated run is reviewed as "no errors"."""
+    reviewed_as_no_error: "dict[tuple, bool]" = {}
+    for _, run in submissions.iterrows():
+        reviewed_as_no_error[(run["team"], run["run_id"])] = _is_reviewed_as_no_error(run)
+
+    ret = []
+    for _, evaluation in evaluations.iterrows():
+        team, run_id, evaluation_run_id = evaluation["team"], evaluation["run_id"], evaluation["evaluation_run_id"]
+        if not reviewed_as_no_error.get((team, run_id), False):
+            continue
+        if reviewed_as_no_error.get((team, evaluation_run_id), False):
+            continue
+        ret.append({"run_id": run_id, "evaluation_run_id": evaluation_run_id, "team": team})
+
+    return ret
+
+
+def _mark_evaluations_as_no_error(client: "TiraClient", dataset: str, evaluations_to_mark: list) -> None:
+    for i in evaluations_to_mark:
+        try:
+            client.review_run(i["evaluation_run_id"], dataset, i["team"], True, False, False, "")
+            print(fmt_message(f"Marked evaluation {i['evaluation_run_id']} of run {i['run_id']} as no error.", _fmt.OK))
+        except Exception as e:
+            log_message(f"Could not mark evaluation {i['evaluation_run_id']} as no error: {e}", _fmt.WARN)
 
 
 def _evaluate_run_with_retries(client: "TiraClient", dataset: str, run: dict, max_attempts: int = 3) -> None:
@@ -612,6 +665,35 @@ def _evaluate_run_with_retries(client: "TiraClient", dataset: str, run: dict, ma
             _fmt.ERROR,
         )
     )
+
+
+def _recently_attempted_evaluation(
+    client: "TiraClient", team: str, run_id: str, after_datetime: "datetime"
+) -> "Optional[str]":
+    """Return the (most recent) evaluation_run_id of an evaluation attempt of ``run_id`` (submitted by ``team``)
+    that was started after ``after_datetime``, or ``None`` if no such attempt exists.
+
+    Unlike ``client.evaluations()`` (which only lists evaluations that produced measures, i.e., succeeded),
+    this uses the ``evaluations_of_run`` endpoint, which lists ALL evaluation attempts of a run, including
+    failed ones. This is used to avoid endlessly re-triggering evaluation of a run whose evaluator keeps
+    failing: such a run would otherwise never show up as "evaluated" via ``client.evaluations()``, even
+    though a recent evaluation attempt already exists.
+    """
+    try:
+        evaluation_run_ids = client.evaluations_of_run(team, run_id)
+    except Exception as e:
+        log_message(f"Could not check existing evaluation attempts for run {run_id}: {e}", _fmt.WARN)
+        return None
+
+    latest: "Optional[tuple[str, datetime]]" = None
+    for evaluation_run_id in evaluation_run_ids:
+        timestamp = _evaluation_timestamp(evaluation_run_id)
+        if timestamp is None or timestamp <= after_datetime:
+            continue
+        if latest is None or timestamp > latest[1]:
+            latest = (evaluation_run_id, timestamp)
+
+    return latest[0] if latest else None
 
 
 def _old_evaluations_to_delete(evaluations, after_datetime: "datetime", triggered_run_ids: set) -> list:
@@ -654,6 +736,54 @@ def _delete_old_evaluation(client: "TiraClient", dataset: str, evaluation: dict)
         log_message(f"Could not delete outdated evaluation {evaluation['evaluation_run_id']}: {e}", _fmt.WARN)
 
 
+def _classify_runs_without_recent_evaluation(
+    client: "TiraClient", runs_without_recent_evaluation: list, after_datetime: "datetime"
+) -> "tuple[list, list]":
+    """Split ``runs_without_recent_evaluation`` into runs that still need a new evaluation to be triggered, and
+    runs that already have a recent (but failed, i.e., not visible via ``client.evaluations()``) evaluation
+    attempt and should therefore not be re-triggered. See ``_recently_attempted_evaluation``."""
+    runs_to_evaluate = []
+    recently_attempted = []
+    for i in runs_without_recent_evaluation:
+        if i["latest_evaluation"] is not None:
+            # has an (old) evaluation: no need to look for failed attempts or reviews
+            runs_to_evaluate.append(i)
+            continue
+
+        if i.get("reviewed_as_erroneous", False):
+            continue
+
+        # only runs without any evaluation need the (expensive) per-run lookup of evaluation attempts
+        attempt_run_id = _recently_attempted_evaluation(client, i["team"], i["run_id"], after_datetime)
+        if attempt_run_id is not None:
+            recently_attempted.append({**i, "evaluation_run_id": attempt_run_id})
+        else:
+            runs_to_evaluate.append(i)
+
+    return runs_to_evaluate, recently_attempted
+
+
+def _report_runs_without_recent_evaluation(
+    dataset: str, after: str, runs_to_evaluate: list, recently_attempted: list
+) -> None:
+    print(
+        fmt_message(
+            f"Found {len(runs_to_evaluate) + len(recently_attempted)} run(s) of dataset {dataset} without a"
+            f" successful evaluation after {after}:",
+            _fmt.WARN,
+        )
+    )
+    for i in runs_to_evaluate:
+        reason = "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
+        print(f"  - run {i['run_id']} (team {i['team']}, software {i.get('software', 'unknown')}): {reason}")
+    for i in recently_attempted:
+        print(
+            f"  - run {i['run_id']} (team {i['team']}, software {i.get('software', 'unknown')}): recently attempted"
+            f" (evaluation"
+            f" {i['evaluation_run_id']}), still no successful evaluation -- skipping re-trigger"
+        )
+
+
 def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
     import time
 
@@ -671,32 +801,31 @@ def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
 
     submissions = client.submissions(task, dataset)
     evaluations = client.evaluations(task, dataset, join_submissions=False)
+    _mark_evaluations_as_no_error(client, dataset, _evaluations_to_mark_as_no_error(submissions, evaluations))
     runs_without_recent_evaluation = _runs_without_recent_evaluation(submissions, evaluations, after_datetime)
 
-    if not runs_without_recent_evaluation:
+    # client.evaluations() only lists evaluations that succeeded (have measures). A run whose evaluator keeps
+    # failing would therefore always show up here, causing it to be re-triggered forever. To avoid that, check
+    # per-run (via evaluations_of_run) whether a recent evaluation attempt already exists, even if it failed.
+    runs_to_evaluate, recently_attempted = _classify_runs_without_recent_evaluation(
+        client, runs_without_recent_evaluation, after_datetime
+    )
+
+    if not runs_to_evaluate and not recently_attempted:
         print(fmt_message(f"All runs of dataset {dataset} have an evaluation after {after}.", _fmt.OK))
     else:
-        print(
-            fmt_message(
-                f"Found {len(runs_without_recent_evaluation)} run(s) of dataset {dataset} without an evaluation"
-                f" after {after}:",
-                _fmt.WARN,
-            )
-        )
-        for i in runs_without_recent_evaluation:
-            reason = (
-                "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
-            )
-            print(f"  - run {i['run_id']} (team {i['team']}): {reason}")
+        _report_runs_without_recent_evaluation(dataset, after, runs_to_evaluate, recently_attempted)
 
-        print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
-        for i in tqdm(runs_without_recent_evaluation, "Starting evaluations"):
-            _evaluate_run_with_retries(client, dataset, i)
-            time.sleep(10)
+        if runs_to_evaluate:
+            print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
+            for i in tqdm(runs_to_evaluate, "Starting evaluations"):
+                _evaluate_run_with_retries(client, dataset, i)
+                time.sleep(10)
 
     # Only delete outdated evaluations for runs for which no new evaluation was triggered above: those runs
-    # already have a more recent evaluation, so any older evaluation of them is a safe-to-remove duplicate.
-    triggered_run_ids = {i["run_id"] for i in runs_without_recent_evaluation}
+    # already have a more recent evaluation (successful or, per recently_attempted, at least attempted), so
+    # any older evaluation of them is a safe-to-remove duplicate.
+    triggered_run_ids = {i["run_id"] for i in runs_to_evaluate}
     old_evaluations = _old_evaluations_to_delete(evaluations, after_datetime, triggered_run_ids)
     if old_evaluations:
         print(fmt_message(f"Deleting {len(old_evaluations)} outdated evaluation(s)...", _fmt.OK))
@@ -770,8 +899,9 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     re_run_evaluations_parser = subparsers.add_parser(
         "re-run-evaluations",
         help=(
-            "Identify runs of a dataset that have no evaluation after a given datetime (e.g., after an evaluator"
-            " update), start a new evaluation for each of them, and delete now-outdated evaluations of runs for"
+            "Identify runs of a dataset that have no successful evaluation after a given datetime (e.g., after an"
+            " evaluator update), start a new evaluation for each of them (skipping runs for which a recent, even"
+            " if failed, evaluation attempt already exists), and delete now-outdated evaluations of runs for"
             " which no new evaluation needed to be triggered."
         ),
     )
