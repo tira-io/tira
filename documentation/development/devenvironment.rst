@@ -22,8 +22,17 @@ you can use GitHub Codespaces by visiting the `TIRA repository <https://github.c
 
 Getting Started
 ---------------
-Open the repository in GitHub Codespaces or VSCode. If you are using VSCode, a dialog (depicted below) should pop up
-asking if you want to open the repository in a development container -- click ``Reopen in Container``.
+
+.. note:: If you are developing on Windows, we recommend using the `Windows Subsystem for Linux (WSL)
+  <https://learn.microsoft.com/en-us/windows/wsl/install>`_ and cloning the repository **directly inside WSL** (i.e., into
+  the Linux file system, not into a Windows folder such as ``C:\Users\...``).
+
+Open the repository in GitHub Codespaces or VSCode. If you are using VSCode, proceed as follows:
+
+1. Open the repository in VSCode.
+2. A dialog (depicted below) should pop up asking if you want to open the repository in a development container. Click
+   ``Reopen in Container``.
+3. When asked which configuration to use, choose ``Open Workspace Configuration``.
 
 .. image:: images/open-in-container.png
     :align: center
@@ -31,9 +40,15 @@ asking if you want to open the repository in a development container -- click ``
 Thats all for the environment! With the magic of Docker, all dependencies will now be installed and won't clutter your
 main operating system.
 
-The only thing remaining is to start the services and access TIRA. Open two shells, one in ``application`` and the other
-in ``frontend``. To start the backend ("application"), run ``make run-develop`` and for the frontend: ``yarn dev``. Both
-shells should tell you that their respective service is running. Now visit `<https://127.0.0.1:8082/>`_ in your browser
+The only thing remaining is to start the services and access TIRA. We recommend starting the development stack with the
+``TIRA Stack`` option of VSCode's "Run and Debug" feature (see :ref:`Debugging <debugging>` below). Press
+:kbd:`Ctrl+Shift+D` (:kbd:`Cmd+Shift+D` for MacOS), select ``TIRA Stack`` from the debug side-bar, and press :kbd:`F5`.
+This starts the backend ("application") and the frontend together.
+
+.. hint:: If you prefer to start the services manually, open two shells, one in ``application`` and the other in
+  ``frontend``. To start the backend, run ``make run-develop`` and for the frontend: ``yarn dev``.
+
+Both services should tell you that they are running. Now visit `<https://127.0.0.1:8082/>`_ in your browser
 and you should see TIRA. To log in, perform an action that requires you to be logged in (e.g., submitting to one of the
 tasks like `<https://127.0.0.1:8082/task-overview/task_1/>`_). You can find the credentials in :ref:`Tbl Credentials`
 below. Note that the login and authentication is not actually performed by TIRA but by a separate "authentication
@@ -46,12 +61,13 @@ trying to submit again.
   port 8082. To understand why, please read the section describing the `development infrastructure
   <#the-development-infrastructure>`_.
 
+.. _debugging:
 
 Debugging
 ---------
-You don't actually need to launch TIRA's frontend and backend via the shell but can use our "Run and Debug"
-configuration instead. To access it, press :kbd:`Ctrl+Shift+D` (:kbd:`Cmd+Shift+D` for MacOS). And select ``TIRA Stack``
-from the debug side-bar that opened:
+You don't need to launch TIRA's frontend and backend via the shell: our "Run and Debug" configuration starts both and is
+the recommended way to run the development stack. To access it, press :kbd:`Ctrl+Shift+D` (:kbd:`Cmd+Shift+D` for
+MacOS) and select ``TIRA Stack`` from the debug side-bar that opened:
 
 .. image:: images/debug-bar.png
     :align: center

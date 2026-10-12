@@ -58,7 +58,7 @@
 	// access needed) and reinstall node_modules from the local yarn cache (--prefer-offline, no
 	// network access needed either), then prepare the database used by the tests (make setup /
 	// make import-mock-data).
-	"postCreateCommand": "sudo sh -c 'cd frontend; yarn install --frozen-lockfile --prefer-offline; cd ../python-client; pip install --no-deps -e .; cd ../worker; pip install --no-deps -e .; cd ../application/; pip install --no-deps -e .; chmod 777 /tmp/tira-dev-cache-dir; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
+	"postCreateCommand": "sudo sh -c 'cd frontend; yarn install --frozen-lockfile --prefer-offline; chown -R ubuntu:ubuntu node_modules; cd ../python-client; pip install --no-deps -e .; cd ../worker; pip install --no-deps -e .; cd ../application/; pip install --no-deps -e .; chmod 777 /tmp/tira-dev-cache-dir; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -149,7 +149,7 @@
 							"command": "pytest",
 							"options": { "cwd": "${workspaceFolder:Backend}/test" },
 							"group": { "kind": "test", "isDefault": true },
-							"problemMatcher": []
+							"problemMatcher": [ ]
 						},
 						{
 							"label": "Test: Worker (pytest)",
@@ -157,7 +157,7 @@
 							"command": "pytest -q tests/",
 							"options": { "cwd": "${workspaceFolder:Worker}" },
 							"group": "test",
-							"problemMatcher": []
+							"problemMatcher": [ ]
 						},
 						{
 							"label": "Test: Python Client (pytest)",
@@ -165,7 +165,7 @@
 							"command": "pytest",
 							"options": { "cwd": "${workspaceFolder:Python API}" },
 							"group": "test",
-							"problemMatcher": []
+							"problemMatcher": [ ]
 						},
 						{
 							"label": "Test: Frontend (yarn test)",
@@ -173,7 +173,7 @@
 							"command": "yarn test",
 							"options": { "cwd": "${workspaceFolder:Frontend}" },
 							"group": "test",
-							"problemMatcher": []
+							"problemMatcher": [ ]
 						},
 						{
 							"label": "Test: All",
@@ -184,7 +184,7 @@
 								"Test: Python Client (pytest)",
 								"Test: Frontend (yarn test)"
 							],
-							"problemMatcher": []
+							"problemMatcher": [ ]
 						}
 					]
 				}
