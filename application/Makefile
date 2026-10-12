@@ -35,28 +35,30 @@ run-develop:
 	&& python3 src/manage.py migrate --fake \
 	&& python3 src/manage.py run_develop
 
-.data-dumps/django-db-dump.zip:
-	@mkdir -p .data-dumps && \
-	echo "Please run scp <YOUR-USR-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/" && \
-	exit 1
+# 12.10.2026: I don't know if this is still used. Feel free to remove in the future.
+# .data-dumps/django-db-dump.zip:
+# 	@mkdir -p .data-dumps && \
+# 	echo "Please run scp <YOUR-USR-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/" && \
+# 	exit 1
 
-import-data-from-dump: .data-dumps/django-db-dump.zip
-	@rm -f ../model/src/state/tira.sqlite3 && \
-	rm -f ../model/src/model/virtual-machines/admin.prototext && \
-	cd .data-dumps/ && \
-	rm -f *.json && \
-	echo "Please use the generic > tira-db-dump password from git@webis.uni-weimar.de:code-admin/passwords.git" && \
-	unzip -j django-db-dump.zip && \
-	mv *.json django-db-dump-tmp.json && \
-	head -n -1 django-db-dump-tmp.json > django-db-dump.json && \
-	echo ', {"model": "tira.dataset", "pk": "none", "fields": {"default_task": null, "display_name": "", "evaluator": null, "is_confidential": true, "is_deprecated": false, "data_server": null, "released": "", "default_upload_name": "predictions", "created": "2022-08-11", "last_modified": "2022-08-11", "irds_docker_image": null, "irds_import_command": null, "irds_import_truth_command": null}}]' >> django-db-dump.json && \
-	rm django-db-dump-tmp.json && \
-	cd .. && \
-	${PYTHON} src/manage.py migrate && \
-	${PYTHON} src/manage.py createcachetable && \
-	${PYTHON} src/manage.py makemigrations tira && \
-	${PYTHON} src/manage.py migrate tira && \
-	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
+# 12.10.2026: I don't know if this is still used. Feel free to remove in the future.
+# import-data-from-dump: .data-dumps/django-db-dump.zip
+# 	@rm -f ../model/src/state/tira.sqlite3 && \
+# 	rm -f ../model/src/model/virtual-machines/admin.prototext && \
+# 	cd .data-dumps/ && \
+# 	rm -f *.json && \
+# 	echo "Please use the generic > tira-db-dump password from git@webis.uni-weimar.de:code-admin/passwords.git" && \
+# 	unzip -j django-db-dump.zip && \
+# 	mv *.json django-db-dump-tmp.json && \
+# 	head -n -1 django-db-dump-tmp.json > django-db-dump.json && \
+# 	echo ', {"model": "tira.dataset", "pk": "none", "fields": {"default_task": null, "display_name": "", "evaluator": null, "is_confidential": true, "is_deprecated": false, "data_server": null, "released": "", "default_upload_name": "predictions", "created": "2022-08-11", "last_modified": "2022-08-11", "irds_docker_image": null, "irds_import_command": null, "irds_import_truth_command": null}}]' >> django-db-dump.json && \
+# 	rm django-db-dump-tmp.json && \
+# 	cd .. && \
+# 	${PYTHON} src/manage.py migrate && \
+# 	${PYTHON} src/manage.py createcachetable && \
+# 	${PYTHON} src/manage.py makemigrations tira && \
+# 	${PYTHON} src/manage.py migrate tira && \
+# 	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
 
 import-mock-data:
 	${PYTHON} src/manage.py loaddata mock-data/mock-data.json
