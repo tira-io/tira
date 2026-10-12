@@ -58,7 +58,7 @@
 	// access needed) and reinstall node_modules from the local yarn cache (--prefer-offline, no
 	// network access needed either), then prepare the database used by the tests (make setup /
 	// make import-mock-data).
-	"postCreateCommand": "sudo sh -c 'cd frontend; yarn install --frozen-lockfile --prefer-offline; chown -R ubuntu:ubuntu node_modules; cd ../python-client; pip install --no-deps -e .; cd ../worker; pip install --no-deps -e .; cd ../application/; pip install --no-deps -e .; chmod 777 /tmp/tira-dev-cache-dir; chmod o+r /var/run/docker.sock; chmod o+w /var/run/docker.sock; make setup; make import-mock-data'",
+	"postCreateCommand": "cd frontend; yarn install --frozen-lockfile --prefer-offline; cd ../python-client; pip install --no-deps -e .; cd ../worker; pip install --no-deps -e .; cd ../application/; pip install --no-deps -e .; chmod 777 /tmp/tira-dev-cache-dir; sudo sh -c 'chmod o+rw /var/run/docker.sock'; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {
