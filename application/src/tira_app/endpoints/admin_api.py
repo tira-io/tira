@@ -94,6 +94,7 @@ def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpRespons
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
+            allow_network_access_on_request=bool(data.get("allow_network_access_on_request", False)),
             task_export_metadata=data.get("task_export_metadata"),
             export_buttons=data.get("export_buttons"),
         )
@@ -150,6 +151,7 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
+            allow_network_access_on_request=bool(data.get("allow_network_access_on_request", False)),
             task_export_metadata=data.get("task_export_metadata"),
             export_buttons=data.get("export_buttons"),
         )

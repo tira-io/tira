@@ -608,6 +608,7 @@ def add_docker_software(
     forward_environment_variable: "Optional[str]" = None,
     cache_behaviour: "Optional[str]" = None,
     mount_config: "Optional[str]" = None,
+    allow_network_access_on_request: bool = False,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -662,6 +663,7 @@ def add_docker_software(
         forward_environment_variable,
         cache_behaviour,
         mount_config,
+        allow_network_access_on_request,
     )
 
 
@@ -723,6 +725,7 @@ def create_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    allow_network_access_on_request: bool = False,
     task_export_metadata: "Any" = None,
     export_buttons: "Optional[List[dict[str, str]]]" = None,
 ) -> "dict[str, Any]":
@@ -748,6 +751,7 @@ def create_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        allow_network_access_on_request,
         task_export_metadata,
         export_buttons,
     )
@@ -902,6 +906,7 @@ def edit_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    allow_network_access_on_request: bool = False,
     task_export_metadata: "Any" = None,
     export_buttons: "Optional[List[dict[str, str]]]" = None,
 ):
@@ -933,6 +938,7 @@ def edit_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        allow_network_access_on_request,
         task_export_metadata,
         export_buttons,
     )

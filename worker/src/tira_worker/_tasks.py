@@ -203,6 +203,7 @@ def run(
     software_workflow_configuration: Optional[dict] = None,
     env_to_forward: Optional[dict] = None,
     dynamic_mounts: Optional[dict] = None,
+    allow_network_access: bool = False,
 ) -> None:
     client: TiraClient = get_admin_client()
     global gpu_devices
@@ -214,7 +215,7 @@ def run(
 
     hf_models = resolve_hf_models(mount_hf_model)
 
-    allow_network = False
+    allow_network = bool(allow_network_access)
     forward_environment_variables = None
     if env_to_forward:
         forward_environment_variables = list(set(env_to_forward.keys()))

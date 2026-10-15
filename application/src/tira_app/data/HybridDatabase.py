@@ -262,6 +262,7 @@ class HybridDatabase(object):
             "upload_form_fields": upload_form_fields,
             "hide_upload_via_cli": task.hide_upload_via_cli,
             "allowed_hostnames": allowed_hostnames,
+            "allow_network_access_on_request": task.allow_network_access_on_request,
             "task_export_metadata": task_export_metadata,
             "export_buttons": export_buttons,
         }
@@ -805,6 +806,7 @@ class HybridDatabase(object):
             "mount_hf_model": mount_hf_model,
             "workflow_configuration": workflow_configuration,
             "forward_environment_variable": forward_environment_variable,
+            "allow_network_access_on_request": ds.allow_network_access_on_request,
             "cache_behaviour": ds.cache_behaviour,
             "mount_config": ds.get_mount_config(),
             "try_run_metadata": try_run_metadata,
@@ -2046,6 +2048,7 @@ class HybridDatabase(object):
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
+        allow_network_access_on_request: bool = False,
         task_export_metadata: "Any" = None,
         export_buttons: "Optional[List[dict[str, str]]]" = None,
     ) -> "dict[str, Any]":
@@ -2092,6 +2095,7 @@ class HybridDatabase(object):
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
             task_export_metadata=task_export_metadata_json,
             export_buttons=export_buttons_json,
         )
@@ -2575,6 +2579,7 @@ class HybridDatabase(object):
         forward_environment_variable: "Optional[str]" = None,
         cache_behaviour: "Optional[str]" = None,
         mount_config: "Optional[str]" = None,
+        allow_network_access_on_request: bool = False,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2604,6 +2609,7 @@ class HybridDatabase(object):
             forward_environment_variable=forward_environment_variable,
             cache_behaviour=cache_behaviour,
             mount_config=mount_config,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
         )
 
         additional_inputs = range(
@@ -2680,6 +2686,7 @@ class HybridDatabase(object):
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
+        allow_network_access_on_request: bool = False,
         task_export_metadata: "Any" = None,
         export_buttons: "Optional[List[dict[str, str]]]" = None,
     ):
@@ -2749,6 +2756,7 @@ class HybridDatabase(object):
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
             task_export_metadata=task_export_metadata_json,
             export_buttons=export_buttons_json,
         )

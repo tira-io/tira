@@ -107,6 +107,7 @@
                   <v-textarea v-model="command_description" label="Help Text" />
                   <v-text-field label="Link to Baseline" />
                   <v-checkbox v-model="hide_upload_via_cli" label="Hide upload via cli" />
+                  <v-checkbox v-model="allow_network_access_on_request" label="Allow network access upon request (software can be started with full network access if the participant explicitly allows it)" />
                   <v-textarea
                     v-model="upload_form_fields_json"
                     label="Upload Form Fields (JSON)"
@@ -219,6 +220,7 @@ export default {
     task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
     require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
     hide_upload_via_cli: false,
+    allow_network_access_on_request: false,
     is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '',
     submission_tabs: null as null | string[],
     submission_tabs_json: '',
@@ -547,6 +549,7 @@ export default {
         'submission_tabs': submissionTabs === undefined ? null : submissionTabs,
         'upload_form_fields': uploadFormFields === undefined ? null : uploadFormFields,
         'hide_upload_via_cli': this.hide_upload_via_cli,
+        'allow_network_access_on_request': this.allow_network_access_on_request,
         'allowed_hostnames': allowedHostnames === undefined ? null : allowedHostnames,
         'task_export_metadata': (taskExportMetadata === undefined || taskExportMetadata === null) ? null : taskExportMetadata.value,
         'export_buttons': exportButtons === undefined ? null : exportButtons,

@@ -333,6 +333,7 @@ class Task(models.Model):
     upload_form_fields = models.TextField(default=None, null=True)
     hide_upload_via_cli = models.BooleanField(default=False)
     allowed_hostnames = models.TextField(default=None, null=True)
+    allow_network_access_on_request = models.BooleanField(default=False)
     task_export_metadata = models.TextField(default=None, null=True)
     export_buttons = models.TextField(default=None, null=True)
 
@@ -585,6 +586,7 @@ class DockerSoftware(models.Model):
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
     forward_environment_variable = models.TextField(default=None, null=True)
+    allow_network_access_on_request = models.BooleanField(default=False)
     cache_behaviour = models.CharField(
         max_length=17,
         default=None,

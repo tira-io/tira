@@ -861,6 +861,7 @@ class TiraClient(ABC):
                 "forward_environment_variable": forward_environment_variable if forward_environment_variable else None,
                 "cache_behaviour": cache_behaviour,
                 "mount_config": mount_config,
+                "allow_network_access_on_request": bool(allow_network),
             }
             with open(Path(tmp_dir) / "submission-metadata.yml", "w") as f:
                 yaml.safe_dump(submission_metadata, f, sort_keys=False)
@@ -916,6 +917,7 @@ class TiraClient(ABC):
                 forward_environment_variable=forward_environment_variable if forward_environment_variable else None,
                 cache_behaviour=cache_behaviour,
                 mount_config=mount_config,
+                allow_network_access=bool(allow_network),
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")

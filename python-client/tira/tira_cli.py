@@ -169,8 +169,9 @@ def validate_required_forwarding(
     forward_environment_variable: "Optional[list[str]]",
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
+    allow_network_access: bool = False,
 ) -> bool:
-    miss_environment_variable, miss_mount = False, False
+    miss_environment_variable, miss_mount, miss_network = False, False, False
     mount_config = build_mount_config(mount_directory, mount_cache)
 
     if "forward_environment_variable" in system_details and system_details["forward_environment_variable"]:
@@ -201,7 +202,14 @@ def validate_required_forwarding(
         if miss_mount:
             log_message(msg, _fmt.ERROR)
 
-    return not miss_environment_variable and not miss_mount
+    if system_details.get("allow_network_access_on_request") and not allow_network_access:
+        miss_network = True
+        msg = f"The software {system_pretty} can request full network access, but it is not allowed by default.\n\n"
+        msg += f"Please allow full network access only when you trust the software {system_pretty}, as it could leak your credentials. "
+        msg += "If you trust the software, use the --allow-network-access flag in tira-cli."
+        log_message(msg, _fmt.ERROR)
+
+    return not miss_environment_variable and not miss_mount and not miss_network
 
 
 def _value_for_requirement_path(data: dict, path: str):
@@ -275,6 +283,12 @@ def matches_requirements(
 
 def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
+        "--allow-network-access",
+        action="store_true",
+        default=False,
+        help="Allow full network access for software that requests it. Only use this for software you trust, as it could leak forwarded credentials.",
+    )
+    parser.add_argument(
         "--forward-environment-variable",
         nargs="+",
         default=[],
@@ -330,8 +344,12 @@ def build_remote_execution_payload(
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
     mount_combo: "Optional[dict[str, str]]" = None,
+    allow_network_access: bool = False,
 ) -> dict:
     payload = {}
+    if allow_network_access:
+        payload["allow_network_access"] = True
+
     forwarded_environment = environment_variables_to_forward(forward_environment_variable)
     if forwarded_environment:
         payload["forward_environment_variable"] = forwarded_environment
@@ -927,6 +945,7 @@ def run_local(
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
     compile_from_code: bool = False,
+    allow_network_access: bool = False,
     **kwargs,
 ) -> int:
     from glob import glob
@@ -986,6 +1005,7 @@ def run_local(
         forward_environment_variable,
         mount_directory,
         mount_cache,
+        allow_network_access,
     ):
         return 1
 
@@ -1018,7 +1038,7 @@ def run_local(
             command=system_details["command"],
             input_dir=system_inputs,
             output_dir=i,
-            allow_network=False,
+            allow_network=bool(allow_network_access and system_details.get("allow_network_access_on_request")),
             additional_volumes=None,
             gpu_device_ids=None,
             forward_environment_variables=system_details["forward_environment_variable"],
@@ -1088,6 +1108,7 @@ def run_remote(
     mount_directory: "Optional[list[str]]" = None,
     mount_cache: "Optional[list[str]]" = None,
     run_on: "Optional[list[str]]" = None,
+    allow_network_access: bool = False,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -1136,6 +1157,7 @@ def run_remote(
             forward_environment_variable,
             mount_directory,
             mount_cache,
+            allow_network_access,
         ):
             return 1
 
@@ -1164,6 +1186,9 @@ def run_remote(
                 mount_directory,
                 mount_cache,
                 execution["mount_combo"],
+                allow_network_access and bool(
+                    software_details[execution["approach"]].get("allow_network_access_on_request")
+                ),
             )
             for attempt in range(1, 6):
                 try:
@@ -1385,10 +1410,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--allow-network",
+        "--allow-network-access",
+        dest="allow_network",
         required=False,
         default=False,
         action="store_true",
-        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
+        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access. When uploading the software, this marks the software as allowed to request full network access at start time (only possible if the task allows it).",
     )
     parser.add_argument(
         "--task",

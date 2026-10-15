@@ -878,3 +878,47 @@ class TestAdminReRunEvaluations(unittest.TestCase):
 
         self.assertEqual(0, ret)
         mock_client.delete_run.assert_called_once()
+
+
+class TestAllowNetworkAccess(unittest.TestCase):
+    def test_flag_is_available_for_run_commands_and_defaults_to_false(self):
+        import argparse
+
+        from tira.tira_cli import setup_run_command
+
+        parser = argparse.ArgumentParser()
+        setup_run_command(parser)
+        args = parser.parse_args(["local", "--input", "i", "--approach", "t/u/s"])
+        self.assertFalse(args.allow_network_access)
+        args = parser.parse_args(["local", "--input", "i", "--approach", "t/u/s", "--allow-network-access"])
+        self.assertTrue(args.allow_network_access)
+
+    def test_code_submission_alias_maps_to_allow_network(self):
+        import argparse
+
+        from tira.tira_cli import setup_code_submission_command
+
+        parser = argparse.ArgumentParser()
+        setup_code_submission_command(parser)
+        args = parser.parse_args(["--path", ".", "--task", "t", "--allow-network-access"])
+        self.assertTrue(args.allow_network)
+
+    def test_validation_requires_flag_if_software_requests_network_access(self):
+        from tira.tira_cli import validate_required_forwarding
+
+        details = {"allow_network_access_on_request": True}
+        self.assertFalse(validate_required_forwarding(details, "sw", [], [], []))
+        self.assertTrue(validate_required_forwarding(details, "sw", [], [], [], allow_network_access=True))
+
+    def test_validation_passes_without_request_for_network_access(self):
+        from tira.tira_cli import validate_required_forwarding
+
+        self.assertTrue(validate_required_forwarding({"allow_network_access_on_request": False}, "sw", [], [], []))
+        self.assertTrue(validate_required_forwarding({}, "sw", [], [], []))
+
+    def test_remote_payload_contains_flag_only_if_requested(self):
+        from tira.tira_cli import build_remote_execution_payload
+
+        self.assertNotIn("allow_network_access", build_remote_execution_payload([], [], []))
+        payload = build_remote_execution_payload([], [], [], allow_network_access=True)
+        self.assertTrue(payload["allow_network_access"])

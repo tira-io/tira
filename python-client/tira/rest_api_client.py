@@ -303,6 +303,7 @@ class Client(TiraClient):
         forward_environment_variable=None,
         cache_behaviour=None,
         mount_config=None,
+        allow_network_access=False,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -345,6 +346,9 @@ class Client(TiraClient):
 
         if mount_config:
             content["mount_config"] = json.dumps(mount_config)
+
+        if allow_network_access:
+            content["allow_network_access"] = True
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages

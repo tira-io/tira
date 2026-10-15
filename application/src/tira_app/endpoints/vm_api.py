@@ -51,7 +51,7 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
     if request.content_type and "multipart/form-data" in request.content_type:
         ret = {}
 
-        for field_name in ("forward_environment_variable", "mount_config"):
+        for field_name in ("forward_environment_variable", "mount_config", "allow_network_access"):
             raw_value = request.POST.get(field_name)
             if raw_value:
                 ret[field_name] = json.loads(raw_value)
@@ -273,6 +273,7 @@ def run_sandboxed_software(
     env_to_forward: Optional[dict] = None,
     use_cache: Optional[bool] = False,
     dynamic_mounts: Optional[dict] = None,
+    allow_network_access: bool = False,
 ) -> str:
     from tira_worker import run
 
@@ -308,6 +309,7 @@ def run_sandboxed_software(
             software_workflow,
             env_to_forward,
             dynamic_mounts,
+            allow_network_access,
         ],
         queue=docker_resources,
     )
@@ -718,6 +720,18 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             build_environment = _sanitize_build_environment(data.get("build_environment"))
             build_environment_json = json.dumps(build_environment)
 
+        allow_network_access = bool(data.get("allow_network_access", False))
+        if allow_network_access:
+            task_for_network = model.get_task(task_id)
+            if not task_for_network or not task_for_network.get("allow_network_access_on_request"):
+                return JsonResponse(
+                    {
+                        "status": 1,
+                        "message": "This task does not allow software to request network access."
+                        + " Please contact the task organizers.",
+                    }
+                )
+
         new_docker_software = model.add_docker_software(
             task_id,
             vm_id,
@@ -736,6 +750,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("forward_environment_variable", None),
             data.get("cache_behaviour", None),
             data.get("mount_config", None),
+            allow_network_access,
         )
 
         if data.get("mount_hf_model"):
@@ -1263,6 +1278,20 @@ def run_execute_docker_software(
                 }
             )
 
+    allow_network_access = False
+    if request_payload.get("allow_network_access"):
+        task = model.get_task(task_id)
+        if not docker_software.get("allow_network_access_on_request") or not (
+            task and task.get("allow_network_access_on_request")
+        ):
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": "Network access was requested, but the software or the task does not allow it.",
+                }
+            )
+        allow_network_access = True
+
     dynamic_mounts = None
     required_mount_config = docker_software["mount_config"]
     if required_mount_config:
@@ -1446,6 +1475,7 @@ def run_execute_docker_software(
         env_to_forward,
         requires_mount_workflow(docker_software),
         dynamic_mounts,
+        allow_network_access,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
