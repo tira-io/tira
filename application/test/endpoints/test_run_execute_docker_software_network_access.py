@@ -85,9 +85,19 @@ class TestRunExecuteDockerSoftwareNetworkAccess(TestCase):
     @patch("tira_app.endpoints.vm_api.run_sandboxed_software")
     @patch("tira_app.endpoints.vm_api.add_job", return_value="job-123")
     @patch("tira_app.endpoints.vm_api._available_workers", return_value={"small-resources": object()})
-    def test_network_access_is_disabled_by_default(self, _workers, _add_job, run_mock):
+    def test_network_access_is_granted_automatically_if_software_and_task_allow_it(self, _workers, _add_job, run_mock):
         self._set_task_flag(True)
         response = self._call_endpoint(self._software(True), {})
+
+        self.assertEqual(202, response.status_code)
+        self.assertIs(True, run_mock.call_args.args[13])
+
+    @patch("tira_app.endpoints.vm_api.run_sandboxed_software")
+    @patch("tira_app.endpoints.vm_api.add_job", return_value="job-123")
+    @patch("tira_app.endpoints.vm_api._available_workers", return_value={"small-resources": object()})
+    def test_network_access_is_disabled_if_software_does_not_allow_it(self, _workers, _add_job, run_mock):
+        self._set_task_flag(True)
+        response = self._call_endpoint(self._software(False), {})
 
         self.assertEqual(202, response.status_code)
         self.assertIs(False, run_mock.call_args.args[13])

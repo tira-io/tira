@@ -1278,19 +1278,19 @@ def run_execute_docker_software(
                 }
             )
 
-    allow_network_access = False
-    if request_payload.get("allow_network_access"):
-        task = model.get_task(task_id)
-        if not docker_software.get("allow_network_access_on_request") or not (
-            task and task.get("allow_network_access_on_request")
-        ):
-            return JsonResponse(
-                {
-                    "status": 1,
-                    "message": "Network access was requested, but the software or the task does not allow it.",
-                }
-            )
-        allow_network_access = True
+    task = model.get_task(task_id)
+    network_allowed = bool(
+        docker_software.get("allow_network_access_on_request") and task and task.get("allow_network_access_on_request")
+    )
+    if request_payload.get("allow_network_access") and not network_allowed:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Network access was requested, but the software or the task does not allow it.",
+            }
+        )
+    # Software that declares it needs network access automatically gets it if the task permits it.
+    allow_network_access = network_allowed
 
     dynamic_mounts = None
     required_mount_config = docker_software["mount_config"]
