@@ -651,7 +651,8 @@ def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
 
 
 def get_tira_id() -> str:
-    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+    # The random suffix (first section of a UUID) avoids collisions of runs that finish within the same second.
+    return dt.now().strftime("%Y-%m-%d-%H-%M-%S") + "-" + str(uuid.uuid4()).split("-")[0]
 
 
 def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, dataset_id, task_id):

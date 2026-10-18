@@ -390,6 +390,19 @@ class TestParseTiraIdTimestamp(unittest.TestCase):
 
         self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _parse_tira_id_timestamp("2026-10-02-21-09-11"))
 
+    def test_timestamp_with_uuid_suffix_is_parsed(self):
+        from datetime import datetime
+
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _parse_tira_id_timestamp("2026-10-02-21-09-11-1a2b3c4d"))
+
+    def test_get_tira_id_is_unique_and_parsable(self):
+        from tira.io_utils import get_tira_id
+
+        ids = {get_tira_id() for _ in range(100)}
+        self.assertEqual(100, len(ids))
+        for i in ids:
+            self.assertIsNotNone(_parse_tira_id_timestamp(i))
+
     def test_invalid_timestamp_returns_none(self):
         self.assertIsNone(_parse_tira_id_timestamp("not-a-timestamp"))
 

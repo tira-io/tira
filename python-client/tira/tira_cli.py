@@ -604,11 +604,13 @@ def admin_batch_unblind(task: str, **kwargs) -> int:
 
 def _parse_tira_id_timestamp(value: str) -> "Optional[datetime]":
     """Parse a TIRA-style timestamp (as produced by ``tira.io_utils.get_tira_id``,
-    i.e., ``%Y-%m-%d-%H-%M-%S``) and return ``None`` if it can not be parsed."""
+    i.e., ``%Y-%m-%d-%H-%M-%S`` optionally followed by a ``-<uuid-prefix>`` suffix) and return ``None`` if it can
+    not be parsed."""
     from datetime import datetime
 
     try:
-        return datetime.strptime(value, "%Y-%m-%d-%H-%M-%S")
+        # A timestamp has 19 characters; ignore the random suffix of newer ids.
+        return datetime.strptime(value[:19], "%Y-%m-%d-%H-%M-%S")
     except ValueError:
         return None
 
@@ -617,7 +619,7 @@ def _evaluation_timestamp(evaluation_run_id: str) -> "Optional[datetime]":
     """Extract the datetime at which an evaluation run was created from its run_id.
 
     Evaluation run_ids have the form ``<evaluation-timestamp>-evaluates-<evaluated-run-id>``
-    (e.g., ``2026-10-02-21-09-11-evaluates-2026-10-02-23-08-58``), so the timestamp is the
+    (e.g., ``2026-10-02-21-09-11-1a2b3c4d-evaluates-2026-10-02-23-08-58-5e6f7a8b``), so the timestamp is the
     prefix before ``-evaluates-``.
     """
     if "-evaluates-" not in evaluation_run_id:
