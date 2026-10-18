@@ -58,6 +58,14 @@ def positive_int(value: str) -> int:
     return ret
 
 
+def positive_float(value: str) -> float:
+    ret = float(value)
+    if ret <= 0:
+        raise argparse.ArgumentTypeError("Value must be greater than 0.")
+
+    return ret
+
+
 def build_mount_config(
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
@@ -1156,6 +1164,7 @@ def run_remote(
     mount_cache: "Optional[list[str]]" = None,
     run_on: "Optional[list[str]]" = None,
     allow_network_access: bool = False,
+    force_continue: "Optional[float]" = None,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -1265,6 +1274,7 @@ def run_remote(
                     )
                     time.sleep(60)
 
+            execution["started_at"] = time.monotonic()
             running_executions.append(execution)
             print(
                 f'Started {execution["approach"]} on {execution["dataset"]}. '
@@ -1276,18 +1286,28 @@ def run_remote(
             client.clear_json_response_cache()
 
         finished_running_executions = []
+        timed_out_executions = []
         for execution in running_executions:
             _, matching_runs = runs_matching_requirements(
                 client, execution["approach"], execution["dataset"], require, execution["mount_combo"], metadata_cache
             )
             if len(matching_runs) >= execution["required_matching_runs"]:
                 finished_running_executions.append(execution)
+            elif force_continue is not None and time.monotonic() - execution["started_at"] >= force_continue * 60:
+                timed_out_executions.append(execution)
 
-        if finished_running_executions:
+        if finished_running_executions or timed_out_executions:
             for execution in finished_running_executions:
                 running_executions.remove(execution)
                 finished_executions += 1
                 print(f'Finished {execution["approach"]} on {execution["dataset"]}.')
+            for execution in timed_out_executions:
+                running_executions.remove(execution)
+                finished_executions += 1
+                print(
+                    f'Forcing continue: {execution["approach"]} on {execution["dataset"]} did not finish within '
+                    + f"{force_continue:g} minutes, assuming it is finished."
+                )
         elif running_executions:
             running_count = len(running_executions)
             pending_count = len(execution_queue)
@@ -1397,6 +1417,17 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         default=500,
         type=positive_int,
         help="How many seconds to wait between checks for completed remote executions.",
+    )
+    remote.add_argument(
+        "--force-continue",
+        required=False,
+        default=None,
+        type=positive_float,
+        metavar="MINUTES",
+        help=(
+            "If an execution did not finish (i.e., no matching run exists) this many minutes after it was started, "
+            "assume it is finished, count it as finished, and continue with the pending executions."
+        ),
     )
     remote.add_argument(
         "--require",
