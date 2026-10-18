@@ -362,6 +362,51 @@ class TestRunRemote(unittest.TestCase):
                         mount_cache=["$WORK_DIR=EMPTY_DIR"],
                     )
 
+    def test_run_remote_discovers_approaches_with_exactly_the_forwarded_environment_variables(self):
+        import pandas as pd
+
+        class DiscoveryClient(FakeRestClient):
+            def get_dataset(self, dataset):
+                return {"default_task": "task"}
+
+            def submissions(self, task, dataset):
+                return pd.DataFrame(
+                    [
+                        {"team": "team-a", "software": "software-a"},
+                        {"team": "team-a", "software": "software-a"},
+                        {"team": "team-b", "software": "software-b"},
+                        {"team": "team-c", "software": "software-c"},
+                    ]
+                )
+
+            def submissions_with_evaluation_or_none(self, task, dataset, team, software):
+                runs = super().submissions_with_evaluation_or_none(task, dataset, team, software)
+                if software == "software-c":
+                    runs[0]["evaluation"] = None
+                return runs
+
+        for forwarded, expected in [([], "task/team-a/software-a"), (["OPENAI_API_KEY"], "task/team-b/software-b")]:
+            DiscoveryClient.reset()
+
+            with patch("tira.tira_cli.RestClient", DiscoveryClient):
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    actual = run_remote(
+                        approach=None,
+                        dataset=["dataset-a"],
+                        resources="medium-resources",
+                        parallelism=2,
+                        forward_environment_variable=forwarded,
+                    )
+
+            lines = stdout.getvalue().strip().splitlines()
+            self.assertEqual(0, actual)
+            self.assertEqual([f"- {expected}"], [i for i in lines if i.startswith("- ")])
+            self.assertEqual(
+                "1 executions have already been finished, 0 executions are about to be started.", lines[2]
+            )
+            self.assertEqual([], DiscoveryClient.run_calls)
+
     def test_run_remote_starts_runs_until_each_approach_reaches_target(self):
         class RepeatedRunsRestClient(FakeRestClient):
             started_runs = 0

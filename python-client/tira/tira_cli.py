@@ -324,6 +324,51 @@ def split_approach_identifier(approach_id: str) -> tuple[str, str, str]:
     return split_approach[0], split_approach[1], split_approach[2]
 
 
+def discover_approaches_with_evaluation(client: "TiraClient", datasets: "list[str]") -> "list[str]":
+    """Return all approaches (<task>/<team>/<software>) that have at least one run with a valid evaluation on one of
+    the datasets. The task of a dataset is its default task.
+    """
+    discovered: "list[str]" = []
+
+    for dataset_id in datasets:
+        task = client.get_dataset(dataset_id)["default_task"]
+        submissions = client.submissions(task, dataset_id)
+        if submissions is None or len(submissions) < 1:
+            continue
+
+        for _, row in submissions[["team", "software"]].drop_duplicates().iterrows():
+            approach_id = f"{task}/{row['team']}/{row['software']}"
+            if approach_id in discovered:
+                continue
+
+            runs = client.submissions_with_evaluation_or_none(task, dataset_id, row["team"], row["software"])
+            if any(run["evaluation"] for run in runs):
+                discovered.append(approach_id)
+
+    return discovered
+
+
+def filter_approaches_by_forwarded_environment_variables(
+    client: "TiraClient", approaches: "list[str]", forward_environment_variable: "Optional[list[str]]"
+) -> "list[str]":
+    """Keep only approaches that require exactly the forwarded environment variables. Approaches without private
+    system details (e.g., uploaded runs that are not docker software) are skipped.
+    """
+    expected = set(forward_environment_variable or [])
+    candidates: "list[str]" = []
+
+    for approach_id in approaches:
+        try:
+            system_details = client.private_system_details(approach_id)
+        except Exception:
+            continue
+
+        if set(system_details.get("forward_environment_variable") or []) == expected:
+            candidates.append(approach_id)
+
+    return candidates
+
+
 def runs_matching_requirements(
     client: "TiraClient",
     approach_id: str,
@@ -1118,6 +1163,14 @@ def run_remote(
     metadata_cache: "dict" = {}
     run_on_by_variable = parse_run_on(run_on)
 
+    if not approach:
+        approach = filter_approaches_by_forwarded_environment_variables(
+            client, discover_approaches_with_evaluation(client, dataset), forward_environment_variable
+        )
+        print(f"Discovered {len(approach)} candidate approaches with a valid evaluation on {dataset}:")
+        for approach_id in approach:
+            print(f"- {approach_id}")
+
     for dataset_id in dataset:
         runs_with_evaluations[dataset_id] = []
         candidates_by_variable = resolve_run_on_candidates(client, run_on_by_variable, dataset_id)
@@ -1303,8 +1356,13 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
     remote.add_argument(
         "--approach",
         nargs="+",
-        required=True,
-        help="One or more approaches to execute. All provided values are combined as a Cartesian product.",
+        required=False,
+        default=None,
+        help=(
+            "One or more approaches to execute. All provided values are combined as a Cartesian product. "
+            "If omitted, all approaches that have a valid evaluation on one of the datasets and that require exactly "
+            "the forwarded environment variables are used."
+        ),
     )
     remote.add_argument(
         "--dataset",
