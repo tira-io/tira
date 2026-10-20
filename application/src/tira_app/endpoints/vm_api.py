@@ -64,6 +64,23 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
     return json.loads(request.body)
 
 
+def _dataset_is_usable_by_requester(request: "HttpRequest", dataset_id: str) -> bool:
+    """Datasets hidden from participants may only be used (uploads, executions) by admins."""
+    dataset = model.get_dataset(dataset_id)
+    if not dataset or dataset.get("is_visible_to_participants", True):
+        return True
+
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    return role in {auth.ROLE_ADMIN, auth.ROLE_TIRA}
+
+
+def _dataset_not_available_response(dataset_id: str) -> JsonResponse:
+    return JsonResponse(
+        {"status": 1, "message": f"The dataset {html.escape(dataset_id)} is not available."},
+        status=HTTPStatus.FORBIDDEN,
+    )
+
+
 def _mount_config_upload_field_name(mount_name: str) -> str:
     return f"mount_config_upload_{quote(mount_name, safe='')}"
 
@@ -374,6 +391,9 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
+        if not _dataset_is_usable_by_requester(request, dataset_id):
+            return _dataset_not_available_response(dataset_id)
+
         if not request.FILES or "file" not in request.FILES.keys():
             return JsonResponse({"status": 1, "message": "Please pass a payload. No file in the post"})
 
@@ -559,6 +579,9 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
                         }
                     )
                 )
+
+            if not _dataset_is_usable_by_requester(request, dataset_id):
+                return _dataset_not_available_response(dataset_id)
 
             if dataset["is_deprecated"]:
                 return HttpResponseServerError(
@@ -1223,6 +1246,9 @@ def run_execute_docker_software(
                 "message": "Please specify the associated docker_software_id.",
             }
         )
+
+    if not _dataset_is_usable_by_requester(request, dataset_id):
+        return _dataset_not_available_response(dataset_id)
 
     docker_software = model.get_docker_software(int(docker_software_id))
 

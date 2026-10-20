@@ -309,6 +309,7 @@ class HybridDatabase(object):
             "leaderboard_is_public": dataset.leaderboard_is_public,
             "auto_unblind_runs": dataset.auto_unblind_runs,
             "auto_unblind_evaluation": dataset.auto_unblind_evaluation,
+            "is_visible_to_participants": dataset.is_visible_to_participants,
             "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
@@ -2142,6 +2143,7 @@ class HybridDatabase(object):
         workflow_configuration=None,
         auto_unblind_runs: bool = False,
         auto_unblind_evaluation: bool = False,
+        is_visible_to_participants: bool = True,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -2169,6 +2171,7 @@ class HybridDatabase(object):
                 "leaderboard_is_public": False,
                 "auto_unblind_runs": auto_unblind_runs,
                 "auto_unblind_evaluation": auto_unblind_evaluation,
+                "is_visible_to_participants": is_visible_to_participants,
                 "released": str(dt.now()),
                 "default_upload_name": upload_name,
                 "irds_docker_image": irds_docker_image,
@@ -2793,6 +2796,7 @@ class HybridDatabase(object):
         leaderboard_is_public: "Optional[bool]" = None,
         auto_unblind_runs: "Optional[bool]" = None,
         auto_unblind_evaluation: "Optional[bool]" = None,
+        is_visible_to_participants: "Optional[bool]" = None,
     ) -> "dict[str, Any]":
         """
 
@@ -2807,6 +2811,8 @@ class HybridDatabase(object):
             the existing value is kept unchanged.
         @param auto_unblind_evaluation: if True, newly added evaluations for this dataset are automatically
             unblinded. If None, the existing value is kept unchanged.
+        @param is_visible_to_participants: if False, the dataset is only listed for admins. If None, the existing
+            value is kept unchanged.
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
@@ -2836,6 +2842,9 @@ class HybridDatabase(object):
 
         if auto_unblind_evaluation is not None:
             dataset_update_fields["auto_unblind_evaluation"] = auto_unblind_evaluation
+
+        if is_visible_to_participants is not None:
+            dataset_update_fields["is_visible_to_participants"] = is_visible_to_participants
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(**dataset_update_fields)
 
