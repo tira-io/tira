@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 import yaml
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
+from tira.check_format import _fmt, check_format
 
 from .. import tira_model as model
 from ..checks import check_permissions, check_resources_exist
@@ -154,6 +155,21 @@ def _run_output_files(dataset_id: str, vm_id: str, run_id: str) -> "List[Path]":
     return [f for f in sorted(run_output_dir.rglob("*")) if f.is_file()]
 
 
+def _run_output_is_valid(dataset_id: str, vm_id: str, run_id: str) -> bool:
+    """Return True iff the run's on-disk output passes the "trec-eval-leaderboard" format checker (see
+    tira.check_format.check_format), so that only properly-formatted run output counts towards a dataset's
+    coverage and gets bundled into the trec-auto-judge export (see _bundle_trec_auto_judge_submission). The
+    format is always "trec-eval-leaderboard" for this export, regardless of the dataset's own configured
+    'format'. Returns False without invoking the format checker if the run's output directory does not exist
+    (check_format assumes an existing directory and otherwise raises). Extracted as its own function so that
+    it can be mocked in tests instead of requiring real files on disk."""
+    run_output_dir = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id / "output"
+    if not run_output_dir.is_dir():
+        return False
+    status, _ = check_format(run_output_dir, "trec-eval-leaderboard")
+    return status == _fmt.OK
+
+
 def _safe_run_id_path_component(run_id: "Optional[str]") -> bool:
     """Return True iff ``run_id`` is safe to use as a path component when writing run output into the export
     zip (see _add_run_to_zip), i.e., it is a non-empty string that does not contain a path separator or '..'.
@@ -187,10 +203,13 @@ def _bundle_trec_auto_judge_submission(
     _safe_run_id_path_component) are skipped and do not count towards a dataset's coverage; note that this is
     deliberately not the stricter valid_trec_run_id check, since that only applies to submission names, not to
     TIRA's internal run ids (which are timestamp+uuid based, see tira.io_utils.get_tira_id, and would never
-    pass valid_trec_run_id's length limit). Unless ``allow_incomplete`` is True (see
+    pass valid_trec_run_id's length limit). Runs whose on-disk output does not pass the "trec-eval-leaderboard"
+    format checker (see _run_output_is_valid) are likewise skipped and do not count towards a dataset's
+    coverage, so that only valid run output is ever bundled/judged. Unless ``allow_incomplete`` is True (see
     _allow_incomplete_trec_auto_judge_names), raises an ExportError if, after checking the file system for
-    actual run output (see _run_output_files), the submission does not have at least one qualifying run for
-    every TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission per target dataset).
+    actual (valid) run output (see _run_output_files, _run_output_is_valid), the submission does not have at
+    least one qualifying run for every TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission
+    per target dataset).
 
     Writes a "{name}.zip" (bundling the on-disk run outputs for whichever required datasets are covered) and a
     sibling "{name}.yaml" (with zip size/md5sum, ``sanitized_submission`` under ``submission_key``, and an
@@ -207,6 +226,8 @@ def _bundle_trec_auto_judge_submission(
                 if not _safe_run_id_path_component(run_id):
                     continue
                 if not _run_output_files(dataset, vm_id, run_id):
+                    continue
+                if not _run_output_is_valid(dataset, vm_id, run_id):
                     continue
                 datasets_with_output_on_disk.add(dataset)
                 _add_run_to_zip(software_zip, dataset, vm_id, run_id, arc_prefix)
@@ -348,8 +369,8 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     entries that happen to share a name. The team's evalbase team id is resolved
     from the task's task_export_metadata (see _evalbase_team_id_for_trec_auto_judge) and embedded as
     "evalbase.team_id" in every exported yaml file. Every qualifying submission must have, after checking the
-    file system for actual run output (see _run_output_files), at least one qualifying run per required dataset
-    (see _bundle_trec_auto_judge_submission); if any submission does not (i.e. it lacks one submission per
+    file system for actual, valid run output (see _run_output_files, _run_output_is_valid), at least one
+    qualifying run per required dataset (see _bundle_trec_auto_judge_submission); if any submission does not (i.e. it lacks one submission per
     target dataset), the export fails with an ExportError listing all such submissions instead of silently
     excluding them, unless the submission's (translated) name is allow-listed as allowed to be incomplete for
     this team via the task's task_export_metadata "allow-incomplete" field (see

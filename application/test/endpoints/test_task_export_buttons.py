@@ -6,9 +6,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
+from django.conf import settings
 from django.http.request import QueryDict
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
+from tira.check_format import _fmt
 from utils_for_testing import method_for_url_pattern, set_up_tira_environment
 
 import tira_app.model as modeldb
@@ -22,6 +24,7 @@ from tira_app.endpoints.task_exports import (
     _merge_trec_auto_judge_uploads,
     _priority_of_submission,
     _run_output_files,
+    _run_output_is_valid,
     _runs_on_required_datasets,
     _safe_run_id_path_component,
     _sanitized_trec_auto_judge_submission,
@@ -250,6 +253,60 @@ class TestRunOutputFiles(TestCase):
 
     def test_returns_empty_list_for_non_existing_run(self):
         self.assertEqual([], _run_output_files("no-such-dataset", "no-such-vm", "no-such-run"))
+
+
+class TestRunOutputIsValid(TestCase):
+    """Verifies that _run_output_is_valid delegates to tira.check_format.check_format with the
+    "trec-eval-leaderboard" format (regardless of the dataset's own configured format), using the real format
+    checker against actual files on disk (not a mocked check_format), since this is the exact behavior the
+    trec-auto-judge export relies on to only bundle/count valid run output."""
+
+    def _write_trec_eval_leaderboard_file(self, path, num_runs=2, num_queries=3, num_measures=2):
+        lines = []
+        for run in range(num_runs):
+            for measure in range(num_measures):
+                for query in range(num_queries):
+                    lines.append(f"run-{run} q-{query} map-{measure} 0.{run}{measure}{query}")
+                # trec_eval's -q output includes an aggregate "all" row per run/measure; required by
+                # TrecEvalLeaderboard.check_format.
+                lines.append(f"run-{run} all map-{measure} 0.{run}{measure}9")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(lines) + "\n")
+
+    def test_valid_trec_eval_leaderboard_output_is_accepted(self):
+        run_output_dir = settings.TIRA_ROOT / "data" / "runs" / "some-dataset" / "some-vm" / "valid-run" / "output"
+        self._write_trec_eval_leaderboard_file(run_output_dir / "run.eval")
+
+        self.assertTrue(_run_output_is_valid("some-dataset", "some-vm", "valid-run"))
+
+    def test_output_with_a_single_system_is_rejected(self):
+        # The trec-eval-leaderboard format requires at least two distinct "run"/system identifiers.
+        run_output_dir = settings.TIRA_ROOT / "data" / "runs" / "some-dataset" / "some-vm" / "invalid-run" / "output"
+        self._write_trec_eval_leaderboard_file(run_output_dir / "run.eval", num_runs=1)
+
+        self.assertFalse(_run_output_is_valid("some-dataset", "some-vm", "invalid-run"))
+
+    def test_non_trec_eval_output_is_rejected(self):
+        run_output_dir = settings.TIRA_ROOT / "data" / "runs" / "some-dataset" / "some-vm" / "garbage-run" / "output"
+        run_output_dir.mkdir(parents=True, exist_ok=True)
+        (run_output_dir / "output.txt").write_text("this is not a trec-eval-leaderboard file at all\n")
+
+        self.assertFalse(_run_output_is_valid("some-dataset", "some-vm", "garbage-run"))
+
+    def test_missing_output_is_rejected(self):
+        self.assertFalse(_run_output_is_valid("some-dataset", "some-vm", "no-such-run"))
+
+    @patch("tira_app.endpoints.task_exports.check_format")
+    def test_always_checks_the_trec_eval_leaderboard_format(self, check_format):
+        run_output_dir = settings.TIRA_ROOT / "data" / "runs" / "some-dataset" / "some-vm" / "some-run" / "output"
+        run_output_dir.mkdir(parents=True, exist_ok=True)
+        check_format.return_value = (_fmt.OK, "ok")
+
+        result = _run_output_is_valid("some-dataset", "some-vm", "some-run")
+
+        self.assertTrue(result)
+        args, _ = check_format.call_args
+        self.assertEqual("trec-eval-leaderboard", args[1])
 
 
 class TestValidTrecRunId(TestCase):
@@ -549,11 +606,19 @@ class TestMergeTrecAutoJudgeUploads(TestCase):
 class TestTrecAutoJudgeExport(TestCase):
     """Uses mocks for the data layer (model.get_docker_softwares_with_runs) and for the per-run file lookup
     instead of building full database/filesystem fixtures, since _trec_auto_judge_export only orchestrates
-    those two seams."""
+    those two seams. _run_output_is_valid (the "trec-eval-leaderboard" format checker seam) defaults to True
+    in setUp, since most tests are not concerned with format validity; tests that are override it explicitly."""
 
     # Shared task fixture whose task_export_metadata resolves "some-vm" to an evalbase team id, as required by
     # _evalbase_team_id_for_trec_auto_judge.
     _AUTO_JUDGE_TASK = {"task_name": "AutoJudge", "task_export_metadata": {"trec-teams": {"some-vm": "team-42"}}}
+
+    def setUp(self):
+        self._run_output_is_valid_patcher = patch(
+            "tira_app.endpoints.task_exports._run_output_is_valid", return_value=True
+        )
+        self.run_output_is_valid = self._run_output_is_valid_patcher.start()
+        self.addCleanup(self._run_output_is_valid_patcher.stop)
 
     def _software(self, docker_software_id, display_name, metadata, runs):
         return {
@@ -878,6 +943,37 @@ class TestTrecAutoJudgeExport(TestCase):
         self.assertEqual({"valid-sub-name.zip", "valid-sub-name.yaml"}, set(zipf.namelist()))
         self.assertEqual(2, add_run_to_zip.call_count)
 
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_excludes_runs_whose_output_fails_the_format_checker(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
+    ):
+        # Even though output files exist on disk, a run whose output does not pass the "trec-eval-leaderboard"
+        # format checker (_run_output_is_valid) must not count towards a dataset's coverage, nor be bundled.
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "valid-sub-name",
+                {"priority": "5"},
+                [
+                    self._run("run-id-01", "rag26-20260827_1-test"),
+                    self._run("run-id-02", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+        self.run_output_is_valid.side_effect = lambda dataset_id, vm_id, run_id: run_id != "run-id-01"
+
+        with self.assertRaises(ExportError) as context:
+            _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        self.assertIn("rag26-20260827_1-test", str(context.exception))
+        add_run_to_zip.assert_called_once()
+        self.assertEqual("ragtime26-20260827-test", add_run_to_zip.call_args.args[1])
+
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
@@ -1167,13 +1263,15 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
         self.assertIn("master-vm-for-task-1", content["message"])
         self.assertIn("trec-teams", content["message"])
 
+    @patch("tira_app.endpoints.task_exports._run_output_is_valid")
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
     def test_admin_can_download_trec_auto_judge_export_with_qualifying_submission(
-        self, get_docker_softwares_with_runs, get_uploads_with_runs
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, run_output_is_valid
     ):
         from django.conf import settings
 
+        run_output_is_valid.return_value = True
         get_uploads_with_runs.return_value = []
         get_docker_softwares_with_runs.return_value = [
             {
