@@ -23,6 +23,7 @@ from tira_app.endpoints.task_exports import (
     _priority_of_submission,
     _run_output_files,
     _runs_on_required_datasets,
+    _safe_run_id_path_component,
     _sanitized_trec_auto_judge_submission,
     _trec_auto_judge_export,
     _translated_trec_auto_judge_name,
@@ -278,6 +279,34 @@ class TestValidTrecRunId(TestCase):
         self.assertFalse(valid_trec_run_id(None))
         self.assertFalse(valid_trec_run_id(1234))
         self.assertFalse(valid_trec_run_id(["run-1234"]))
+
+
+class TestSafeRunIdPathComponent(TestCase):
+    def test_accepts_realistic_timestamp_uuid_run_ids(self):
+        # Real TIRA run ids (see tira.io_utils.get_tira_id) are timestamp+uuid based and routinely exceed
+        # valid_trec_run_id's length limit, but are perfectly safe path components.
+        self.assertTrue(_safe_run_id_path_component("2026-01-01-10-00-00-abcd1234"))
+        self.assertTrue(
+            _safe_run_id_path_component("2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678")
+        )
+
+    def test_accepts_short_run_ids(self):
+        self.assertTrue(_safe_run_id_path_component("ab"))
+        self.assertTrue(_safe_run_id_path_component("a"))
+
+    def test_rejects_run_ids_with_path_separators(self):
+        self.assertFalse(_safe_run_id_path_component("run/1234"))
+        self.assertFalse(_safe_run_id_path_component("run\\1234"))
+
+    def test_rejects_run_ids_with_dot_dot(self):
+        self.assertFalse(_safe_run_id_path_component("../etc/passwd"))
+        self.assertFalse(_safe_run_id_path_component("..run1234"))
+
+    def test_rejects_non_string_or_missing_run_ids(self):
+        self.assertFalse(_safe_run_id_path_component(None))
+        self.assertFalse(_safe_run_id_path_component(""))
+        self.assertFalse(_safe_run_id_path_component(1234))
+        self.assertFalse(_safe_run_id_path_component(["run-1234"]))
 
 
 class TestRunsOnRequiredDatasets(TestCase):
@@ -796,7 +825,7 @@ class TestTrecAutoJudgeExport(TestCase):
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_excludes_runs_with_invalid_run_id(
+    def test_excludes_runs_whose_run_id_is_not_a_safe_path_component(
         self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
     ):
         get_uploads_with_runs.return_value = []
@@ -806,8 +835,9 @@ class TestTrecAutoJudgeExport(TestCase):
                 "valid-submission-name",
                 {"priority": "5"},
                 [
-                    # Too short (<=3 chars) and contains a path separator, respectively; both must be skipped.
-                    self._run("ab", "rag26-20260827_1-test"),
+                    # Contains a path separator, must be skipped (regardless of length/charset, unlike
+                    # valid_trec_run_id, which only applies to submission names, not internal run ids).
+                    self._run("run/id-01", "rag26-20260827_1-test"),
                     self._run("run/id-02", "ragtime26-20260827-test"),
                 ],
             )
@@ -818,6 +848,35 @@ class TestTrecAutoJudgeExport(TestCase):
             _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
 
         add_run_to_zip.assert_not_called()
+
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_includes_runs_with_realistic_timestamp_uuid_run_ids(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
+    ):
+        # Real TIRA run ids (see tira.io_utils.get_tira_id) are timestamp+uuid based and routinely exceed
+        # valid_trec_run_id's length limit (which only applies to submission names, not internal run ids).
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "valid-submission-name",
+                {"priority": "5"},
+                [
+                    self._run("2026-01-01-10-00-00-abcd1234", "rag26-20260827_1-test"),
+                    self._run("2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        response = _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"valid-submission-name.zip", "valid-submission-name.yaml"}, set(zipf.namelist()))
+        self.assertEqual(2, add_run_to_zip.call_count)
 
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")

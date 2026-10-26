@@ -154,6 +154,17 @@ def _run_output_files(dataset_id: str, vm_id: str, run_id: str) -> "List[Path]":
     return [f for f in sorted(run_output_dir.rglob("*")) if f.is_file()]
 
 
+def _safe_run_id_path_component(run_id: "Optional[str]") -> bool:
+    """Return True iff ``run_id`` is safe to use as a path component when writing run output into the export
+    zip (see _add_run_to_zip), i.e., it is a non-empty string that does not contain a path separator or '..'.
+    Unlike valid_trec_run_id (which validates *submission names*), this does not impose any length/charset
+    restriction, since real TIRA run ids (see tira.io_utils.get_tira_id) are timestamp+uuid based and
+    routinely exceed valid_trec_run_id's length limit."""
+    if not isinstance(run_id, str) or not run_id:
+        return False
+    return "/" not in run_id and "\\" not in run_id and ".." not in run_id
+
+
 def _add_run_to_zip(zipf: "zipfile.ZipFile", dataset_id: str, vm_id: str, run_id: str, arc_prefix: str) -> None:
     run_output_dir = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id / "output"
     for f in _run_output_files(dataset_id, vm_id, run_id):
@@ -172,8 +183,11 @@ def _bundle_trec_auto_judge_submission(
     allow_incomplete: bool = False,
 ) -> None:
     """Bundle a single trec-auto-judge submission (either a docker software's code submission or an uploaded-run
-    submission) into ``outer_zip``. Runs whose run_id is not a valid_trec_run_id are skipped and do not count
-    towards a dataset's coverage. Unless ``allow_incomplete`` is True (see
+    submission) into ``outer_zip``. Runs whose run_id is not a safe path component (see
+    _safe_run_id_path_component) are skipped and do not count towards a dataset's coverage; note that this is
+    deliberately not the stricter valid_trec_run_id check, since that only applies to submission names, not to
+    TIRA's internal run ids (which are timestamp+uuid based, see tira.io_utils.get_tira_id, and would never
+    pass valid_trec_run_id's length limit). Unless ``allow_incomplete`` is True (see
     _allow_incomplete_trec_auto_judge_names), raises an ExportError if, after checking the file system for
     actual run output (see _run_output_files), the submission does not have at least one qualifying run for
     every TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission per target dataset).
@@ -190,7 +204,7 @@ def _bundle_trec_auto_judge_submission(
         for dataset, arc_prefix in TREC_AUTO_JUDGE_DATASETS.items():
             for run in runs_by_dataset.get(dataset, []):
                 run_id = run.get("run_id")
-                if not valid_trec_run_id(run_id):
+                if not _safe_run_id_path_component(run_id):
                     continue
                 if not _run_output_files(dataset, vm_id, run_id):
                     continue
