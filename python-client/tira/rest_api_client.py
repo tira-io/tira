@@ -62,6 +62,10 @@ class Client(TiraClient):
         self.api_key_already_checked = False
         self.logged: "set[str]" = set()
         self.tira_cache_dir = default_tira_cache_dir(tira_cache_dir)
+        try:
+            os.makedirs(self.tira_cache_dir, exist_ok=True)
+        except Exception:
+            pass
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
         self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
