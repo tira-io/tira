@@ -832,7 +832,7 @@ class TestTrecAutoJudgeExport(TestCase):
         get_docker_softwares_with_runs.return_value = [
             self._software(
                 1,
-                "valid-submission-name",
+                "valid-sub-name",
                 {"priority": "5"},
                 [
                     # Contains a path separator, must be skipped (regardless of length/charset, unlike
@@ -862,7 +862,7 @@ class TestTrecAutoJudgeExport(TestCase):
         get_docker_softwares_with_runs.return_value = [
             self._software(
                 1,
-                "valid-submission-name",
+                "valid-sub-name",
                 {"priority": "5"},
                 [
                     self._run("2026-01-01-10-00-00-abcd1234", "rag26-20260827_1-test"),
@@ -875,7 +875,7 @@ class TestTrecAutoJudgeExport(TestCase):
         response = _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
 
         zipf = zipfile.ZipFile(BytesIO(response.content))
-        self.assertEqual({"valid-submission-name.zip", "valid-submission-name.yaml"}, set(zipf.namelist()))
+        self.assertEqual({"valid-sub-name.zip", "valid-sub-name.yaml"}, set(zipf.namelist()))
         self.assertEqual(2, add_run_to_zip.call_count)
 
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
