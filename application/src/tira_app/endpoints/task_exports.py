@@ -289,6 +289,35 @@ def _allow_incomplete_trec_auto_judge_names(task: "dict", vm_id: str) -> "set":
     return {name for name in names if isinstance(name, str)}
 
 
+def _merge_trec_auto_judge_uploads(
+    task_id: str, vm_id: str, name: str, group: "List[Dict[str, Any]]"
+) -> "Dict[str, Any]":
+    """Merge a group of uploaded-run submissions that share the same (translated) trec-auto-judge name into a
+    single dict, so that they are checked/bundled as one submission. A team may submit its runs for different
+    TREC_AUTO_JUDGE_DATASETS as separate upload entries (e.g. one upload per dataset) that happen to share the
+    same display name/run_id; without merging, each such entry would individually fail the "one submission per
+    target dataset" check even though the team's submissions jointly cover all required datasets. All entries in
+    ``group`` must share the same 'description' and the same 'priority' metadata property (see
+    _priority_of_submission); otherwise an ExportError is raised, since merging submissions that disagree on
+    these fields would silently hide a likely configuration mistake. The merged dict's 'runs' is the
+    concatenation of every entry's runs; all other fields are taken from the most recently edited entry (by
+    'last_edit')."""
+    descriptions = {upload.get("description") for upload in group}
+    priorities = {_priority_of_submission(upload.get("upload_metadata")) for upload in group}
+    if len(descriptions) > 1 or len(priorities) > 1:
+        raise ExportError(
+            f"The uploaded-run submissions sharing the name '{name}' of team '{vm_id}' for task '{task_id}' do "
+            "not all have the same 'description' and 'priority' metadata, so the trec-auto-judge export cannot "
+            "merge them into a single submission."
+        )
+
+    merged_runs = [run for upload in group for run in (upload.get("runs") or [])]
+    representative = max(group, key=lambda upload: str(upload.get("last_edit") or ""))
+    merged = dict(representative)
+    merged["runs"] = merged_runs
+    return merged
+
+
 def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResponse":
     """Export for the 'trec-auto-judge' task: for every submission of the team ``vm_id`` -- a code submission
     (docker software) or an uploaded-run submission -- whose 'priority' metadata property parses to an integer
@@ -299,7 +328,10 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     must be valid_trec_run_id, and no docker-software submission may share its name with an uploaded-run
     submission (both are bundled as "{name}.zip"/"{name}.yaml" into the same outer zip); if any qualifying
     submission's name is invalid or collides across the two kinds, the export fails with an ExportError listing
-    all offending names instead of silently skipping/overwriting them. The team's evalbase team id is resolved
+    all offending names instead of silently skipping/overwriting them. Uploaded-run submissions sharing the
+    same (translated) name are merged into a single submission before all further checks/bundling (see
+    _merge_trec_auto_judge_uploads), since a team may submit its runs for different datasets as separate upload
+    entries that happen to share a name. The team's evalbase team id is resolved
     from the task's task_export_metadata (see _evalbase_team_id_for_trec_auto_judge) and embedded as
     "evalbase.team_id" in every exported yaml file. Every qualifying submission must have, after checking the
     file system for actual run output (see _run_output_files), at least one qualifying run per required dataset
@@ -317,7 +349,6 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     uploads = model.get_uploads_with_runs(task_id, vm_id)
 
     qualifying_docker_softwares = []
-    qualifying_uploads = []
     invalid_names = []
 
     for software in docker_softwares:
@@ -330,6 +361,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
             continue
         qualifying_docker_softwares.append((name, software))
 
+    upload_groups: "Dict[str, List[Dict[str, Any]]]" = {}
     for upload in uploads:
         if not _is_included_in_trec_auto_judge(upload.get("upload_metadata")):
             continue
@@ -338,7 +370,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
         if not valid_trec_run_id(name):
             invalid_names.append(name)
             continue
-        qualifying_uploads.append((name, upload))
+        upload_groups.setdefault(name, []).append(upload)
 
     if invalid_names:
         raise ExportError(
@@ -346,6 +378,12 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
             f"trec-auto-judge run ids (must be between 4 and 19 characters long and consist only of "
             f"a-z, A-Z, 0-9, '-', and '_'): {', '.join(sorted(invalid_names))}."
         )
+
+    # Merge uploaded-run submissions sharing the same name (e.g. one upload per required dataset) into a single
+    # submission each, see _merge_trec_auto_judge_uploads.
+    qualifying_uploads = [
+        (name, _merge_trec_auto_judge_uploads(task_id, vm_id, name, group)) for name, group in upload_groups.items()
+    ]
 
     docker_names = {name for name, _ in qualifying_docker_softwares}
     upload_names = {name for name, _ in qualifying_uploads}

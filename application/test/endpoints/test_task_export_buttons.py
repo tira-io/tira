@@ -19,6 +19,7 @@ from tira_app.endpoints.task_exports import (
     _allow_incomplete_trec_auto_judge_names,
     _evalbase_team_id_for_trec_auto_judge,
     _is_included_in_trec_auto_judge,
+    _merge_trec_auto_judge_uploads,
     _priority_of_submission,
     _run_output_files,
     _runs_on_required_datasets,
@@ -455,6 +456,67 @@ class TestAllowIncompleteTrecAutoJudgeNames(TestCase):
         self.assertEqual({"name-a", "name-b"}, _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
 
 
+class TestMergeTrecAutoJudgeUploads(TestCase):
+    def _upload(self, upload_id, runs, description="description", priority="5", last_edit="2024-01-01"):
+        return {
+            "id": upload_id,
+            "display_name": "some-name",
+            "upload_metadata": {"priority": priority},
+            "description": description,
+            "last_edit": last_edit,
+            "runs": runs,
+        }
+
+    def test_concatenates_runs_of_a_single_group(self):
+        run_a = {"run_id": "run-a", "dataset": "rag26-20260827_1-test", "is_evaluation": False}
+        run_b = {"run_id": "run-b", "dataset": "ragtime26-20260827-test", "is_evaluation": False}
+        group = [self._upload(1, [run_a]), self._upload(2, [run_b])]
+
+        merged = _merge_trec_auto_judge_uploads("task-1", "some-vm", "some-name", group)
+
+        self.assertEqual([run_a, run_b], merged["runs"])
+
+    def test_uses_metadata_of_most_recently_edited_entry(self):
+        group = [
+            self._upload(1, [], last_edit="2024-01-01", description="description"),
+            self._upload(2, [], last_edit="2024-06-01", description="description"),
+        ]
+
+        merged = _merge_trec_auto_judge_uploads("task-1", "some-vm", "some-name", group)
+
+        self.assertEqual(2, merged["id"])
+
+    def test_raises_when_descriptions_differ(self):
+        group = [
+            self._upload(1, [], description="description A"),
+            self._upload(2, [], description="description B"),
+        ]
+
+        with self.assertRaises(ExportError) as context:
+            _merge_trec_auto_judge_uploads("task-1", "some-vm", "some-name", group)
+
+        message = str(context.exception)
+        self.assertIn("some-name", message)
+        self.assertIn("some-vm", message)
+        self.assertIn("task-1", message)
+
+    def test_raises_when_priorities_differ(self):
+        group = [
+            self._upload(1, [], priority="5"),
+            self._upload(2, [], priority="6"),
+        ]
+
+        with self.assertRaises(ExportError):
+            _merge_trec_auto_judge_uploads("task-1", "some-vm", "some-name", group)
+
+    def test_does_not_raise_for_a_single_entry_group(self):
+        group = [self._upload(1, [])]
+
+        merged = _merge_trec_auto_judge_uploads("task-1", "some-vm", "some-name", group)
+
+        self.assertEqual(1, merged["id"])
+
+
 class TestTrecAutoJudgeExport(TestCase):
     """Uses mocks for the data layer (model.get_docker_softwares_with_runs) and for the per-run file lookup
     instead of building full database/filesystem fixtures, since _trec_auto_judge_export only orchestrates
@@ -475,12 +537,14 @@ class TestTrecAutoJudgeExport(TestCase):
     def _run(self, run_id, dataset, is_evaluation=False):
         return {"run_id": run_id, "dataset": dataset, "is_evaluation": is_evaluation}
 
-    def _upload(self, upload_id, display_name, upload_metadata, runs):
+    def _upload(self, upload_id, display_name, upload_metadata, runs, description="description", last_edit="2024-01-01"):
         return {
             "id": upload_id,
             "display_name": display_name,
             "upload_metadata": upload_metadata,
             "runs": runs,
+            "description": description,
+            "last_edit": last_edit,
         }
 
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
@@ -941,6 +1005,61 @@ class TestTrecAutoJudgeExport(TestCase):
             _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
 
         self.assertIn("same-name", str(context.exception))
+        add_run_to_zip.assert_not_called()
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_merges_uploads_sharing_a_name_across_datasets(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = [
+            self._upload(
+                1, "shared-name", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]
+            ),
+            self._upload(
+                2, "shared-name", {"priority": "5"}, [self._run("run-id-02", "ragtime26-20260827-test")]
+            ),
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        response = _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"shared-name.zip", "shared-name.yaml"}, set(zipf.namelist()))
+        calls = [call.args for call in add_run_to_zip.call_args_list]
+        self.assertEqual(2, len(calls))
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_reports_error_when_uploads_sharing_a_name_have_differing_description(
+        self, get_docker_softwares_with_runs, add_run_to_zip, get_uploads_with_runs
+    ):
+        get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = [
+            self._upload(
+                1,
+                "shared-name",
+                {"priority": "5"},
+                [self._run("run-id-01", "rag26-20260827_1-test")],
+                description="description A",
+            ),
+            self._upload(
+                2,
+                "shared-name",
+                {"priority": "5"},
+                [self._run("run-id-02", "ragtime26-20260827-test")],
+                description="description B",
+            ),
+        ]
+
+        with self.assertRaises(ExportError) as context:
+            _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        self.assertIn("shared-name", str(context.exception))
         add_run_to_zip.assert_not_called()
 
 
