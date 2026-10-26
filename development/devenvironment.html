@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Frontend Development" href="frontend/index.html"><link rel="prev" title="Code Guidelines" href="contributing/guidelines.html">
         <link rel="prefetch" href="https://assets.tira.io/tira-icons/tira-logo.svg" as="image">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>Development Environment - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=acfd86a5" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
@@ -322,14 +322,31 @@ you can use GitHub Codespaces by visiting the <a class="reference external" href
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
-<p>Open the repository in GitHub Codespaces or VSCode. If you are using VSCode, a dialog (depicted below) should pop up
-asking if you want to open the repository in a development container – click <code class="docutils literal notranslate"><span class="pre">Reopen</span> <span class="pre">in</span> <span class="pre">Container</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are developing on Windows, we recommend using the <a class="reference external" href="https://learn.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux (WSL)</a> and cloning the repository <strong>directly inside WSL</strong> (i.e., into
+the Linux file system, not into a Windows folder such as <code class="docutils literal notranslate"><span class="pre">C:\Users\...</span></code>).</p>
+</div>
+<p>Open the repository in GitHub Codespaces or VSCode. If you are using VSCode, proceed as follows:</p>
+<ol class="arabic simple">
+<li><p>Open the repository in VSCode.</p></li>
+<li><p>A dialog (depicted below) should pop up asking if you want to open the repository in a development container. Click
+<code class="docutils literal notranslate"><span class="pre">Reopen</span> <span class="pre">in</span> <span class="pre">Container</span></code>.</p></li>
+<li><p>When asked which configuration to use, choose <code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">Workspace</span> <span class="pre">Configuration</span></code>.</p></li>
+</ol>
 <img alt="../_images/open-in-container.png" class="align-center" src="../_images/open-in-container.png" />
 <p>Thats all for the environment! With the magic of Docker, all dependencies will now be installed and won’t clutter your
 main operating system.</p>
-<p>The only thing remaining is to start the services and access TIRA. Open two shells, one in <code class="docutils literal notranslate"><span class="pre">application</span></code> and the other
-in <code class="docutils literal notranslate"><span class="pre">frontend</span></code>. To start the backend (“application”), run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run-develop</span></code> and for the frontend: <code class="docutils literal notranslate"><span class="pre">yarn</span> <span class="pre">dev</span></code>. Both
-shells should tell you that their respective service is running. Now visit <a class="reference external" href="https://127.0.0.1:8082/">https://127.0.0.1:8082/</a> in your browser
+<p>The only thing remaining is to start the services and access TIRA. We recommend starting the development stack with the
+<code class="docutils literal notranslate"><span class="pre">TIRA</span> <span class="pre">Stack</span></code> option of VSCode’s “Run and Debug” feature (see <a class="reference internal" href="#debugging"><span class="std std-ref">Debugging</span></a> below). Press
+<kbd class="kbd docutils literal notranslate">Ctrl</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> (<kbd class="kbd docutils literal notranslate">Cmd</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> for MacOS), select <code class="docutils literal notranslate"><span class="pre">TIRA</span> <span class="pre">Stack</span></code> from the debug side-bar, and press <kbd class="kbd docutils literal notranslate">F5</kbd>.
+This starts the backend (“application”) and the frontend together.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If you prefer to start the services manually, open two shells, one in <code class="docutils literal notranslate"><span class="pre">application</span></code> and the other in
+<code class="docutils literal notranslate"><span class="pre">frontend</span></code>. To start the backend, run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run-develop</span></code> and for the frontend: <code class="docutils literal notranslate"><span class="pre">yarn</span> <span class="pre">dev</span></code>.</p>
+</div>
+<p>Both services should tell you that they are running. Now visit <a class="reference external" href="https://127.0.0.1:8082/">https://127.0.0.1:8082/</a> in your browser
 and you should see TIRA. To log in, perform an action that requires you to be logged in (e.g., submitting to one of the
 tasks like <a class="reference external" href="https://127.0.0.1:8082/task-overview/task_1/">https://127.0.0.1:8082/task-overview/task_1/</a>). You can find the credentials in <a class="reference internal" href="#tbl-credentials"><span class="std std-ref">Demo Users</span></a>
 below. Note that the login and authentication is not actually performed by TIRA but by a separate “authentication
@@ -344,10 +361,10 @@ port 8082. To understand why, please read the section describing the <a class="r
 </div>
 </section>
 <section id="debugging">
-<h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">¶</a></h2>
-<p>You don’t actually need to launch TIRA’s frontend and backend via the shell but can use our “Run and Debug”
-configuration instead. To access it, press <kbd class="kbd docutils literal notranslate">Ctrl</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> (<kbd class="kbd docutils literal notranslate">Cmd</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> for MacOS). And select <code class="docutils literal notranslate"><span class="pre">TIRA</span> <span class="pre">Stack</span></code>
-from the debug side-bar that opened:</p>
+<span id="id2"></span><h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">¶</a></h2>
+<p>You don’t need to launch TIRA’s frontend and backend via the shell: our “Run and Debug” configuration starts both and is
+the recommended way to run the development stack. To access it, press <kbd class="kbd docutils literal notranslate">Ctrl</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> (<kbd class="kbd docutils literal notranslate">Cmd</kbd>+<kbd class="kbd docutils literal notranslate">Shift</kbd>+<kbd class="kbd docutils literal notranslate">D</kbd> for
+MacOS) and select <code class="docutils literal notranslate"><span class="pre">TIRA</span> <span class="pre">Stack</span></code> from the debug side-bar that opened:</p>
 <a class="reference internal image-reference" href="../_images/debug-bar.png"><img alt="../_images/debug-bar.png" class="align-center" src="../_images/debug-bar.png" style="width: 250pt;" />
 </a>
 <p>Now you can just press <kbd class="kbd docutils literal notranslate">F5</kbd> every time to run and debug both, the frontend and backend. If an error occurs in any
@@ -393,9 +410,9 @@ it is such a popular choice, it must be because it is a secure password).</p>
 <h3>Demo Users<a class="headerlink" href="#demo-users" title="Link to this heading">¶</a></h3>
 <p>By default the authentication provider in the development environment is set up with these user accounts (see also:
 <code class="docutils literal notranslate"><span class="pre">.devfiles/authelia/users-database.yml</span></code>):</p>
-<div class="table-wrapper docutils container" id="id2">
-<span id="tbl-credentials"></span><span id="tbl-credentials"></span><table class="docutils align-default" id="id2">
-<caption><span class="caption-text">Demo Users</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<div class="table-wrapper docutils container" id="id3">
+<span id="tbl-credentials"></span><span id="tbl-credentials"></span><table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Demo Users</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Username</p></th>
 <th class="head"><p>Password</p></th>
