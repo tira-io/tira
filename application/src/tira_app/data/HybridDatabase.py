@@ -704,6 +704,12 @@ class HybridDatabase(object):
         else:
             return ret
 
+    def get_uploads_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+        """Returns all (non-deleted) uploaded-run submissions for a task and vm as dictionaries, each including
+        their runs (see upload_to_dict/_get_ordered_runs_from_reviews)."""
+        uploads = self.get_uploads(task_id, vm_id, return_names_only=False)
+        return [self.upload_to_dict(upload, vm_id) for upload in uploads]
+
     def _docker_software_to_dict(
         self, ds: modeldb.DockerSoftware, include_try_run_metadata: bool = False
     ) -> "dict[str, Any]":

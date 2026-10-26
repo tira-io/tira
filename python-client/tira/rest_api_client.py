@@ -709,6 +709,41 @@ class Client(TiraClient):
             )
         return ret
 
+    def export_task_submissions(self, task: str, vm: str, value: str, output_dir: "Union[str, Path]") -> Path:
+        """Download a task's custom team export (see the task's configured export buttons) for a given team.
+
+        Args:
+            task (str): The task id.
+            vm (str): The team/vm id whose submissions should be exported.
+            value (str): The export button's "value" to use (must be configured for the task).
+            output_dir (Union[str, Path]): Directory the resulting zip is written to.
+
+        Returns:
+            Path: The path to the downloaded zip file.
+
+        Raises:
+            ValueError: If the server rejects the request (e.g., export not configured, or would be empty).
+        """
+        url = f"{self.base_url}/task/{task}/export/{vm}/{value}.zip"
+        headers = self.authentication_headers(url)
+
+        resp = requests.get(url=url, headers=headers, verify=self.verify)
+        if resp.status_code < 200 or resp.status_code >= 300:
+            message = resp.content.decode("utf-8")
+            try:
+                message = json.loads(message).get("message", message)
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            raise ValueError(f"Could not export submissions of team '{vm}' for task '{task}': {message}")
+
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        target_file = output_dir / f"{task}-{vm}-{value}.zip"
+        with open(target_file, "wb") as f:
+            f.write(resp.content)
+
+        return target_file
+
     def load_resource(self, resource: str):
         """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional
         resources must be loaded.

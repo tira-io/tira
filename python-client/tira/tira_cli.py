@@ -550,6 +550,18 @@ def admin_export_registrations(task: list[str], **kwargs) -> int:
     return 0
 
 
+def admin_export_submissions(task: str, vm: list[str], value: str, output: str, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    for team in vm:
+        try:
+            target_file = client.export_task_submissions(task, team, value, output)
+            print(fmt_message(f"Exported submissions of team '{team}' to {target_file}.", _fmt.OK))
+        except ValueError as e:
+            print(fmt_message(str(e), _fmt.ERROR))
+            return 1
+    return 0
+
+
 def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
     import time
 
@@ -937,6 +949,27 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="The task(s) for which all registrations should be exported.",
     )
     export_registrations.set_defaults(executable=admin_export_registrations)
+
+    export_submissions = subparsers.add_parser(
+        "export-submissions", help="Export all submissions of one or more teams for a task as zip files."
+    )
+    export_submissions.add_argument("--task", required=True, help="The task to export submissions for.")
+    export_submissions.add_argument(
+        "--vm",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The team(s)/vm(s) whose submissions should be exported.",
+    )
+    export_submissions.add_argument(
+        "--value",
+        required=True,
+        help="The export button's value to use (must be configured for the task, see the task's settings).",
+    )
+    export_submissions.add_argument(
+        "--output", default=".", help="Directory the exported zip file(s) are written to. Defaults to '.'."
+    )
+    export_submissions.set_defaults(executable=admin_export_submissions)
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)

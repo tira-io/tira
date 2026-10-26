@@ -2,6 +2,7 @@ import json
 import os
 import zipfile
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import patch
 
 import yaml
@@ -13,10 +14,13 @@ from utils_for_testing import method_for_url_pattern, set_up_tira_environment
 import tira_app.model as modeldb
 import tira_app.tira_model as tira_model
 from tira_app.endpoints.task_exports import (
+    TREC_AUTO_JUDGE_EXCLUDED_SUBMISSION_FIELDS,
     ExportError,
     _is_included_in_trec_auto_judge,
     _priority_of_submission,
     _run_output_files,
+    _runs_on_required_datasets,
+    _sanitized_trec_auto_judge_submission,
     _trec_auto_judge_export,
     task_export,
 )
@@ -242,6 +246,61 @@ class TestRunOutputFiles(TestCase):
         self.assertEqual([], _run_output_files("no-such-dataset", "no-such-vm", "no-such-run"))
 
 
+class TestRunsOnRequiredDatasets(TestCase):
+    def _run(self, run_id, dataset, is_evaluation=False):
+        return {"run_id": run_id, "dataset": dataset, "is_evaluation": is_evaluation}
+
+    def test_groups_runs_by_required_dataset(self):
+        runs = [
+            self._run("run-1", "rag26-20260827_1-test"),
+            self._run("run-2", "ragtime26-20260827-test"),
+            self._run("run-3", "rag26-20260827_1-test"),
+        ]
+
+        grouped = _runs_on_required_datasets(runs)
+
+        self.assertEqual(["run-1", "run-3"], [r["run_id"] for r in grouped["rag26-20260827_1-test"]])
+        self.assertEqual(["run-2"], [r["run_id"] for r in grouped["ragtime26-20260827-test"]])
+
+    def test_excludes_evaluation_runs_and_unrelated_datasets(self):
+        runs = [
+            self._run("run-eval", "rag26-20260827_1-test", is_evaluation=True),
+            self._run("run-other", "some-other-dataset"),
+        ]
+
+        grouped = _runs_on_required_datasets(runs)
+
+        self.assertEqual([], grouped["rag26-20260827_1-test"])
+        self.assertEqual([], grouped["ragtime26-20260827-test"])
+
+    def test_handles_none_and_empty_runs(self):
+        self.assertEqual({"rag26-20260827_1-test": [], "ragtime26-20260827-test": []}, _runs_on_required_datasets(None))
+        self.assertEqual({"rag26-20260827_1-test": [], "ragtime26-20260827-test": []}, _runs_on_required_datasets([]))
+
+
+class TestSanitizedTrecAutoJudgeSubmission(TestCase):
+    def test_removes_all_excluded_fields(self):
+        software = {field: "ignored-value" for field in TREC_AUTO_JUDGE_EXCLUDED_SUBMISSION_FIELDS}
+        software["display_name"] = "Xy hello"
+        software["docker_software_id"] = 1
+        software["metadata"] = {"priority": "5"}
+
+        sanitized = _sanitized_trec_auto_judge_submission(software)
+
+        self.assertEqual(
+            {"display_name": "Xy hello", "docker_software_id": 1, "metadata": {"priority": "5"}}, sanitized
+        )
+        for field in TREC_AUTO_JUDGE_EXCLUDED_SUBMISSION_FIELDS:
+            self.assertNotIn(field, sanitized)
+
+    def test_keeps_fields_not_excluded(self):
+        software = {"display_name": "Xy hello", "docker_software_id": 1, "runs": [{"run_id": "r1"}]}
+
+        sanitized = _sanitized_trec_auto_judge_submission(software)
+
+        self.assertEqual({"display_name": "Xy hello", "docker_software_id": 1}, sanitized)
+
+
 class TestTrecAutoJudgeExport(TestCase):
     """Uses mocks for the data layer (model.get_docker_softwares_with_runs) and for the per-run file lookup
     instead of building full database/filesystem fixtures, since _trec_auto_judge_export only orchestrates
@@ -258,9 +317,21 @@ class TestTrecAutoJudgeExport(TestCase):
     def _run(self, run_id, dataset, is_evaluation=False):
         return {"run_id": run_id, "dataset": dataset, "is_evaluation": is_evaluation}
 
+    def _upload(self, upload_id, display_name, upload_metadata, runs):
+        return {
+            "id": upload_id,
+            "display_name": display_name,
+            "upload_metadata": upload_metadata,
+            "runs": runs,
+        }
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_excludes_software_without_qualifying_priority(self, get_docker_softwares_with_runs, add_run_to_zip):
+    def test_excludes_software_without_qualifying_priority(
+        self, get_docker_softwares_with_runs, add_run_to_zip, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = []
         get_docker_softwares_with_runs.return_value = [
             self._software(1, "No Metadata", None, [self._run("run-1", "rag26-20260827_1-test")]),
             self._software(2, "Priority Too High", {"priority": "11"}, [self._run("run-2", "rag26-20260827_1-test")]),
@@ -272,9 +343,14 @@ class TestTrecAutoJudgeExport(TestCase):
 
         add_run_to_zip.assert_not_called()
 
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_includes_qualifying_software_with_zip_and_yaml(self, get_docker_softwares_with_runs, add_run_to_zip):
+    def test_includes_qualifying_software_with_zip_and_yaml(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = []
         get_docker_softwares_with_runs.return_value = [
             self._software(
                 1,
@@ -288,6 +364,7 @@ class TestTrecAutoJudgeExport(TestCase):
                 ],
             )
         ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
         response = _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
 
@@ -298,9 +375,13 @@ class TestTrecAutoJudgeExport(TestCase):
         self.assertEqual({"Xy hello.zip", "Xy hello.yaml"}, set(zipf.namelist()))
 
         metadata = yaml.safe_load(zipf.read("Xy hello.yaml").decode())
+        self.assertEqual("Xy hello", metadata["run_id"])
+        self.assertEqual("Xy hello.zip", metadata["zip_file"])
         self.assertIn("zip_size_bytes", metadata)
         self.assertIn("zip_md5sum", metadata)
-        self.assertEqual("Xy hello", metadata["submission"]["display_name"])
+        self.assertEqual("Xy hello", metadata["tira_code_submission"]["display_name"])
+        self.assertNotIn("runs", metadata["tira_code_submission"])
+        self.assertNotIn("submission", metadata)
 
         # Only the two non-evaluation runs on the configured auto-judge datasets are added to the per-software
         # zip; the evaluation run and the run on an unrelated dataset are skipped.
@@ -309,12 +390,151 @@ class TestTrecAutoJudgeExport(TestCase):
         self.assertEqual(("rag26-20260827_1-test", "some-vm", "run-id-01", "rag26"), calls[0][1:])
         self.assertEqual(("ragtime26-20260827-test", "some-vm", "run-id-02", "ragtime26"), calls[1][1:])
 
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_handles_no_qualifying_software(self, get_docker_softwares_with_runs):
-        get_docker_softwares_with_runs.return_value = []
+    def test_excludes_software_with_runs_on_only_one_required_dataset(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "Only One Dataset",
+                {"priority": "5"},
+                [self._run("run-id-01", "rag26-20260827_1-test")],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
         with self.assertRaises(ExportError):
             _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_excludes_software_whose_runs_have_no_output_on_disk(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "No Output On Disk",
+                {"priority": "5"},
+                [
+                    self._run("run-id-01", "rag26-20260827_1-test"),
+                    self._run("run-id-02", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = []
+
+        with self.assertRaises(ExportError):
+            _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+        add_run_to_zip.assert_not_called()
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_handles_no_qualifying_software(self, get_docker_softwares_with_runs, get_uploads_with_runs):
+        get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = []
+
+        with self.assertRaises(ExportError):
+            _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_includes_qualifying_upload_with_zip_and_yaml(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
+    ):
+        get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = [
+            self._upload(
+                1,
+                "Xy Upload",
+                {"priority": "5"},
+                [
+                    self._run("run-id-01", "rag26-20260827_1-test"),
+                    self._run("run-id-02", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        response = _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"Xy Upload (upload).zip", "Xy Upload (upload).yaml"}, set(zipf.namelist()))
+
+        metadata = yaml.safe_load(zipf.read("Xy Upload (upload).yaml").decode())
+        self.assertEqual("Xy Upload (upload)", metadata["run_id"])
+        self.assertEqual("Xy Upload (upload).zip", metadata["zip_file"])
+        self.assertEqual("Xy Upload", metadata["tira_upload_submission"]["display_name"])
+        self.assertNotIn("runs", metadata["tira_upload_submission"])
+        self.assertNotIn("tira_code_submission", metadata)
+
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_excludes_upload_without_qualifying_priority(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
+    ):
+        get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = [
+            self._upload(1, "No Priority Upload", None, [self._run("run-id-01", "rag26-20260827_1-test")]),
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        with self.assertRaises(ExportError):
+            _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+        add_run_to_zip.assert_not_called()
+
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_includes_both_qualifying_docker_software_and_upload(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs, add_run_to_zip, run_output_files
+    ):
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "Xy hello",
+                {"priority": "5"},
+                [
+                    self._run("run-id-01", "rag26-20260827_1-test"),
+                    self._run("run-id-02", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        get_uploads_with_runs.return_value = [
+            self._upload(
+                1,
+                "Xy Upload",
+                {"priority": "5"},
+                [
+                    self._run("run-id-03", "rag26-20260827_1-test"),
+                    self._run("run-id-04", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        response = _trec_auto_judge_export("auto-judge-task", {"task_name": "AutoJudge"}, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual(
+            {"Xy hello.zip", "Xy hello.yaml", "Xy Upload (upload).zip", "Xy Upload (upload).yaml"},
+            set(zipf.namelist()),
+        )
 
 
 class TestTrecAutoJudgeExportEndpoint(TestCase):
@@ -328,9 +548,13 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
             export_buttons=json.dumps([{"display_name": "AutoJudge Export", "value": "trec-auto-judge"}])
         )
 
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_admin_gets_400_with_message_when_export_would_be_empty(self, get_docker_softwares_with_runs):
+    def test_admin_gets_400_with_message_when_export_would_be_empty(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs
+    ):
         get_docker_softwares_with_runs.return_value = []
+        get_uploads_with_runs.return_value = []
 
         response = task_export(
             _request(ADMIN), task_id="shared-task-1", vm_id="master-vm-for-task-1", value="trec-auto-judge"
@@ -343,16 +567,32 @@ class TestTrecAutoJudgeExportEndpoint(TestCase):
             "shared-task-1", "master-vm-for-task-1", return_code_submissions=True
         )
 
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_admin_can_download_trec_auto_judge_export_with_qualifying_submission(self, get_docker_softwares_with_runs):
+    def test_admin_can_download_trec_auto_judge_export_with_qualifying_submission(
+        self, get_docker_softwares_with_runs, get_uploads_with_runs
+    ):
+        from django.conf import settings
+
+        get_uploads_with_runs.return_value = []
         get_docker_softwares_with_runs.return_value = [
             {
                 "docker_software_id": 1,
                 "display_name": "Xy hello",
                 "metadata": {"priority": "5"},
-                "runs": [],
+                "runs": [
+                    {"run_id": "run-id-01", "dataset": "rag26-20260827_1-test", "is_evaluation": False},
+                    {"run_id": "run-id-02", "dataset": "ragtime26-20260827-test", "is_evaluation": False},
+                ],
             }
         ]
+        for dataset, run_id in (
+            ("rag26-20260827_1-test", "run-id-01"),
+            ("ragtime26-20260827-test", "run-id-02"),
+        ):
+            run_output_dir = settings.TIRA_ROOT / "data" / "runs" / dataset / "master-vm-for-task-1" / run_id / "output"
+            run_output_dir.mkdir(parents=True, exist_ok=True)
+            (run_output_dir / "run.txt").write_text("output")
 
         response = task_export(
             _request(ADMIN), task_id="shared-task-1", vm_id="master-vm-for-task-1", value="trec-auto-judge"
