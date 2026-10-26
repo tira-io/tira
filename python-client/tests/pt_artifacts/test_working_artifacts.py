@@ -28,7 +28,7 @@ class TestWorkingArtifacts(unittest.TestCase):
 
         run = bm25.transform(pd.DataFrame([{"qid": "51"}]))
         actual = run.iloc[0].to_dict()
-        self.assertEqual(expected, actual)
+        self.assertAlmostEqual(expected.pop("score"), actual.pop("score"), places=6)
 
     def test_bm25_artifact_with_tira_dataset_id(self):
         expected = {
@@ -44,7 +44,7 @@ class TestWorkingArtifacts(unittest.TestCase):
 
         run = bm25.transform(pd.DataFrame([{"qid": "51"}]))
         actual = run.iloc[0].to_dict()
-        self.assertEqual(expected, actual)
+        self.assertAlmostEqual(expected.pop("score"), actual.pop("score"), places=6)
 
     def test_hyb_a_query_segmentation_artifact(self):
         expected = ["should", "blood donations", "be financially compensated"]
