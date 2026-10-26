@@ -1,4 +1,4 @@
-.PHONY: help setup run-develop build-docker clean
+.PHONY: help setup run-develop tests build-docker clean
 
 VERSION_APPLICATION=0.0.105
 
@@ -29,6 +29,28 @@ setup:
 	python3 src/manage.py makemigrations tira
 	python3 src/manage.py migrate tira 
 	python3 src/manage.py index_model
+
+# Runs the backend test suite (application/test) in a throwaway container based on the devcontainer
+# base image (webis/tira:dev-container-0.0.2, see ../.devcontainer/Dockerfile-base.dev), which already
+# bakes in the Python [test,dev] extras and TIRA_ROOT/TIRA_CONFIG env vars, so we only need to
+# re-link the package in editable mode (--no-deps, no network access needed), prepare the database
+# (make setup), and run pytest -- mirroring .github/workflows/tests.yml.
+#
+# The repository is streamed into the container via a tar pipe (instead of a bind mount) and
+# extracted into the container's own writable layer: stray root-owned build artifacts (egg-info,
+# __pycache__, node_modules, ...) that may exist on the host would otherwise make `pip install -e .`
+# fail with "Cannot update time stamp of directory ..." since the container user cannot touch them
+# through a bind mount; these are also excluded from the tar stream so reading them never requires
+# elevated host permissions in the first place. `make clean` removes the sqlite3/admin.prototext
+# fixtures carried over in the tar stream, so `index_model` starts from a fresh database instead of
+# colliding with an already-indexed admin VM.
+tests:
+	tar -C .. --exclude=.git --exclude=__pycache__ --exclude='*.egg-info' --exclude=node_modules -cf - . | \
+		docker run --rm -i --user root -w /workspaces/tira/application \
+		webis/tira:dev-container-0.0.2 \
+		bash -lc "mkdir -p /workspaces/tira && tar -xf - -C /workspaces/tira && cd /workspaces/tira/application \
+			&& echo -e '\ntira_s3_config:\n  s3_bucket: none' >> ./config/tira-application-config.yml \
+			&& touch ~/.s3cfg && pip install --no-deps -e . && make clean && make setup && cd test && pytest"
 
 run-develop:
 	python3 src/manage.py makemigrations \

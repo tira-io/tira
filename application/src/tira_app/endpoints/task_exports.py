@@ -169,16 +169,18 @@ def _bundle_trec_auto_judge_submission(
     sanitized_submission: "dict[str, Any]",
     submission_key: str,
     evalbase_team_id: str,
+    allow_incomplete: bool = False,
 ) -> None:
     """Bundle a single trec-auto-judge submission (either a docker software's code submission or an uploaded-run
     submission) into ``outer_zip``. Runs whose run_id is not a valid_trec_run_id are skipped and do not count
-    towards a dataset's coverage. Raises an ExportError if, after checking the file system for actual run
-    output (see _run_output_files), the submission does not have at least one qualifying run for every
-    TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission per target dataset).
+    towards a dataset's coverage. Unless ``allow_incomplete`` is True (see
+    _allow_incomplete_trec_auto_judge_names), raises an ExportError if, after checking the file system for
+    actual run output (see _run_output_files), the submission does not have at least one qualifying run for
+    every TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission per target dataset).
 
-    Writes a "{name}.zip" (bundling the on-disk run outputs) and a sibling "{name}.yaml" (with zip
-    size/md5sum, ``sanitized_submission`` under ``submission_key``, and an "evalbase.team_id" set to
-    ``evalbase_team_id``) into ``outer_zip``.
+    Writes a "{name}.zip" (bundling the on-disk run outputs for whichever required datasets are covered) and a
+    sibling "{name}.yaml" (with zip size/md5sum, ``sanitized_submission`` under ``submission_key``, and an
+    "evalbase.team_id" set to ``evalbase_team_id``) into ``outer_zip``.
     """
     runs_by_dataset = _runs_on_required_datasets(runs)
 
@@ -196,7 +198,7 @@ def _bundle_trec_auto_judge_submission(
                 _add_run_to_zip(software_zip, dataset, vm_id, run_id, arc_prefix)
 
     missing_datasets = set(TREC_AUTO_JUDGE_DATASETS) - datasets_with_output_on_disk
-    if missing_datasets:
+    if missing_datasets and not allow_incomplete:
         raise ExportError(
             f"Submission '{name}' of team '{vm_id}' for task '{task_id}' does not have a qualifying run with "
             f"output on disk for the following required dataset(s): {', '.join(sorted(missing_datasets))}."
@@ -264,6 +266,29 @@ def _translated_trec_auto_judge_name(task: "dict", vm_id: str, name: str) -> str
     return vm_translations.get(name, name)
 
 
+def _allow_incomplete_trec_auto_judge_names(task: "dict", vm_id: str) -> "set":
+    """Return the set of (already translated, see _translated_trec_auto_judge_name) trec-auto-judge submission
+    names that team ``vm_id`` is allowed to have incomplete dataset coverage for (i.e., skip the "one
+    submission per target dataset" check in _bundle_trec_auto_judge_submission), per the "allow-incomplete"
+    field of the task's task_export_metadata (the same metadata dict that also holds "trec-teams", see
+    _evalbase_team_id_for_trec_auto_judge). This field, if present, maps each vm_id to a list of submission
+    names permitted to be incomplete. If the field or the team's entry is missing/not of the expected shape, no
+    names are allow-listed (i.e., an empty set is returned)."""
+    task_export_metadata = task.get("task_export_metadata")
+    if not isinstance(task_export_metadata, dict):
+        return set()
+
+    allow_incomplete = task_export_metadata.get("allow-incomplete")
+    if not isinstance(allow_incomplete, dict):
+        return set()
+
+    names = allow_incomplete.get(vm_id)
+    if not isinstance(names, list):
+        return set()
+
+    return {name for name in names if isinstance(name, str)}
+
+
 def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResponse":
     """Export for the 'trec-auto-judge' task: for every submission of the team ``vm_id`` -- a code submission
     (docker software) or an uploaded-run submission -- whose 'priority' metadata property parses to an integer
@@ -280,9 +305,12 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
     file system for actual run output (see _run_output_files), at least one qualifying run per required dataset
     (see _bundle_trec_auto_judge_submission); if any submission does not (i.e. it lacks one submission per
     target dataset), the export fails with an ExportError listing all such submissions instead of silently
-    excluding them. Qualifying submissions are bundled into a zip named after the (possibly translated)
-    submission name, plus a sibling yaml file with metadata about that zip (size, md5sum) and the submission
-    itself. All these per-submission zip/yaml pairs are collected into one zip that is returned to the caller."""
+    excluding them, unless the submission's (translated) name is allow-listed as allowed to be incomplete for
+    this team via the task's task_export_metadata "allow-incomplete" field (see
+    _allow_incomplete_trec_auto_judge_names), in which case it is still bundled with whatever output exists.
+    Qualifying submissions are bundled into a zip named after the (possibly translated) submission name, plus a
+    sibling yaml file with metadata about that zip (size, md5sum) and the submission itself. All these
+    per-submission zip/yaml pairs are collected into one zip that is returned to the caller."""
     evalbase_team_id = _evalbase_team_id_for_trec_auto_judge(task_id, task, vm_id)
 
     docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=True)
@@ -335,6 +363,8 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
             "1 and 10, so the trec-auto-judge export would be empty."
         )
 
+    allow_incomplete_names = _allow_incomplete_trec_auto_judge_names(task, vm_id)
+
     buffer = io.BytesIO()
     coverage_errors = []
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as outer_zip:
@@ -349,6 +379,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     _sanitized_trec_auto_judge_submission(software),
                     "tira_code_submission",
                     evalbase_team_id,
+                    allow_incomplete=name in allow_incomplete_names,
                 )
             except ExportError as e:
                 coverage_errors.append(str(e))
@@ -364,6 +395,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     _sanitized_trec_auto_judge_submission(upload, excluded_fields={"runs"}),
                     "tira_upload_submission",
                     evalbase_team_id,
+                    allow_incomplete=name in allow_incomplete_names,
                 )
             except ExportError as e:
                 coverage_errors.append(str(e))

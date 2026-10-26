@@ -16,6 +16,7 @@ import tira_app.tira_model as tira_model
 from tira_app.endpoints.task_exports import (
     TREC_AUTO_JUDGE_EXCLUDED_SUBMISSION_FIELDS,
     ExportError,
+    _allow_incomplete_trec_auto_judge_names,
     _evalbase_team_id_for_trec_auto_judge,
     _is_included_in_trec_auto_judge,
     _priority_of_submission,
@@ -414,6 +415,46 @@ class TestTranslatedTrecAutoJudgeName(TestCase):
         self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
 
 
+class TestAllowIncompleteTrecAutoJudgeNames(TestCase):
+    def test_returns_names_when_entry_exists(self):
+        task = {"task_export_metadata": {"allow-incomplete": {"some-vm": ["name-a", "name-b"]}}}
+
+        self.assertEqual({"name-a", "name-b"}, _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_returns_empty_set_when_task_export_metadata_missing(self):
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names({}, "some-vm"))
+
+    def test_returns_empty_set_when_task_export_metadata_is_not_a_dict(self):
+        task = {"task_export_metadata": "not-a-dict"}
+
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_returns_empty_set_when_allow_incomplete_field_missing(self):
+        task = {"task_export_metadata": {"trec-teams": {"some-vm": "team-42"}}}
+
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_returns_empty_set_when_allow_incomplete_is_not_a_dict(self):
+        task = {"task_export_metadata": {"allow-incomplete": "not-a-dict"}}
+
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_returns_empty_set_when_vm_not_in_allow_incomplete(self):
+        task = {"task_export_metadata": {"allow-incomplete": {"other-vm": ["name-a"]}}}
+
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_returns_empty_set_when_vm_entry_is_not_a_list(self):
+        task = {"task_export_metadata": {"allow-incomplete": {"some-vm": "not-a-list"}}}
+
+        self.assertEqual(set(), _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+    def test_filters_out_non_string_entries(self):
+        task = {"task_export_metadata": {"allow-incomplete": {"some-vm": ["name-a", 42, None, "name-b"]}}}
+
+        self.assertEqual({"name-a", "name-b"}, _allow_incomplete_trec_auto_judge_names(task, "some-vm"))
+
+
 class TestTrecAutoJudgeExport(TestCase):
     """Uses mocks for the data layer (model.get_docker_softwares_with_runs) and for the per-run file lookup
     instead of building full database/filesystem fixtures, since _trec_auto_judge_export only orchestrates
@@ -545,6 +586,7 @@ class TestTrecAutoJudgeExport(TestCase):
         self.assertEqual("translated-run.zip", metadata["zip_file"])
         # The translation only affects the exported run_id/file names, not the embedded submission metadata.
         self.assertEqual("xy-hello", metadata["tira_code_submission"]["display_name"])
+        calls = [call.args for call in add_run_to_zip.call_args_list]
         self.assertEqual(2, len(calls))
         self.assertEqual(("rag26-20260827_1-test", "some-vm", "run-id-01", "rag26"), calls[0][1:])
         self.assertEqual(("ragtime26-20260827-test", "some-vm", "run-id-02", "ragtime26"), calls[1][1:])
@@ -622,6 +664,69 @@ class TestTrecAutoJudgeExport(TestCase):
         message = str(context.exception)
         self.assertIn("software-missing", message)
         self.assertIn("upload-missing", message)
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_allows_incomplete_submission_when_on_allow_list(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        task = {
+            "task_name": "AutoJudge",
+            "task_export_metadata": {
+                "trec-teams": {"some-vm": "team-42"},
+                "allow-incomplete": {"some-vm": ["only-one-dataset"]},
+            },
+        }
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "only-one-dataset",
+                {"priority": "5"},
+                [self._run("run-id-01", "rag26-20260827_1-test")],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        response = _trec_auto_judge_export("auto-judge-task", task, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"only-one-dataset.zip", "only-one-dataset.yaml"}, set(zipf.namelist()))
+        self.assertEqual(1, add_run_to_zip.call_count)
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_reports_only_non_allow_listed_submission_as_incomplete(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        task = {
+            "task_name": "AutoJudge",
+            "task_export_metadata": {
+                "trec-teams": {"some-vm": "team-42"},
+                "allow-incomplete": {"some-vm": ["allow-listed"]},
+            },
+        }
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1, "allow-listed", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]
+            ),
+            self._software(
+                2, "not-allow-listed", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")]
+            ),
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        with self.assertRaises(ExportError) as context:
+            _trec_auto_judge_export("auto-judge-task", task, "some-vm")
+
+        message = str(context.exception)
+        self.assertIn("Submission 'not-allow-listed'", message)
+        self.assertNotIn("Submission 'allow-listed'", message)
 
     @patch("tira_app.endpoints.task_exports._run_output_files")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")

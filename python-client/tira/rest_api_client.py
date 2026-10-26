@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import time
 import zipfile
@@ -665,6 +666,48 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def _discourse_user_email(self, username):
+        endpoint = f"/u/{username}/emails.json?context=%2Fu%2F{username}%2Fsummary"
+        try:
+            return self.json_response(endpoint, base_url="https://www.tira.io").get("email")
+        except Exception as e:
+            print(f"warning: could not fetch email of {username}: {e}", file=sys.stderr)
+            return None
+
+    @staticmethod
+    def _slugify(value):
+        import re
+        import unicodedata
+
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+        return re.sub(r"[-\s]+", "-", re.sub(r"[^\w\s-]", "", value).strip().lower())
+
+    def export_group_member_emails(self, group):
+        """Return the emails of the tira accounts that are members of the discourse group."""
+        offset = 0
+        seen = set()
+        emails = []
+        while True:
+            endpoint = f"/groups/{group}/members.json?offset={offset}&order=&asc=true&filter="
+            try:
+                payload = self.json_response(endpoint, base_url="https://www.tira.io")
+            except Exception as e:
+                print(f"warning: could not fetch members of {group}: {e}", file=sys.stderr)
+                return emails
+            members = payload.get("members", [])
+            # discourse lists group owners separately; the registering user is only an owner
+            owners = payload.get("owners", []) if offset == 0 else []
+            new_members = [m["username"] for m in owners + members if m["username"] not in seen]
+            if not new_members:
+                return emails
+            for username in new_members:
+                seen.add(username)
+                email = self._discourse_user_email(username)
+                time.sleep(0.5)
+                if email and email not in emails:
+                    emails.append(email)
+            offset += len(members)
+
     def export_registrations(self, task):
         import csv
         from io import StringIO
@@ -679,34 +722,36 @@ class Client(TiraClient):
         headers["Accept"] = "application/json"
         reader = csv.DictReader(StringIO(resp))
         ret = set()
-        for row in reader:
+        lines = []
+        skipped = []
+        for row in tqdm(list(reader), desc=f"Export registrations of {task}"):
             emails = [row["email"]]
             ret.add(row["email"])
-            url = (
-                "https://www.tira.io/u/"
-                + row["initial_owner"]
-                + "/emails.json?context=%2Fu%2F"
-                + row["initial_owner"]
-                + "%2Fsummary"
-            )
-            tmp = requests.get(url=url, headers=headers, verify=self.verify)
+            owner_email = self._discourse_user_email(row["initial_owner"])
             time.sleep(0.5)
-            tmp = json.loads(tmp.content.decode("utf-8"))
-            if not "email" in tmp:
-                print("skip ", row["initial_owner"])
+            if owner_email:
+                ret.add(owner_email)
+                emails += [owner_email]
             else:
-                ret.add(tmp["email"])
-                emails += [tmp["email"]]
-            print(
+                skipped.append(row["initial_owner"])
+            group_emails = self.export_group_member_emails("tira_vm_" + self._slugify(row["team_name"]))
+            ret.update(group_emails)
+            lines.append(
                 json.dumps(
                     {
                         "team": row["team_name"],
                         "name": row["name"],
                         "affiliation": row["affiliation"],
                         "mails": list(set(emails)),
+                        "email-of-accounts-in-tira": group_emails,
                     }
                 )
             )
+
+        for user in skipped:
+            print("skip ", user)
+        for line in lines:
+            print(line)
         return ret
 
     def export_task_submissions(self, task: str, vm: str, value: str, output_dir: "Union[str, Path]") -> Path:
