@@ -162,23 +162,23 @@ def _add_run_to_zip(zipf: "zipfile.ZipFile", dataset_id: str, vm_id: str, run_id
 
 def _bundle_trec_auto_judge_submission(
     outer_zip: "zipfile.ZipFile",
+    task_id: str,
     vm_id: str,
     name: str,
     runs: "Optional[List[Dict[str, Any]]]",
     sanitized_submission: "dict[str, Any]",
     submission_key: str,
     evalbase_team_id: str,
-) -> bool:
+) -> None:
     """Bundle a single trec-auto-judge submission (either a docker software's code submission or an uploaded-run
-    submission) into ``outer_zip``, iff, after checking the file system for actual run output
-    (see _run_output_files), both TREC_AUTO_JUDGE_DATASETS datasets have at least one run with output on disk.
-    Runs whose run_id is not a valid_trec_run_id are skipped and do not count towards a dataset's coverage.
+    submission) into ``outer_zip``. Runs whose run_id is not a valid_trec_run_id are skipped and do not count
+    towards a dataset's coverage. Raises an ExportError if, after checking the file system for actual run
+    output (see _run_output_files), the submission does not have at least one qualifying run for every
+    TREC_AUTO_JUDGE_DATASETS dataset (i.e., it does not have one submission per target dataset).
 
     Writes a "{name}.zip" (bundling the on-disk run outputs) and a sibling "{name}.yaml" (with zip
     size/md5sum, ``sanitized_submission`` under ``submission_key``, and an "evalbase.team_id" set to
     ``evalbase_team_id``) into ``outer_zip``.
-
-    Returns whether the submission was included (i.e., whether both required datasets had output on disk).
     """
     runs_by_dataset = _runs_on_required_datasets(runs)
 
@@ -195,8 +195,12 @@ def _bundle_trec_auto_judge_submission(
                 datasets_with_output_on_disk.add(dataset)
                 _add_run_to_zip(software_zip, dataset, vm_id, run_id, arc_prefix)
 
-    if not set(TREC_AUTO_JUDGE_DATASETS).issubset(datasets_with_output_on_disk):
-        return False
+    missing_datasets = set(TREC_AUTO_JUDGE_DATASETS) - datasets_with_output_on_disk
+    if missing_datasets:
+        raise ExportError(
+            f"Submission '{name}' of team '{vm_id}' for task '{task_id}' does not have a qualifying run with "
+            f"output on disk for the following required dataset(s): {', '.join(sorted(missing_datasets))}."
+        )
 
     software_zip_bytes = software_buffer.getvalue()
     metadata_yaml = yaml.safe_dump(
@@ -214,7 +218,6 @@ def _bundle_trec_auto_judge_submission(
 
     outer_zip.writestr(f"{name}.zip", software_zip_bytes)
     outer_zip.writestr(f"{name}.yaml", metadata_yaml)
-    return True
 
 
 def _evalbase_team_id_for_trec_auto_judge(task_id: str, task: "dict", vm_id: str) -> str:
@@ -239,22 +242,47 @@ def _evalbase_team_id_for_trec_auto_judge(task_id: str, task: "dict", vm_id: str
     return trec_teams[vm_id]
 
 
+def _translated_trec_auto_judge_name(task: "dict", vm_id: str, name: str) -> str:
+    """Translate a trec-auto-judge submission name (as used for the exported ``run_id``, zip/yaml file names,
+    see _bundle_trec_auto_judge_submission) using the "trec-run-id-translation" field of the task's
+    task_export_metadata (the same metadata dict that also holds "trec-teams", see
+    _evalbase_team_id_for_trec_auto_judge). This field, if present, maps each vm_id to a translation dict of
+    {original_name: translated_name} for that team. If the field, the team's translation dict, or an entry for
+    ``name`` is missing, ``name`` is returned unchanged."""
+    task_export_metadata = task.get("task_export_metadata")
+    if not isinstance(task_export_metadata, dict):
+        return name
+
+    translation_table = task_export_metadata.get("trec-run-id-translation")
+    if not isinstance(translation_table, dict):
+        return name
+
+    vm_translations = translation_table.get(vm_id)
+    if not isinstance(vm_translations, dict):
+        return name
+
+    return vm_translations.get(name, name)
+
+
 def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResponse":
     """Export for the 'trec-auto-judge' task: for every submission of the team ``vm_id`` -- a code submission
     (docker software) or an uploaded-run submission -- whose 'priority' metadata property parses to an integer
     between 1 and 10 (inclusive), the runs on the TREC_AUTO_JUDGE_DATASETS datasets are first extracted from its
-    metadata (see _runs_on_required_datasets). Submission names (used as the exported ``run_id``, see
-    _bundle_trec_auto_judge_submission) must be valid_trec_run_id, and no docker-software submission may share its
-    name with an uploaded-run submission (both are bundled as "{name}.zip"/"{name}.yaml" into the same outer
-    zip); if any qualifying submission's name is invalid or collides across the two kinds, the export fails with
-    an ExportError listing all offending names instead of silently skipping/overwriting them. The team's
-    evalbase team id is resolved from the task's task_export_metadata (see
-    _evalbase_team_id_for_trec_auto_judge) and embedded as "evalbase.team_id" in every exported yaml file. The
-    submission is only included in the export if, after checking the file system for actual run output (see
-    _run_output_files), both required datasets have at least one run with output on disk (see
-    _bundle_trec_auto_judge_submission). Included submissions are bundled into a zip named after the submission,
-    plus a sibling yaml file with metadata about that zip (size, md5sum) and the submission itself. All these
-    per-submission zip/yaml pairs are collected into one zip that is returned to the caller."""
+    metadata (see _runs_on_required_datasets). Submission names (the submission's display name, optionally
+    translated via the task's task_export_metadata "trec-run-id-translation" field, see
+    _translated_trec_auto_judge_name; used as the exported ``run_id``, see _bundle_trec_auto_judge_submission)
+    must be valid_trec_run_id, and no docker-software submission may share its name with an uploaded-run
+    submission (both are bundled as "{name}.zip"/"{name}.yaml" into the same outer zip); if any qualifying
+    submission's name is invalid or collides across the two kinds, the export fails with an ExportError listing
+    all offending names instead of silently skipping/overwriting them. The team's evalbase team id is resolved
+    from the task's task_export_metadata (see _evalbase_team_id_for_trec_auto_judge) and embedded as
+    "evalbase.team_id" in every exported yaml file. Every qualifying submission must have, after checking the
+    file system for actual run output (see _run_output_files), at least one qualifying run per required dataset
+    (see _bundle_trec_auto_judge_submission); if any submission does not (i.e. it lacks one submission per
+    target dataset), the export fails with an ExportError listing all such submissions instead of silently
+    excluding them. Qualifying submissions are bundled into a zip named after the (possibly translated)
+    submission name, plus a sibling yaml file with metadata about that zip (size, md5sum) and the submission
+    itself. All these per-submission zip/yaml pairs are collected into one zip that is returned to the caller."""
     evalbase_team_id = _evalbase_team_id_for_trec_auto_judge(task_id, task, vm_id)
 
     docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=True)
@@ -268,6 +296,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
         if not _is_included_in_trec_auto_judge(software.get("metadata")):
             continue
         name = software.get("display_name") or f"software-{software.get('docker_software_id')}"
+        name = _translated_trec_auto_judge_name(task, vm_id, name)
         if not valid_trec_run_id(name):
             invalid_names.append(name)
             continue
@@ -277,6 +306,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
         if not _is_included_in_trec_auto_judge(upload.get("upload_metadata")):
             continue
         name = upload.get("display_name") or f"upload-{upload.get('id')}"
+        name = _translated_trec_auto_judge_name(task, vm_id, name)
         if not valid_trec_run_id(name):
             invalid_names.append(name)
             continue
@@ -299,13 +329,20 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
             f"overwrite one with the other: {', '.join(sorted(colliding_names))}."
         )
 
+    if not qualifying_docker_softwares and not qualifying_uploads:
+        raise ExportError(
+            f"No submission of team '{vm_id}' for task '{task_id}' has a 'priority' metadata property between "
+            "1 and 10, so the trec-auto-judge export would be empty."
+        )
+
     buffer = io.BytesIO()
-    included_any = False
+    coverage_errors = []
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as outer_zip:
         for name, software in qualifying_docker_softwares:
-            included_any = (
+            try:
                 _bundle_trec_auto_judge_submission(
                     outer_zip,
+                    task_id,
                     vm_id,
                     name,
                     software.get("runs"),
@@ -313,13 +350,14 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     "tira_code_submission",
                     evalbase_team_id,
                 )
-                or included_any
-            )
+            except ExportError as e:
+                coverage_errors.append(str(e))
 
         for name, upload in qualifying_uploads:
-            included_any = (
+            try:
                 _bundle_trec_auto_judge_submission(
                     outer_zip,
+                    task_id,
                     vm_id,
                     name,
                     upload.get("runs"),
@@ -327,15 +365,11 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     "tira_upload_submission",
                     evalbase_team_id,
                 )
-                or included_any
-            )
+            except ExportError as e:
+                coverage_errors.append(str(e))
 
-    if not included_any:
-        raise ExportError(
-            f"No submission of team '{vm_id}' for task '{task_id}' has both a 'priority' metadata property "
-            "between 1 and 10 and run output on disk for both "
-            f"{' and '.join(TREC_AUTO_JUDGE_DATASETS)}, so the trec-auto-judge export would be empty."
-        )
+    if coverage_errors:
+        raise ExportError(" ".join(coverage_errors))
 
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{task_id}-trec-auto-judge-export.zip"'

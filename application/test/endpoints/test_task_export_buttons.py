@@ -23,6 +23,7 @@ from tira_app.endpoints.task_exports import (
     _runs_on_required_datasets,
     _sanitized_trec_auto_judge_submission,
     _trec_auto_judge_export,
+    _translated_trec_auto_judge_name,
     task_export,
     valid_trec_run_id,
 )
@@ -367,6 +368,52 @@ class TestEvalbaseTeamIdForTrecAutoJudge(TestCase):
             _evalbase_team_id_for_trec_auto_judge("auto-judge-task", task, "some-vm")
 
 
+class TestTranslatedTrecAutoJudgeName(TestCase):
+    def test_translates_name_when_entry_exists(self):
+        task = {
+            "task_export_metadata": {
+                "trec-run-id-translation": {"some-vm": {"original-name": "translated-name"}}
+            }
+        }
+
+        self.assertEqual(
+            "translated-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name")
+        )
+
+    def test_returns_name_unchanged_when_task_export_metadata_missing(self):
+        self.assertEqual("original-name", _translated_trec_auto_judge_name({}, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_task_export_metadata_is_not_a_dict(self):
+        task = {"task_export_metadata": "not-a-dict"}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_translation_table_missing(self):
+        task = {"task_export_metadata": {"trec-teams": {"some-vm": "team-42"}}}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_translation_table_is_not_a_dict(self):
+        task = {"task_export_metadata": {"trec-run-id-translation": "not-a-dict"}}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_vm_not_in_translation_table(self):
+        task = {"task_export_metadata": {"trec-run-id-translation": {"other-vm": {"original-name": "x"}}}}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_vm_translations_is_not_a_dict(self):
+        task = {"task_export_metadata": {"trec-run-id-translation": {"some-vm": "not-a-dict"}}}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+    def test_returns_name_unchanged_when_no_entry_for_name(self):
+        task = {"task_export_metadata": {"trec-run-id-translation": {"some-vm": {"other-name": "x"}}}}
+
+        self.assertEqual("original-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
+
+
 class TestTrecAutoJudgeExport(TestCase):
     """Uses mocks for the data layer (model.get_docker_softwares_with_runs) and for the per-run file lookup
     instead of building full database/filesystem fixtures, since _trec_auto_judge_export only orchestrates
@@ -465,7 +512,48 @@ class TestTrecAutoJudgeExport(TestCase):
     @patch("tira_app.endpoints.task_exports._run_output_files")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_excludes_software_with_runs_on_only_one_required_dataset(
+    def test_translates_submission_name_via_task_export_metadata(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = []
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1,
+                "xy-hello",
+                {"priority": "5"},
+                [
+                    self._run("run-id-01", "rag26-20260827_1-test"),
+                    self._run("run-id-02", "ragtime26-20260827-test"),
+                ],
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+        task = {
+            "task_export_metadata": {
+                "trec-teams": {"some-vm": "team-42"},
+                "trec-run-id-translation": {"some-vm": {"xy-hello": "translated-run"}},
+            }
+        }
+
+        response = _trec_auto_judge_export("auto-judge-task", task, "some-vm")
+
+        zipf = zipfile.ZipFile(BytesIO(response.content))
+        self.assertEqual({"translated-run.zip", "translated-run.yaml"}, set(zipf.namelist()))
+
+        metadata = yaml.safe_load(zipf.read("translated-run.yaml").decode())
+        self.assertEqual("translated-run", metadata["run_id"])
+        self.assertEqual("translated-run.zip", metadata["zip_file"])
+        # The translation only affects the exported run_id/file names, not the embedded submission metadata.
+        self.assertEqual("xy-hello", metadata["tira_code_submission"]["display_name"])
+        self.assertEqual(2, len(calls))
+        self.assertEqual(("rag26-20260827_1-test", "some-vm", "run-id-01", "rag26"), calls[0][1:])
+        self.assertEqual(("ragtime26-20260827-test", "some-vm", "run-id-02", "ragtime26"), calls[1][1:])
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_raises_for_software_with_runs_on_only_one_required_dataset(
         self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
     ):
         get_uploads_with_runs.return_value = []
@@ -479,14 +567,16 @@ class TestTrecAutoJudgeExport(TestCase):
         ]
         run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
-        with self.assertRaises(ExportError):
+        with self.assertRaises(ExportError) as context:
             _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        self.assertIn("only-one-dataset", str(context.exception))
 
     @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
     @patch("tira_app.endpoints.task_exports._run_output_files")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
     @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
-    def test_excludes_software_whose_runs_have_no_output_on_disk(
+    def test_raises_for_software_whose_runs_have_no_output_on_disk(
         self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
     ):
         get_uploads_with_runs.return_value = []
@@ -503,10 +593,35 @@ class TestTrecAutoJudgeExport(TestCase):
         ]
         run_output_files.return_value = []
 
-        with self.assertRaises(ExportError):
+        with self.assertRaises(ExportError) as context:
             _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
 
+        self.assertIn("no-output-on-disk", str(context.exception))
         add_run_to_zip.assert_not_called()
+
+    @patch("tira_app.endpoints.task_exports.model.get_uploads_with_runs")
+    @patch("tira_app.endpoints.task_exports._run_output_files")
+    @patch("tira_app.endpoints.task_exports._add_run_to_zip")
+    @patch("tira_app.endpoints.task_exports.model.get_docker_softwares_with_runs")
+    def test_reports_all_submissions_missing_dataset_coverage(
+        self, get_docker_softwares_with_runs, add_run_to_zip, run_output_files, get_uploads_with_runs
+    ):
+        get_uploads_with_runs.return_value = [
+            self._upload(1, "upload-missing", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")])
+        ]
+        get_docker_softwares_with_runs.return_value = [
+            self._software(
+                1, "software-missing", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")]
+            )
+        ]
+        run_output_files.return_value = [Path("/ignored/output/file.txt")]
+
+        with self.assertRaises(ExportError) as context:
+            _trec_auto_judge_export("auto-judge-task", self._AUTO_JUDGE_TASK, "some-vm")
+
+        message = str(context.exception)
+        self.assertIn("software-missing", message)
+        self.assertIn("upload-missing", message)
 
     @patch("tira_app.endpoints.task_exports._run_output_files")
     @patch("tira_app.endpoints.task_exports._add_run_to_zip")
