@@ -7,6 +7,7 @@ task's export buttons (see model.SUPPORTED_TASK_EXPORT_FUNCTIONS, which must be 
 import hashlib
 import io
 import logging
+import re
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -116,6 +117,21 @@ def _runs_on_required_datasets(
     return grouped
 
 
+_TREC_RUN_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+
+def valid_trec_run_id(run_id: "Optional[str]") -> bool:
+    """Return True iff ``run_id`` is a valid run identifier for the trec-auto-judge export, i.e., it is a string
+    that is longer than 3 and shorter than 20 characters and consists only of the characters a-z, A-Z, 0-9, '-',
+    and '_'. Used to guard against malformed/unsafe run ids (e.g., containing path separators) ending up as
+    directory names inside the exported zip (see _bundle_trec_auto_judge_submission)."""
+    if not isinstance(run_id, str):
+        return False
+    if not (3 < len(run_id) < 20):
+        return False
+    return bool(_TREC_RUN_ID_PATTERN.fullmatch(run_id))
+
+
 def _sanitized_trec_auto_judge_submission(
     submission: "dict", excluded_fields: "Optional[set]" = None
 ) -> "dict[str, Any]":
@@ -151,13 +167,16 @@ def _bundle_trec_auto_judge_submission(
     runs: "Optional[List[Dict[str, Any]]]",
     sanitized_submission: "dict[str, Any]",
     submission_key: str,
+    evalbase_team_id: str,
 ) -> bool:
     """Bundle a single trec-auto-judge submission (either a docker software's code submission or an uploaded-run
     submission) into ``outer_zip``, iff, after checking the file system for actual run output
     (see _run_output_files), both TREC_AUTO_JUDGE_DATASETS datasets have at least one run with output on disk.
+    Runs whose run_id is not a valid_trec_run_id are skipped and do not count towards a dataset's coverage.
 
     Writes a "{name}.zip" (bundling the on-disk run outputs) and a sibling "{name}.yaml" (with zip
-    size/md5sum and ``sanitized_submission`` under ``submission_key``) into ``outer_zip``.
+    size/md5sum, ``sanitized_submission`` under ``submission_key``, and an "evalbase.team_id" set to
+    ``evalbase_team_id``) into ``outer_zip``.
 
     Returns whether the submission was included (i.e., whether both required datasets had output on disk).
     """
@@ -168,10 +187,13 @@ def _bundle_trec_auto_judge_submission(
     with zipfile.ZipFile(software_buffer, "w", zipfile.ZIP_DEFLATED) as software_zip:
         for dataset, arc_prefix in TREC_AUTO_JUDGE_DATASETS.items():
             for run in runs_by_dataset.get(dataset, []):
-                if not _run_output_files(dataset, vm_id, run["run_id"]):
+                run_id = run.get("run_id")
+                if not valid_trec_run_id(run_id):
+                    continue
+                if not _run_output_files(dataset, vm_id, run_id):
                     continue
                 datasets_with_output_on_disk.add(dataset)
-                _add_run_to_zip(software_zip, dataset, vm_id, run["run_id"], arc_prefix)
+                _add_run_to_zip(software_zip, dataset, vm_id, run_id, arc_prefix)
 
     if not set(TREC_AUTO_JUDGE_DATASETS).issubset(datasets_with_output_on_disk):
         return False
@@ -184,6 +206,7 @@ def _bundle_trec_auto_judge_submission(
             "zip_size_bytes": len(software_zip_bytes),
             "zip_md5sum": hashlib.md5(software_zip_bytes).hexdigest(),
             submission_key: sanitized_submission,
+            "evalbase": {"team_id": evalbase_team_id},
         },
         sort_keys=False,
         default_flow_style=False,
@@ -194,27 +217,92 @@ def _bundle_trec_auto_judge_submission(
     return True
 
 
+def _evalbase_team_id_for_trec_auto_judge(task_id: str, task: "dict", vm_id: str) -> str:
+    """Resolve the evalbase team id for team ``vm_id`` from the task's task_export_metadata, which is expected
+    to be a dict containing a "trec-teams" dict mapping each vm_id to its evalbase_team_id. Raises an
+    ExportError if task_export_metadata is missing/not a dict, if it has no "trec-teams" field, or if
+    ``vm_id`` is not a key of that field."""
+    task_export_metadata = task.get("task_export_metadata")
+    if not isinstance(task_export_metadata, dict) or "trec-teams" not in task_export_metadata:
+        raise ExportError(
+            f"Task '{task_id}' has no 'trec-teams' field in its task export metadata, so the trec-auto-judge "
+            "export cannot determine the evalbase team id."
+        )
+
+    trec_teams = task_export_metadata["trec-teams"]
+    if not isinstance(trec_teams, dict) or vm_id not in trec_teams:
+        raise ExportError(
+            f"Team '{vm_id}' is not a key of the 'trec-teams' field in task '{task_id}'s task export metadata, "
+            "so the trec-auto-judge export cannot determine the evalbase team id."
+        )
+
+    return trec_teams[vm_id]
+
+
 def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResponse":
     """Export for the 'trec-auto-judge' task: for every submission of the team ``vm_id`` -- a code submission
     (docker software) or an uploaded-run submission -- whose 'priority' metadata property parses to an integer
     between 1 and 10 (inclusive), the runs on the TREC_AUTO_JUDGE_DATASETS datasets are first extracted from its
-    metadata (see _runs_on_required_datasets). The submission is only included in the export if, after checking
-    the file system for actual run output (see _run_output_files), both required datasets have at least one run
-    with output on disk (see _bundle_trec_auto_judge_submission). Included submissions are bundled into a zip
-    named after the submission, plus a sibling yaml file with metadata about that zip (size, md5sum) and the
-    submission itself. All these per-submission zip/yaml pairs are collected into one zip that is returned to
-    the caller."""
+    metadata (see _runs_on_required_datasets). Submission names (used as the exported ``run_id``, see
+    _bundle_trec_auto_judge_submission) must be valid_trec_run_id, and no docker-software submission may share its
+    name with an uploaded-run submission (both are bundled as "{name}.zip"/"{name}.yaml" into the same outer
+    zip); if any qualifying submission's name is invalid or collides across the two kinds, the export fails with
+    an ExportError listing all offending names instead of silently skipping/overwriting them. The team's
+    evalbase team id is resolved from the task's task_export_metadata (see
+    _evalbase_team_id_for_trec_auto_judge) and embedded as "evalbase.team_id" in every exported yaml file. The
+    submission is only included in the export if, after checking the file system for actual run output (see
+    _run_output_files), both required datasets have at least one run with output on disk (see
+    _bundle_trec_auto_judge_submission). Included submissions are bundled into a zip named after the submission,
+    plus a sibling yaml file with metadata about that zip (size, md5sum) and the submission itself. All these
+    per-submission zip/yaml pairs are collected into one zip that is returned to the caller."""
+    evalbase_team_id = _evalbase_team_id_for_trec_auto_judge(task_id, task, vm_id)
+
     docker_softwares = model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=True)
     uploads = model.get_uploads_with_runs(task_id, vm_id)
+
+    qualifying_docker_softwares = []
+    qualifying_uploads = []
+    invalid_names = []
+
+    for software in docker_softwares:
+        if not _is_included_in_trec_auto_judge(software.get("metadata")):
+            continue
+        name = software.get("display_name") or f"software-{software.get('docker_software_id')}"
+        if not valid_trec_run_id(name):
+            invalid_names.append(name)
+            continue
+        qualifying_docker_softwares.append((name, software))
+
+    for upload in uploads:
+        if not _is_included_in_trec_auto_judge(upload.get("upload_metadata")):
+            continue
+        name = upload.get("display_name") or f"upload-{upload.get('id')}"
+        if not valid_trec_run_id(name):
+            invalid_names.append(name)
+            continue
+        qualifying_uploads.append((name, upload))
+
+    if invalid_names:
+        raise ExportError(
+            f"The following submission names of team '{vm_id}' for task '{task_id}' are not valid "
+            f"trec-auto-judge run ids (must be between 4 and 19 characters long and consist only of "
+            f"a-z, A-Z, 0-9, '-', and '_'): {', '.join(sorted(invalid_names))}."
+        )
+
+    docker_names = {name for name, _ in qualifying_docker_softwares}
+    upload_names = {name for name, _ in qualifying_uploads}
+    colliding_names = docker_names & upload_names
+    if colliding_names:
+        raise ExportError(
+            f"The following submission names of team '{vm_id}' for task '{task_id}' are used by both a "
+            "docker-software submission and an uploaded-run submission, so the trec-auto-judge export would "
+            f"overwrite one with the other: {', '.join(sorted(colliding_names))}."
+        )
 
     buffer = io.BytesIO()
     included_any = False
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as outer_zip:
-        for software in docker_softwares:
-            if not _is_included_in_trec_auto_judge(software.get("metadata")):
-                continue
-
-            name = software.get("display_name") or f"software-{software.get('docker_software_id')}"
+        for name, software in qualifying_docker_softwares:
             included_any = (
                 _bundle_trec_auto_judge_submission(
                     outer_zip,
@@ -223,17 +311,12 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     software.get("runs"),
                     _sanitized_trec_auto_judge_submission(software),
                     "tira_code_submission",
+                    evalbase_team_id,
                 )
                 or included_any
             )
 
-        for upload in uploads:
-            if not _is_included_in_trec_auto_judge(upload.get("upload_metadata")):
-                continue
-
-            display_name = upload.get("display_name") or f"upload-{upload.get('id')}"
-            # Suffixed to avoid clashing with a docker software's zip/yaml of the same display name.
-            name = f"{display_name} (upload)"
+        for name, upload in qualifying_uploads:
             included_any = (
                 _bundle_trec_auto_judge_submission(
                     outer_zip,
@@ -242,6 +325,7 @@ def _trec_auto_judge_export(task_id: str, task: "dict", vm_id: str) -> "HttpResp
                     upload.get("runs"),
                     _sanitized_trec_auto_judge_submission(upload, excluded_fields={"runs"}),
                     "tira_upload_submission",
+                    evalbase_team_id,
                 )
                 or included_any
             )
