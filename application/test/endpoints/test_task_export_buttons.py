@@ -28,8 +28,8 @@ from tira_app.endpoints.task_exports import (
     _runs_on_required_datasets,
     _safe_run_id_path_component,
     _sanitized_trec_auto_judge_submission,
-    _trec_auto_judge_export,
     _translated_trec_auto_judge_name,
+    _trec_auto_judge_export,
     task_export,
     valid_trec_run_id,
 )
