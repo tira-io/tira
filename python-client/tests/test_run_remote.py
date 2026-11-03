@@ -402,9 +402,7 @@ class TestRunRemote(unittest.TestCase):
             lines = stdout.getvalue().strip().splitlines()
             self.assertEqual(0, actual)
             self.assertEqual([f"- {expected}"], [i for i in lines if i.startswith("- ")])
-            self.assertEqual(
-                "1 executions have already been finished, 0 executions are about to be started.", lines[2]
-            )
+            self.assertEqual("1 executions have already been finished, 0 executions are about to be started.", lines[2])
             self.assertEqual([], DiscoveryClient.run_calls)
 
     def test_run_remote_starts_runs_until_each_approach_reaches_target(self):

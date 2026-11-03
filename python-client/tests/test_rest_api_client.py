@@ -60,7 +60,9 @@ def test_update_upload_metadata_posts_to_save_software_upload_endpoint():
         )
 
     assert result == {"status": 0, "message": "Software edited successfully"}
-    assert post_mock.call_args.kwargs["url"] == "https://example.org/task/some-task/vm/some-team/save_software/upload/42"
+    assert (
+        post_mock.call_args.kwargs["url"] == "https://example.org/task/some-task/vm/some-team/save_software/upload/42"
+    )
     assert post_mock.call_args.kwargs["json"] == {
         "display_name": "my-system",
         "description": "a description",

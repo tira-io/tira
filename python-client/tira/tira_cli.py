@@ -1283,9 +1283,8 @@ def run_remote(
                 mount_directory,
                 mount_cache,
                 execution["mount_combo"],
-                allow_network_access and bool(
-                    software_details[execution["approach"]].get("allow_network_access_on_request")
-                ),
+                allow_network_access
+                and bool(software_details[execution["approach"]].get("allow_network_access_on_request")),
             )
             for attempt in range(1, 6):
                 try:
