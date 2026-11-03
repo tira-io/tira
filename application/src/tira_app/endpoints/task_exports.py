@@ -223,7 +223,7 @@ def _bundle_trec_auto_judge_submission(
         for dataset, arc_prefix in TREC_AUTO_JUDGE_DATASETS.items():
             for run in runs_by_dataset.get(dataset, []):
                 run_id = run.get("run_id")
-                if not _safe_run_id_path_component(run_id):
+                if not isinstance(run_id, str) or not _safe_run_id_path_component(run_id):
                     continue
                 if not _run_output_files(dataset, vm_id, run_id):
                     continue
