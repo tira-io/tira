@@ -343,9 +343,7 @@ class TestSafeRunIdPathComponent(TestCase):
         # Real TIRA run ids (see tira.io_utils.get_tira_id) are timestamp+uuid based and routinely exceed
         # valid_trec_run_id's length limit, but are perfectly safe path components.
         self.assertTrue(_safe_run_id_path_component("2026-01-01-10-00-00-abcd1234"))
-        self.assertTrue(
-            _safe_run_id_path_component("2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678")
-        )
+        self.assertTrue(_safe_run_id_path_component("2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678"))
 
     def test_accepts_short_run_ids(self):
         self.assertTrue(_safe_run_id_path_component("ab"))
@@ -458,15 +456,9 @@ class TestEvalbaseTeamIdForTrecAutoJudge(TestCase):
 
 class TestTranslatedTrecAutoJudgeName(TestCase):
     def test_translates_name_when_entry_exists(self):
-        task = {
-            "task_export_metadata": {
-                "trec-run-id-translation": {"some-vm": {"original-name": "translated-name"}}
-            }
-        }
+        task = {"task_export_metadata": {"trec-run-id-translation": {"some-vm": {"original-name": "translated-name"}}}}
 
-        self.assertEqual(
-            "translated-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name")
-        )
+        self.assertEqual("translated-name", _translated_trec_auto_judge_name(task, "some-vm", "original-name"))
 
     def test_returns_name_unchanged_when_task_export_metadata_missing(self):
         self.assertEqual("original-name", _translated_trec_auto_judge_name({}, "some-vm", "original-name"))
@@ -631,7 +623,9 @@ class TestTrecAutoJudgeExport(TestCase):
     def _run(self, run_id, dataset, is_evaluation=False):
         return {"run_id": run_id, "dataset": dataset, "is_evaluation": is_evaluation}
 
-    def _upload(self, upload_id, display_name, upload_metadata, runs, description="description", last_edit="2024-01-01"):
+    def _upload(
+        self, upload_id, display_name, upload_metadata, runs, description="description", last_edit="2024-01-01"
+    ):
         return {
             "id": upload_id,
             "display_name": display_name,
@@ -810,9 +804,7 @@ class TestTrecAutoJudgeExport(TestCase):
             self._upload(1, "upload-missing", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")])
         ]
         get_docker_softwares_with_runs.return_value = [
-            self._software(
-                1, "software-missing", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")]
-            )
+            self._software(1, "software-missing", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")])
         ]
         run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
@@ -870,12 +862,8 @@ class TestTrecAutoJudgeExport(TestCase):
         }
         get_uploads_with_runs.return_value = []
         get_docker_softwares_with_runs.return_value = [
-            self._software(
-                1, "allow-listed", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]
-            ),
-            self._software(
-                2, "not-allow-listed", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")]
-            ),
+            self._software(1, "allow-listed", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]),
+            self._software(2, "not-allow-listed", {"priority": "5"}, [self._run("run-id-02", "rag26-20260827_1-test")]),
         ]
         run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
@@ -931,7 +919,9 @@ class TestTrecAutoJudgeExport(TestCase):
                 {"priority": "5"},
                 [
                     self._run("2026-01-01-10-00-00-abcd1234", "rag26-20260827_1-test"),
-                    self._run("2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678", "ragtime26-20260827-test"),
+                    self._run(
+                        "2026-01-01-10-00-00-abcd1234-rerank-2026-01-02-11-00-00-efgh5678", "ragtime26-20260827-test"
+                    ),
                 ],
             )
         ]
@@ -1148,9 +1138,7 @@ class TestTrecAutoJudgeExport(TestCase):
         self, get_docker_softwares_with_runs, add_run_to_zip, get_uploads_with_runs
     ):
         get_docker_softwares_with_runs.return_value = [
-            self._software(
-                1, "same-name", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]
-            )
+            self._software(1, "same-name", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")])
         ]
         get_uploads_with_runs.return_value = [
             self._upload(1, "same-name", {"priority": "5"}, [self._run("run-id-02", "ragtime26-20260827-test")])
@@ -1171,12 +1159,8 @@ class TestTrecAutoJudgeExport(TestCase):
     ):
         get_docker_softwares_with_runs.return_value = []
         get_uploads_with_runs.return_value = [
-            self._upload(
-                1, "shared-name", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]
-            ),
-            self._upload(
-                2, "shared-name", {"priority": "5"}, [self._run("run-id-02", "ragtime26-20260827-test")]
-            ),
+            self._upload(1, "shared-name", {"priority": "5"}, [self._run("run-id-01", "rag26-20260827_1-test")]),
+            self._upload(2, "shared-name", {"priority": "5"}, [self._run("run-id-02", "ragtime26-20260827-test")]),
         ]
         run_output_files.return_value = [Path("/ignored/output/file.txt")]
 
