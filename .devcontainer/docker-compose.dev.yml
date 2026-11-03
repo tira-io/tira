@@ -16,6 +16,9 @@ services:
       TIRA_RESULTS_BACKEND_URL: "redis://results.tira.local:6379/0"
       TIRA_API_KEY: "so-secret"
       TIRA_WELLKNOWN_URL: "https://api.tira.local/.well-known/tira/client"
+      TIRA_DEBUG: true
+      TIRA_API_BASE_URL: https://127.0.0.1:8080
+      TIRA_ARCHIVED_URL: https://127.0.0.1:8080
     external_links:
       - "auth:auth.tira.local"
       - "nginx:api.tira.local"
@@ -68,4 +71,3 @@ services:
       - ./devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
       - ./devfiles/nginx/snippets/:/config/nginx/snippets/
       - ./devfiles/nginx/certs/:/etc/nginx/certs/
-

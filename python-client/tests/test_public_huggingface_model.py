@@ -1,15 +1,15 @@
 import unittest
 from unittest.mock import Mock, patch
 
-import httpx
+import httpx2
 from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
 
 from tira.third_party_integrations import is_public_huggingface_model
 
 
 def _hf_error(error_cls, status_code: int):
-    request = httpx.Request("GET", "https://huggingface.co/api/models/test")
-    response = httpx.Response(status_code=status_code, request=request)
+    request = httpx2.Request("GET", "https://huggingface.co/api/models/test")
+    response = httpx2.Response(status_code=status_code, request=request)
     return error_cls("hf-error", response=response)
 
 
