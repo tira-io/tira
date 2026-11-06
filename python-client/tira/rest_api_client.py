@@ -13,6 +13,7 @@ from glob import glob
 from pathlib import Path
 from random import randint
 from typing import Any, Dict, List, Optional, Union
+from urllib.parse import urlencode
 
 import pandas as pd
 import requests
@@ -1413,6 +1414,12 @@ class Client(TiraClient):
 
     def running_jobs(self, task: str):
         return self.json_response(f"/v1/admin/active-jobs/admin/{task}")["context"]["jobs"]
+
+    def run_statistics(self, start: str, end: str) -> list:
+        """Per task: executed code submissions, run uploads, and unreviewed runs in the given ISO time range."""
+        # json_response is cached and needs hashable arguments, so the parameters go into the URL.
+        query = urlencode({"start": start, "end": end})
+        return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")

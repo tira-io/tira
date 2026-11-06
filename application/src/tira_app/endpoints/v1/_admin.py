@@ -233,7 +233,9 @@ def aggregate_run_statistics(start: datetime, end: datetime) -> list[dict]:
             task_id, {"task": task_id, "executed_code_submissions": 0, "run_uploads": 0, "unreviewed": 0}
         )
         row["executed_code_submissions" if run.docker_software_id else "run_uploads"] += 1
-        if not hasattr(run, "review"):
+        # Review rows are created together with runs, a run is reviewed only once a verdict is set.
+        review = getattr(run, "review", None)
+        if review is None or not (review.has_errors or review.has_no_errors or review.has_warnings):
             row["unreviewed"] += 1
 
     return sorted(stats.values(), key=lambda r: r["task"])

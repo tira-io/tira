@@ -25,9 +25,11 @@ class TestRunStatistics(TestCase):
 
         run("2031-01-01-10-00-00-a", docker_software=software)
         reviewed = run("2031-01-01-11-00-00-b", docker_software=software)
-        modeldb.Review.objects.create(run=reviewed)
+        modeldb.Review.objects.create(run=reviewed, has_no_errors=True)
         run("2031-01-01-12-00-00-c", upload=upload)
-        run("2031-01-01-13-00-00-e", docker_software=software, input_run=reviewed)
+        # A review row without a verdict (as created together with runs) is still unreviewed.
+        pending = run("2031-01-01-13-00-00-e", docker_software=software, input_run=reviewed)
+        modeldb.Review.objects.create(run=pending)
         run("2031-01-01-14-00-00-f", evaluator=modeldb.Evaluator.objects.first(), input_run=reviewed)
         run("2032-01-01-12-00-00-d", upload=upload)
 

@@ -562,6 +562,32 @@ def admin_export_submissions(task: str, vm: list[str], value: str, output: str, 
     return 0
 
 
+def admin_run_statistics(start: Optional[str] = None, end: Optional[str] = None, **kwargs) -> int:
+    from datetime import datetime, timedelta
+
+    from_now = start is None and end is None
+    # The defaults cover the 10 days before now + 2 days (a buffer for clock/timezone differences).
+    if end is None:
+        end = (datetime.now() + timedelta(days=2)).isoformat(timespec="seconds")
+    if start is None:
+        start = (datetime.fromisoformat(end) - timedelta(days=10)).isoformat(timespec="seconds")
+
+    client: "TiraClient" = RestClient()
+    try:
+        statistics = client.run_statistics(start, end)
+    except Exception as e:
+        print(fmt_message(f"Could not fetch run statistics: {e}", _fmt.ERROR))
+        return 1
+
+    print(f"Run statistics from now to {start}" if from_now else f"Run statistics from {start} to {end}")
+    header = ("task", "executed_code_submissions", "run_uploads", "unreviewed")
+    rows = [header] + [tuple(str(row[k]) for k in header) for row in statistics]
+    widths = [max(len(r[i]) for r in rows) for i in range(len(header))]
+    for r in rows:
+        print("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
+    return 0
+
+
 def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
     import time
 
@@ -970,6 +996,18 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         "--output", default=".", help="Directory the exported zip file(s) are written to. Defaults to '.'."
     )
     export_submissions.set_defaults(executable=admin_export_submissions)
+
+    run_statistics = subparsers.add_parser(
+        "run-statistics",
+        help="Per task: executed code submissions, run uploads, and how many of them are not yet reviewed.",
+    )
+    run_statistics.add_argument(
+        "--start", help="Start of the range (ISO, e.g., 2024-01-31T12:00:00). Defaults to --end minus 10 days."
+    )
+    run_statistics.add_argument(
+        "--end", help="End of the range (ISO, e.g., 2024-02-29T12:00:00). Defaults to now plus 2 days."
+    )
+    run_statistics.set_defaults(executable=admin_run_statistics)
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)
