@@ -6,9 +6,14 @@ import zipfile
 from time import gmtime, strftime
 from typing import IO
 
+from datetime import datetime
+
+from django.db.models import Q
 from django.http import HttpResponseServerError, JsonResponse
 from django.urls import path
 from django.views.decorators.http import require_POST
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -196,7 +201,61 @@ def validate_docker_image(request: Request) -> Response:
     return JsonResponse({"status": 0, "message": "ok", "context": ret})
 
 
+_RUN_ID_TIMESTAMP_FORMAT = "%Y-%m-%d-%H-%M-%S"
+
+
+def _run_submission_time(run_id: str) -> datetime | None:
+    """Run ids start with the creation time (see tira.io_utils.get_tira_id), e.g., 2024-01-31-12-30-00-1a2b3c4d."""
+    try:
+        return datetime.strptime(run_id[:19], _RUN_ID_TIMESTAMP_FORMAT)
+    except ValueError:
+        return None
+
+
+def aggregate_run_statistics(start: datetime, end: datetime) -> list[dict]:
+    """Per task: executed code submissions, run uploads, and how many of both have no review yet.
+    Evaluation runs are not counted since they have neither a docker software nor an upload."""
+    stats: dict[str, dict] = {}
+    # Run ids start with their timestamp, so the range can be restricted in the database ('~' sorts after the suffix).
+    runs = Run.objects.filter(
+        Q(docker_software__isnull=False) | Q(upload__isnull=False),
+        deleted=False,
+        run_id__gte=start.strftime(_RUN_ID_TIMESTAMP_FORMAT),
+        run_id__lte=end.strftime(_RUN_ID_TIMESTAMP_FORMAT) + "~",
+    ).select_related("review")
+    for run in runs:
+        submitted = _run_submission_time(run.run_id)
+        if submitted is None or not start <= submitted <= end:
+            continue
+
+        task_id = run.task_id or ""
+        row = stats.setdefault(
+            task_id, {"task": task_id, "executed_code_submissions": 0, "run_uploads": 0, "unreviewed": 0}
+        )
+        row["executed_code_submissions" if run.docker_software_id else "run_uploads"] += 1
+        if not hasattr(run, "review"):
+            row["unreviewed"] += 1
+
+    return sorted(stats.values(), key=lambda r: r["task"])
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def run_statistics(request: Request) -> Response:
+    try:
+        start = datetime.fromisoformat(request.GET["start"]).replace(tzinfo=None)
+        end = datetime.fromisoformat(request.GET["end"]).replace(tzinfo=None)
+    except (KeyError, ValueError):
+        return JsonResponse(
+            {"status": 1, "message": "Please pass the ISO timestamps 'start' and 'end', e.g., 2024-01-31T12:00:00."},
+            status=400,
+        )
+
+    return JsonResponse({"status": 0, "context": {"statistics": aggregate_run_statistics(start, end)}})
+
+
 endpoints = [
+    path("run-statistics", run_statistics),
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
     path(
         "update-running-process-output/<str:vm_id>/<str:job_id>",

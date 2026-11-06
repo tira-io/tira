@@ -1924,6 +1924,18 @@ API_ACCESS_MATRIX = [
             ADMIN: 500,
         },
     ),
+    route_to_test(
+        url_pattern="v1/admin/run-statistics",
+        params={},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 400,
+        },
+    ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now
     route_to_test(
         url_pattern="v1/evaluations/",
