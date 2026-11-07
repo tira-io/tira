@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import zipfile
+from datetime import datetime
 from time import gmtime, strftime
 from typing import IO
-
-from datetime import datetime
 
 from django.db.models import Q
 from django.http import HttpResponseServerError, JsonResponse
