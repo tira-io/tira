@@ -43,6 +43,23 @@ def upload_run_command(args: argparse.Namespace) -> int:
     return 0 if success else 1
 
 
+def stage_multiple_input_runs_into_temp_dir(tira: "RestClient", input_runs: list, dataset: str) -> str:
+    """Download multiple input runs and copy them (numbered, starting at 1) into a fresh temporary
+    directory so that they can jointly be mounted into the Docker container as a single input-run
+    directory.
+
+    The directory is created via tempfile.mkdtemp(), i.e., it honors the TMPDIR environment variable
+    instead of hard-coding /tmp.
+    """
+    temp_dir = tempfile.mkdtemp(prefix="tira-input-runs-")
+    for num, input_run in zip(range(len(input_runs)), input_runs):
+        print(f"Ensure that the input run {input_run} is available.")
+        input_run = tira.get_run_output(input_run, dataset, True)
+        shutil.copytree(input_run, temp_dir + "/" + str(1 + num))
+
+    return temp_dir
+
+
 def guess_vm_id_of_user(tira_task_id: str, rest_client, tira_vm_id: "Optional[str]" = None):
     if tira_vm_id:
         return tira_vm_id
@@ -468,13 +485,7 @@ def main(args=None):
             args.input_run = tira.get_run_output(args.input_run, dataset, True)
             print("Done: input run is available locally.")
         elif args.input_run and not isinstance(args.input_run, list) and len(args.input_run) > 0:
-            temp_dir = "/tmp/" + tempfile.TemporaryDirectory().name
-            os.makedirs(temp_dir, exist_ok=True)
-            for num, input_run in zip(range(len(args.input_run)), args.input_run):
-                print(f"Ensure that the input run {input_run} is available.")
-                input_run = tira.get_run_output(input_run, dataset, True)
-                shutil.copytree(input_run, temp_dir + "/" + str(1 + num))
-            args.input_run = temp_dir
+            args.input_run = stage_multiple_input_runs_into_temp_dir(tira, args.input_run, dataset)
         elif args.input_run_directory and "none" != args.input_run_directory.lower():
             args.input_run = os.path.abspath(args.input_run_directory)
 

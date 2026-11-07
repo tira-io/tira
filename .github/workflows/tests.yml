@@ -50,6 +50,15 @@ jobs:
         working-directory: ${{github.workspace}}/application/test
         run: pytest
 
+  backend-tests-devcontainer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backend tests via the devcontainer image (make tests)
+        working-directory: ${{github.workspace}}/application
+        run: make tests
+
   frontend-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -77,6 +77,16 @@
                   <v-radio label="This dataset is confidential (only organizers can access the data and submissions)" value="true"></v-radio>
                 </v-radio-group>
 
+                <h2 class="my-1">Visibility to Participants</h2>
+                <p>
+                  You can hide this dataset from participants so that it is only listed for admins, e.g., while you are still preparing it.
+                </p>
+
+                <v-radio-group v-model="is_visible_to_participants">
+                  <v-radio label="This dataset is visible to participants" value="true"></v-radio>
+                  <v-radio label="This dataset is only visible to admins" value="false"></v-radio>
+                </v-radio-group>
+
                 <h2 class="my-1">Public Access to the Leaderboard</h2>
                 <p>
                   You can make the leaderboard of this dataset public so that all evaluated runs are visible to all users. If not public, only published and unblinded baselines as well as a user's own unblinded runs are shown to non-admin users.
@@ -234,7 +244,7 @@
       props: {task_id: {}, dataset_id_from_props: {type: String, default: ''}, disabled: {type: Boolean, default: false}, is_ir_task: {type: Boolean, default: false}},
       data: () => ({
         loading: true, valid: false, submitInProgress: false, dataset_id: '',
-        display_name: '', description: '', is_confidential: 'true', leaderboard_is_public: 'false', auto_unblind_runs: false, auto_unblind_evaluation: false, dataset_type: 'test', upload_type: 'upload-0',
+        display_name: '', description: '', is_confidential: 'true', is_visible_to_participants: 'true', leaderboard_is_public: 'false', auto_unblind_runs: false, auto_unblind_evaluation: false, dataset_type: 'test', upload_type: 'upload-0',
         irds_image: '', irds_command: '', format: undefined, truth_format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         systemUrlHandle: "", systemUrlDirectory: "", truthUrlHandle: "", truthUrlDirectory: "", systemFileRename: "inputs.jsonl", truthFileRename: "labels.jsonl", error_message: "", chatnoir_id: "", ir_datasets_id: "",
@@ -316,6 +326,7 @@
               .then(() => {
                 this.is_confidential = '' + this.is_confidential;
                 this.leaderboard_is_public = '' + this.leaderboard_is_public;
+                this.is_visible_to_participants = '' + this.is_visible_to_participants;
                 if (this.format_configuration) {
                   this.format_configuration = JSON.stringify(this.format_configuration)
                 } else {
@@ -382,6 +393,7 @@
               'type': this.dataset_type,'upload_name': this.default_upload_name, 
               'is_confidential': this.is_confidential !== 'false',
               'leaderboard_is_public': this.leaderboard_is_public !== 'false',
+              'is_visible_to_participants': this.is_visible_to_participants !== 'false',
               'auto_unblind_runs': this.auto_unblind_runs,
               'auto_unblind_evaluation': this.auto_unblind_evaluation,
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 

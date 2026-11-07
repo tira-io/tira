@@ -22,6 +22,15 @@ SUPPORTED_SUBMISSION_TABS = {
     "upload-submission-simplified",
     "upload-models",
 }
+# The set of export functions implemented server-side (see endpoints/task_exports.py). An admin can only
+# configure export_buttons whose "value" is one of these, so that every configured button is backed by an
+# actually implemented export function.
+# IMPORTANT: Keep this in sync with AVAILABLE_TASK_EXPORT_FUNCTIONS in frontend/src/components/EditTask.vue,
+# which independently validates export button values client-side.
+SUPPORTED_TASK_EXPORT_FUNCTIONS = {
+    "example-zip-export",
+    "trec-auto-judge",
+}
 
 
 def _validate_transition_state(value):
@@ -167,6 +176,38 @@ def normalize_task_export_metadata(task_export_metadata: Any) -> "Any":
     return task_export_metadata
 
 
+def normalize_export_buttons(export_buttons: Any) -> "Optional[List[Dict[str, str]]]":
+    """Normalize the task's export_buttons configuration: a list of {"display_name": ..., "value": ...}. The
+    "value" must be one of SUPPORTED_TASK_EXPORT_FUNCTIONS, since it selects the server-side export function
+    (see endpoints/task_exports.py) that is called when the button is used."""
+    if export_buttons in (None, ""):
+        return None
+
+    if isinstance(export_buttons, str):
+        try:
+            export_buttons = json.loads(export_buttons)
+        except json.JSONDecodeError:
+            return None
+
+    if not isinstance(export_buttons, list):
+        return None
+
+    normalized_buttons = []
+    for button in export_buttons:
+        if not isinstance(button, dict):
+            return None
+
+        display_name = str(button.get("display_name", "")).strip()
+        value = str(button.get("value", "")).strip()
+
+        if not display_name or not value or value not in SUPPORTED_TASK_EXPORT_FUNCTIONS:
+            return None
+
+        normalized_buttons.append({"display_name": display_name, "value": value})
+
+    return normalized_buttons or None
+
+
 def normalize_upload_metadata(upload_metadata: Any) -> "Optional[Dict[str, str]]":
     if upload_metadata in (None, ""):
         return None
@@ -292,7 +333,9 @@ class Task(models.Model):
     upload_form_fields = models.TextField(default=None, null=True)
     hide_upload_via_cli = models.BooleanField(default=False)
     allowed_hostnames = models.TextField(default=None, null=True)
+    allow_network_access_on_request = models.BooleanField(default=False)
     task_export_metadata = models.TextField(default=None, null=True)
+    export_buttons = models.TextField(default=None, null=True)
 
     def get_submission_tabs(self) -> "Optional[List[str]]":
         return normalize_submission_tabs(self.submission_tabs)
@@ -305,6 +348,9 @@ class Task(models.Model):
 
     def get_task_export_metadata(self) -> "Any":
         return normalize_task_export_metadata(self.task_export_metadata)
+
+    def get_export_buttons(self) -> "Optional[List[Dict[str, str]]]":
+        return normalize_export_buttons(self.export_buttons)
 
 
 class AllowedServer(models.Model):
@@ -540,6 +586,7 @@ class DockerSoftware(models.Model):
     try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
     workflow_configuration = models.TextField(default=None, null=True)
     forward_environment_variable = models.TextField(default=None, null=True)
+    allow_network_access_on_request = models.BooleanField(default=False)
     cache_behaviour = models.CharField(
         max_length=17,
         default=None,
@@ -547,6 +594,10 @@ class DockerSoftware(models.Model):
         choices=CacheBehaviour.choices,
     )
     mount_config = models.TextField(default=None, null=True)
+    metadata = models.TextField(default=None, null=True)
+
+    def get_metadata(self) -> "Optional[Dict[str, str]]":
+        return normalize_upload_metadata(self.metadata)
 
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:

@@ -27,7 +27,7 @@
         @modifiedSubmissionDetails="v => handleModifiedSubmission(v, softwares)"
         :user_id="user_id_for_submission" :datasets="datasets" :re_ranking_datasets="re_ranking_datasets"
         :is_ir_task="is_ir_task" :resources="resources" :docker_software_id="ds.docker_software_id"
-        :organizer="organizer" :organizer_id="organizer_id"
+        :organizer="organizer" :organizer_id="organizer_id" :upload_form_fields="upload_form_fields"
         @refresh_running_submissions="$emit('refresh_running_submissions')" />
     </v-window-item>
     <v-window-item value="newDockerImage">
@@ -194,7 +194,7 @@ import {Loading, CodeSnippet, ExistingDockerSubmission} from '../components'
 export default {
   name: "code-submission",
   components: {Loading, CodeSnippet, ExistingDockerSubmission},
-  props: ['organizer', 'organizer_id', 'user_id', 'task_id', 'is_ir_task'],
+  props: ['organizer', 'organizer_id', 'user_id', 'task_id', 'is_ir_task', 'upload_form_fields'],
   data() {
     return {
         loading: true,

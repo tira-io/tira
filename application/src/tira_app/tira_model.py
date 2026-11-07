@@ -511,11 +511,20 @@ def get_upload(task_id: str, vm_id: str, upload_id: str) -> "dict[str, Any]":
     return model.get_upload(task_id, vm_id, upload_id)
 
 
-def get_docker_softwares_with_runs(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+def get_docker_softwares_with_runs(
+    task_id: str, vm_id: str, return_code_submissions: bool = False
+) -> "list[dict[str, Any]]":
     """
     Returns all docker software for a task and vm with runs as dictionaries.
     """
-    return model.get_docker_softwares_with_runs(task_id, vm_id)
+    return model.get_docker_softwares_with_runs(task_id, vm_id, return_code_submissions=return_code_submissions)
+
+
+def get_uploads_with_runs(task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+    """
+    Returns all uploaded-run submissions for a task and vm with runs as dictionaries.
+    """
+    return model.get_uploads_with_runs(task_id, vm_id)
 
 
 def get_docker_softwares(task_id: str, vm_id: str, return_code_submissions: bool = False) -> "list[dict[str, Any]]":
@@ -577,9 +586,10 @@ def update_docker_software_metadata(
     paper_link: str,
     ir_re_ranker: str,
     ir_re_ranking_input: str,
+    metadata: "Optional[dict[str, Any]]" = None,
 ) -> None:
     return model.update_docker_software_metadata(
-        docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input
+        docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input, metadata
     )
 
 
@@ -605,6 +615,7 @@ def add_docker_software(
     forward_environment_variable: "Optional[str]" = None,
     cache_behaviour: "Optional[str]" = None,
     mount_config: "Optional[str]" = None,
+    allow_network_access_on_request: bool = False,
 ) -> "dict[str, Any]":
     """Add the docker software to the user of the vm and return it"""
 
@@ -659,6 +670,7 @@ def add_docker_software(
         forward_environment_variable,
         cache_behaviour,
         mount_config,
+        allow_network_access_on_request,
     )
 
 
@@ -720,7 +732,9 @@ def create_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    allow_network_access_on_request: bool = False,
     task_export_metadata: "Any" = None,
+    export_buttons: "Optional[List[dict[str, str]]]" = None,
 ) -> "dict[str, Any]":
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -744,7 +758,9 @@ def create_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        allow_network_access_on_request,
         task_export_metadata,
+        export_buttons,
     )
 
 
@@ -767,6 +783,7 @@ def add_dataset(
     workflow_configuration: "Optional[str]" = None,
     auto_unblind_runs: bool = False,
     auto_unblind_evaluation: bool = False,
+    is_visible_to_participants: bool = True,
 ) -> "tuple[dict[str, Any], list[str]]":
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -788,6 +805,7 @@ def add_dataset(
         workflow_configuration=workflow_configuration,
         auto_unblind_runs=auto_unblind_runs,
         auto_unblind_evaluation=auto_unblind_evaluation,
+        is_visible_to_participants=is_visible_to_participants,
     )
 
 
@@ -897,7 +915,9 @@ def edit_task(
     upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
     hide_upload_via_cli: bool = False,
     allowed_hostnames: "Optional[List[str]]" = None,
+    allow_network_access_on_request: bool = False,
     task_export_metadata: "Any" = None,
+    export_buttons: "Optional[List[dict[str, str]]]" = None,
 ):
     """Update the task's data"""
 
@@ -927,7 +947,9 @@ def edit_task(
         upload_form_fields,
         hide_upload_via_cli,
         allowed_hostnames,
+        allow_network_access_on_request,
         task_export_metadata,
+        export_buttons,
     )
 
 
@@ -955,6 +977,7 @@ def edit_dataset(
     leaderboard_is_public: "Optional[bool]" = None,
     auto_unblind_runs: "Optional[bool]" = None,
     auto_unblind_evaluation: "Optional[bool]" = None,
+    is_visible_to_participants: "Optional[bool]" = None,
 ) -> "dict[str, Any]":
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -981,6 +1004,7 @@ def edit_dataset(
         leaderboard_is_public,
         auto_unblind_runs,
         auto_unblind_evaluation,
+        is_visible_to_participants,
     )
 
 

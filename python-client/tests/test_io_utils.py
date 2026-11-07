@@ -17,6 +17,7 @@ from tira.io_utils import (
     resolve_mirrored_resources,
     sanitize_text,
     verify_docker_installation,
+    verify_docker_mounts_are_read_and_writable,
     verify_images_can_be_build_and_pushed,
     verify_tira_installation,
     verify_tirex_tracker,
@@ -64,6 +65,53 @@ class TestIoUtils(unittest.TestCase):
 
         self.assertEqual((_fmt.OK, "Docker is installed."), verify_docker_installation())
 
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_mounts_reports_ok_for_working_tmp_dir(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "docker"
+
+        self.assertEqual(
+            (_fmt.OK, "Docker mounts are read- and writable."),
+            verify_docker_mounts_are_read_and_writable(),
+        )
+        integration.verify_tmp_directory_is_usable_by_docker.assert_called_once_with()
+
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_mounts_reports_podman_in_message(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "podman"
+
+        self.assertEqual(
+            (_fmt.OK, "Podman mounts are read- and writable."),
+            verify_docker_mounts_are_read_and_writable(),
+        )
+
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_mounts_reports_error_with_tmpdir_reason(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = True
+        integration.get_container_cli.return_value = "docker"
+        integration.verify_tmp_directory_is_usable_by_docker.side_effect = ValueError("the mount was empty.")
+
+        status, msg = verify_docker_mounts_are_read_and_writable()
+
+        self.assertEqual(_fmt.ERROR, status)
+        self.assertIn("Docker mounts are not read- and writable", msg)
+        self.assertIn("TMPDIR", msg)
+        self.assertIn("the mount was empty.", msg)
+
+    @patch("tira.local_execution_integration.LocalExecutionIntegration")
+    def test_verify_docker_mounts_reports_error_when_docker_not_installed(self, integration_class):
+        integration = integration_class.return_value
+        integration.docker_is_installed_failsave.return_value = False
+
+        status, msg = verify_docker_mounts_are_read_and_writable()
+
+        self.assertEqual(_fmt.ERROR, status)
+        integration.verify_tmp_directory_is_usable_by_docker.assert_not_called()
+
     def test_verify_images_uses_fully_qualified_base_image(self):
         tira = Mock()
         tira.metadata_for_task.return_value = {"status": 0}
@@ -92,6 +140,10 @@ class TestIoUtils(unittest.TestCase):
                 "tira.io_utils.verify_docker_installation",
                 return_value=(_fmt.OK, "container runtime"),
             ) as docker,
+            patch(
+                "tira.io_utils.verify_docker_mounts_are_read_and_writable",
+                return_value=(_fmt.OK, "mounts"),
+            ) as docker_mounts,
             patch("tira.io_utils.verify_tirex_tracker", return_value=(_fmt.OK, "tracker")) as tracker,
             patch("tira.io_utils.verify_images_can_be_build_and_pushed") as build_and_push,
             patch("tira.io_utils.verify_images_are_in_correct_format") as image_format,
@@ -102,6 +154,7 @@ class TestIoUtils(unittest.TestCase):
         self.assertEqual(_fmt.OK, actual)
         tira_home.assert_called_once_with()
         docker.assert_called_once_with()
+        docker_mounts.assert_called_once_with()
         tracker.assert_called_once_with()
         api_key.assert_not_called()
         build_and_push.assert_not_called()

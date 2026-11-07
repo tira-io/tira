@@ -287,6 +287,7 @@ class TestSubmissionMetadataYmlContent(unittest.TestCase):
                 "forward_environment_variable": ["OPENAI_API_KEY"],
                 "cache_behaviour": None,
                 "mount_config": None,
+                "allow_network_access_on_request": False,
             },
             submission_metadata,
         )

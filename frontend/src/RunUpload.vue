@@ -21,13 +21,13 @@
 
   <v-window v-model="tab" :touch="{left: null, right: null}">
       <v-window-item value="code-submission">
-        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id" :is_ir_task="is_ir_task"/>
+        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id" :is_ir_task="is_ir_task" :upload_form_fields="upload_form_fields"/>
       </v-window-item>
       <v-window-item value="docker-submission">
         <docker-submission :organizer="organizer" :organizer_id="organizer_id" :step_prop="step === null ? '' : step" :is_ir_task="is_ir_task" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
       <v-window-item value="upload-submission">
-        <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
+        <upload-submission :organizer="organizer" :organizer_id="organizer_id" :upload_form_fields="upload_form_fields" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
       <v-window-item value="upload-submission-simplified">
         <simplified-upload-submission :organizer="organizer" :organizer_id="organizer_id" :upload_form_fields="upload_form_fields" :hide_upload_via_cli="hide_upload_via_cli" @refresh_running_submissions="refresh_running_submissions()" simplified-upload="true"/>

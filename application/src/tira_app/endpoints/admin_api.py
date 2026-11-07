@@ -94,7 +94,9 @@ def admin_create_task(request: "HttpRequest", organizer_id: str) -> "HttpRespons
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
+            allow_network_access_on_request=bool(data.get("allow_network_access_on_request", False)),
             task_export_metadata=data.get("task_export_metadata"),
+            export_buttons=data.get("export_buttons"),
         )
 
         new_task_str = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -149,7 +151,9 @@ def admin_edit_task(request: "HttpRequest", task_id: str) -> "HttpResponse":
             upload_form_fields=data.get("upload_form_fields"),
             hide_upload_via_cli=data.get("hide_upload_via_cli", False),
             allowed_hostnames=data.get("allowed_hostnames"),
+            allow_network_access_on_request=bool(data.get("allow_network_access_on_request", False)),
             task_export_metadata=data.get("task_export_metadata"),
+            export_buttons=data.get("export_buttons"),
         )
 
         return JsonResponse(
@@ -239,6 +243,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         workflow_configuration = data.get("workflow_configuration", None)
         auto_unblind_runs = bool(data.get("auto_unblind_runs", False))
         auto_unblind_evaluation = bool(data.get("auto_unblind_evaluation", False))
+        is_visible_to_participants = bool(data.get("is_visible_to_participants", True))
 
         is_git_runner = data.get("is_git_runner", False)
         git_runner_image = data.get("git_runner_image", "")
@@ -338,6 +343,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     workflow_configuration,
                     auto_unblind_runs,
                     auto_unblind_evaluation,
+                    is_visible_to_participants,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -359,6 +365,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                     workflow_configuration,
                     auto_unblind_runs,
                     auto_unblind_evaluation,
+                    is_visible_to_participants,
                 )
 
             model.add_evaluator(
@@ -550,6 +557,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
     - auto_unblind_runs: (optional) if True, newly added runs for this dataset are automatically unblinded
     - auto_unblind_evaluation: (optional) if True, newly added evaluations for this dataset are automatically
       unblinded
+    - is_visible_to_participants: (optional) if False, the dataset is only listed for admins
     """
     if request.method == "POST":
 
@@ -561,6 +569,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
         leaderboard_is_public = data.get("leaderboard_is_public", None)
         auto_unblind_runs = data.get("auto_unblind_runs", None)
         auto_unblind_evaluation = data.get("auto_unblind_evaluation", None)
+        is_visible_to_participants = data.get("is_visible_to_participants", None)
 
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
@@ -628,6 +637,7 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
             leaderboard_is_public,
             auto_unblind_runs,
             auto_unblind_evaluation,
+            is_visible_to_participants,
         )
 
         from django.core.cache import cache

@@ -51,7 +51,7 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
     if request.content_type and "multipart/form-data" in request.content_type:
         ret = {}
 
-        for field_name in ("forward_environment_variable", "mount_config"):
+        for field_name in ("forward_environment_variable", "mount_config", "allow_network_access"):
             raw_value = request.POST.get(field_name)
             if raw_value:
                 ret[field_name] = json.loads(raw_value)
@@ -62,6 +62,23 @@ def _load_request_payload(request: HttpRequest) -> dict[str, Any]:
         return {}
 
     return json.loads(request.body)
+
+
+def _dataset_is_usable_by_requester(request: "HttpRequest", dataset_id: str) -> bool:
+    """Datasets hidden from participants may only be used (uploads, executions) by admins."""
+    dataset = model.get_dataset(dataset_id)
+    if not dataset or dataset.get("is_visible_to_participants", True):
+        return True
+
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    return role in {auth.ROLE_ADMIN, auth.ROLE_TIRA}
+
+
+def _dataset_not_available_response(dataset_id: str) -> JsonResponse:
+    return JsonResponse(
+        {"status": 1, "message": f"The dataset {html.escape(dataset_id)} is not available."},
+        status=HTTPStatus.FORBIDDEN,
+    )
 
 
 def _mount_config_upload_field_name(mount_name: str) -> str:
@@ -273,6 +290,7 @@ def run_sandboxed_software(
     env_to_forward: Optional[dict] = None,
     use_cache: Optional[bool] = False,
     dynamic_mounts: Optional[dict] = None,
+    allow_network_access: bool = False,
 ) -> str:
     from tira_worker import run
 
@@ -308,6 +326,7 @@ def run_sandboxed_software(
             software_workflow,
             env_to_forward,
             dynamic_mounts,
+            allow_network_access,
         ],
         queue=docker_resources,
     )
@@ -371,6 +390,9 @@ def upload(request: "HttpRequest", task_id: str, vm_id: str, dataset_id: str, up
     if request.method == "POST":
         if not dataset_id or dataset_id is None or dataset_id == "None":
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
+
+        if not _dataset_is_usable_by_requester(request, dataset_id):
+            return _dataset_not_available_response(dataset_id)
 
         if not request.FILES or "file" not in request.FILES.keys():
             return JsonResponse({"status": 1, "message": "Please pass a payload. No file in the post"})
@@ -558,6 +580,9 @@ def anonymous_upload(request: "HttpRequest", dataset_id: str) -> HttpResponse:
                     )
                 )
 
+            if not _dataset_is_usable_by_requester(request, dataset_id):
+                return _dataset_not_available_response(dataset_id)
+
             if dataset["is_deprecated"]:
                 return HttpResponseServerError(
                     json.dumps(
@@ -718,6 +743,18 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             build_environment = _sanitize_build_environment(data.get("build_environment"))
             build_environment_json = json.dumps(build_environment)
 
+        allow_network_access = bool(data.get("allow_network_access", False))
+        if allow_network_access:
+            task_for_network = model.get_task(task_id)
+            if not task_for_network or not task_for_network.get("allow_network_access_on_request"):
+                return JsonResponse(
+                    {
+                        "status": 1,
+                        "message": "This task does not allow software to request network access."
+                        + " Please contact the task organizers.",
+                    }
+                )
+
         new_docker_software = model.add_docker_software(
             task_id,
             vm_id,
@@ -736,6 +773,7 @@ def docker_software_add(request: "HttpRequest", task_id: str, vm_id: str) -> Htt
             data.get("forward_environment_variable", None),
             data.get("cache_behaviour", None),
             data.get("mount_config", None),
+            allow_network_access,
         )
 
         if data.get("mount_hf_model"):
@@ -766,6 +804,7 @@ def docker_software_save(request: "HttpRequest", task_id: str, vm_id: str, docke
                 data.get("paper_link"),
                 data.get("ir_re_ranker", False),
                 data.get("ir_re_ranking_input", False),
+                _sanitize_upload_metadata(data.get("metadata")),
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
@@ -1208,6 +1247,9 @@ def run_execute_docker_software(
             }
         )
 
+    if not _dataset_is_usable_by_requester(request, dataset_id):
+        return _dataset_not_available_response(dataset_id)
+
     docker_software = model.get_docker_software(int(docker_software_id))
 
     if not docker_software:
@@ -1261,6 +1303,20 @@ def run_execute_docker_software(
                     ),
                 }
             )
+
+    task = model.get_task(task_id)
+    network_allowed = bool(
+        docker_software.get("allow_network_access_on_request") and task and task.get("allow_network_access_on_request")
+    )
+    if request_payload.get("allow_network_access") and not network_allowed:
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": "Network access was requested, but the software or the task does not allow it.",
+            }
+        )
+    # Software that declares it needs network access automatically gets it if the task permits it.
+    allow_network_access = network_allowed
 
     dynamic_mounts = None
     required_mount_config = docker_software["mount_config"]
@@ -1445,6 +1501,7 @@ def run_execute_docker_software(
         env_to_forward,
         requires_mount_workflow(docker_software),
         dynamic_mounts,
+        allow_network_access,
     )
 
     return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)

@@ -3,11 +3,16 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tira.tira_cli import (
+    _evaluation_timestamp,
+    _parse_tira_id_timestamp,
     _reconstruct_code_submission_command,
+    admin_re_run_evaluations,
     code_submission_command,
     dataset_submission_command,
+    parse_metadata_args,
     requires_mount_workflow,
     setup_dataset_submission_command,
+    setup_upload_command,
 )
 
 
@@ -279,3 +284,654 @@ class TestCodeSubmissionCommandForwardsReconstructedCliCommand(unittest.TestCase
             kwargs["tira_cli_command"],
             "tira-cli code-submission --path some/path --task some-task",
         )
+
+
+class TestParseMetadataArgs(unittest.TestCase):
+    def test_none_returns_none(self):
+        self.assertIsNone(parse_metadata_args(None))
+
+    def test_empty_list_returns_none(self):
+        self.assertIsNone(parse_metadata_args([]))
+
+    def test_single_entry_is_parsed(self):
+        self.assertEqual({"track": "main"}, parse_metadata_args(["track=main"]))
+
+    def test_multiple_entries_are_parsed(self):
+        self.assertEqual(
+            {"track": "main", "team_name": "Group 42"},
+            parse_metadata_args(["track=main", "team_name=Group 42"]),
+        )
+
+    def test_value_may_contain_equals_sign(self):
+        self.assertEqual({"formula": "a=b+c"}, parse_metadata_args(["formula=a=b+c"]))
+
+    def test_missing_equals_sign_raises(self):
+        with self.assertRaises(ValueError):
+            parse_metadata_args(["track"])
+
+
+class TestUploadCommandMetadataArgument(unittest.TestCase):
+    def _parse(self, argv):
+        import argparse
+
+        parser = argparse.ArgumentParser()
+        setup_upload_command(parser)
+        return parser.parse_args(argv)
+
+    def test_metadata_defaults_to_none(self):
+        args = self._parse(["--directory", "some/path"])
+        self.assertIsNone(args.metadata)
+
+    def test_metadata_can_be_passed_multiple_times(self):
+        args = self._parse(["--directory", "some/path", "--metadata", "track=main", "--metadata", "team_name=Group 42"])
+        self.assertEqual(["track=main", "team_name=Group 42"], args.metadata)
+
+
+class TestUploadCommandAttachesMetadata(unittest.TestCase):
+    """Covers the authenticated-upload flow that calls update_upload_metadata() after claim_ownership()."""
+
+    def _run_upload_command(self, tmp_path, metadata, mock_rest_client, system_description="auto-detected description"):
+        mock_client = mock_rest_client.return_value
+        mock_client.api_key_is_valid.return_value = True
+        mock_client.get_dataset.return_value = {"default_task": "some-task"}
+        mock_client.validate_upload_metadata.side_effect = lambda task_id, md: md
+        mock_client.upload_run_anonymous.return_value = {"uuid": "some-uuid"}
+        mock_client.claim_ownership.return_value = {"status": "0", "upload_group": "some-upload-id"}
+
+        with patch("tira.tira_cli.guess_system_details") as mock_guess_system_details, patch(
+            "tira.tira_cli.guess_vm_id_of_user"
+        ) as mock_guess_vm_id_of_user:
+            mock_guess_system_details.return_value = {
+                "tag": "my-system",
+                "description": system_description,
+                "team": "my-team",
+            }
+            mock_guess_vm_id_of_user.return_value = "my-team"
+
+            from tira.tira_cli import upload_command
+
+            ret = upload_command(
+                dataset="some-dataset",
+                directory=tmp_path,
+                dry_run=False,
+                system=None,
+                metadata=metadata,
+            )
+
+        self.assertEqual(0, ret)
+        return mock_client
+
+    @patch("tira.tira_cli.RestClient")
+    def test_metadata_with_description_overrides_auto_detected_description(self, mock_rest_client):
+        mock_client = self._run_upload_command(
+            Path("."), ["description=my cool description goes here", "track=main"], mock_rest_client
+        )
+
+        args, _ = mock_client.update_upload_metadata.call_args
+        self.assertEqual("my cool description goes here", args[4])
+
+    @patch("tira.tira_cli.RestClient")
+    def test_metadata_without_description_falls_back_to_auto_detected_description(self, mock_rest_client):
+        mock_client = self._run_upload_command(Path("."), ["track=main"], mock_rest_client)
+
+        args, _ = mock_client.update_upload_metadata.call_args
+        self.assertEqual("auto-detected description", args[4])
+
+    @patch("tira.tira_cli.RestClient")
+    def test_update_upload_metadata_is_not_called_without_metadata(self, mock_rest_client):
+        mock_client = self._run_upload_command(Path("."), None, mock_rest_client)
+
+        mock_client.update_upload_metadata.assert_not_called()
+
+
+class TestParseTiraIdTimestamp(unittest.TestCase):
+    def test_valid_timestamp_is_parsed(self):
+        from datetime import datetime
+
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _parse_tira_id_timestamp("2026-10-02-21-09-11"))
+
+    def test_timestamp_with_uuid_suffix_is_parsed(self):
+        from datetime import datetime
+
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _parse_tira_id_timestamp("2026-10-02-21-09-11-1a2b3c4d"))
+
+    def test_get_tira_id_is_unique_and_parsable(self):
+        from tira.io_utils import get_tira_id
+
+        ids = {get_tira_id() for _ in range(100)}
+        self.assertEqual(100, len(ids))
+        for i in ids:
+            self.assertIsNotNone(_parse_tira_id_timestamp(i))
+
+    def test_invalid_timestamp_returns_none(self):
+        self.assertIsNone(_parse_tira_id_timestamp("not-a-timestamp"))
+
+    def test_empty_string_returns_none(self):
+        self.assertIsNone(_parse_tira_id_timestamp(""))
+
+
+class TestEvaluationTimestamp(unittest.TestCase):
+    def test_extracts_timestamp_from_evaluation_run_id(self):
+        from datetime import datetime
+
+        run_id = "2026-10-02-21-09-11-evaluates-2026-10-02-23-08-58"
+        self.assertEqual(datetime(2026, 10, 2, 21, 9, 11), _evaluation_timestamp(run_id))
+
+    def test_returns_none_without_evaluates_marker(self):
+        self.assertIsNone(_evaluation_timestamp("2026-10-02-21-09-11"))
+
+    def test_returns_none_for_unparsable_prefix(self):
+        self.assertIsNone(_evaluation_timestamp("not-a-timestamp-evaluates-2026-10-02-23-08-58"))
+
+
+class TestAdminReRunEvaluations(unittest.TestCase):
+    def _submissions_df(self, rows):
+        import pandas as pd
+
+        return pd.DataFrame(rows)
+
+    def _evaluations_df(self, rows):
+        import pandas as pd
+
+        return pd.DataFrame(rows)
+
+    def _run_and_capture_stdout(self, **kwargs):
+        import io
+        from contextlib import redirect_stdout
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = admin_re_run_evaluations(**kwargs)
+        return ret, buf.getvalue()
+
+    @patch("tira.tira_cli.RestClient")
+    def test_invalid_after_datetime_returns_error_without_calling_client(self, mock_rest_client):
+        mock_client = mock_rest_client.return_value
+
+        ret = admin_re_run_evaluations(dataset="some-dataset", after="not-a-datetime")
+
+        self.assertEqual(1, ret)
+        mock_client.get_dataset.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_scored_evaluation_of_no_error_run_is_marked_as_no_error(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "review_hasNoErrors": True,
+                    "review_noErrors": True,
+                },
+                {
+                    "run_id": "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": True,
+                },
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "evaluation_run_id": "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00",
+                    "team": "team-1",
+                }
+            ]
+        )
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.review_run.assert_called_once_with(
+            "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00", "my-dataset", "team-1", True, False, False, ""
+        )
+
+    def _mark_no_error_scenario(self, mock_rest_client, run_review, evaluation_review, evaluation_run_id):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False, **run_review},
+                {"run_id": evaluation_run_id, "team": "team-1", "is_evaluation": True, **evaluation_review},
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [{"run_id": "2026-10-01-00-00-00", "evaluation_run_id": evaluation_run_id, "team": "team-1"}]
+        )
+        mock_client.evaluations_of_run.return_value = []
+        self._run_and_capture_stdout(dataset="my-dataset", after="2026-10-08-00-00-00")
+        return mock_client
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_scored_evaluation_of_no_error_run_is_also_marked_as_no_error(self, mock_rest_client, mock_sleep):
+        no_error = {"review_hasNoErrors": True, "review_noErrors": True}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, no_error, {}, "2020-01-01-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_called_once()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_of_run_not_reviewed_as_no_error_is_not_marked(self, mock_rest_client, mock_sleep):
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, {}, {}, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_of_run_reviewed_with_errors_is_not_marked(self, mock_rest_client, mock_sleep):
+        has_errors = {"review_hasNoErrors": False, "review_hasErrors": True, "review_noErrors": False}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, has_errors, {}, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_already_reviewed_as_no_error_is_not_marked_again(self, mock_rest_client, mock_sleep):
+        no_error = {"review_hasNoErrors": True, "review_noErrors": True}
+        mock_client = self._mark_no_error_scenario(
+            mock_rest_client, no_error, no_error, "2026-10-02-00-00-00-evaluates-2026-10-01-00-00-00"
+        )
+
+        mock_client.review_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_without_any_evaluation_is_reported_and_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = []
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-10-01-00-00-00", output)
+        self.assertIn("no evaluation", output)
+        mock_client.submissions.assert_called_once_with("my-task", "my-dataset")
+        mock_client.evaluations.assert_called_once_with("my-task", "my-dataset", join_submissions=False)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-10-01-00-00-00")
+        mock_sleep.assert_called_once_with(10)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_stale_evaluation_is_reported_and_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+        mock_client.evaluations_of_run.return_value = []
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-01-01-00-00-00", output)
+        self.assertIn("last evaluated at", output)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_recent_failed_evaluation_attempt_is_reported_but_not_re_evaluated(
+        self, mock_rest_client, mock_sleep
+    ):
+        # client.evaluations() only lists successful evaluations (those with measures), so a run whose only
+        # evaluation attempt failed never shows up there. evaluations_of_run, however, lists all attempts
+        # (including failed ones), so a recent-but-failed attempt should suppress re-triggering.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = ["2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00"]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("2026-01-01-00-00-00", output)
+        self.assertIn("recently attempted", output)
+        self.assertIn("2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00", output)
+        mock_client.evaluations_of_run.assert_called_once_with("team-1", "2026-01-01-00-00-00")
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_only_old_failed_evaluation_attempt_is_still_re_evaluated(self, mock_rest_client, mock_sleep):
+        # The only evaluation attempt is older than --after, so it does not count as "recently attempted" and
+        # the run must still be re-evaluated.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.return_value = ["2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00"]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertNotIn("recently attempted", output)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_failure_to_check_recent_evaluation_attempts_falls_back_to_re_evaluating(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluations_of_run.side_effect = ValueError("endpoint unavailable")
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_run_with_recent_evaluation_is_not_reported_nor_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-01-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_evaluation_runs_are_excluded_from_submissions_check(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False},
+                {
+                    "run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": True,
+                },
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2025-12-31-00-00-00-evaluates", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_deleted_runs_without_evaluation_are_not_reported_nor_re_evaluated(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "deleted": True,
+                }
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-10-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_runs_of_deleted_software_without_evaluation_are_not_reported_nor_re_evaluated(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [
+                {
+                    "run_id": "2026-10-01-00-00-00",
+                    "team": "team-1",
+                    "is_evaluation": False,
+                    "deleted": False,
+                    "software_deleted": True,
+                }
+            ]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertIn("All runs", output)
+        self.assertNotIn("2026-10-01-00-00-00", output)
+        mock_client.evaluate_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_re_evaluation_is_retried_and_eventually_reported_as_failed(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluate_run.side_effect = ValueError("evaluator is unavailable")
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertEqual(3, mock_client.evaluate_run.call_count)
+        self.assertIn("Failed to start evaluation", output)
+        self.assertIn("evaluator is unavailable", output)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_re_evaluation_succeeds_after_a_retry(self, mock_rest_client, mock_sleep):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-10-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df([])
+        mock_client.evaluate_run.side_effect = [ValueError("transient error"), None]
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-01-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        self.assertEqual(2, mock_client.evaluate_run.call_count)
+        self.assertNotIn("Failed to start evaluation", output)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_evaluation_of_an_untriggered_run_is_deleted(self, mock_rest_client, mock_sleep):
+        # The run already has a recent evaluation, so no new evaluation is triggered for it. Its older,
+        # now-superseded evaluation should be deleted.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+            ]
+        )
+
+        ret, output = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.evaluate_run.assert_not_called()
+        mock_client.delete_run.assert_called_once_with(
+            "team-1", "my-dataset", "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00"
+        )
+        self.assertIn("Deleting outdated evaluation", output)
+        self.assertIn("2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00", output)
+        mock_sleep.assert_called_once_with(5)
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_old_evaluation_of_a_triggered_run_is_not_deleted(self, mock_rest_client, mock_sleep):
+        # The run has no recent evaluation, so a new one is triggered for it. Its only (stale) evaluation
+        # must not be deleted, regardless of whether the triggered re-evaluation succeeds.
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-12-31-00-00-00-evaluates-2026-01-01-00-00-00",
+                }
+            ]
+        )
+        mock_client.evaluations_of_run.return_value = []
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.evaluate_run.assert_called_once_with("team-1", "my-dataset", "2026-01-01-00-00-00")
+        mock_client.delete_run.assert_not_called()
+
+    @patch("time.sleep")
+    @patch("tira.tira_cli.RestClient")
+    def test_failure_to_delete_an_old_evaluation_is_logged_and_does_not_fail_the_command(
+        self, mock_rest_client, mock_sleep
+    ):
+        mock_client = mock_rest_client.return_value
+        mock_client.get_dataset.return_value = {"default_task": "my-task"}
+        mock_client.submissions.return_value = self._submissions_df(
+            [{"run_id": "2026-01-01-00-00-00", "team": "team-1", "is_evaluation": False}]
+        )
+        mock_client.evaluations.return_value = self._evaluations_df(
+            [
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2025-01-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+                {
+                    "run_id": "2026-01-01-00-00-00",
+                    "team": "team-1",
+                    "evaluation_run_id": "2026-03-01-00-00-00-evaluates-2026-01-01-00-00-00",
+                },
+            ]
+        )
+        mock_client.delete_run.side_effect = ValueError("run is still needed")
+
+        ret, _ = self._run_and_capture_stdout(dataset="my-dataset", after="2026-02-01-00-00-00")
+
+        self.assertEqual(0, ret)
+        mock_client.delete_run.assert_called_once()
+
+
+class TestAllowNetworkAccess(unittest.TestCase):
+    def test_flag_is_available_for_run_commands_and_defaults_to_false(self):
+        import argparse
+
+        from tira.tira_cli import setup_run_command
+
+        parser = argparse.ArgumentParser()
+        setup_run_command(parser)
+        args = parser.parse_args(["local", "--input", "i", "--approach", "t/u/s"])
+        self.assertFalse(args.allow_network_access)
+        args = parser.parse_args(["local", "--input", "i", "--approach", "t/u/s", "--allow-network-access"])
+        self.assertTrue(args.allow_network_access)
+
+    def test_code_submission_alias_maps_to_allow_network(self):
+        import argparse
+
+        from tira.tira_cli import setup_code_submission_command
+
+        parser = argparse.ArgumentParser()
+        setup_code_submission_command(parser)
+        args = parser.parse_args(["--path", ".", "--task", "t", "--allow-network-access"])
+        self.assertTrue(args.allow_network)
+
+    def test_validation_requires_flag_if_software_requests_network_access(self):
+        from tira.tira_cli import validate_required_forwarding
+
+        details = {"allow_network_access_on_request": True}
+        self.assertFalse(validate_required_forwarding(details, "sw", [], [], []))
+        self.assertTrue(validate_required_forwarding(details, "sw", [], [], [], allow_network_access=True))
+
+    def test_validation_passes_without_request_for_network_access(self):
+        from tira.tira_cli import validate_required_forwarding
+
+        self.assertTrue(validate_required_forwarding({"allow_network_access_on_request": False}, "sw", [], [], []))
+        self.assertTrue(validate_required_forwarding({}, "sw", [], [], []))
+
+    def test_remote_payload_contains_flag_only_if_requested(self):
+        from tira.tira_cli import build_remote_execution_payload
+
+        self.assertNotIn("allow_network_access", build_remote_execution_payload([], [], []))
+        payload = build_remote_execution_payload([], [], [], allow_network_access=True)
+        self.assertTrue(payload["allow_network_access"])

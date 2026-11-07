@@ -4,6 +4,7 @@ import RunActions from "./RunActions.vue";
 import RunList from "./RunList.vue";
 import SoftwareDetails from "./SoftwareDetails.vue";
 import SubmitButton from "./SubmitButton.vue";
+import ExportButtons from "./ExportButtons.vue";
 import TiraBreadcrumb from "./TiraBreadcrumb.vue";
 import TiraTaskAdmin from "./TiraTaskAdmin.vue";
 import TaskDocumentation from "./TaskDocumentation.vue"
@@ -26,4 +27,4 @@ function is_mobile() {
     return mobile.value
 }
 
-export { Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, DirectoryInspector, IrMetadataBrowser, UploadedRunList, AggregatedResultList, is_mobile }
+export { Loading, RunActions, RunList, SoftwareDetails, SubmitButton, ExportButtons, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, DirectoryInspector, IrMetadataBrowser, UploadedRunList, AggregatedResultList, is_mobile }
