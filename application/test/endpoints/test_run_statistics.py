@@ -36,9 +36,7 @@ class TestRunStatistics(TestCase):
     def test_counts_runs_within_time_range(self):
         stats = aggregate_run_statistics(datetime(2031, 1, 1), datetime(2031, 12, 31))
 
-        self.assertEqual(
-            [{"task": TASK, "executed_code_submissions": 3, "run_uploads": 1, "unreviewed": 3}], stats
-        )
+        self.assertEqual([{"task": TASK, "executed_code_submissions": 3, "run_uploads": 1, "unreviewed": 3}], stats)
 
     def test_empty_for_range_without_runs(self):
         self.assertEqual([], aggregate_run_statistics(datetime(2040, 1, 1), datetime(2040, 12, 31)))
