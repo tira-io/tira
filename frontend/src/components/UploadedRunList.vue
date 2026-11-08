@@ -4,7 +4,11 @@
     <v-data-table show-expand :headers="headers" v-model:sort-by="sort_by" :items="runs"
       item-value="run_id" density="compact" >
       <template v-slot:item.actions="{ item }">
-        <run-actions :run="item" :task_id="task_id" />
+        <div class="d-flex">
+          <edit-submission-details v-if="item.upload_id" type="upload" :id="item.upload_id" :user_id="vm_id"
+            :upload_form_fields="upload_form_fields" @edit="fetchData()" />
+          <run-actions :run="item" :task_id="task_id" />
+        </div>
       </template>
       <template #item.dataset_id="{ item }">
         <submission-icon :submission="item" /> {{ item.dataset_id }}
@@ -30,19 +34,20 @@ import { inject } from 'vue'
 import RunActions from './RunActions.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
+import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue"
 import { get_from_archive, reportError, inject_response, type UserInfo } from '../utils'
 
 
 export default {
   name: "uploaded-runs-list",
-  components: { RunActions, Loading, SubmissionIcon },
-  props: ['task_id', 'vm_id'],
+  components: { RunActions, Loading, SubmissionIcon, EditSubmissionDetails },
+  props: ['task_id', 'vm_id', 'upload_form_fields'],
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,
       selected_runs: [],
       loading: true,
-      runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1', 'review_comment': '' }],
+      runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1', 'review_comment': '', 'upload_id': null as (string | number | null) }],
       headers: [{
           "title": "Dataset",
           "key": "dataset_id"

@@ -861,6 +861,7 @@ class TiraClient(ABC):
                 "forward_environment_variable": forward_environment_variable if forward_environment_variable else None,
                 "cache_behaviour": cache_behaviour,
                 "mount_config": mount_config,
+                "allow_network_access_on_request": bool(allow_network),
             }
             with open(Path(tmp_dir) / "submission-metadata.yml", "w") as f:
                 yaml.safe_dump(submission_metadata, f, sort_keys=False)
@@ -916,6 +917,7 @@ class TiraClient(ABC):
                 forward_environment_variable=forward_environment_variable if forward_environment_variable else None,
                 cache_behaviour=cache_behaviour,
                 mount_config=mount_config,
+                allow_network_access=bool(allow_network),
             )
             print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
             print("\nResult:")
@@ -964,12 +966,14 @@ class TiraClient(ABC):
             "clef26-team-09",
             "clef26-open-web-search",
             "maik-test-3-30",
+            "maik-test-05-08",
             "devtest",
             "lightning-ir",
             "baseline",
             "baselineavengers",
             "basel1nerz",
             "webis",
+            "fileshredder",
         )
         if role["role"] != "user" and team not in admin_teams:
             msg = f"User has role {role}.\n\nInspect tables tira_discoursetokenforuser and tira_database_cache_table"

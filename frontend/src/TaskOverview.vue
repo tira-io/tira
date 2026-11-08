@@ -45,6 +45,12 @@
             <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
           </v-row>
         </v-card-actions>
+        <v-card-actions v-if="task.export_buttons && task.export_buttons.length > 0">
+          <v-row>
+            <export-buttons :task="task" :vm="vm" :user_id="user_id" :user_vms_for_task="user_vms_for_task"
+              :userinfo="userinfo" />
+          </v-row>
+        </v-card-actions>
         <v-card-actions v-if="task_id === 'ir-benchmarks'">
           <v-row>
             <v-dialog transition="dialog-bottom-transition" width="auto">
@@ -105,13 +111,13 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { TiraBreadcrumb, TiraTaskAdmin, RunList, AggregatedResultList, Loading, SubmitButton, TaskDocumentation } from './components'
+import { TiraBreadcrumb, TiraTaskAdmin, RunList, AggregatedResultList, Loading, SubmitButton, ExportButtons, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
 import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get_from_archive, inject_response, reportError, type UserInfo, DatasetInfo, TaskInfo } from './utils'
 export default {
   name: "task-list",
-  components: { AggregatedResultList, TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
+  components: { AggregatedResultList, TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, ExportButtons, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,
@@ -122,7 +128,9 @@ export default {
         "task_id": "", "task_name": "", "task_description": "",
         "organizer": "", "organizer_id": "", "web": "", "year": "",
         "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false,
-        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}]
+        "aggregated_results": [{"title": "", "description": "", "table_headers": [], "table_headers_small_layout": [], "table_sort_by": [], "lines": []}],
+        "master_vm_id": "",
+        "export_buttons": null as null | { display_name: string, value: string }[],
       },
       vm: '',
       user_id: '',

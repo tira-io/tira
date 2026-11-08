@@ -106,6 +106,32 @@ def verify_docker_installation() -> Tuple[FormatMsgType, str]:
         )
 
 
+def verify_docker_mounts_are_read_and_writable() -> Tuple[FormatMsgType, str]:
+    try:
+        from tira.local_execution_integration import LocalExecutionIntegration
+
+        local_execution: LocalExecutionIntegration = LocalExecutionIntegration()
+        assert local_execution.docker_is_installed_failsave()
+        container_cli = local_execution.get_container_cli().capitalize()
+    except:
+        return (
+            _fmt.ERROR,
+            "Docker/Podman mounts can not be verified, since Docker/Podman is not installed.",
+        )
+
+    try:
+        local_execution.verify_tmp_directory_is_usable_by_docker()
+    except Exception as e:
+        return (
+            _fmt.ERROR,
+            f"{container_cli} mounts are not read- and writable: the temporary directory"
+            f" '{tempfile.gettempdir()}' can not be used to exchange data with {container_cli}. TMPDIR is"
+            f" maybe configured wrong. Reason: {e}",
+        )
+
+    return _fmt.OK, f"{container_cli} mounts are read- and writable."
+
+
 def tira_home_exists():
     try:
         from tira.rest_api_client import Client
@@ -235,6 +261,7 @@ def verify_tira_installation(
     checks: list[Callable] = [
         tira_home_exists,
         verify_docker_installation,
+        verify_docker_mounts_are_read_and_writable,
         verify_tirex_tracker,
     ]
     if not local_only:
@@ -624,7 +651,8 @@ def run_cmd(cmd: "List[Optional[str]]", ignore_failure=False):
 
 
 def get_tira_id() -> str:
-    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+    # The random suffix (first section of a UUID) avoids collisions of runs that finish within the same second.
+    return dt.now().strftime("%Y-%m-%d-%H-%M-%S") + "-" + str(uuid.uuid4()).split("-")[0]
 
 
 def persist_tira_metadata_for_job(run_dir, run_id, input_run_id, software_id, dataset_id, task_id):

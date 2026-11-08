@@ -226,6 +226,7 @@ class HybridDatabase(object):
         upload_form_fields = task.get_upload_form_fields()
         allowed_hostnames = task.get_allowed_hostnames()
         task_export_metadata = task.get_task_export_metadata()
+        export_buttons = task.get_export_buttons()
 
         result = {
             "task_id": task.task_id,
@@ -261,7 +262,9 @@ class HybridDatabase(object):
             "upload_form_fields": upload_form_fields,
             "hide_upload_via_cli": task.hide_upload_via_cli,
             "allowed_hostnames": allowed_hostnames,
+            "allow_network_access_on_request": task.allow_network_access_on_request,
             "task_export_metadata": task_export_metadata,
+            "export_buttons": export_buttons,
         }
 
         if include_dataset_stats:
@@ -306,6 +309,7 @@ class HybridDatabase(object):
             "leaderboard_is_public": dataset.leaderboard_is_public,
             "auto_unblind_runs": dataset.auto_unblind_runs,
             "auto_unblind_evaluation": dataset.auto_unblind_evaluation,
+            "is_visible_to_participants": dataset.is_visible_to_participants,
             "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
@@ -522,28 +526,47 @@ class HybridDatabase(object):
         return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
 
     @staticmethod
+    def _is_evaluation_run(run: modeldb.Run) -> bool:
+        """Whether the passed run is an evaluation run, i.e., it evaluates another ("input") run.
+
+        This is the single source of truth for identifying evaluation runs: an evaluation run has an
+        'input_run' (the run it evaluates) and its own run_id follows the '<ts>-evaluates-<input-run-id>'
+        naming convention. It is used both to render the 'is_evaluation' flag in `_run_as_dict` and to
+        decide the deletion strategy in `delete_run`/`_delete_evaluation_run`: keep both call sites in sync
+        with this method instead of duplicating its logic.
+        """
+        if not run.input_run or run.input_run.run_id == "none" or run.input_run.run_id == "None":
+            return False
+        if "-evaluates-" not in run.run_id:
+            return False
+        if run.docker_software:
+            return False
+        return True
+
+    @staticmethod
     def _run_as_dict(run: modeldb.Run) -> "dict[str, Any]":
-        is_evaluation = (
-            False if not run.input_run or run.input_run.run_id == "none" or run.input_run.run_id == "None" else True
-        )
+        is_evaluation = HybridDatabase._is_evaluation_run(run)
         software = None
         vm = None
+        software_deleted = False
         software_id, evaluator_id, docker_software_id, upload_id = None, None, None, None
         if run.software:
             software = run.software.software_id
             software_id = run.software.software_id
+            software_deleted = run.software.deleted
         elif run.evaluator:
             software = run.evaluator.evaluator_id
             evaluator_id = software
         elif run.docker_software:
             software = run.docker_software.display_name
             vm = run.docker_software.vm.vm_id
-            is_evaluation = False
             docker_software_id = run.docker_software.docker_software_id
+            software_deleted = run.docker_software.deleted
         elif run.upload:
             software = run.upload.display_name
             upload_id = run.upload.id
             vm = run.upload.vm.vm_id
+            software_deleted = run.upload.deleted
 
         return {
             "software": software,
@@ -563,6 +586,10 @@ class HybridDatabase(object):
             "dynamic_mounts": None if not run.dynamic_mounts else json.loads(run.dynamic_mounts),
             "upload_id": upload_id,
             "from_upload": run.from_upload.uuid if run.from_upload else None,
+            "deleted": run.deleted,
+            # whether the software/docker-software/upload (i.e., the code submission) that produced this run
+            # has itself been deleted (independent of 'deleted', which is the deletion flag of the run itself)
+            "software_deleted": software_deleted,
         }
 
     def get_run(
@@ -677,6 +704,12 @@ class HybridDatabase(object):
         else:
             return ret
 
+    def get_uploads_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+        """Returns all (non-deleted) uploaded-run submissions for a task and vm as dictionaries, each including
+        their runs (see upload_to_dict/_get_ordered_runs_from_reviews)."""
+        uploads = self.get_uploads(task_id, vm_id, return_names_only=False)
+        return [self.upload_to_dict(upload, vm_id) for upload in uploads]
+
     def _docker_software_to_dict(
         self, ds: modeldb.DockerSoftware, include_try_run_metadata: bool = False
     ) -> "dict[str, Any]":
@@ -780,9 +813,11 @@ class HybridDatabase(object):
             "mount_hf_model": mount_hf_model,
             "workflow_configuration": workflow_configuration,
             "forward_environment_variable": forward_environment_variable,
+            "allow_network_access_on_request": ds.allow_network_access_on_request,
             "cache_behaviour": ds.cache_behaviour,
             "mount_config": ds.get_mount_config(),
             "try_run_metadata": try_run_metadata,
+            "metadata": ds.get_metadata(),
         }
 
     @staticmethod
@@ -1229,7 +1264,7 @@ class HybridDatabase(object):
             tira_run_review.no_errors, tira_run_review.has_errors,
             tira_run_review.has_no_errors, tira_run_review.comment, input_run.valid_formats,
             evaluation_run.run_id, tira_evaluation_review.published, tira_evaluation_review.blinded,
-            tira_evaluation.measure_key, tira_evaluation.measure_value
+            tira_evaluation.measure_key, tira_evaluation.measure_value, tira_upload.id
         FROM
             tira_run as input_run
         INNER JOIN
@@ -1272,6 +1307,7 @@ class HybridDatabase(object):
             eval_blinded,
             m_key,
             m_value,
+            upload_id,
         ) in rows:
             if run_id not in input_run_to_evaluation:
                 input_run_to_evaluation[run_id] = {"measures": {}}
@@ -1285,6 +1321,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]["input_software_name"] = display_name
             input_run_to_evaluation[run_id]["input_run_id"] = run_id
             input_run_to_evaluation[run_id]["is_upload"] = True
+            input_run_to_evaluation[run_id]["upload_id"] = upload_id
             input_run_to_evaluation[run_id]["review_state"] = review_state
             input_run_to_evaluation[run_id]["review_comment"] = review_comment
 
@@ -1420,7 +1457,9 @@ class HybridDatabase(object):
 
         return ret[0], (ret[1] + from_uploads)
 
-    def get_docker_softwares_with_runs(self, task_id: str, vm_id: str) -> "list[dict[str, Any]]":
+    def get_docker_softwares_with_runs(
+        self, task_id: str, vm_id: str, return_code_submissions: bool = False
+    ) -> "list[dict[str, Any]]":
         def _runs_by_docker_software(ds: modeldb.DockerSoftware) -> "list[dict[str, Any]]":
             reviews = (
                 modeldb.Review.objects.select_related(
@@ -1432,7 +1471,9 @@ class HybridDatabase(object):
 
             return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
 
-        docker_softwares = self.get_docker_softwares(task_id, vm_id, return_only_names=False)
+        docker_softwares = self.get_docker_softwares(
+            task_id, vm_id, return_only_names=False, return_code_submissions=return_code_submissions
+        )
 
         docker_softwares = [
             {**self._docker_software_to_dict(ds), "runs": _runs_by_docker_software(ds)} for ds in docker_softwares
@@ -2014,7 +2055,9 @@ class HybridDatabase(object):
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
+        allow_network_access_on_request: bool = False,
         task_export_metadata: "Any" = None,
+        export_buttons: "Optional[List[dict[str, str]]]" = None,
     ) -> "dict[str, Any]":
         """Add a new task to the database.
         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
@@ -2038,6 +2081,11 @@ class HybridDatabase(object):
         if normalized_task_export_metadata is not None:
             task_export_metadata_json = json.dumps(normalized_task_export_metadata)
 
+        export_buttons_json = None
+        normalized_export_buttons = modeldb.normalize_export_buttons(export_buttons)
+        if normalized_export_buttons:
+            export_buttons_json = json.dumps(normalized_export_buttons)
+
         new_task = modeldb.Task.objects.create(
             task_id=task_id,
             task_name=task_name,
@@ -2054,7 +2102,9 @@ class HybridDatabase(object):
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
             task_export_metadata=task_export_metadata_json,
+            export_buttons=export_buttons_json,
         )
         if help_command:
             new_task.command_placeholder = help_command
@@ -2099,6 +2149,7 @@ class HybridDatabase(object):
         workflow_configuration=None,
         auto_unblind_runs: bool = False,
         auto_unblind_evaluation: bool = False,
+        is_visible_to_participants: bool = True,
     ) -> "tuple[dict[str, Any], list[str]]":
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -2126,6 +2177,7 @@ class HybridDatabase(object):
                 "leaderboard_is_public": False,
                 "auto_unblind_runs": auto_unblind_runs,
                 "auto_unblind_evaluation": auto_unblind_evaluation,
+                "is_visible_to_participants": is_visible_to_participants,
                 "released": str(dt.now()),
                 "default_upload_name": upload_name,
                 "irds_docker_image": irds_docker_image,
@@ -2536,6 +2588,7 @@ class HybridDatabase(object):
         forward_environment_variable: "Optional[str]" = None,
         cache_behaviour: "Optional[str]" = None,
         mount_config: "Optional[str]" = None,
+        allow_network_access_on_request: bool = False,
     ) -> "dict[str, Any]":
         input_docker_software: Optional[modeldb.DockerSoftware] = None
         input_upload_software: Optional[modeldb.Upload] = None
@@ -2565,6 +2618,7 @@ class HybridDatabase(object):
             forward_environment_variable=forward_environment_variable,
             cache_behaviour=cache_behaviour,
             mount_config=mount_config,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
         )
 
         additional_inputs = range(
@@ -2601,7 +2655,10 @@ class HybridDatabase(object):
         paper_link: str,
         ir_re_ranker: str,
         ir_re_ranking_input: str,
+        metadata: "Optional[dict[str, Any]]" = None,
     ) -> None:
+        normalized_metadata = modeldb.normalize_upload_metadata(metadata)
+        metadata_json = None if normalized_metadata is None else json.dumps(normalized_metadata)
         modeldb.DockerSoftware.objects.update_or_create(
             docker_software_id=docker_software_id,
             defaults={
@@ -2610,6 +2667,7 @@ class HybridDatabase(object):
                 "paper_link": paper_link,
                 "ir_re_ranker": ir_re_ranker,
                 "ir_re_ranking_input": ir_re_ranking_input,
+                "metadata": metadata_json,
             },
         )
 
@@ -2637,7 +2695,9 @@ class HybridDatabase(object):
         upload_form_fields: "Optional[List[dict[str, Any]]]" = None,
         hide_upload_via_cli: bool = False,
         allowed_hostnames: "Optional[List[str]]" = None,
+        allow_network_access_on_request: bool = False,
         task_export_metadata: "Any" = None,
+        export_buttons: "Optional[List[dict[str, str]]]" = None,
     ):
         aggregated_results_json = None
         if aggregated_results:
@@ -2680,6 +2740,11 @@ class HybridDatabase(object):
         if normalized_task_export_metadata is not None:
             task_export_metadata_json = json.dumps(normalized_task_export_metadata)
 
+        export_buttons_json = None
+        normalized_export_buttons = modeldb.normalize_export_buttons(export_buttons)
+        if normalized_export_buttons:
+            export_buttons_json = json.dumps(normalized_export_buttons)
+
         task = modeldb.Task.objects.filter(task_id=task_id)
         task.update(
             task_name=task_name,
@@ -2700,7 +2765,9 @@ class HybridDatabase(object):
             upload_form_fields=upload_form_fields_json,
             hide_upload_via_cli=hide_upload_via_cli,
             allowed_hostnames=allowed_hostnames_json,
+            allow_network_access_on_request=bool(allow_network_access_on_request),
             task_export_metadata=task_export_metadata_json,
+            export_buttons=export_buttons_json,
         )
 
         if help_command:
@@ -2735,6 +2802,7 @@ class HybridDatabase(object):
         leaderboard_is_public: "Optional[bool]" = None,
         auto_unblind_runs: "Optional[bool]" = None,
         auto_unblind_evaluation: "Optional[bool]" = None,
+        is_visible_to_participants: "Optional[bool]" = None,
     ) -> "dict[str, Any]":
         """
 
@@ -2749,6 +2817,8 @@ class HybridDatabase(object):
             the existing value is kept unchanged.
         @param auto_unblind_evaluation: if True, newly added evaluations for this dataset are automatically
             unblinded. If None, the existing value is kept unchanged.
+        @param is_visible_to_participants: if False, the dataset is only listed for admins. If None, the existing
+            value is kept unchanged.
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
@@ -2778,6 +2848,9 @@ class HybridDatabase(object):
 
         if auto_unblind_evaluation is not None:
             dataset_update_fields["auto_unblind_evaluation"] = auto_unblind_evaluation
+
+        if is_visible_to_participants is not None:
+            dataset_update_fields["is_visible_to_participants"] = is_visible_to_participants
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(**dataset_update_fields)
 
@@ -2835,16 +2908,49 @@ class HybridDatabase(object):
 
         return found
 
+    def _delete_evaluation_run(self, run: modeldb.Run) -> bool:
+        """Delete an evaluation run, including its rows in the Evaluation table (used to render the leaderboards).
+
+        Deletion is denied if, after removing this run's Evaluation rows, the submitted run that this run
+        evaluates (run.input_run) would be left without any other evaluation run that still has Evaluation
+        rows (i.e., the submission would have no remaining scored evaluation on the leaderboard). This check
+        is done before any Evaluation rows are deleted.
+
+        NOTE: this is called from `delete_run` as an early check and return when `_is_evaluation_run` is
+        true for the run being deleted; keep both in sync.
+
+        @return: true if it was deleted, false if it can not be deleted
+        """
+        remaining_evaluations_of_submission = (
+            modeldb.Run.objects.filter(input_run=run.input_run, deleted=False)
+            .exclude(run_id=run.run_id)
+            .filter(evaluation__isnull=False)
+        )
+        if not remaining_evaluations_of_submission.exists():
+            return False
+
+        modeldb.Evaluation.objects.filter(run=run).delete()
+        run.deleted = True
+        run.save()
+        return True
+
     def delete_run(self, dataset_id: str, vm_id: str, run_id: str) -> bool:
         """delete the run in the database.
 
         Do not delete if:
           - the run is on the leaderboard.
           - the run is valid
+          - (for evaluation runs) it would leave the evaluated submission without a remaining evaluation
+            that still has lines in the Evaluation table (see `_delete_evaluation_run`)
 
             @return: true if it was deleted, false if it can not be deleted
         """
         run = modeldb.Run.objects.get(run_id=run_id)
+
+        # NOTE: this is the single entry point for deleting evaluation runs; keep in sync with
+        # `_is_evaluation_run`/`_delete_evaluation_run`.
+        if self._is_evaluation_run(run):
+            return self._delete_evaluation_run(run)
 
         review = modeldb.Review.objects.get(run=run)
         if review and (review.published or review.no_errors):

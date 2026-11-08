@@ -81,6 +81,29 @@ Use ``tira-cli run local --help`` for resource limits, environment forwarding, a
 unregistered image directly, continue to use ``tira-run --image ... --command ...``.
 
 
+tira-cli run remote
+~~~~~~~~~~~~~~~~~~~
+
+Start remote executions of approaches on one or more datasets in TIRA:
+
+.. code-block:: bash
+
+    tira-cli run remote \
+      --approach trec-auto-judge/webis/Naive-AutoJudge \
+      --dataset kiddie-20260605-training
+
+The ``--approach`` argument is optional. If it is omitted, ``tira-cli`` discovers all approaches that already have a
+valid evaluation on one of the ``--dataset`` datasets and that require exactly the environment variables passed via
+``--forward-environment-variable``. The discovered approaches are printed first, and then only the executions that
+are still missing are started on all given datasets:
+
+.. code-block:: bash
+
+    tira-cli run remote \
+      --dataset kiddie-20260605-training kiddie-20260605-test \
+      --forward-environment-variable OPENAI_API_KEY
+
+
 tira-cli upload
 ~~~~~~~~~~~~~~~
 

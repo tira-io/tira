@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import time
 import zipfile
@@ -12,6 +13,7 @@ from glob import glob
 from pathlib import Path
 from random import randint
 from typing import Any, Dict, List, Optional, Union
+from urllib.parse import urlencode
 
 import pandas as pd
 import requests
@@ -62,6 +64,10 @@ class Client(TiraClient):
         self.api_key_already_checked = False
         self.logged: "set[str]" = set()
         self.tira_cache_dir = default_tira_cache_dir(tira_cache_dir)
+        try:
+            os.makedirs(self.tira_cache_dir, exist_ok=True)
+        except Exception:
+            pass
         self.base_url = base_url or self.load_settings()["base_url"]
         self.base_url_api = base_url_api or self.load_settings()["base_url_api"]
         self.archive_base_url = archive_base_url or self.load_settings()["archive_base_url"]
@@ -192,6 +198,29 @@ class Client(TiraClient):
         ret = response.content.decode("utf8")
         return json.loads(ret)
 
+    def update_upload_metadata(
+        self,
+        task_id: str,
+        vm_id: str,
+        upload_id: str,
+        display_name: str,
+        description: str,
+        upload_metadata: "Optional[Dict[str, str]]" = None,
+    ) -> Dict:
+        """Attach custom metadata fields (and display_name/description) to an already-uploaded run's upload group,
+        using the same "edit upload" endpoint the web UI uses. Intended to be called once right after
+        upload_run_anonymous + claim_ownership, since that flow itself has no way to carry custom metadata."""
+        url = f"/task/{task_id}/vm/{vm_id}/save_software/upload/{upload_id}"
+        return self.execute_post_return_json(
+            url,
+            json_payload={
+                "display_name": display_name,
+                "description": description,
+                "paper_link": "",
+                "upload_metadata": upload_metadata,
+            },
+        )
+
     def get_dataset(self, dataset) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
@@ -276,6 +305,7 @@ class Client(TiraClient):
         forward_environment_variable=None,
         cache_behaviour=None,
         mount_config=None,
+        allow_network_access=False,
     ):
         headers = self.authentication_headers()
         headers["Accept"] = "application/json"
@@ -318,6 +348,9 @@ class Client(TiraClient):
 
         if mount_config:
             content["mount_config"] = json.dumps(mount_config)
+
+        if allow_network_access:
+            content["allow_network_access"] = True
 
         if previous_stages and len(previous_stages) > 0:
             content["inputJob"] = previous_stages
@@ -634,6 +667,48 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def _discourse_user_email(self, username):
+        endpoint = f"/u/{username}/emails.json?context=%2Fu%2F{username}%2Fsummary"
+        try:
+            return self.json_response(endpoint, base_url="https://www.tira.io").get("email")
+        except Exception as e:
+            print(f"warning: could not fetch email of {username}: {e}", file=sys.stderr)
+            return None
+
+    @staticmethod
+    def _slugify(value):
+        import re
+        import unicodedata
+
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+        return re.sub(r"[-\s]+", "-", re.sub(r"[^\w\s-]", "", value).strip().lower())
+
+    def export_group_member_emails(self, group):
+        """Return the emails of the tira accounts that are members of the discourse group."""
+        offset = 0
+        seen = set()
+        emails = []
+        while True:
+            endpoint = f"/groups/{group}/members.json?offset={offset}&order=&asc=true&filter="
+            try:
+                payload = self.json_response(endpoint, base_url="https://www.tira.io")
+            except Exception as e:
+                print(f"warning: could not fetch members of {group}: {e}", file=sys.stderr)
+                return emails
+            members = payload.get("members", [])
+            # discourse lists group owners separately; the registering user is only an owner
+            owners = payload.get("owners", []) if offset == 0 else []
+            new_members = [m["username"] for m in owners + members if m["username"] not in seen]
+            if not new_members:
+                return emails
+            for username in new_members:
+                seen.add(username)
+                email = self._discourse_user_email(username)
+                time.sleep(0.5)
+                if email and email not in emails:
+                    emails.append(email)
+            offset += len(members)
+
     def export_registrations(self, task):
         import csv
         from io import StringIO
@@ -648,35 +723,72 @@ class Client(TiraClient):
         headers["Accept"] = "application/json"
         reader = csv.DictReader(StringIO(resp))
         ret = set()
-        for row in reader:
+        lines = []
+        skipped = []
+        for row in tqdm(list(reader), desc=f"Export registrations of {task}"):
             emails = [row["email"]]
             ret.add(row["email"])
-            url = (
-                "https://www.tira.io/u/"
-                + row["initial_owner"]
-                + "/emails.json?context=%2Fu%2F"
-                + row["initial_owner"]
-                + "%2Fsummary"
-            )
-            tmp = requests.get(url=url, headers=headers, verify=self.verify)
+            owner_email = self._discourse_user_email(row["initial_owner"])
             time.sleep(0.5)
-            tmp = json.loads(tmp.content.decode("utf-8"))
-            if not "email" in tmp:
-                print("skip ", row["initial_owner"])
+            if owner_email:
+                ret.add(owner_email)
+                emails += [owner_email]
             else:
-                ret.add(tmp["email"])
-                emails += [tmp["email"]]
-            print(
+                skipped.append(row["initial_owner"])
+            group_emails = self.export_group_member_emails("tira_vm_" + self._slugify(row["team_name"]))
+            ret.update(group_emails)
+            lines.append(
                 json.dumps(
                     {
                         "team": row["team_name"],
                         "name": row["name"],
                         "affiliation": row["affiliation"],
                         "mails": list(set(emails)),
+                        "email-of-accounts-in-tira": group_emails,
                     }
                 )
             )
+
+        for user in skipped:
+            print("skip ", user)
+        for line in lines:
+            print(line)
         return ret
+
+    def export_task_submissions(self, task: str, vm: str, value: str, output_dir: "Union[str, Path]") -> Path:
+        """Download a task's custom team export (see the task's configured export buttons) for a given team.
+
+        Args:
+            task (str): The task id.
+            vm (str): The team/vm id whose submissions should be exported.
+            value (str): The export button's "value" to use (must be configured for the task).
+            output_dir (Union[str, Path]): Directory the resulting zip is written to.
+
+        Returns:
+            Path: The path to the downloaded zip file.
+
+        Raises:
+            ValueError: If the server rejects the request (e.g., export not configured, or would be empty).
+        """
+        url = f"{self.base_url}/task/{task}/export/{vm}/{value}.zip"
+        headers = self.authentication_headers(url)
+
+        resp = requests.get(url=url, headers=headers, verify=self.verify)
+        if resp.status_code < 200 or resp.status_code >= 300:
+            message = resp.content.decode("utf-8")
+            try:
+                message = json.loads(message).get("message", message)
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            raise ValueError(f"Could not export submissions of team '{vm}' for task '{task}': {message}")
+
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        target_file = output_dir / f"{task}-{vm}-{value}.zip"
+        with open(target_file, "wb") as f:
+            f.write(resp.content)
+
+        return target_file
 
     def load_resource(self, resource: str):
         """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional
@@ -1019,6 +1131,26 @@ class Client(TiraClient):
 
         return ret
 
+    def delete_run(self, team, dataset, run_id):
+        """Delete the run of the specified team and identified by the run_id (the run must be submitted on the
+        specified dataset). Raises a ValueError if the run could not be deleted (e.g., it is still needed)."""
+        ret = self.json_response(f"/grpc/{team}/run_delete/{dataset}/{run_id}")
+
+        if "status" not in ret or "0" != str(ret["status"]):
+            raise ValueError(f"Failed to delete the run. Got {ret}")
+
+        return ret
+
+    def evaluations_of_run(self, team, run_id):
+        """Return the run_ids of all evaluations that were run against the given run_id (the run must be
+        submitted by the given team), regardless of whether the evaluation succeeded or failed."""
+        ret = self.json_response(f"/api/evaluations_of_run/{team}/{run_id}")
+
+        if "status" not in ret or "0" != str(ret["status"]):
+            raise ValueError(f"Failed to load the evaluations of the run. Got {ret}")
+
+        return ret["context"]["evaluations"]
+
     def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory, rename_to=None):
         if expected_md5 is None or not expected_md5:
             raise ValueError("foo")
@@ -1209,8 +1341,6 @@ class Client(TiraClient):
         software_error: bool,
         comment: str,
     ):
-        dataset_id = "trec-28-deep-learning-passages-20250926-training"
-        team = "reneuir-baselines"
         review = {
             "no_errors": no_errors,
             "output_error": output_error,
@@ -1221,7 +1351,6 @@ class Client(TiraClient):
         ret = self.execute_post_return_json(
             f"/tira-admin/edit-review/{dataset_id}/{team}/{run_id}", json_payload=review
         )
-        print(ret)
 
         assert ret["status"] == 0
 
@@ -1285,6 +1414,12 @@ class Client(TiraClient):
 
     def running_jobs(self, task: str):
         return self.json_response(f"/v1/admin/active-jobs/admin/{task}")["context"]["jobs"]
+
+    def run_statistics(self, start: str, end: str) -> list:
+        """Per task: executed code submissions, run uploads, and unreviewed runs in the given ISO time range."""
+        # json_response is cached and needs hashable arguments, so the parameters go into the URL.
+        query = urlencode({"start": start, "end": end})
+        return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
@@ -1374,6 +1509,89 @@ class Client(TiraClient):
         else:
             print("\t" + fmt_message(f"The data is uploaded.", _fmt.OK))
         return resp
+
+    def upload_form_fields_for_task(self, task_id: str, force_reload: bool = False) -> "Optional[List[Dict[str, Any]]]":
+        """The custom upload metadata fields configured for a task (if any), via the cached /api/task/<task_id>
+        response. Mirrors the archived/cached-then-refresh pattern used elsewhere in this client (e.g. datasets())."""
+        try:
+            resp = self.archived_json_response(f"/api/task/{task_id}", force_reload=force_reload)
+        except Exception:
+            resp = self.archived_json_response(f"/api/task/{task_id}", force_reload=True)
+
+        return resp.get("context", {}).get("task", {}).get("upload_form_fields")
+
+    def validate_upload_metadata(
+        self, task_id: str, upload_metadata: "Optional[Dict[str, str]]"
+    ) -> "Optional[Dict[str, str]]":
+        """Validate custom metadata passed via --metadata against the task's configured upload_form_fields.
+
+        Uses the locally cached task configuration first. If the metadata does not match it (unknown field
+        names, or invalid values for "select" fields), the cache is refreshed once and the validation is retried
+        against the fresh configuration. If a mismatch still remains afterwards, the offending entries are
+        dropped (with a warning) instead of failing the whole upload.
+        """
+        if not upload_metadata:
+            return upload_metadata
+
+        fields = self.upload_form_fields_for_task(task_id, force_reload=False)
+        if fields and self._upload_metadata_mismatches(upload_metadata, fields):
+            fields = self.upload_form_fields_for_task(task_id, force_reload=True)
+
+        if not fields:
+            return upload_metadata
+
+        return self._sanitize_upload_metadata_against_fields(upload_metadata, fields)
+
+    @staticmethod
+    def _upload_metadata_mismatches(upload_metadata: "Dict[str, str]", fields: "List[Dict[str, Any]]") -> bool:
+        allowed_names = {f["name"] for f in fields if "name" in f}
+        for key, value in upload_metadata.items():
+            if key == "description":
+                continue
+            if key not in allowed_names:
+                return True
+            field = next((f for f in fields if f.get("name") == key), None)
+            if field and field.get("type") == "select":
+                allowed_options = {o["id"] for o in field.get("options", []) if "id" in o}
+                if value not in allowed_options:
+                    return True
+        return False
+
+    @staticmethod
+    def _sanitize_upload_metadata_against_fields(
+        upload_metadata: "Dict[str, str]", fields: "List[Dict[str, Any]]"
+    ) -> "Dict[str, str]":
+        allowed_names = {f["name"] for f in fields if "name" in f}
+        fields_by_name = {f["name"]: f for f in fields if "name" in f}
+        sanitized = {}
+
+        for key, value in upload_metadata.items():
+            if key != "description" and key not in allowed_names:
+                print(
+                    fmt_message(
+                        f'The metadata field "{key}" is not configured for this task and will be ignored.'
+                        " Please check --metadata or the task's submission page for the available fields.",
+                        _fmt.WARN,
+                    )
+                )
+                continue
+
+            field = fields_by_name.get(key)
+            if field and field.get("type") == "select":
+                allowed_options = {o["id"] for o in field.get("options", []) if "id" in o}
+                if value not in allowed_options:
+                    print(
+                        fmt_message(
+                            f'The value "{value}" is not a valid option for the metadata field "{key}"'
+                            f" (allowed: {sorted(allowed_options)}). This field will be ignored.",
+                            _fmt.WARN,
+                        )
+                    )
+                    continue
+
+            sanitized[key] = value
+
+        return sanitized
 
     def create_group(self, vm_id):
         if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:

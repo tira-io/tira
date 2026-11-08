@@ -362,6 +362,49 @@ class TestRunRemote(unittest.TestCase):
                         mount_cache=["$WORK_DIR=EMPTY_DIR"],
                     )
 
+    def test_run_remote_discovers_approaches_with_exactly_the_forwarded_environment_variables(self):
+        import pandas as pd
+
+        class DiscoveryClient(FakeRestClient):
+            def get_dataset(self, dataset):
+                return {"default_task": "task"}
+
+            def submissions(self, task, dataset):
+                return pd.DataFrame(
+                    [
+                        {"team": "team-a", "software": "software-a"},
+                        {"team": "team-a", "software": "software-a"},
+                        {"team": "team-b", "software": "software-b"},
+                        {"team": "team-c", "software": "software-c"},
+                    ]
+                )
+
+            def submissions_with_evaluation_or_none(self, task, dataset, team, software):
+                runs = super().submissions_with_evaluation_or_none(task, dataset, team, software)
+                if software == "software-c":
+                    runs[0]["evaluation"] = None
+                return runs
+
+        for forwarded, expected in [([], "task/team-a/software-a"), (["OPENAI_API_KEY"], "task/team-b/software-b")]:
+            DiscoveryClient.reset()
+
+            with patch("tira.tira_cli.RestClient", DiscoveryClient):
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    actual = run_remote(
+                        approach=None,
+                        dataset=["dataset-a"],
+                        resources="medium-resources",
+                        parallelism=2,
+                        forward_environment_variable=forwarded,
+                    )
+
+            lines = stdout.getvalue().strip().splitlines()
+            self.assertEqual(0, actual)
+            self.assertEqual([f"- {expected}"], [i for i in lines if i.startswith("- ")])
+            self.assertEqual("1 executions have already been finished, 0 executions are about to be started.", lines[2])
+            self.assertEqual([], DiscoveryClient.run_calls)
+
     def test_run_remote_starts_runs_until_each_approach_reaches_target(self):
         class RepeatedRunsRestClient(FakeRestClient):
             started_runs = 0
@@ -526,3 +569,46 @@ class TestRunRemote(unittest.TestCase):
 
         self.assertEqual(5, UnavailableRestClient.start_attempts)
         self.assertEqual(4, sleep_mock.call_args_list.count(unittest.mock.call(60)))
+
+    def test_parse_args_registers_force_continue(self):
+        original_argv = list(sys.argv)
+        try:
+            sys.argv = ["tira-cli", "run", "remote", "--dataset", "dataset-a", "--force-continue", "45"]
+            args = parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(45, args.force_continue)
+
+    def test_run_remote_force_continue_counts_hanging_execution_as_finished(self):
+        class HangingRestClient(FakeRestClient):
+            def run_software(self, *args, **kwargs):
+                pass
+
+        HangingRestClient.reset()
+        clock = iter([0, 10 * 60, 46 * 60, 47 * 60])
+
+        with (
+            patch("tira.tira_cli.RestClient", HangingRestClient),
+            patch("tira.tira_cli.time.sleep"),
+            patch("tira.tira_cli.time.monotonic", lambda: next(clock)),
+        ):
+            stdout = io.StringIO()
+            with patch.dict(os.environ, {}, clear=False), redirect_stdout(stdout):
+                actual = run_remote(
+                    approach=["task/team-b/software-c"],
+                    dataset=["dataset-a"],
+                    resources="medium-resources",
+                    parallelism=1,
+                    require=["evaluation.Model==Qwen/Qwen2.5-7B-Instruct"],
+                    force_continue=45,
+                )
+
+        self.assertEqual(0, actual)
+        lines = stdout.getvalue().strip().splitlines()
+        self.assertEqual(1, sum("is still running" in l or "are still running" in l for l in lines))
+        self.assertIn(
+            "Forcing continue: task/team-b/software-c on dataset-a did not finish within 45 minutes, assuming it is"
+            " finished.",
+            lines,
+        )

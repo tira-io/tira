@@ -5,7 +5,7 @@ import logging
 import time
 from pathlib import Path
 from platform import python_version
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
@@ -25,6 +25,8 @@ from tira.rest_api_client import RunSoftwareError
 from tira.tira_run import guess_dataset, guess_system_details, guess_vm_id_of_user
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from .tira_client import TiraClient
 
 
@@ -52,6 +54,14 @@ def positive_int(value: str) -> int:
     ret = int(value)
     if ret < 1:
         raise argparse.ArgumentTypeError("Value must be at least 1.")
+
+    return ret
+
+
+def positive_float(value: str) -> float:
+    ret = float(value)
+    if ret <= 0:
+        raise argparse.ArgumentTypeError("Value must be greater than 0.")
 
     return ret
 
@@ -167,8 +177,9 @@ def validate_required_forwarding(
     forward_environment_variable: "Optional[list[str]]",
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
+    allow_network_access: bool = False,
 ) -> bool:
-    miss_environment_variable, miss_mount = False, False
+    miss_environment_variable, miss_mount, miss_network = False, False, False
     mount_config = build_mount_config(mount_directory, mount_cache)
 
     if "forward_environment_variable" in system_details and system_details["forward_environment_variable"]:
@@ -199,7 +210,14 @@ def validate_required_forwarding(
         if miss_mount:
             log_message(msg, _fmt.ERROR)
 
-    return not miss_environment_variable and not miss_mount
+    if system_details.get("allow_network_access_on_request") and not allow_network_access:
+        miss_network = True
+        msg = f"The software {system_pretty} can request full network access, but it is not allowed by default.\n\n"
+        msg += f"Please allow full network access only when you trust the software {system_pretty}, as it could leak your credentials. "
+        msg += "If you trust the software, use the --allow-network-access flag in tira-cli."
+        log_message(msg, _fmt.ERROR)
+
+    return not miss_environment_variable and not miss_mount and not miss_network
 
 
 def _value_for_requirement_path(data: dict, path: str):
@@ -273,6 +291,12 @@ def matches_requirements(
 
 def setup_forwarding_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
+        "--allow-network-access",
+        action="store_true",
+        default=False,
+        help="Allow full network access for software that requests it. Only use this for software you trust, as it could leak forwarded credentials.",
+    )
+    parser.add_argument(
         "--forward-environment-variable",
         nargs="+",
         default=[],
@@ -308,6 +332,51 @@ def split_approach_identifier(approach_id: str) -> tuple[str, str, str]:
     return split_approach[0], split_approach[1], split_approach[2]
 
 
+def discover_approaches_with_evaluation(client: "TiraClient", datasets: "list[str]") -> "list[str]":
+    """Return all approaches (<task>/<team>/<software>) that have at least one run with a valid evaluation on one of
+    the datasets. The task of a dataset is its default task.
+    """
+    discovered: "list[str]" = []
+
+    for dataset_id in datasets:
+        task = client.get_dataset(dataset_id)["default_task"]
+        submissions = client.submissions(task, dataset_id)
+        if submissions is None or len(submissions) < 1:
+            continue
+
+        for _, row in submissions[["team", "software"]].drop_duplicates().iterrows():
+            approach_id = f"{task}/{row['team']}/{row['software']}"
+            if approach_id in discovered:
+                continue
+
+            runs = client.submissions_with_evaluation_or_none(task, dataset_id, row["team"], row["software"])
+            if any(run["evaluation"] for run in runs):
+                discovered.append(approach_id)
+
+    return discovered
+
+
+def filter_approaches_by_forwarded_environment_variables(
+    client: "TiraClient", approaches: "list[str]", forward_environment_variable: "Optional[list[str]]"
+) -> "list[str]":
+    """Keep only approaches that require exactly the forwarded environment variables. Approaches without private
+    system details (e.g., uploaded runs that are not docker software) are skipped.
+    """
+    expected = set(forward_environment_variable or [])
+    candidates: "list[str]" = []
+
+    for approach_id in approaches:
+        try:
+            system_details = client.private_system_details(approach_id)
+        except Exception:
+            continue
+
+        if set(system_details.get("forward_environment_variable") or []) == expected:
+            candidates.append(approach_id)
+
+    return candidates
+
+
 def runs_matching_requirements(
     client: "TiraClient",
     approach_id: str,
@@ -328,8 +397,12 @@ def build_remote_execution_payload(
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
     mount_combo: "Optional[dict[str, str]]" = None,
+    allow_network_access: bool = False,
 ) -> dict:
     payload = {}
+    if allow_network_access:
+        payload["allow_network_access"] = True
+
     forwarded_environment = environment_variables_to_forward(forward_environment_variable)
     if forwarded_environment:
         payload["forward_environment_variable"] = forwarded_environment
@@ -477,6 +550,44 @@ def admin_export_registrations(task: list[str], **kwargs) -> int:
     return 0
 
 
+def admin_export_submissions(task: str, vm: list[str], value: str, output: str, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    for team in vm:
+        try:
+            target_file = client.export_task_submissions(task, team, value, output)
+            print(fmt_message(f"Exported submissions of team '{team}' to {target_file}.", _fmt.OK))
+        except ValueError as e:
+            print(fmt_message(str(e), _fmt.ERROR))
+            return 1
+    return 0
+
+
+def admin_run_statistics(start: Optional[str] = None, end: Optional[str] = None, **kwargs) -> int:
+    from datetime import datetime, timedelta
+
+    from_now = start is None and end is None
+    # The defaults cover the 10 days before now + 2 days (a buffer for clock/timezone differences).
+    if end is None:
+        end = (datetime.now() + timedelta(days=2)).isoformat(timespec="seconds")
+    if start is None:
+        start = (datetime.fromisoformat(end) - timedelta(days=10)).isoformat(timespec="seconds")
+
+    client: "TiraClient" = RestClient()
+    try:
+        statistics = client.run_statistics(start, end)
+    except Exception as e:
+        print(fmt_message(f"Could not fetch run statistics: {e}", _fmt.ERROR))
+        return 1
+
+    print(f"Run statistics from now to {start}" if from_now else f"Run statistics from {start} to {end}")
+    header = ("task", "executed_code_submissions", "run_uploads", "unreviewed")
+    rows = [header] + [tuple(str(row[k]) for k in header) for row in statistics]
+    widths = [max(len(r[i]) for r in rows) for i in range(len(header))]
+    for r in rows:
+        print("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
+    return 0
+
+
 def admin_batch_execution(task: str, resources: str, **kwargs) -> int:
     import time
 
@@ -537,6 +648,304 @@ def admin_batch_unblind(task: str, **kwargs) -> int:
     return 0
 
 
+def _parse_tira_id_timestamp(value: str) -> "Optional[datetime]":
+    """Parse a TIRA-style timestamp (as produced by ``tira.io_utils.get_tira_id``,
+    i.e., ``%Y-%m-%d-%H-%M-%S`` optionally followed by a ``-<uuid-prefix>`` suffix) and return ``None`` if it can
+    not be parsed."""
+    from datetime import datetime
+
+    try:
+        # A timestamp has 19 characters; ignore the random suffix of newer ids.
+        return datetime.strptime(value[:19], "%Y-%m-%d-%H-%M-%S")
+    except ValueError:
+        return None
+
+
+def _evaluation_timestamp(evaluation_run_id: str) -> "Optional[datetime]":
+    """Extract the datetime at which an evaluation run was created from its run_id.
+
+    Evaluation run_ids have the form ``<evaluation-timestamp>-evaluates-<evaluated-run-id>``
+    (e.g., ``2026-10-02-21-09-11-1a2b3c4d-evaluates-2026-10-02-23-08-58-5e6f7a8b``), so the timestamp is the
+    prefix before ``-evaluates-``.
+    """
+    if "-evaluates-" not in evaluation_run_id:
+        return None
+
+    return _parse_tira_id_timestamp(evaluation_run_id.split("-evaluates-")[0])
+
+
+def _is_reviewed_as_erroneous(run) -> bool:
+    """True if the run's review marks it as having errors (so evaluating it would be pointless)."""
+    for key in ("review_hasErrors", "review_hasErrorOutput"):
+        value = run.get(key, False)
+        if value is True or (isinstance(value, (int, float)) and value == value and bool(value)):
+            return True
+    return False
+
+
+def _runs_without_recent_evaluation(submissions, evaluations, after_datetime: "datetime") -> list:
+    """Return submissions (as dicts with run_id/team/latest_evaluation) that have no evaluation after
+    ``after_datetime``, excluding evaluation runs themselves, deleted runs, and runs whose software/code
+    submission (i.e., the software, docker-software, or upload that produced the run) has been deleted."""
+    latest_evaluation_of_run: "dict[str, datetime]" = {}
+    for _, evaluation in evaluations.iterrows():
+        timestamp = _evaluation_timestamp(evaluation["evaluation_run_id"])
+        if timestamp is None:
+            continue
+
+        run_id = evaluation["run_id"]
+        if run_id not in latest_evaluation_of_run or timestamp > latest_evaluation_of_run[run_id]:
+            latest_evaluation_of_run[run_id] = timestamp
+
+    ret = []
+    for _, run in submissions.iterrows():
+        if run.get("is_evaluation", False) or run.get("deleted", False) or run.get("software_deleted", False):
+            continue
+
+        run_id = run["run_id"]
+        latest_evaluation = latest_evaluation_of_run.get(run_id)
+        if latest_evaluation is None or latest_evaluation <= after_datetime:
+            software = run.get("software")
+            ret.append(
+                {
+                    "run_id": run_id,
+                    "team": run["team"],
+                    "software": software if isinstance(software, str) and software else "unknown",
+                    "latest_evaluation": latest_evaluation,
+                    "reviewed_as_erroneous": _is_reviewed_as_erroneous(run),
+                }
+            )
+
+    return ret
+
+
+def _is_reviewed_as_no_error(run) -> bool:
+    # missing values in the submissions data frame are NaN, which must not count as true
+    return all(
+        run.get(key, False) is True or run.get(key, False) == 1 for key in ("review_hasNoErrors", "review_noErrors")
+    )
+
+
+def _evaluations_to_mark_as_no_error(submissions, evaluations) -> list:
+    """Return evaluation runs (dicts with run_id, evaluation_run_id, team) that produced scores (i.e., are listed in
+    ``evaluations``) and are not yet reviewed as "no errors", although the evaluated run is reviewed as "no errors"."""
+    reviewed_as_no_error: "dict[tuple, bool]" = {}
+    for _, run in submissions.iterrows():
+        reviewed_as_no_error[(run["team"], run["run_id"])] = _is_reviewed_as_no_error(run)
+
+    ret = []
+    for _, evaluation in evaluations.iterrows():
+        team, run_id, evaluation_run_id = evaluation["team"], evaluation["run_id"], evaluation["evaluation_run_id"]
+        if not reviewed_as_no_error.get((team, run_id), False):
+            continue
+        if reviewed_as_no_error.get((team, evaluation_run_id), False):
+            continue
+        ret.append({"run_id": run_id, "evaluation_run_id": evaluation_run_id, "team": team})
+
+    return ret
+
+
+def _mark_evaluations_as_no_error(client: "TiraClient", dataset: str, evaluations_to_mark: list) -> None:
+    for i in evaluations_to_mark:
+        try:
+            client.review_run(i["evaluation_run_id"], dataset, i["team"], True, False, False, "")
+            print(fmt_message(f"Marked evaluation {i['evaluation_run_id']} of run {i['run_id']} as no error.", _fmt.OK))
+        except Exception as e:
+            log_message(f"Could not mark evaluation {i['evaluation_run_id']} as no error: {e}", _fmt.WARN)
+
+
+def _evaluate_run_with_retries(client: "TiraClient", dataset: str, run: dict, max_attempts: int = 3) -> None:
+    """Try to (re-)start the evaluation of ``run`` up to ``max_attempts`` times, sleeping 10s between attempts.
+    Prints a warning for each failed attempt and an error if all attempts failed."""
+    import time
+
+    last_error: "Optional[Exception]" = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            client.evaluate_run(run["team"], dataset, run["run_id"])
+            return
+        except Exception as e:
+            last_error = e
+            log_message(f"Attempt {attempt}/{max_attempts} to evaluate run {run['run_id']} failed: {e}", _fmt.WARN)
+        time.sleep(10)
+
+    print(
+        fmt_message(
+            f"Failed to start evaluation for run {run['run_id']} (team {run['team']}) after {max_attempts}"
+            f" attempts: {last_error}",
+            _fmt.ERROR,
+        )
+    )
+
+
+def _recently_attempted_evaluation(
+    client: "TiraClient", team: str, run_id: str, after_datetime: "datetime"
+) -> "Optional[str]":
+    """Return the (most recent) evaluation_run_id of an evaluation attempt of ``run_id`` (submitted by ``team``)
+    that was started after ``after_datetime``, or ``None`` if no such attempt exists.
+
+    Unlike ``client.evaluations()`` (which only lists evaluations that produced measures, i.e., succeeded),
+    this uses the ``evaluations_of_run`` endpoint, which lists ALL evaluation attempts of a run, including
+    failed ones. This is used to avoid endlessly re-triggering evaluation of a run whose evaluator keeps
+    failing: such a run would otherwise never show up as "evaluated" via ``client.evaluations()``, even
+    though a recent evaluation attempt already exists.
+    """
+    try:
+        evaluation_run_ids = client.evaluations_of_run(team, run_id)
+    except Exception as e:
+        log_message(f"Could not check existing evaluation attempts for run {run_id}: {e}", _fmt.WARN)
+        return None
+
+    latest: "Optional[tuple[str, datetime]]" = None
+    for evaluation_run_id in evaluation_run_ids:
+        timestamp = _evaluation_timestamp(evaluation_run_id)
+        if timestamp is None or timestamp <= after_datetime:
+            continue
+        if latest is None or timestamp > latest[1]:
+            latest = (evaluation_run_id, timestamp)
+
+    return latest[0] if latest else None
+
+
+def _old_evaluations_to_delete(evaluations, after_datetime: "datetime", triggered_run_ids: set) -> list:
+    """Return evaluation runs (dicts with run_id, evaluation_run_id, team) that are older than
+    ``after_datetime`` and whose evaluated run is not in ``triggered_run_ids`` (i.e., no new evaluation was
+    triggered for it in this invocation). These are now-stale/superseded evaluations: since the run was not
+    in ``triggered_run_ids``, it already has a more recent evaluation (see ``_runs_without_recent_evaluation``),
+    so deleting the old one is safe."""
+    ret = []
+    for _, evaluation in evaluations.iterrows():
+        run_id = evaluation["run_id"]
+        if run_id in triggered_run_ids:
+            continue
+
+        timestamp = _evaluation_timestamp(evaluation["evaluation_run_id"])
+        if timestamp is None or timestamp > after_datetime:
+            continue
+
+        ret.append({"run_id": run_id, "evaluation_run_id": evaluation["evaluation_run_id"], "team": evaluation["team"]})
+
+    return ret
+
+
+def _delete_old_evaluation(client: "TiraClient", dataset: str, evaluation: dict) -> None:
+    """Print what is about to be deleted, wait 5 seconds, and then delete the (now stale) evaluation run."""
+    import time
+
+    print(
+        fmt_message(
+            f"Deleting outdated evaluation {evaluation['evaluation_run_id']} of run {evaluation['run_id']} (team"
+            f" {evaluation['team']}, dataset {dataset})...",
+            _fmt.WARN,
+        )
+    )
+    time.sleep(5)
+
+    try:
+        client.delete_run(evaluation["team"], dataset, evaluation["evaluation_run_id"])
+    except Exception as e:
+        log_message(f"Could not delete outdated evaluation {evaluation['evaluation_run_id']}: {e}", _fmt.WARN)
+
+
+def _classify_runs_without_recent_evaluation(
+    client: "TiraClient", runs_without_recent_evaluation: list, after_datetime: "datetime"
+) -> "tuple[list, list]":
+    """Split ``runs_without_recent_evaluation`` into runs that still need a new evaluation to be triggered, and
+    runs that already have a recent (but failed, i.e., not visible via ``client.evaluations()``) evaluation
+    attempt and should therefore not be re-triggered. See ``_recently_attempted_evaluation``."""
+    runs_to_evaluate = []
+    recently_attempted = []
+    for i in runs_without_recent_evaluation:
+        if i["latest_evaluation"] is not None:
+            # has an (old) evaluation: no need to look for failed attempts or reviews
+            runs_to_evaluate.append(i)
+            continue
+
+        if i.get("reviewed_as_erroneous", False):
+            continue
+
+        # only runs without any evaluation need the (expensive) per-run lookup of evaluation attempts
+        attempt_run_id = _recently_attempted_evaluation(client, i["team"], i["run_id"], after_datetime)
+        if attempt_run_id is not None:
+            recently_attempted.append({**i, "evaluation_run_id": attempt_run_id})
+        else:
+            runs_to_evaluate.append(i)
+
+    return runs_to_evaluate, recently_attempted
+
+
+def _report_runs_without_recent_evaluation(
+    dataset: str, after: str, runs_to_evaluate: list, recently_attempted: list
+) -> None:
+    print(
+        fmt_message(
+            f"Found {len(runs_to_evaluate) + len(recently_attempted)} run(s) of dataset {dataset} without a"
+            f" successful evaluation after {after}:",
+            _fmt.WARN,
+        )
+    )
+    for i in runs_to_evaluate:
+        reason = "no evaluation" if i["latest_evaluation"] is None else f"last evaluated at {i['latest_evaluation']}"
+        print(f"  - run {i['run_id']} (team {i['team']}, software {i.get('software', 'unknown')}): {reason}")
+    for i in recently_attempted:
+        print(
+            f"  - run {i['run_id']} (team {i['team']}, software {i.get('software', 'unknown')}): recently attempted"
+            f" (evaluation"
+            f" {i['evaluation_run_id']}), still no successful evaluation -- skipping re-trigger"
+        )
+
+
+def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
+    import time
+
+    from tqdm import tqdm
+
+    client: "TiraClient" = RestClient()
+
+    after_datetime = _parse_tira_id_timestamp(after)
+    if after_datetime is None:
+        print(fmt_message(f'Could not parse "{after}" as a datetime of the form "YYYY-MM-DD-HH-MM-SS".', _fmt.ERROR))
+        return 1
+
+    dataset_details = client.get_dataset(dataset)
+    task = dataset_details["default_task"]
+
+    submissions = client.submissions(task, dataset)
+    evaluations = client.evaluations(task, dataset, join_submissions=False)
+    _mark_evaluations_as_no_error(client, dataset, _evaluations_to_mark_as_no_error(submissions, evaluations))
+    runs_without_recent_evaluation = _runs_without_recent_evaluation(submissions, evaluations, after_datetime)
+
+    # client.evaluations() only lists evaluations that succeeded (have measures). A run whose evaluator keeps
+    # failing would therefore always show up here, causing it to be re-triggered forever. To avoid that, check
+    # per-run (via evaluations_of_run) whether a recent evaluation attempt already exists, even if it failed.
+    runs_to_evaluate, recently_attempted = _classify_runs_without_recent_evaluation(
+        client, runs_without_recent_evaluation, after_datetime
+    )
+
+    if not runs_to_evaluate and not recently_attempted:
+        print(fmt_message(f"All runs of dataset {dataset} have an evaluation after {after}.", _fmt.OK))
+    else:
+        _report_runs_without_recent_evaluation(dataset, after, runs_to_evaluate, recently_attempted)
+
+        if runs_to_evaluate:
+            print(fmt_message("Starting evaluation for the affected runs...", _fmt.OK))
+            for i in tqdm(runs_to_evaluate, "Starting evaluations"):
+                _evaluate_run_with_retries(client, dataset, i)
+                time.sleep(10)
+
+    # Only delete outdated evaluations for runs for which no new evaluation was triggered above: those runs
+    # already have a more recent evaluation (successful or, per recently_attempted, at least attempted), so
+    # any older evaluation of them is a safe-to-remove duplicate.
+    triggered_run_ids = {i["run_id"] for i in runs_to_evaluate}
+    old_evaluations = _old_evaluations_to_delete(evaluations, after_datetime, triggered_run_ids)
+    if old_evaluations:
+        print(fmt_message(f"Deleting {len(old_evaluations)} outdated evaluation(s)...", _fmt.OK))
+        for i in old_evaluations:
+            _delete_old_evaluation(client, dataset, i)
+
+    return 0
+
+
 def admin_export_rag_responses(runs: str, evals: str, output: str, **kwargs) -> int:
     output_file = export_rag_responses(Path(runs), Path(evals), Path(output))
     print(fmt_message(f"Wrote {output_file}.", _fmt.OK))
@@ -566,6 +975,39 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="The task(s) for which all registrations should be exported.",
     )
     export_registrations.set_defaults(executable=admin_export_registrations)
+
+    export_submissions = subparsers.add_parser(
+        "export-submissions", help="Export all submissions of one or more teams for a task as zip files."
+    )
+    export_submissions.add_argument("--task", required=True, help="The task to export submissions for.")
+    export_submissions.add_argument(
+        "--vm",
+        required=True,
+        nargs="+",
+        default=[],
+        help="The team(s)/vm(s) whose submissions should be exported.",
+    )
+    export_submissions.add_argument(
+        "--value",
+        required=True,
+        help="The export button's value to use (must be configured for the task, see the task's settings).",
+    )
+    export_submissions.add_argument(
+        "--output", default=".", help="Directory the exported zip file(s) are written to. Defaults to '.'."
+    )
+    export_submissions.set_defaults(executable=admin_export_submissions)
+
+    run_statistics = subparsers.add_parser(
+        "run-statistics",
+        help="Per task: executed code submissions, run uploads, and how many of them are not yet reviewed.",
+    )
+    run_statistics.add_argument(
+        "--start", help="Start of the range (ISO, e.g., 2024-01-31T12:00:00). Defaults to --end minus 10 days."
+    )
+    run_statistics.add_argument(
+        "--end", help="End of the range (ISO, e.g., 2024-02-29T12:00:00). Defaults to now plus 2 days."
+    )
+    run_statistics.set_defaults(executable=admin_run_statistics)
 
     irds_parser = subparsers.add_parser("ir-datasets-loader-cli", help="Run the ir-datasets-loader cli")
     irds_parser.add_argument("--ir-datasets-id", required=True)
@@ -598,6 +1040,26 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     )
     export_parser.set_defaults(executable=admin_export_rag_responses)
 
+    re_run_evaluations_parser = subparsers.add_parser(
+        "re-run-evaluations",
+        help=(
+            "Identify runs of a dataset that have no successful evaluation after a given datetime (e.g., after an"
+            " evaluator update), start a new evaluation for each of them (skipping runs for which a recent, even"
+            " if failed, evaluation attempt already exists), and delete now-outdated evaluations of runs for"
+            " which no new evaluation needed to be triggered."
+        ),
+    )
+    re_run_evaluations_parser.add_argument("--dataset", required=True, help="The dataset to check.")
+    re_run_evaluations_parser.add_argument(
+        "--after",
+        required=True,
+        help=(
+            "Only evaluations created after this datetime (format: YYYY-MM-DD-HH-MM-SS, like the TIRA run-id"
+            " timestamps) count as up to date."
+        ),
+    )
+    re_run_evaluations_parser.set_defaults(executable=admin_re_run_evaluations)
+
 
 def run_local(
     input: str,
@@ -609,6 +1071,7 @@ def run_local(
     mount_directory: "Optional[list[str]]",
     mount_cache: "Optional[list[str]]",
     compile_from_code: bool = False,
+    allow_network_access: bool = False,
     **kwargs,
 ) -> int:
     from glob import glob
@@ -668,6 +1131,7 @@ def run_local(
         forward_environment_variable,
         mount_directory,
         mount_cache,
+        allow_network_access,
     ):
         return 1
 
@@ -700,7 +1164,7 @@ def run_local(
             command=system_details["command"],
             input_dir=system_inputs,
             output_dir=i,
-            allow_network=False,
+            allow_network=bool(allow_network_access and system_details.get("allow_network_access_on_request")),
             additional_volumes=None,
             gpu_device_ids=None,
             forward_environment_variables=system_details["forward_environment_variable"],
@@ -770,6 +1234,8 @@ def run_remote(
     mount_directory: "Optional[list[str]]" = None,
     mount_cache: "Optional[list[str]]" = None,
     run_on: "Optional[list[str]]" = None,
+    allow_network_access: bool = False,
+    force_continue: "Optional[float]" = None,
     **kwargs,
 ) -> int:
     client: "TiraClient" = RestClient()
@@ -778,6 +1244,14 @@ def run_remote(
     finished_executions = 0
     metadata_cache: "dict" = {}
     run_on_by_variable = parse_run_on(run_on)
+
+    if not approach:
+        approach = filter_approaches_by_forwarded_environment_variables(
+            client, discover_approaches_with_evaluation(client, dataset), forward_environment_variable
+        )
+        print(f"Discovered {len(approach)} candidate approaches with a valid evaluation on {dataset}:")
+        for approach_id in approach:
+            print(f"- {approach_id}")
 
     for dataset_id in dataset:
         runs_with_evaluations[dataset_id] = []
@@ -818,6 +1292,7 @@ def run_remote(
             forward_environment_variable,
             mount_directory,
             mount_cache,
+            allow_network_access,
         ):
             return 1
 
@@ -846,6 +1321,8 @@ def run_remote(
                 mount_directory,
                 mount_cache,
                 execution["mount_combo"],
+                allow_network_access
+                and bool(software_details[execution["approach"]].get("allow_network_access_on_request")),
             )
             for attempt in range(1, 6):
                 try:
@@ -867,6 +1344,7 @@ def run_remote(
                     )
                     time.sleep(60)
 
+            execution["started_at"] = time.monotonic()
             running_executions.append(execution)
             print(
                 f'Started {execution["approach"]} on {execution["dataset"]}. '
@@ -878,18 +1356,28 @@ def run_remote(
             client.clear_json_response_cache()
 
         finished_running_executions = []
+        timed_out_executions = []
         for execution in running_executions:
             _, matching_runs = runs_matching_requirements(
                 client, execution["approach"], execution["dataset"], require, execution["mount_combo"], metadata_cache
             )
             if len(matching_runs) >= execution["required_matching_runs"]:
                 finished_running_executions.append(execution)
+            elif force_continue is not None and time.monotonic() - execution["started_at"] >= force_continue * 60:
+                timed_out_executions.append(execution)
 
-        if finished_running_executions:
+        if finished_running_executions or timed_out_executions:
             for execution in finished_running_executions:
                 running_executions.remove(execution)
                 finished_executions += 1
                 print(f'Finished {execution["approach"]} on {execution["dataset"]}.')
+            for execution in timed_out_executions:
+                running_executions.remove(execution)
+                finished_executions += 1
+                print(
+                    f'Forcing continue: {execution["approach"]} on {execution["dataset"]} did not finish within '
+                    + f"{force_continue:g} minutes, assuming it is finished."
+                )
         elif running_executions:
             running_count = len(running_executions)
             pending_count = len(execution_queue)
@@ -960,8 +1448,13 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
     remote.add_argument(
         "--approach",
         nargs="+",
-        required=True,
-        help="One or more approaches to execute. All provided values are combined as a Cartesian product.",
+        required=False,
+        default=None,
+        help=(
+            "One or more approaches to execute. All provided values are combined as a Cartesian product. "
+            "If omitted, all approaches that have a valid evaluation on one of the datasets and that require exactly "
+            "the forwarded environment variables are used."
+        ),
     )
     remote.add_argument(
         "--dataset",
@@ -994,6 +1487,17 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
         default=500,
         type=positive_int,
         help="How many seconds to wait between checks for completed remote executions.",
+    )
+    remote.add_argument(
+        "--force-continue",
+        required=False,
+        default=None,
+        type=positive_float,
+        metavar="MINUTES",
+        help=(
+            "If an execution did not finish (i.e., no matching run exists) this many minutes after it was started, "
+            "assume it is finished, count it as finished, and continue with the pending executions."
+        ),
     )
     remote.add_argument(
         "--require",
@@ -1067,10 +1571,12 @@ def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--allow-network",
+        "--allow-network-access",
+        dest="allow_network",
         required=False,
         default=False,
         action="store_true",
-        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access",
+        help="Allow network communication. Within TIRA itself, software is executed in a sandbox without internet access. When uploading the software, this marks the software as allowed to request full network access at start time (only possible if the task allows it).",
     )
     parser.add_argument(
         "--task",
@@ -1225,6 +1731,17 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument("--tira-vm-id", required=False, default=None, help="The team to upload to TIRA.")
+    parser.add_argument(
+        "--metadata",
+        action="append",
+        default=None,
+        metavar="KEY=VALUE",
+        help=(
+            "Custom metadata field to attach to the uploaded run, e.g. --metadata track=main. Can be passed"
+            " multiple times. Available fields depend on the task's upload configuration. Only supported for"
+            " authenticated uploads (not --anonymous)."
+        ),
+    )
     parser.set_defaults(executable=upload_command)
 
 
@@ -1470,6 +1987,24 @@ def verify_installation_command(task, team, local_only=False, **kwargs) -> int:
     return 0 if status == _fmt.OK else 1
 
 
+def parse_metadata_args(metadata_args: "Optional[List[str]]") -> "Optional[dict]":
+    """Parse repeated --metadata KEY=VALUE CLI arguments into a dict."""
+    if not metadata_args:
+        return None
+
+    parsed = {}
+    for entry in metadata_args:
+        if "=" not in entry:
+            raise ValueError(
+                f'Invalid --metadata entry "{entry}". Please use the form --metadata KEY=VALUE, e.g. --metadata'
+                " track=main."
+            )
+        key, value = entry.split("=", 1)
+        parsed[key.strip()] = value
+
+    return parsed
+
+
 def upload_command(
     dataset: "Optional[str]",
     directory: Path,
@@ -1478,12 +2013,20 @@ def upload_command(
     default_task: "Optional[str]" = None,
     tira_vm_id: "Optional[str]" = None,
     anonymous: "Optional[bool]" = False,
+    metadata: "Optional[List[str]]" = None,
     **kwargs,
 ) -> int:
     if not directory or not Path(directory).is_dir():
         msg = f"The directory passed via --directory does not exist. Got {directory}"
         print(fmt_message(msg, _fmt.ERROR))
         return 1
+
+    try:
+        upload_metadata = parse_metadata_args(metadata)
+    except ValueError as e:
+        print(fmt_message(str(e), _fmt.ERROR))
+        return 1
+
     client: "RestClient" = RestClient()
     api_key_is_valid = client.api_key_is_valid()
 
@@ -1524,6 +2067,8 @@ def upload_command(
         system_details = guess_system_details(directory, system)
         dataset_info = client.get_dataset(dataset=dataset)
         default_task = dataset_info["default_task"]
+        if upload_metadata and default_task:
+            upload_metadata = client.validate_upload_metadata(default_task, upload_metadata)
         if system_details and "team" in system_details and not system:
             tira_vm_id = str(system_details["team"])
             system = tira_vm_id
@@ -1555,6 +2100,15 @@ def upload_command(
 
     if dry_run and not system:
         system = "vm_id"
+
+    if upload_metadata and (not system or not vm_id) and not dry_run:
+        print(
+            fmt_message(
+                "Custom --metadata fields are only supported for authenticated uploads. The run will be"
+                " uploaded without the custom metadata fields.",
+                _fmt.WARN,
+            )
+        )
 
     resp = client.upload_run_anonymous(directory, dataset, dry_run, verbose=not system and not vm_id)
 
@@ -1589,6 +2143,20 @@ def upload_command(
                 )
             )
             return 1
+
+        if upload_metadata:
+            description = upload_metadata.get("description") or system_details.get(
+                "description", "todo: Add a description"
+            )
+            client.update_upload_metadata(
+                default_task,
+                vm_id,
+                resp["upload_group"],
+                system_details["tag"],
+                description,
+                upload_metadata,
+            )
+
         msg = (
             f"Done. Your run is available as {system_details['tag']} "
             + f"at:\n\thttps://www.tira.io/submit/{default_task}/user/{vm_id}/upload-submission"

@@ -443,6 +443,7 @@ class TestGetAllUploadsForVm(TestCase):
 
         entry = by_run_id["upload-run-without-eval"]
         self.assertEqual("upload-run-without-eval", entry["run_id"])
+        self.assertEqual(self.upload.id, entry["upload_id"])
 
     def test_run_with_one_evaluation_exposes_evaluation_run_id(self):
         keylist, evaluations = tira_model.get_all_uploads_for_vm("uploads-eval-vm")
