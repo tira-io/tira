@@ -375,6 +375,24 @@ this information as well whenever you file a bug ticket for the CLI.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">run</span> <span class="pre">local</span> <span class="pre">--help</span></code> for resource limits, environment forwarding, and directory mounts. To execute an
 unregistered image directly, continue to use <code class="docutils literal notranslate"><span class="pre">tira-run</span> <span class="pre">--image</span> <span class="pre">...</span> <span class="pre">--command</span> <span class="pre">...</span></code>.</p>
 </section>
+<section id="tira-cli-run-remote">
+<h2>tira-cli run remote<a class="headerlink" href="#tira-cli-run-remote" title="Link to this heading">¶</a></h2>
+<p>Start remote executions of approaches on one or more datasets in TIRA:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>run<span class="w"> </span>remote<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--approach<span class="w"> </span>trec-auto-judge/webis/Naive-AutoJudge<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset<span class="w"> </span>kiddie-20260605-training
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--approach</span></code> argument is optional. If it is omitted, <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> discovers all approaches that already have a
+valid evaluation on one of the <code class="docutils literal notranslate"><span class="pre">--dataset</span></code> datasets and that require exactly the environment variables passed via
+<code class="docutils literal notranslate"><span class="pre">--forward-environment-variable</span></code>. The discovered approaches are printed first, and then only the executions that
+are still missing are started on all given datasets:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira-cli<span class="w"> </span>run<span class="w"> </span>remote<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dataset<span class="w"> </span>kiddie-20260605-training<span class="w"> </span>kiddie-20260605-test<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--forward-environment-variable<span class="w"> </span>OPENAI_API_KEY
+</pre></div>
+</div>
+</section>
 <section id="tira-cli-upload">
 <h2>tira-cli upload<a class="headerlink" href="#tira-cli-upload" title="Link to this heading">¶</a></h2>
 <div class="admonition-todo admonition" id="id2">
@@ -463,6 +481,7 @@ subdirectory named after its TIRA run ID:</p>
 <li><a class="reference internal" href="#tira-cli-login">tira-cli login</a></li>
 <li><a class="reference internal" href="#tira-cli-verify-installation">tira-cli verify-installation</a></li>
 <li><a class="reference internal" href="#tira-cli-run-local">tira-cli run local</a></li>
+<li><a class="reference internal" href="#tira-cli-run-remote">tira-cli run remote</a></li>
 <li><a class="reference internal" href="#tira-cli-upload">tira-cli upload</a></li>
 <li><a class="reference internal" href="#tira-cli-download">tira-cli download</a></li>
 </ul>
