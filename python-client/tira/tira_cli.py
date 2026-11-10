@@ -1833,7 +1833,7 @@ def dataset_submission_command(
         skip_baseline=skip_baseline,
         forward_environment_variable=forward_environment_variable,
     )
-    return 0 if ret and "inputs_zip" in ret else 1
+    return 0 if ret and ("inputs_zip" in ret or "coding_agent_results" in ret) else 1
 
 
 def _reconstruct_code_submission_command(

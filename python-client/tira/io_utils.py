@@ -966,6 +966,7 @@ def all_environment_variables_for_github_action_or_fail(params):
 NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS = [
     {"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"},
     {"ORBIT_API_BASE"},
+    {"COPILOT_PROVIDER_TYPE", "COPILOT_MODEL", "COPILOT_PROVIDER_BASE_URL", "COPILOT_PROVIDER_API_KEY"},
 ]
 
 # Maps a group of environment variables (as a frozenset, so it can be used as a dict key) to the
@@ -974,6 +975,9 @@ NETWORK_ACCESS_ENVIRONMENT_VARIABLE_GROUPS = [
 NETWORK_ACCESS_HOSTNAME_VARIABLE_BY_GROUP = {
     frozenset({"OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"}): "OPENAI_BASE_URL",
     frozenset({"ORBIT_API_BASE"}): "ORBIT_API_BASE",
+    frozenset(
+        {"COPILOT_PROVIDER_TYPE", "COPILOT_MODEL", "COPILOT_PROVIDER_BASE_URL", "COPILOT_PROVIDER_API_KEY"}
+    ): "COPILOT_PROVIDER_BASE_URL",
 }
 
 

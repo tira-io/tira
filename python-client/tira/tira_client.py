@@ -409,7 +409,9 @@ class TiraClient(ABC):
 
         return baseline_path, baseline_path, None
 
-    def _resolve_evaluator_image(self, dataset_path: Path, evaluator_config: dict, image: str, print_message) -> str:
+    def _resolve_evaluator_image(
+        self, dataset_path: Path, evaluator_config: dict, image: str, print_message, dry_run: bool = False
+    ) -> str:
         """If `image` refers to a local directory (or a Git '/tree/main/' link, using the same
         convention as the baseline's `link`), the evaluator is always built into a Docker image from
         that code using the existing baseline build methodology (`_resolve_baseline_source` and
@@ -436,7 +438,7 @@ class TiraClient(ABC):
             docker_file = docker_file_root / Path(evaluator_config["file"])
 
         docker_tag, _, _, _, _, _ = self.build_docker_image_from_code(
-            evaluator_path, print_message, False, docker_file=docker_file
+            evaluator_path, print_message, dry_run, docker_file=docker_file
         )
         print_message(f"The evaluator {evaluator_path} is embedded in a Docker image.", _fmt.OK)
         return docker_tag
@@ -1044,6 +1046,58 @@ class TiraClient(ABC):
                         + "\n"
                     )
 
+    def _submit_coding_agent_dataset(
+        self, path: Path, dry_run: bool, skip_baseline: bool, forward_environment_variable, print_message
+    ):
+        """A dataset of coding agent tasks (see documentation/organizers/coding-agent-tasks.rst): the baseline
+        is an agent (built from `tira_configs.baseline.link`, executed via `tira_configs.baseline.command`) that
+        is run with the `sandboxed-coding-agent` workflow on every task declared in the `tasks` of the README."""
+        from huggingface_hub import DatasetCard
+
+        from tira.coding_agent_workflows import tasks_of_dataset
+        from tira.workflows import run_workflow
+
+        if not dry_run:
+            print_message("Uploading datasets of coding agent tasks is not yet supported, use --dry-run.", _fmt.ERROR)
+            return None
+
+        try:
+            tasks = tasks_of_dataset(path)
+        except ValueError as e:
+            print_message(str(e), _fmt.ERROR)
+            return None
+
+        print_message(f"The dataset declares the tasks: {', '.join(tasks)}.", _fmt.OK)
+        if skip_baseline:
+            return {"coding_agent_results": None}
+
+        baseline = (DatasetCard.load(str(path / "README.md")).data.get("tira_configs") or {}).get("baseline") or {}
+        if "link" not in baseline or "command" not in baseline:
+            print_message("The 'tira_configs.baseline' needs a 'link' and a 'command' to run the agent.", _fmt.ERROR)
+            return None
+
+        # The agent runs in the devcontainer of each task; the baseline directory only holds its scripts.
+        agent_directory = path / baseline["link"]
+        configuration = {
+            "dataset_directory": str(path),
+            "allowed_hostnames": baseline.get("allowed_hostnames", []),
+            "agent_directory": str(agent_directory),
+            "agent_steps": baseline.get("steps", []),
+        }
+        if baseline.get("stop_after_step"):
+            configuration["stop_after_step"] = baseline["stop_after_step"]
+
+        result = run_workflow(
+            system_inputs=path,
+            workflow="sandboxed-coding-agent",
+            workflow_configuration=configuration,
+            software={"command": baseline["command"]},
+            tira=self,
+            forward_environment_variables=forward_environment_variable,
+        )
+        print_message(f"The agent was run on the tasks (results at {result.run}):\n{result.message}", result.level)
+        return {"coding_agent_results": result.run} if result.level == _fmt.OK else None
+
     def submit_dataset(
         self,
         path: Path,
@@ -1111,7 +1165,16 @@ class TiraClient(ABC):
             )
             return None
 
-        tira_configs = DatasetCard.load(str(path / "README.md")).data["tira_configs"]
+        card_data = DatasetCard.load(str(path / "README.md")).data
+        if (
+            "tasks" in card_data
+            or card_data.get("tira_configs", {}).get("input_format", {}).get("name") == "coding-tasks"
+        ):
+            return self._submit_coding_agent_dataset(
+                path, dry_run, skip_baseline, forward_environment_variable, print_message
+            )
+
+        tira_configs = card_data["tira_configs"]
         default_upload_name = tira_configs.get("default_upload_name")
         if not isinstance(default_upload_name, str) or not default_upload_name.strip():
             print_message(
