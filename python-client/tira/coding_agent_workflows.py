@@ -82,6 +82,47 @@ def split_files(card: "Dict[str, Any]", split: str) -> "Dict[str, Path]":
     return ret
 
 
+def dataset_splits(card: "Dict[str, Any]") -> "Tuple[list[str], list[str]]":
+    """The names of the train and test splits of a dataset card. 'train' and 'test' are required, additional splits
+    are named 'train-<name>' and 'test-<name>' (e.g., 'train-02', 'test-02'). The agent sees all train splits, the
+    submission is run and evaluated on all test splits."""
+    names = []
+    for config in card.get("configs", []):
+        for data_file in config.get("data_files", []):
+            if data_file.get("split") and data_file["split"] not in names:
+                names.append(data_file["split"])
+
+    ret = []
+    for kind in ["train", "test"]:
+        if kind not in names:
+            raise ValueError(f"The dataset card must define the split '{kind}'.")
+        ret.append([kind] + [i for i in names if i.startswith(kind + "-") and len(i) > len(kind) + 1])
+
+    unknown = [i for i in names if i not in ret[0] + ret[1]]
+    if unknown:
+        raise ValueError(f"Splits must be named 'train', 'test', 'train-<name>', or 'test-<name>', got {unknown}.")
+    return ret[0], ret[1]
+
+
+def split_descriptions(card: "Dict[str, Any]") -> "Dict[str, str]":
+    """The optional descriptions of splits ('split_descriptions' in 'tira_configs' of the dataset card)."""
+    ret = (card.get("tira_configs") or {}).get("split_descriptions") or {}
+    if not isinstance(ret, dict):
+        raise ValueError("'split_descriptions' of the dataset card must map split names to descriptions.")
+    return {str(k): str(v).strip() for k, v in ret.items()}
+
+
+def evaluation_name(prefix: str, split: str) -> str:
+    """Name of a result of a test split: the default split 'test' has no suffix."""
+    return prefix if split == "test" else f"{prefix}-{split}"
+
+
+def combined_measures(evaluations: "Dict[str, str]") -> str:
+    if len(evaluations) == 1:
+        return measures_of(next(iter(evaluations.values())))
+    return "; ".join(f"{split}: {measures_of(i)}" for split, i in evaluations.items())
+
+
 def read_submission(output_dir: Path) -> str:
     """Returns the command of the docker submission produced by the agent. The agent writes its source code
     (with a Dockerfile) to 'solution/' and the command that executes it to 'submission-metadata.yml'. The workflow
@@ -150,7 +191,7 @@ def format_task_report(
             f" ({', '.join(parts)})" if parts else "",
         ),
         ("Final code builds into docker image", report.get("builds"), ""),
-        ("Final result of evaluation", report.get("evaluation") is not None or None, ""),
+        ("Final result of evaluation", report.get("evaluations") is not None or None, ""),
     ]
     lines, failed = [fmt_message(f"{name}:", result.level)], False
     for title, status, suffix in stages:
@@ -162,14 +203,14 @@ def format_task_report(
         else:
             level = None
             text += " (not reached)" if result.level != _fmt.OK else " (not run)"
-        if title.startswith("Final result") and report.get("evaluation") is not None:
-            text += f": {measures_of(report['evaluation'])}"
+        if title.startswith("Final result") and report.get("evaluations") is not None:
+            text += f": {combined_measures(report['evaluations'])}"
         lines.append("  - " + (fmt_message(text, level) if level is not None else f"– {text}"))
         if level == _fmt.ERROR:
             problem = result.message if len(result.message) <= 800 else result.message[:800] + " …"
             lines.append("      " + problem.replace("\n", "\n      "))
 
-    if result.level == _fmt.OK and not report.get("evaluation"):
+    if result.level == _fmt.OK and not report.get("evaluations"):
         lines.append("  " + result.message)
     results_path = results_path or result.run
     if results_path:
@@ -180,8 +221,8 @@ def format_task_report(
 INPUT_FILE_DESCRIPTIONS = {
     STAGE_FILE: "this stage: where you are in the pipeline and what is required from you",
     "README.md": "the task description (input/output format, programming language, evaluation)",
-    "inputs": "input files of the train split (there is no test data, your software is evaluated on it later)",
-    "truths": "expected outputs of the train split",
+    "inputs": "input files of the train splits (there is no test data, your software is evaluated on it later)",
+    "truths": "expected outputs of the train splits",
     DEVCONTAINER_DIRECTORY: "the devcontainer of your environment, the Dockerfile of your solution extends it",
     FEEDBACK_DIRECTORY: "feedback of the workflow on your previous run (start with feedback.md)",
 }
@@ -197,7 +238,7 @@ STAGE_REQUIREMENTS = {
         "`Dockerfile` that starts with exactly the instructions of `/tira-data/input/.devcontainer/Dockerfile`.",
         f"Write `/tira-data/output/{SUBMISSION_FILE}` with a `command` that runs your solution. It may only rely on "
         "`$inputDataset` (input directory) and `$outputDir` (output directory), never on hard-coded paths.",
-        "Validate your solution on the train split, then finish. Nobody answers questions, decide on your own.",
+        "Validate your solution on the train split(s), then finish. Nobody answers questions, decide on your own.",
     ],
     "fix": [
         f"Your previous solution in `/tira-data/output/{SOLUTION_DIRECTORY}/` was rejected, the reason is in "
@@ -207,7 +248,8 @@ STAGE_REQUIREMENTS = {
     ],
     "review": [
         "Your solution was built, run on unseen test data, and evaluated. Review the results in "
-        f"`/tira-data/input/{FEEDBACK_DIRECTORY}/` (`stdout.txt`, `stderr.txt`, `evaluation.prototext`).",
+        f"`/tira-data/input/{FEEDBACK_DIRECTORY}/` (`stdout.txt`, `stderr.txt`, `evaluation.prototext` of the split "
+        "`test`; the files of additional test splits have the split name as suffix, e.g., `evaluation-test-02.prototext`).",
         "If the results look reasonable, finish immediately without changing anything: this ends the review.",
         f"If not (e.g., errors in the logs or a very low score), modify the existing `{SOLUTION_DIRECTORY}/` and "
         "finish as soon as it is fixed. The modified solution is evaluated again and uses up a review round.",
@@ -215,7 +257,15 @@ STAGE_REQUIREMENTS = {
 }
 
 
-def stage_description(task: str, step_names: "list[str]", kind: str, current: str, notes: "list[str]", present) -> str:
+def stage_description(
+    task: str,
+    step_names: "list[str]",
+    kind: str,
+    current: str,
+    notes: "list[str]",
+    present,
+    train_splits: "Optional[Dict[str, str]]" = None,
+) -> str:
     """The description of the current stage that is mounted to the agent as STAGE.md, so that the agent knows
     what to expect: the pipeline with its own position, what this stage is, what is required, and which files
     it gets. `kind` is 'step', 'solve', 'fix', or 'review'."""
@@ -232,6 +282,9 @@ def stage_description(task: str, step_names: "list[str]", kind: str, current: st
     lines += ["", "## Required from you", ""] + [f"- {i}" for i in STAGE_REQUIREMENTS[kind]]
     lines += ["", "## Files", "", "In `/tira-data/input/` (read-only):"]
     lines += [f"- `{n}`: {d}" for n, d in INPUT_FILE_DESCRIPTIONS.items() if n in present]
+    if train_splits and len(train_splits) > 1:
+        lines += ["", "Train splits:"]
+        lines += [f"- `{n}`: {d or 'no description'}" for n, d in train_splits.items()]
     lines += ["", "Everything you write belongs to `/tira-data/output/` (also `$outputDir`).", ""]
     lines += ["Network access is restricted to the LLM you use. This holds only for you (the agent): the software you"]
     lines += ["write runs later without any network and without your LLM credentials, so it must not use an LLM."]
@@ -248,8 +301,13 @@ def describe_directory(directory: Path) -> str:
         return ""
 
     base, suffix, k = m.groups()
+    split = ""
+    for kind in ("predictions", "results"):
+        if base.startswith(kind + "-"):
+            base, split = kind, f" (split '{base[len(kind) + 1:]}')"
     if base in ("predictions", "results"):
         what = "predictions of the submission on the test inputs" if base == "predictions" else "evaluation"
+        what += split
         return what + (f" of agent run {k}, replaced by a later run" if suffix else "")
     if base != RESULT_STEP:
         return "smoke test of the agent setup"
@@ -311,6 +369,9 @@ def write_task_summary(
     ]
     lines = [f"# {name}", "", "Status: " + ("**succeeded**" if result.level == _fmt.OK else "**failed**"), ""]
     lines += ["## Stages", ""] + [f"    {i}" for i in stages[1:]]
+    if report.get("split_descriptions") and len(report["split_descriptions"]) > 2:
+        lines += ["", "## Splits", ""]
+        lines += [f"- `{n}`: {d or 'no description'}" for n, d in report["split_descriptions"].items()]
     if report.get("smoke_tests"):
         lines += ["", "## Smoke tests", ""] + [f"- {i}" for i in report["smoke_tests"]]
     if report.get("timeline"):
@@ -361,7 +422,8 @@ ran (for a dataset of tasks, in one directory per task):
 - `NN-result-attempt-K/`: agent run K that was replaced by a later run (rejected, or evaluated and then reviewed).
 - `NN-result-review-K/`: a review in which the agent did not change its solution.
 - `05-predictions/`, `06-results/`: the solution on the test inputs and its evaluation
-  (`output/evaluation.prototext`). Replaced runs are kept as `...-attempt-K`.
+  (`output/evaluation.prototext`). Replaced runs are kept as `...-attempt-K`. Additional test splits
+  (`test-<name>`) have their own `05-predictions-test-<name>/` and `06-results-test-<name>/`.
 
 Every agent run records what it was given and did: `input/STAGE.md` (the stage description of the agent),
 `input/README.md` (task), `input/feedback/` (feedback), `input/manifest.txt` (other mounted files), `command.txt`,
@@ -376,6 +438,10 @@ def directory_digest(directory: Path) -> str:
         digest.update(str(f.relative_to(directory)).encode())
         digest.update(f.read_bytes())
     return digest.hexdigest()
+
+
+def stage_names(test_splits: "list[str]") -> "list[str]":
+    return [evaluation_name(i, split) for split in test_splits for i in (PREDICTIONS_STEP, RESULTS_STEP)]
 
 
 def copy_results(source: Path, target: Path):
@@ -593,15 +659,21 @@ class SandboxedCodingAgent(WorkflowBase):
     ):
         config = self.workflow_configuration
         card = split_dataset_card(task_directory / "README.md")[0]
-        train_files = split_files(card, "train")
-        test_files = split_files(card, "test")
-        if "inputs" not in test_files or "truths" not in test_files or "inputs" not in train_files:
-            raise ValueError("The dataset card must define 'inputs' and 'truths' for 'test' and 'inputs' for 'train'.")
+        train_splits, test_splits = dataset_splits(card)
+        descriptions = split_descriptions(card)
+        train_files = {i: split_files(card, i) for i in train_splits}
+        test_files = {i: split_files(card, i) for i in test_splits}
+        for split in train_splits:
+            if "inputs" not in train_files[split]:
+                raise ValueError(f"The dataset card must define 'inputs' for the split '{split}'.")
+        for split in test_splits:
+            if "inputs" not in test_files[split] or "truths" not in test_files[split]:
+                raise ValueError(f"The dataset card must define 'inputs' and 'truths' for the split '{split}'.")
 
         # Phase 1: the agent only sees the train split and the task description
         agent_inputs = temporary_directory()
         write_readme_without_front_matter(task_directory / "README.md", agent_inputs / "README.md")
-        for relative_path in train_files.values():
+        for relative_path in {p for files in train_files.values() for p in files.values()}:
             (agent_inputs / relative_path).parent.mkdir(parents=True, exist_ok=True)
             copy(task_directory / relative_path, agent_inputs / relative_path)
 
@@ -640,7 +712,15 @@ class SandboxedCodingAgent(WorkflowBase):
 
             present = {i.name for i in agent_inputs.iterdir()} | {STAGE_FILE}
             (agent_inputs / STAGE_FILE).write_text(
-                stage_description(task_directory.name, step_names, kind, current, notes, present)
+                stage_description(
+                    task_directory.name,
+                    step_names,
+                    kind,
+                    current,
+                    notes,
+                    present,
+                    {i: descriptions.get(i, "") for i in train_splits},
+                )
             )
             record_agent_input(agent_inputs, feedback_directory, step_directory)
             (step_directory / RECORDED_COMMAND_FILE).write_text(command + "\n")
@@ -720,16 +800,18 @@ class SandboxedCodingAgent(WorkflowBase):
                 task_directory, evaluator, evaluator_image, lambda message, level: print(message), dry_run=True
             )
 
-        test_inputs = temporary_directory()
-        copy(task_directory / test_files["inputs"], test_inputs / test_files["inputs"].name)
-        test_truths = temporary_directory()
-        copy(task_directory / test_files["truths"], test_truths / test_files["truths"].name)
+        test_inputs, test_truths = {}, {}
+        for split in test_splits:
+            test_inputs[split], test_truths[split] = temporary_directory(), temporary_directory()
+            copy(task_directory / test_files[split]["inputs"], test_inputs[split] / test_files[split]["inputs"].name)
+            copy(task_directory / test_files[split]["truths"], test_truths[split] / test_files[split]["truths"].name)
+        report["split_descriptions"] = {i: descriptions.get(i, "") for i in train_splits + test_splits}
 
         feedback_files: "Dict[str, Path]" = {}
 
         def evaluate_result(step_directory: Path) -> "Tuple[Optional[str], Optional[str]]":
             """Phase 2 uses only the packaged result: unpack source-code.zip, build it, run the command of the
-            metadata file on the test inputs (05-predictions), and evaluate the predictions (06-results).
+            metadata file on the test inputs of each test split (05-predictions), and evaluate the predictions (06-results).
             Returns (problem, None) if something fails or (None, evaluation) if the evaluation succeeded."""
             packaged_solution = temporary_directory()
             unpack_archive(step_directory / "source-code.zip", packaged_solution)
@@ -742,70 +824,78 @@ class SandboxedCodingAgent(WorkflowBase):
                 report["builds"] = False
                 return f"Building the docker image of your solution failed: {e}", None
             report["builds"] = True
-            announce("Running the submission on the unseen test inputs")
+            evaluations: "Dict[str, str]" = {}
+            for split in test_splits:
+                where = f" (split '{split}')" if len(test_splits) > 1 else ""
+                predictions_step = evaluation_name(PREDICTIONS_STEP, split)
+                results_step = evaluation_name(RESULTS_STEP, split)
+                announce(f"Running the submission on the unseen test inputs{where}")
 
-            submission_results = self.execute_monitored(
-                lambda o: tira.local_execution.run(
-                    image=image,
-                    command=command,
-                    input_dir=test_inputs,
-                    output_dir=o,
-                    allow_network=False,
-                    network_allowlist=[],
-                    forward_environment_variables=None,
-                    additional_volumes=None,
-                    cpu_count=cpu_count,
-                    gpu_count=gpu_count,
-                    mem_limit=mem_limit,
-                    gpu_device_ids=gpu_device_ids,
-                    platform=platform,
-                ),
-                True,
-            )
-            copy_results(submission_results, ret / PREDICTIONS_STEP)
-            (ret / PREDICTIONS_STEP / RECORDED_COMMAND_FILE).write_text(command + "\n")
-            feedback_files.update(
-                {f: ret / PREDICTIONS_STEP / f for f in ["stdout.txt", "stderr.txt", "exception.txt"]}
-            )
+                submission_results = self.execute_monitored(
+                    lambda o: tira.local_execution.run(
+                        image=image,
+                        command=command,
+                        input_dir=test_inputs[split],
+                        output_dir=o,
+                        allow_network=False,
+                        network_allowlist=[],
+                        forward_environment_variables=None,
+                        additional_volumes=None,
+                        cpu_count=cpu_count,
+                        gpu_count=gpu_count,
+                        mem_limit=mem_limit,
+                        gpu_device_ids=gpu_device_ids,
+                        platform=platform,
+                    ),
+                    True,
+                )
+                copy_results(submission_results, ret / predictions_step)
+                (ret / predictions_step / RECORDED_COMMAND_FILE).write_text(command + "\n")
+                for base in ["stdout", "stderr", "exception"]:
+                    feedback_files[evaluation_name(base, split) + ".txt"] = ret / predictions_step / f"{base}.txt"
 
-            problem = f'Running your submission with the command "{command}" on unseen test data failed.'
-            if (submission_results / "exception.txt").exists():
-                return f"{problem} {(submission_results / 'exception.txt').read_text()}", None
-            if not any(i.is_file() for i in (submission_results / "output").rglob("*")):
-                return f"{problem} It wrote no files to $outputDir.", None
+                problem = f'Running your submission with the command "{command}" on unseen test data{where} failed.'
+                if (submission_results / "exception.txt").exists():
+                    return f"{problem} {(submission_results / 'exception.txt').read_text()}", None
+                if not any(i.is_file() for i in (submission_results / "output").rglob("*")):
+                    return f"{problem} It wrote no files to $outputDir.", None
 
-            announce("Evaluating the predictions")
-            evaluation_results = self.execute_monitored(
-                lambda o: tira.local_execution.run(
-                    image=evaluator_image,
-                    command=evaluator_command,
-                    input_dir=test_truths,
-                    input_run=submission_results / "output",
-                    output_dir=o,
-                    allow_network=False,
-                    network_allowlist=[],
-                    forward_environment_variables=None,
-                    additional_volumes=None,
-                    cpu_count=cpu_count,
-                    mem_limit=mem_limit,
-                    platform=platform,
-                ),
-                True,
-            )
-            copy_results(evaluation_results, ret / RESULTS_STEP)
-            (ret / RESULTS_STEP / RECORDED_COMMAND_FILE).write_text(evaluator_command + "\n")
+                announce(f"Evaluating the predictions{where}")
+                evaluation_results = self.execute_monitored(
+                    lambda o: tira.local_execution.run(
+                        image=evaluator_image,
+                        command=evaluator_command,
+                        input_dir=test_truths[split],
+                        input_run=submission_results / "output",
+                        output_dir=o,
+                        allow_network=False,
+                        network_allowlist=[],
+                        forward_environment_variables=None,
+                        additional_volumes=None,
+                        cpu_count=cpu_count,
+                        mem_limit=mem_limit,
+                        platform=platform,
+                    ),
+                    True,
+                )
+                copy_results(evaluation_results, ret / results_step)
+                (ret / results_step / RECORDED_COMMAND_FILE).write_text(evaluator_command + "\n")
 
-            problem = f'The evaluator could not evaluate the predictions of your submission ("{command}").'
-            if (evaluation_results / "exception.txt").exists():
-                return f"{problem} {(evaluation_results / 'exception.txt').read_text()}", None
+                problem = f'The evaluator could not evaluate the predictions{where} of your submission ("{command}").'
+                if (evaluation_results / "exception.txt").exists():
+                    return f"{problem} {(evaluation_results / 'exception.txt').read_text()}", None
 
-            evaluation_file = ret / RESULTS_STEP / "output" / "evaluation.prototext"
-            if not evaluation_file.is_file():
-                return f"{problem} The output format is probably wrong.", None
+                evaluation_file = ret / results_step / "output" / "evaluation.prototext"
+                if not evaluation_file.is_file():
+                    return f"{problem} The output format is probably wrong.", None
 
-            feedback_files["evaluation.prototext"] = evaluation_file
-            report["evaluation"] = evaluation_file.read_text()
-            return None, report["evaluation"]
+                feedback_files[evaluation_name("evaluation", split) + ".prototext"] = evaluation_file
+                evaluations[split] = evaluation_file.read_text()
+
+            report["evaluations"] = evaluations
+            if len(evaluations) == 1:
+                return None, next(iter(evaluations.values()))
+            return None, "\n".join(f"Split {split}:\n{text}" for split, text in evaluations.items())
 
         report["agent_works"] = True
 
@@ -816,10 +906,11 @@ class SandboxedCodingAgent(WorkflowBase):
         max_retries = error_retries = int(config.get("agent_retries", 5))
         max_reviews = reviews = int(config.get("review_rounds", 5))
         results, feedback, reviewed_digest, reviewed_evaluation = None, None, None, None
+        reviewed_evaluations = None
         run = 0
         while True:
             run += 1
-            report.update(attempts=run, produced=None, builds=None, evaluation=None)
+            report.update(attempts=run, produced=None, builds=None, evaluations=None)
             timeline = report.setdefault("timeline", [])
             if feedback is None:
                 kind, title = "solve", "writing the solution"
@@ -873,13 +964,13 @@ class SandboxedCodingAgent(WorkflowBase):
                 if reviewed_digest == digest:
                     # The review did not change anything: the evaluation of the previous run is final
                     announce(f"Run {run}: the agent did not change its solution, the review is finished")
-                    report.update(builds=True, evaluation=reviewed_evaluation)
+                    report.update(builds=True, evaluations=reviewed_evaluations)
                     timeline.append(
                         f"Run {run} ({label}): the agent did not change its solution, review finished{said}"
                     )
                     review_directory = ret / f"{step_directory.name}-review-{run - 1}"
                     step_directory.rename(review_directory)
-                    for name in [step_directory.name, PREDICTIONS_STEP, RESULTS_STEP]:
+                    for name in [step_directory.name, *stage_names(test_splits)]:
                         if (ret / f"{name}-attempt-{run - 1}").exists():
                             (ret / f"{name}-attempt-{run - 1}").rename(ret / name)
                     return WorkflowResult(_fmt.OK, f"The agent submission was evaluated:\n{reviewed_evaluation}", ret)
@@ -896,7 +987,7 @@ class SandboxedCodingAgent(WorkflowBase):
             if problem:
                 timeline.append(f"Run {run} ({label}): rejected: {problem.splitlines()[0][:200]}{said}")
             else:
-                timeline.append(f"Run {run} ({label}): evaluated: {measures_of(evaluation)}{said}")
+                timeline.append(f"Run {run} ({label}): evaluated: {combined_measures(report['evaluations'])}{said}")
 
             if not problem and reviews <= 0:
                 return WorkflowResult(_fmt.OK, f"The agent submission was evaluated:\n{evaluation}", ret)
@@ -910,7 +1001,7 @@ class SandboxedCodingAgent(WorkflowBase):
                 if Path(path).is_file():
                     copy(path, snapshot / name)
                     feedback_files[name] = snapshot / name
-            for name in [step_directory.name, PREDICTIONS_STEP, RESULTS_STEP]:
+            for name in [step_directory.name, *stage_names(test_splits)]:
                 if (ret / name).exists():
                     (ret / name).rename(ret / f"{name}-attempt-{run}")
 
@@ -929,11 +1020,13 @@ class SandboxedCodingAgent(WorkflowBase):
                 announce(f"Run {run} was evaluated successfully, the agent reviews the result next")
                 reviews -= 1
                 reviewed_digest, reviewed_evaluation = digest, evaluation
+                reviewed_evaluations = report["evaluations"]
                 feedback = (
                     f"Your solution in /tira-data/output/{SOLUTION_DIRECTORY} was built and executed successfully on "
                     "unseen test data and the result was evaluated (run {run}). Review the results in "
                     f"/tira-data/input/{FEEDBACK_DIRECTORY}: stdout.txt and stderr.txt of the execution and "
-                    "evaluation.prototext with the evaluation measures. Reason whether the results look reasonable. "
+                    "evaluation.prototext with the evaluation measures (these are the files of the split `test`; the results "
+                    "of additional test splits have the split name as suffix, e.g., evaluation-test-02.prototext). Reason whether the results look reasonable. "
                     "If they do, finish immediately without changing anything. If they do not (e.g., errors in the "
                     "logs, or a very low score), modify the existing solution to fix it and finish as soon as it is "
                     "fixed. Do not start from scratch."

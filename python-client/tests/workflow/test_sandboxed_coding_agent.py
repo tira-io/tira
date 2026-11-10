@@ -3,12 +3,15 @@ import re
 import unittest
 from pathlib import Path
 
+from tira.coding_agent_workflows import dataset_splits
 from tira.workflows import run_workflow
 
 from ..format_check import _ERROR, _OK
 
 SUMMARY = "summary.md"
-TASK = Path(__file__).parent.parent / "resources" / "example-datasets" / "coding-agent-sorting-tasks" / "sorting-python"
+EXAMPLES = Path(__file__).parent.parent / "resources" / "example-datasets"
+TASK = EXAMPLES / "coding-agent-sorting-tasks" / "sorting-python"
+MULTIPLE_SPLITS_TASK = EXAMPLES / "coding-agent-sorting-tasks-multiple-splits" / "sorting-python-multiple-splits"
 
 
 def mocked_tira_client(submission=None):
@@ -407,6 +410,60 @@ class TestSandboxedCodingAgent(unittest.TestCase):
             "python3 /evaluate.py --predictions $inputRun --truths $inputDataset --output $outputDir\n",
             (result.run / "06-results" / "command.txt").read_text(),
         )
+
+    def test_agent_sees_all_train_splits_and_every_test_split_is_evaluated(self):
+        task = str(MULTIPLE_SPLITS_TASK)
+        result, calls = run({"command": "sort"}, task_directory=task)
+
+        self.assertEqual(_OK, result.level)
+        self.assertEqual(
+            ["inputs/train-02.jsonl", "inputs/train.jsonl", "truths/train-02.jsonl", "truths/train.jsonl"],
+            [i for i in calls[0]["input_files"] if i.startswith(("inputs/", "truths/"))],
+        )
+        self.assertEqual(
+            ["agent"] + ["tira-submission-sorting-python-multiple-splits", "evaluator:latest"] * 2,
+            [c["image"] for c in calls],
+        )
+        stage = next(result.run.glob("*-result*/input/STAGE.md")).read_text()
+        self.assertIn("`train-02`: Long lists", stage)
+        self.assertEqual(["test.jsonl"], calls[1]["input_files"])
+        self.assertEqual(["test-02.jsonl"], calls[3]["input_files"])
+        self.assertRegex(result.message, r"test: accuracy=1\.0; test-02: accuracy=1\.0")
+        for step in ["05-predictions-test-02", "06-results-test-02"]:
+            self.assertTrue((result.run / step).is_dir())
+        summary = (result.run / SUMMARY).read_text()
+        self.assertIn("(split 'test-02')", summary)
+        self.assertIn("`test-02`: Edge cases", summary)
+
+    def test_review_gets_the_results_of_every_test_split(self):
+        tira = mocked_tira_client({"command": "sort"})
+        result = run_workflow(
+            system_inputs=MULTIPLE_SPLITS_TASK,
+            workflow="sandboxed-coding-agent",
+            workflow_configuration={"task_directory": str(MULTIPLE_SPLITS_TASK), "evaluator_image": "evaluator:latest"},
+            software={"image": "agent", "command": "run-agent"},
+            tira=tira,
+        )
+        self.assertEqual(_OK, result.level)
+        self.assertEqual(
+            [
+                "evaluation-test-02.prototext",
+                "evaluation.prototext",
+                "feedback.md",
+                "stderr-test-02.txt",
+                "stderr.txt",
+                "stdout-test-02.txt",
+                "stdout.txt",
+            ],
+            tira.local_execution.review_files,
+        )
+
+    def test_additional_splits_must_be_named_after_train_or_test(self):
+        card = {"configs": [{"data_files": [{"split": s} for s in ["train", "test", "dev"]]}]}
+        with self.assertRaisesRegex(ValueError, "dev"):
+            dataset_splits(card)
+        with self.assertRaisesRegex(ValueError, "'test'"):
+            dataset_splits({"configs": [{"data_files": [{"split": "train"}, {"split": "test-02"}]}]})
 
     def test_local_evaluator_directory_is_built_dynamically(self):
         result, calls = run({"command": "sort"}, evaluator_image="evaluator")

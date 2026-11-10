@@ -91,6 +91,23 @@ The general workflow follows the same steps as :doc:`organizing-tasks`:
 3. Optionally provide a baseline ``Agents.md`` that participants can use as a starting point.
 4. Add the task and dataset to TIRA as described in :doc:`organizing-tasks`.
 
+A task can have multiple train and test datasets (e.g., different input distributions). The splits ``train`` and
+``test`` are required, additional splits are named ``train-<name>`` and ``test-<name>`` (e.g., ``train-02``,
+``test-02``), any other split name is rejected. The agent sees all train splits, and its submission is run and
+evaluated on every test split separately (``05-predictions-test-02/``, ``06-results-test-02/``; the results of
+``test`` are in ``05-predictions/`` and ``06-results/``). All splits of a task use the same evaluator. Splits can be
+described in the front matter of the dataset card; the descriptions of the train splits are shown to the agent, those
+of the test splits only appear in the result summary:
+
+.. code-block:: yaml
+
+    tira_configs:
+      split_descriptions:
+        train: "Short lists."
+        train-02: "Long lists."
+        test: "Short lists, as in train."
+        test-02: "Edge cases: empty lists and duplicates."
+
 The ``sandboxed-coding-agent`` workflow of ``tira-cli`` implements this setup. Its ``workflow_configuration`` takes:
 
 - ``task_directory``: a single task directory with the ``README.md`` dataset card (``train``/``test`` splits for the
