@@ -2,19 +2,6 @@
 tira_configs:
   input_format:
     name: "coding-tasks"
-  baseline:
-    link: "baseline"
-    command: "sh /tira-agent/run-agent.sh"
-    # Small steps that run first in the devcontainer of each task; a failing step ends the task.
-    steps:
-      - name: devcontainer
-        command: "sh /tira-agent/steps/01-devcontainer.sh"
-      - name: hello-world-test
-        command: "sh /tira-agent/steps/02-hello-world-test.sh"
-      - name: ls-test
-        command: "sh /tira-agent/steps/03-ls-test.sh"
-    # stop_after_step stops after the named step of the first task (e.g., "result") so that it can be verified.
-    # stop_after_step: "result"
 tasks:
   - name: sorting-python
     path: sorting-python
@@ -44,10 +31,12 @@ To run all tasks with the `sandboxed-coding-agent` workflow, pass the directory 
 
 ## Running the Coding Agent on all Tasks
 
-The `baseline/` directory holds the scripts of a coding agent, the [GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli)
-in BYOK mode, and [`skill.md`](baseline/skill.md), which tells the agent how to solve a task and how to hand in its
-submission. The agent is started in the devcontainer of each task (`.devcontainer/`, built from its Dockerfile, which
-installs the Copilot CLI); `baseline/` is mounted at `/tira-agent`. A dry run of `tira-cli dataset-submission` on this
+The agent is defined in `../example-agents/copilot-cli` (passed via `--agent`). It holds
+[`skill.md`](../example-agents/copilot-cli/skill.md), which tells the agent how to solve a task and how to hand in its
+submission, and could hold further material such as reference implementations or papers. `tira-cli` runs the
+[GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli) in BYOK mode as the agent, which is
+started in the devcontainer of each task (`.devcontainer/`, built from its Dockerfile, which
+installs the Copilot CLI); the agent directory is mounted at `/tira-agent`. `tira-cli run coding-agent` on this
 directory runs the `sandboxed-coding-agent` workflow for each task: the agent only sees the `train` split and the task
 description, and its submission is evaluated on the `test` split. Forward the LLM configuration from your environment
 with `--forward-environment-variable` (the variables are forwarded, not stored; network access is restricted to the
@@ -57,11 +46,9 @@ the directory that contains this dataset, i.e., `python-client/tests/resources/e
 ```bash
 export COPILOT_PROVIDER_TYPE=openai COPILOT_MODEL=... COPILOT_PROVIDER_BASE_URL=... COPILOT_PROVIDER_API_KEY=...
 
-tira-cli dataset-submission \
+tira-cli run coding-agent \
   --path coding-agent-sorting-tasks \
-  --task my-task \
-  --split train \
-  --dry-run \
+  --agent ../example-agents/copilot-cli \
   --forward-environment-variable COPILOT_PROVIDER_TYPE COPILOT_MODEL COPILOT_PROVIDER_BASE_URL COPILOT_PROVIDER_API_KEY
 ```
 
@@ -77,7 +64,7 @@ the current stage as `[task] ...`, and the final result as a checklist. The stag
    executes the submission). It sees only the task description and the `train` split at `/tira-data/input/`, and
    the devcontainer at `/tira-data/input/.devcontainer/`: the `Dockerfile` of its solution must start with the
    instructions of the devcontainer's `Dockerfile`. A run is stopped after 10 minutes (`AGENT_TIMEOUT_SECONDS` in
-   `baseline/run-agent.sh`). Result: `source-code.zip`, `submission-metadata.yml`, `stdout.txt`, `stderr.txt`,
+   `run-agent.sh` of the agent). Result: `source-code.zip`, `submission-metadata.yml`, `stdout.txt`, `stderr.txt`,
    `network-access.log`.
 3. **Check, build, test run, evaluation** (`05-predictions/`, `06-results/`): the workflow checks the result, builds
    the docker image from `source-code.zip`, runs the `command` of `submission-metadata.yml` on the unseen `test`
@@ -90,7 +77,7 @@ Every stage directory records what that stage was given, so the input can be ana
   `evaluation.prototext` for retries and reviews).
 - `input/manifest.txt`: the other mounted files (the `train` split and the devcontainer) with their sizes.
 - `command.txt`: the exact command of the stage.
-- `prompt.txt`: the exact prompt passed to the Copilot CLI (the scripts in `baseline/` write it).
+- `prompt.txt`: the exact prompt passed to the Copilot CLI (the scripts of the agent write it).
 
 4. **Error retries** (at most 5, `agent_retries`): if anything in stage 3 fails, the agent is started again. Its
    rejected solution is still in `/tira-data/output`, and `/tira-data/input/feedback/` contains `feedback.md` (the
@@ -123,9 +110,8 @@ The result is printed per task:
 In dataset mode the `Results:` path points into the dataset result directory (e.g., `/tmp/tira-…/sorting-python`), not
 to the temporary directory of the individual task.
 
-`--task` and `--split` are required by the CLI but not used for this dataset, as every task defines its own splits.
-Uploading such datasets is not yet supported, so `--dry-run` is mandatory. Add `--skip-baseline` to only check that the
-declared tasks exist, without building or running the agent. The command requires the `datasets` and `gitpython`
+Every task defines its own splits and nothing is uploaded. To only check that the declared tasks exist, without building
+or running the agent, use `tira-cli dataset-submission --dry-run` (see below). The command requires the `datasets` and `gitpython`
 packages.
 
 ## Validating a Single Task with a Dry Run
@@ -138,8 +124,7 @@ tira-cli dataset-submission \
   --path coding-agent-sorting-tasks/sorting-python \
   --task coding-agent-sorting-tasks \
   --split train \
-  --dry-run \
-  --skip-baseline
+  --dry-run
 ```
 
 Use `sorting-java` or `sorting-julia` as `--path` for the other tasks, and `--split test` for the test split.

@@ -12,6 +12,7 @@ SUMMARY = "summary.md"
 EXAMPLES = Path(__file__).parent.parent / "resources" / "example-datasets"
 TASK = EXAMPLES / "coding-agent-sorting-tasks" / "sorting-python"
 MULTIPLE_SPLITS_TASK = EXAMPLES / "coding-agent-sorting-tasks-multiple-splits" / "sorting-python-multiple-splits"
+SISAP_TASKS = [EXAMPLES / "coding-agent-sisap-2026" / i for i in ["sisap-2026-julia", "sisap-2026-rust"]]
 
 
 def mocked_tira_client(submission=None):
@@ -434,6 +435,20 @@ class TestSandboxedCodingAgent(unittest.TestCase):
         summary = (result.run / SUMMARY).read_text()
         self.assertIn("(split 'test-02')", summary)
         self.assertIn("`test-02`: Edge cases", summary)
+
+    def test_splits_may_consist_of_multiple_files(self):
+        for sisap_task in SISAP_TASKS:
+            result, calls = run({"command": "sisap"}, task_directory=str(sisap_task))
+
+            self.assertEqual(_OK, result.level, sisap_task)
+            for task in ["task-1-spot-check", "task-2-spot-check", "task-3-spot-check"]:
+                self.assertIn(f"data/{task}/config.json", calls[0]["input_files"])
+            self.assertEqual(7, len(calls))
+            for call in calls[1:]:
+                if call["image"] == "evaluator:latest":
+                    self.assertEqual(2, len(call["input_files"]))
+                    self.assertIn("config.json", call["input_files"])
+            self.assertIn("test-task-3", result.message)
 
     def test_review_gets_the_results_of_every_test_split(self):
         tira = mocked_tira_client({"command": "sort"})

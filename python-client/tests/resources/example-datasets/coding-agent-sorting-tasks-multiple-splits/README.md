@@ -2,19 +2,6 @@
 tira_configs:
   input_format:
     name: "coding-tasks"
-  baseline:
-    link: "baseline"
-    command: "sh /tira-agent/run-agent.sh"
-    # Small steps that run first in the devcontainer of each task; a failing step ends the task.
-    steps:
-      - name: devcontainer
-        command: "sh /tira-agent/steps/01-devcontainer.sh"
-      - name: hello-world-test
-        command: "sh /tira-agent/steps/02-hello-world-test.sh"
-      - name: ls-test
-        command: "sh /tira-agent/steps/03-ls-test.sh"
-    # stop_after_step stops after the named step of the first task (e.g., "result") so that it can be verified.
-    # stop_after_step: "result"
 tasks:
   - name: sorting-python-multiple-splits
     path: sorting-python-multiple-splits
@@ -29,8 +16,7 @@ Variant of [`coding-agent-sorting-tasks`](../coding-agent-sorting-tasks/README.m
 [`sorting-python-multiple-splits`](sorting-python-multiple-splits/README.md) has two train splits (`train`, `train-02`)
 and two test splits (`test`, `test-02`). The agent sees all train splits; its submission is run and evaluated on each
 test split separately. Splits are named `train`/`test` plus optional `train-<name>`/`test-<name>` and are described in
-`split_descriptions` of the dataset card of the task. The agent scripts in `baseline/` are the same as in the
-original dataset. See `documentation/organizers/coding-agent-tasks.rst`.
+`split_descriptions` of the dataset card of the task. The agent is the same as in the original dataset (`../example-agents/copilot-cli`). See `documentation/organizers/coding-agent-tasks.rst`.
 
 ## Running the Coding Agent
 
@@ -40,11 +26,9 @@ Run this from the directory that contains this dataset, i.e., `python-client/tes
 ```bash
 export COPILOT_PROVIDER_TYPE=openai COPILOT_MODEL=... COPILOT_PROVIDER_BASE_URL=... COPILOT_PROVIDER_API_KEY=...
 
-tira-cli dataset-submission \
+tira-cli run coding-agent \
   --path coding-agent-sorting-tasks-multiple-splits \
-  --task my-task \
-  --split train \
-  --dry-run \
+  --agent ../example-agents/copilot-cli \
   --forward-environment-variable COPILOT_PROVIDER_TYPE COPILOT_MODEL COPILOT_PROVIDER_BASE_URL COPILOT_PROVIDER_API_KEY
 ```
 
@@ -60,8 +44,7 @@ tira-cli dataset-submission \
   --path coding-agent-sorting-tasks-multiple-splits \
   --task my-task \
   --split train \
-  --dry-run \
-  --skip-baseline
+  --dry-run
 ```
 
 The same check works for a single task with `--path coding-agent-sorting-tasks-multiple-splits/sorting-python-multiple-splits`

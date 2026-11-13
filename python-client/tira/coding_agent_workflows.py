@@ -72,13 +72,15 @@ def tasks_of_dataset(dataset_directory: Path) -> "Dict[str, Path]":
     return ret
 
 
-def split_files(card: "Dict[str, Any]", split: str) -> "Dict[str, Path]":
-    """Maps each config of the dataset card (e.g., 'inputs', 'truths') to the file of the given split."""
+def split_files(card: "Dict[str, Any]", split: str) -> "Dict[str, list[Path]]":
+    """Maps each config of the dataset card (e.g., 'inputs', 'truths') to the files of the given split. The 'path'
+    of a split is a file or a list of files."""
     ret = {}
     for config in card.get("configs", []):
         for data_file in config.get("data_files", []):
             if data_file.get("split") == split:
-                ret[config["config_name"]] = Path(data_file["path"])
+                paths = data_file["path"]
+                ret[config["config_name"]] = [Path(i) for i in (paths if isinstance(paths, list) else [paths])]
     return ret
 
 
@@ -282,6 +284,7 @@ def stage_description(
     lines += ["", "## Required from you", ""] + [f"- {i}" for i in STAGE_REQUIREMENTS[kind]]
     lines += ["", "## Files", "", "In `/tira-data/input/` (read-only):"]
     lines += [f"- `{n}`: {d}" for n, d in INPUT_FILE_DESCRIPTIONS.items() if n in present]
+    lines += [f"- `{n}`: files of the train splits" for n in sorted(present) if n not in INPUT_FILE_DESCRIPTIONS]
     if train_splits and len(train_splits) > 1:
         lines += ["", "Train splits:"]
         lines += [f"- `{n}`: {d or 'no description'}" for n, d in train_splits.items()]
@@ -517,8 +520,9 @@ class SandboxedCodingAgent(WorkflowBase):
     and a 'submission-metadata.yml' with the 'command' to run it to its output directory. Phase 2: the produced
     docker submission is executed on the test split (no network) and scored by the evaluator of the dataset card.
 
-    Optional workflow configuration: 'agent_directory' (mounted read-only at /tira-agent, e.g., with the scripts
-    of the steps), 'stop_after_step' (name of the last step to run, for debugging), 'agent_retries' (default 5: how
+    Optional workflow configuration: 'agent_directory' (mounted read-only at /tira-agent, e.g., with the skill and
+    reference material of the agent), 'runner_directory' (mounted read-only at /tira-runner, e.g., with the scripts
+    that run the agent and the steps), 'stop_after_step' (name of the last step to run, for debugging), 'agent_retries' (default 5: how
     often the agent is started again with its rejected solution mounted and a 'feedback.md' if the result is
     invalid), and 'review_rounds' (default 5: how often the agent reviews a successful evaluation)."""
 
@@ -673,7 +677,7 @@ class SandboxedCodingAgent(WorkflowBase):
         # Phase 1: the agent only sees the train split and the task description
         agent_inputs = temporary_directory()
         write_readme_without_front_matter(task_directory / "README.md", agent_inputs / "README.md")
-        for relative_path in {p for files in train_files.values() for p in files.values()}:
+        for relative_path in {p for files in train_files.values() for config in files.values() for p in config}:
             (agent_inputs / relative_path).parent.mkdir(parents=True, exist_ok=True)
             copy(task_directory / relative_path, agent_inputs / relative_path)
 
@@ -684,6 +688,8 @@ class SandboxedCodingAgent(WorkflowBase):
         agent_volumes = list(additional_volumes or [])
         if config.get("agent_directory"):
             agent_volumes.append(f"{Path(config['agent_directory']).resolve()}:/tira-agent:ro")
+        if config.get("runner_directory"):
+            agent_volumes.append(f"{Path(config['runner_directory']).resolve()}:/tira-runner:ro")
 
         def announce(message: str):
             print(f"[{task_directory.name}] {message}", flush=True)
@@ -803,8 +809,11 @@ class SandboxedCodingAgent(WorkflowBase):
         test_inputs, test_truths = {}, {}
         for split in test_splits:
             test_inputs[split], test_truths[split] = temporary_directory(), temporary_directory()
-            copy(task_directory / test_files[split]["inputs"], test_inputs[split] / test_files[split]["inputs"].name)
-            copy(task_directory / test_files[split]["truths"], test_truths[split] / test_files[split]["truths"].name)
+            # The files of a test split are placed next to each other, so that they can be addressed by name
+            for path in test_files[split]["inputs"]:
+                copy(task_directory / path, test_inputs[split] / path.name)
+            for path in test_files[split]["truths"]:
+                copy(task_directory / path, test_truths[split] / path.name)
         report["split_descriptions"] = {i: descriptions.get(i, "") for i in train_splits + test_splits}
 
         feedback_files: "Dict[str, Path]" = {}

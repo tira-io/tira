@@ -108,13 +108,25 @@ of the test splits only appear in the result summary:
         test: "Short lists, as in train."
         test-02: "Edge cases: empty lists and duplicates."
 
+The ``path`` of a split in ``configs`` may also be a list of files (e.g., a data file and its ``config.json``). The agent
+sees them under their relative paths; for a test split, all files are placed next to each other (flat, by file name) in
+the input and truth directories of the submission and the evaluator. See ``coding-agent-sisap-2026`` for an example.
+
+Run an agent on all tasks of a dataset locally with
+``tira-cli run coding-agent --path <dataset-directory> --agent <agent-directory>``
+(use ``--forward-environment-variable`` for API keys). The agent is not part of the dataset. How the Copilot CLI is run
+and the smoke-test steps are built into ``tira-cli``; the agent directory defines the agent: a ``skill.md`` that tells
+the agent how to work, plus any other files it may use (e.g., reference implementations or papers), mounted read-only at
+``/tira-agent`` (see ``python-client/tests/resources/example-agents/copilot-cli``).
+``tira-cli dataset-submission ... --dry-run`` only validates the packaging.
+
 The ``sandboxed-coding-agent`` workflow of ``tira-cli`` implements this setup. Its ``workflow_configuration`` takes:
 
 - ``task_directory``: a single task directory with the ``README.md`` dataset card (``train``/``test`` splits for the
   ``inputs`` and ``truths`` configs). Alternatively, pass ``dataset_directory`` (exactly one of both) to run all
   tasks declared in the dataset's ``README.md``; the result then has one sub-directory per task.
 - ``allowed_hostnames``: the only hostnames (e.g., of the LLM API) the agent may reach. Hostnames of forwarded ``COPILOT_PROVIDER_BASE_URL`` / ``OPENAI_BASE_URL`` variables are added automatically. Use fully qualified names, as they are resolved inside docker.
-- ``agent_steps``: optional list of ``{name, command}`` smoke tests that run first in the agent container; a failing step ends the task (in dataset mode, the remaining tasks are still run). ``stop_after_step`` stops after the named step. ``agent_directory`` is mounted read-only at ``/tira-agent``.
+- ``agent_steps``: optional list of ``{name, command}`` smoke tests that run first in the agent container; a failing step ends the task (in dataset mode, the remaining tasks are still run). ``stop_after_step`` stops after the named step. ``agent_directory`` is mounted read-only at ``/tira-agent`` and ``runner_directory`` at ``/tira-runner``.
 - ``agent_retries`` (default 5): how often the agent is started again if its result is invalid (e.g., no ``submission-metadata.yml``, or the ``Dockerfile`` does not extend the devcontainer) or its submission can not be built, run, or evaluated on the test split (e.g., a syntax error, or no predictions). The agent gets the rejected output mounted at ``/tira-data/output`` and the reason in ``/tira-data/input/feedback/feedback.md`` (for failed test runs with the ``stdout.txt`` and ``stderr.txt`` of the run next to it, so avoid logging test data). Rejected attempts are kept as ``NN-result-attempt-K/``, ``05-predictions-attempt-K/``, and ``06-results-attempt-K/``.
 - ``review_rounds`` (default 5): how often the agent reviews a successful evaluation. It is told that its submission ran on unseen test data and gets ``/tira-data/input/feedback/`` with ``feedback.md``, ``stdout.txt``, ``stderr.txt``, and ``evaluation.prototext`` (so the test scores are visible to the agent). If it changes its solution, the new solution is built, run, and evaluated again (this uses a round); an unchanged solution ends the review. Set to 0 to disable.
 - If ``software`` has no ``image``, the agent is started in the image of the task's ``.devcontainer/devcontainer.json`` (``image`` or ``build.dockerfile``).

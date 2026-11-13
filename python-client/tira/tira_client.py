@@ -1046,16 +1046,10 @@ class TiraClient(ABC):
                         + "\n"
                     )
 
-    def _submit_coding_agent_dataset(
-        self, path: Path, dry_run: bool, skip_baseline: bool, forward_environment_variable, print_message
-    ):
-        """A dataset of coding agent tasks (see documentation/organizers/coding-agent-tasks.rst): the baseline
-        is an agent (built from `tira_configs.baseline.link`, executed via `tira_configs.baseline.command`) that
-        is run with the `sandboxed-coding-agent` workflow on every task declared in the `tasks` of the README."""
-        from huggingface_hub import DatasetCard
-
+    def _submit_coding_agent_dataset(self, path: Path, dry_run: bool, print_message):
+        """A dataset of coding agent tasks (see documentation/organizers/coding-agent-tasks.rst). Only the packaging
+        is validated; the agent is run with `tira-cli run coding-agent`."""
         from tira.coding_agent_workflows import tasks_of_dataset
-        from tira.workflows import run_workflow
 
         if not dry_run:
             print_message("Uploading datasets of coding agent tasks is not yet supported, use --dry-run.", _fmt.ERROR)
@@ -1067,35 +1061,75 @@ class TiraClient(ABC):
             print_message(str(e), _fmt.ERROR)
             return None
 
-        print_message(f"The dataset declares the tasks: {', '.join(tasks)}.", _fmt.OK)
-        if skip_baseline:
-            return {"coding_agent_results": None}
+        print_message(f"Found {len(tasks)} coding task{'s' if len(tasks) != 1 else ''}: {', '.join(tasks)}.", _fmt.OK)
+        print_message("Run the agent on them with: tira-cli run coding-agent --path ... --agent ...", None)
+        return {"coding_agent_results": None}
 
-        baseline = (DatasetCard.load(str(path / "README.md")).data.get("tira_configs") or {}).get("baseline") or {}
-        if "link" not in baseline or "command" not in baseline:
-            print_message("The 'tira_configs.baseline' needs a 'link' and a 'command' to run the agent.", _fmt.ERROR)
+    def run_coding_agent(
+        self,
+        path: Path,
+        agent: Path,
+        forward_environment_variable: "Optional[list[str]]" = None,
+        stop_after_step: "Optional[str]" = None,
+    ):
+        """Runs the Copilot CLI agent with the `sandboxed-coding-agent` workflow on every task of the dataset of
+        coding agent tasks at `path`. How the agent is run and the smoke-test steps are built into tira; the
+        directory `agent` defines the agent: its `skill.md` (how to solve a task) plus any other files the agent may
+        use (e.g., reference implementations or papers), mounted at /tira-agent. Nothing is uploaded to TIRA."""
+        from tira.coding_agent_workflows import tasks_of_dataset
+        from tira.workflows import run_workflow
+
+        all_messages = []
+
+        def print_message(message: str, level: "Optional[_fmt]") -> None:
+            all_messages.append((message, level))
+            os.system("cls" if os.name == "nt" else "clear")
+            print("TIRA Coding Agent:")
+            for m, l in all_messages:
+                print(f"  - {m}") if l is None else log_message(m, l)
+
+        if path is None or not Path(path).is_dir() or not (Path(path) / "README.md").is_file():
+            print_message(f"I expect a dataset directory with a README.md, but got {path}.", _fmt.ERROR)
             return None
 
-        # The agent runs in the devcontainer of each task; the baseline directory only holds its scripts.
-        agent_directory = path / baseline["link"]
+        agent = Path(agent)
+        if not (agent / "skill.md").is_file():
+            print_message(f"The agent directory {agent} needs a skill.md that tells the agent how to work.", _fmt.ERROR)
+            return None
+
+        try:
+            tasks = tasks_of_dataset(Path(path))
+        except ValueError as e:
+            print_message(str(e), _fmt.ERROR)
+            return None
+
+        print_message(f"Found {len(tasks)} coding task{'s' if len(tasks) != 1 else ''}: {', '.join(tasks)}.", _fmt.OK)
+        print_message(f"The agent defined in {agent} works on each task in its own sandbox (restricted network).", None)
+        print_message("The agent sees the task description and the train splits.", None)
+        print_message("Its solution is built, run offline on the test splits, and evaluated.", None)
+
         configuration = {
             "dataset_directory": str(path),
-            "allowed_hostnames": baseline.get("allowed_hostnames", []),
-            "agent_directory": str(agent_directory),
-            "agent_steps": baseline.get("steps", []),
+            "agent_directory": str(agent),
+            "runner_directory": str(Path(__file__).parent / "coding_agent"),
+            "agent_steps": [
+                {"name": "devcontainer", "command": "sh /tira-runner/steps/01-devcontainer.sh"},
+                {"name": "hello-world-test", "command": "sh /tira-runner/steps/02-hello-world-test.sh"},
+                {"name": "ls-test", "command": "sh /tira-runner/steps/03-ls-test.sh"},
+            ],
         }
-        if baseline.get("stop_after_step"):
-            configuration["stop_after_step"] = baseline["stop_after_step"]
+        if stop_after_step:
+            configuration["stop_after_step"] = stop_after_step
 
         result = run_workflow(
-            system_inputs=path,
+            system_inputs=Path(path),
             workflow="sandboxed-coding-agent",
             workflow_configuration=configuration,
-            software={"command": baseline["command"]},
+            software={"command": "sh /tira-runner/run-agent.sh"},
             tira=self,
             forward_environment_variables=forward_environment_variable,
         )
-        print_message(f"The agent was run on the tasks (results at {result.run}):\n{result.message}", result.level)
+        print_message(f"The coding agent finished (results at {result.run}):\n{result.message}", result.level)
         return {"coding_agent_results": result.run} if result.level == _fmt.OK else None
 
     def submit_dataset(
@@ -1121,7 +1155,7 @@ class TiraClient(ABC):
             os.system("cls" if os.name == "nt" else "clear")
             print("TIRA Dataset Submission:")
             for m, l in all_messages:
-                log_message(m, l)
+                print(f"  - {m}") if l is None else log_message(m, l)
 
         if not dry_run:
             result = verify_tira_installation("lsr-benchmark", "lightning-ir")
@@ -1170,9 +1204,7 @@ class TiraClient(ABC):
             "tasks" in card_data
             or card_data.get("tira_configs", {}).get("input_format", {}).get("name") == "coding-tasks"
         ):
-            return self._submit_coding_agent_dataset(
-                path, dry_run, skip_baseline, forward_environment_variable, print_message
-            )
+            return self._submit_coding_agent_dataset(path, dry_run, print_message)
 
         tira_configs = card_data["tira_configs"]
         default_upload_name = tira_configs.get("default_upload_name")

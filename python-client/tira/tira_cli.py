@@ -1392,6 +1392,19 @@ def run_remote(
     return 0
 
 
+def run_coding_agent(
+    path: Path,
+    agent: Path,
+    forward_environment_variable: "Optional[list[str]]" = None,
+    stop_after_step: "Optional[str]" = None,
+    **kwargs,
+) -> int:
+    ret = RestClient().run_coding_agent(
+        path, agent, forward_environment_variable=forward_environment_variable, stop_after_step=stop_after_step
+    )
+    return 0 if ret and "coding_agent_results" in ret else 1
+
+
 def setup_run_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
@@ -1442,6 +1455,39 @@ def setup_run_command(parser: argparse.ArgumentParser) -> None:
     )
 
     local.set_defaults(executable=run_local)
+
+    coding_agent = subparsers.add_parser(
+        "coding-agent",
+        help="Run the baseline coding agent of a dataset of coding agent tasks locally in a sandbox.",
+    )
+    setup_logging_args(coding_agent)
+    coding_agent.add_argument(
+        "--path", required=True, type=Path, help="The directory of the dataset with the coding agent tasks."
+    )
+    coding_agent.add_argument(
+        "--agent",
+        required=True,
+        type=Path,
+        help=(
+            "The directory that defines the agent: a skill.md that tells the agent how to work, plus any other files"
+            " the agent may use, e.g., reference implementations or papers (mounted read-only at /tira-agent)."
+        ),
+    )
+    coding_agent.add_argument(
+        "--stop-after-step",
+        default=None,
+        help="Stop after the named step of the first task (e.g., 'result'), for debugging.",
+    )
+    coding_agent.add_argument(
+        "--forward-environment-variable",
+        nargs="+",
+        default=[],
+        help=(
+            "Environment variables (e.g., COPILOT_PROVIDER_API_KEY) that are forwarded (not stored) to the"
+            " container running the agent."
+        ),
+    )
+    coding_agent.set_defaults(executable=run_coding_agent)
 
     remote = subparsers.add_parser("remote", help="Start one or more remote execution requests on TIRA.")
     setup_forwarding_args(remote)
