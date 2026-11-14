@@ -825,6 +825,8 @@ def add_evaluator(
     git_runner_command: "Optional[str]" = None,
     git_repository_id: "Optional[str]" = None,
     trusted_evaluation: "Optional[str]" = None,
+    output_format: "Optional[str]" = None,
+    forward_environment_variable: "Optional[str]" = None,
 ):
     model.add_evaluator(
         vm_id,
@@ -838,6 +840,8 @@ def add_evaluator(
         git_runner_command,
         git_repository_id,
         trusted_evaluation,
+        output_format,
+        forward_environment_variable,
     )
 
     from django.core.cache import cache
@@ -978,6 +982,8 @@ def edit_dataset(
     auto_unblind_runs: "Optional[bool]" = None,
     auto_unblind_evaluation: "Optional[bool]" = None,
     is_visible_to_participants: "Optional[bool]" = None,
+    output_format: "Optional[str]" = None,
+    forward_environment_variable: "Optional[str]" = None,
 ) -> "dict[str, Any]":
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -1005,6 +1011,8 @@ def edit_dataset(
         auto_unblind_runs,
         auto_unblind_evaluation,
         is_visible_to_participants,
+        output_format,
+        forward_environment_variable,
     )
 
 

@@ -60,6 +60,7 @@ export interface ServerInfo {
     datasetCount: number;
     taskCount: number;
     supportedFormats: string[];
+    supportedEvaluationOutputFormats: string[];
     trustedEvaluators: { Retrieval: string[], Classification: string[], TextGeneration: string[] }
 }
 

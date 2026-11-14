@@ -17,7 +17,8 @@ from tira.check_format import (
     lines_if_valid,
     log_message,
 )
-from tira.io_utils import to_prototext
+from tira.evaluation_output import write_evaluation_output
+from tira.io_utils import environment_variables_to_forward
 from tira.rest_api_client import Client
 from tira.tira_client import TiraClient
 
@@ -564,6 +565,11 @@ def evaluate(
     config = load_evaluator_config(config, client)
     evaluators = get_evaluators_if_valid(config, client)
 
+    # Fail early if the environment variables that the evaluator requires are not available
+    environment_variables_to_forward(
+        config.get("forward_environment_variable") or (config.get("trusted_eval") or {}).get("forward_environment_variable")
+    )
+
     if monitored:
         from tira.io_utils import MonitoredExecution
 
@@ -575,7 +581,7 @@ def evaluate(
         ret.update(evaluation)
 
     if output_dir:
-        prototext = to_prototext([ret])
-        (output_dir / "evaluation.prototext").write_text(prototext)
+        output_format = config.get("output_format") or (config.get("trusted_eval") or {}).get("output_format")
+        write_evaluation_output(ret, output_dir, output_format)
 
     return ret

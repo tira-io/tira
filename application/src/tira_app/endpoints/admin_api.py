@@ -16,6 +16,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseNotAllowed, JsonResponse
 from slugify import slugify
+from tira.evaluation_output import validate_output_format
 
 from .. import model as modeldb
 from .. import tira_model as model
@@ -245,6 +246,13 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
         auto_unblind_evaluation = bool(data.get("auto_unblind_evaluation", False))
         is_visible_to_participants = bool(data.get("is_visible_to_participants", True))
 
+        try:
+            output_format = validate_output_format(data.get("evaluation_output_format"))
+            forward_environment_variable = _forward_environment_variable(data) or None
+            evaluation_queue = _evaluation_queue(data)
+        except ValueError as e:
+            return JsonResponse({"status": 1, "message": str(e)})
+
         is_git_runner = data.get("is_git_runner", False)
         git_runner_image = data.get("git_runner_image", "")
         git_runner_command = data.get("git_runner_command", "")
@@ -380,7 +388,11 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
                 git_runner_command,
                 git_repository_id,
                 trusted_evaluation,
+                output_format,
+                forward_environment_variable,
             )
+            if evaluation_queue is not None:
+                modeldb.Dataset.objects.filter(dataset_id=ds["dataset_id"]).update(queue=evaluation_queue or None)
 
             if system_inputs or truth_data:
                 dataset = modeldb.Dataset.objects.get(dataset_id=ds["dataset_id"])
@@ -471,6 +483,36 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             return JsonResponse({"status": 1, "message": "A Dataset with this id already exists."})
 
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
+
+
+def _evaluation_queue(data: "dict[str, Any]") -> "Optional[str]":
+    """The worker queue on which the evaluator of a dataset runs. None if the key is absent, "" to reset to the default."""
+    if "evaluation_queue" not in data or data["evaluation_queue"] is None:
+        return None
+
+    queue = data["evaluation_queue"]
+    if not isinstance(queue, str) or len(queue) > 50 or any(c.isspace() for c in queue):
+        raise ValueError("The evaluation queue must be a string without whitespace and at most 50 characters.")
+
+    return queue
+
+
+def _forward_environment_variable(data: dict) -> "Optional[str]":
+    """Return the names of the environment variables to forward to the evaluator as normalized json list.
+
+    Returns None if the request does not specify the variables, so that existing values are kept on edit.
+    """
+    if "forward_environment_variable" not in data:
+        return None
+
+    names = data["forward_environment_variable"]
+    if isinstance(names, str):
+        names = json.loads(names) if names.strip() else []
+
+    if not isinstance(names, list) or not all(isinstance(i, str) and i.strip() for i in names):
+        raise ValueError("The forward_environment_variable must be a list of environment variable names.")
+
+    return json.dumps(sorted({i.strip() for i in names})) if names else ""
 
 
 def _evaluator_config(data: dict) -> "Optional[Any]":
@@ -581,6 +623,15 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
         git_repository_id = data["git_repository_id"]
 
         try:
+            output_format = data.get("evaluation_output_format") or None
+            if output_format:
+                validate_output_format(output_format)
+            forward_environment_variable = _forward_environment_variable(data)
+            evaluation_queue = _evaluation_queue(data)
+        except ValueError as e:
+            return JsonResponse({"status": 1, "message": str(e)})
+
+        try:
             dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")
         except Exception as e:
             logger.info(e)
@@ -638,7 +689,11 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
             auto_unblind_runs,
             auto_unblind_evaluation,
             is_visible_to_participants,
+            output_format,
+            forward_environment_variable,
         )
+        if evaluation_queue is not None:
+            modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(queue=evaluation_queue or None)
 
         from django.core.cache import cache
 

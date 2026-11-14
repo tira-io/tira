@@ -1053,11 +1053,15 @@ def _remove_unicode_categories(text: str, categories: set[str]) -> str:
     return "".join(i for i in text if not (ord(i) > 127 and unicodedata.category(i) in categories))
 
 
-def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
-    files = glob(str(directory) + "/*")
-
+def load_output_of_directory(
+    directory: Path, evaluation: bool = False, output_format: "Optional[str]" = None
+) -> "Union[Dict, pd.DataFrame]":
     if evaluation:
-        files = [i for i in files if i.endswith(".prototext")]
+        from tira.evaluation_output import parse_evaluation_output
+
+        return parse_evaluation_output(Path(directory), output_format)
+
+    files = glob(str(directory) + "/*")
 
     if len(files) != 1:
         raise ValueError("Expected exactly one output file. Got: ", files)
@@ -1066,17 +1070,7 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
 
     logging.debug(f"Read file from {files}")
 
-    if evaluation:
-        ret = {}
-        for i in [i for i in open(files, "r").read().split("measure") if "key:" in i and "value:" in i]:
-            key = i.split("key:")[1].split("value")[0].split('"')[1]
-            value = i.split("key:")[1].split("value")[1].split('"')[1]
-
-            ret[key.strip()] = __num(value.strip())
-
-        return ret
-    else:
-        return pd.read_json(files, lines=True, orient="records")
+    return pd.read_json(files, lines=True, orient="records")
 
 
 def docker_supported_target_platform() -> str:

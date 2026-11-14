@@ -372,6 +372,16 @@ class Evaluator(models.Model):
     git_runner_command = models.CharField(max_length=500, null=True, default=None)
     git_repository_id = models.CharField(max_length=200, null=True, default=None)
     trusted_evaluation = models.TextField(default=None, null=True)
+    output_format = models.CharField(max_length=100, default="prototext")
+    forward_environment_variable = models.TextField(default=None, null=True)
+
+    def get_forward_environment_variable(self) -> "Optional[List[str]]":
+        if not self.forward_environment_variable:
+            return None
+        try:
+            return json.loads(self.forward_environment_variable)
+        except json.JSONDecodeError:
+            return None
 
 
 class VirtualMachineHasEvaluator(models.Model):

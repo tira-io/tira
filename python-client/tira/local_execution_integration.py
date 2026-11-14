@@ -630,6 +630,7 @@ class LocalExecutionIntegration:
             client = self.__docker_client()
 
         evaluation_volumes = {str(eval_dir): {"bind": "/tira-data/eval_output", "mode": "rw"}}
+        evaluate_config = evaluate
 
         if type(evaluate) is dict and evaluate["evaluator_id"]:
             allow_network = bool(evaluate.get("allow_network", allow_network))
@@ -671,6 +672,9 @@ class LocalExecutionIntegration:
                     capabilities=[["gpu"]],
                 )
             ]
+
+        if isinstance(evaluate_config, dict):
+            environment.update(environment_variables_to_forward(evaluate_config.get("forward_environment_variable")))
 
         derived_hostnames = hostnames_required_for_network_access(environment)
         if derived_hostnames:

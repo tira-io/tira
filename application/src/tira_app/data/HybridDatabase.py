@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.db.models import Count, Q
 from google.protobuf.text_format import Parse
+from tira.evaluation_output import validate_output_format
 from tira.io_utils import get_tira_id, sanitize_text
 
 from .. import model as modeldb
@@ -331,6 +332,7 @@ class HybridDatabase(object):
             "irds_import_truth_command": dataset.irds_import_truth_command,
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
+            "evaluator_output_format": dataset.evaluator.output_format if evaluator_id else None,
             "format": dataset_format,
             "run_format": dataset_format,
             "truth_format": truth_format,
@@ -1696,6 +1698,8 @@ class HybridDatabase(object):
             "git_runner_image": evaluator.git_runner_image,
             "git_runner_command": evaluator.git_runner_command,
             "git_repository_id": evaluator.git_repository_id,
+            "output_format": evaluator.output_format,
+            "forward_environment_variable": evaluator.get_forward_environment_variable(),
         }
 
     def get_evaluations_with_keys_by_dataset(
@@ -2231,6 +2235,8 @@ class HybridDatabase(object):
         git_runner_command: "Optional[str]",
         git_repository_id: "Optional[str]",
         trusted_evaluation,
+        output_format: "Optional[str]" = None,
+        forward_environment_variable: "Optional[str]" = None,
     ) -> None:
         """Add a new Evaluator to the model (and the database as long as needed)
 
@@ -2244,6 +2250,9 @@ class HybridDatabase(object):
         @param git_repository_id: the repo ID where the new run will be conducted
         @param git_runner_command: the command for the runner
         @param git_runner_image: which image should be run for the evalution
+        @param output_format: the format in which the evaluator writes its output (default: prototext)
+        @param forward_environment_variable: json list of the names of the environment variables that are forwarded
+            (not stored) to the evaluator
         """
         evaluator_id = f"{dataset_id}-evaluator"
 
@@ -2258,6 +2267,8 @@ class HybridDatabase(object):
                 "git_runner_command": git_runner_command,
                 "git_repository_id": git_repository_id,
                 "trusted_evaluation": trusted_evaluation,
+                "output_format": validate_output_format(output_format),
+                "forward_environment_variable": forward_environment_variable,
             },
         )
 
@@ -2803,9 +2814,13 @@ class HybridDatabase(object):
         auto_unblind_runs: "Optional[bool]" = None,
         auto_unblind_evaluation: "Optional[bool]" = None,
         is_visible_to_participants: "Optional[bool]" = None,
+        output_format: "Optional[str]" = None,
+        forward_environment_variable: "Optional[str]" = None,
     ) -> "dict[str, Any]":
         """
 
+        @param output_format: the format in which the evaluator writes its output. If None, the existing value is
+            kept unchanged.
         @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
         @param git_repository_id: the repo ID where the new run will be conducted
         @param git_runner_command: the command for the runner
@@ -2868,6 +2883,8 @@ class HybridDatabase(object):
             git_runner_command=git_runner_command,
             git_repository_id=git_repository_id,
             trusted_evaluation=trusted_evaluation,
+            **({} if output_format is None else {"output_format": validate_output_format(output_format)}),
+            **({} if forward_environment_variable is None else {"forward_environment_variable": forward_environment_variable or None}),
         )
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 

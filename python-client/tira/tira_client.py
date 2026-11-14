@@ -216,6 +216,8 @@ class TiraClient(ABC):
         truths: Path,
         print_message: Callable,
         ret_dir: Optional[Path] = None,
+        output_format: Optional[str] = None,
+        forward_environment_variable: "Optional[list[str]]" = None,
     ) -> str:
         from tira.io_utils import load_output_of_directory
         from tira.third_party_integrations import temporary_directory
@@ -238,6 +240,7 @@ class TiraClient(ABC):
             "evaluator_git_runner_image": image,
             "evaluator_git_runner_command": command,
             "truth_directory": str(Path(truths).absolute().resolve()),
+            "forward_environment_variable": forward_environment_variable,
         }
         self.local_execution.evaluate(
             Path(ret_dir).absolute().resolve(),
@@ -247,7 +250,7 @@ class TiraClient(ABC):
         )
 
         try:
-            return json.dumps(load_output_of_directory(Path(ret_dir), evaluation=True))
+            return json.dumps(load_output_of_directory(Path(ret_dir), evaluation=True, output_format=output_format))
         except:
             msg = "The evaluator failed to produce a valid evaluation..."
             print(msg)
@@ -343,6 +346,8 @@ class TiraClient(ABC):
             dataset_path,
             log_message,
             results_dir,
+            dataset_handle["evaluator"].get("output_format"),
+            dataset_handle["evaluator"].get("forward_environment_variable"),
         )
 
         log_message("The evaluator was successfull.", _fmt.OK)
@@ -1057,6 +1062,7 @@ class TiraClient(ABC):
     ):
         from shutil import copy
 
+        from tira.evaluation_output import validate_output_format
         from tira.io_utils import TqdmUploadFile, resolve_mirrored_resources, verify_tira_installation, zip_dir
         from tira.third_party_integrations import temporary_directory
 
@@ -1143,6 +1149,24 @@ class TiraClient(ABC):
             eval_command = tira_configs["evaluator"]["command"]
             eval_measures = None
         resolve_truths_to = tira_configs.get("resolve_truths_to", None)
+
+        try:
+            eval_output_format = validate_output_format(tira_configs["evaluator"].get("output_format"))
+            eval_forward_environment_variable = tira_configs["evaluator"].get("forward_environment_variable") or []
+            eval_queue = tira_configs["evaluator"].get("queue")
+            if eval_queue is not None and (
+                not isinstance(eval_queue, str) or not eval_queue.strip() or len(eval_queue) > 50 or " " in eval_queue
+            ):
+                raise ValueError("The 'queue' of the evaluator must be a worker queue name without whitespace.")
+            if not isinstance(eval_forward_environment_variable, list) or not all(
+                isinstance(i, str) and i.strip() for i in eval_forward_environment_variable
+            ):
+                raise ValueError(
+                    "The 'forward_environment_variable' of the evaluator must be a list of environment variable names."
+                )
+        except ValueError as e:
+            print_message(f"The configuration of the evaluator in the dataset README.md is invalid: {e}", _fmt.ERROR)
+            return None
 
         print_message(f"The configuration of the dataset {path} is valid.", _fmt.OK)
 
@@ -1268,7 +1292,15 @@ class TiraClient(ABC):
                 print_message(
                     f"The baseline produced valid outputs at {baseline_output} for input {inputs_dir}.", _fmt.OK
                 )
-                preds = self.__run_evaluation(eval_image, eval_command, baseline_output, truth_dir, log_message)
+                preds = self.__run_evaluation(
+                    eval_image,
+                    eval_command,
+                    baseline_output,
+                    truth_dir,
+                    log_message,
+                    output_format=eval_output_format,
+                    forward_environment_variable=eval_forward_environment_variable,
+                )
 
                 print_message(f"The evaluation of the baseline produced valid outputs: {preds}.", _fmt.OK)
             else:
@@ -1278,6 +1310,8 @@ class TiraClient(ABC):
                     "measures": deepcopy(eval_measures),
                     "run_format": deepcopy(baseline_format),
                     "truth_format": deepcopy(truth_format),
+                    "output_format": eval_output_format,
+                    "forward_environment_variable": eval_forward_environment_variable,
                 }
                 for k, v in deepcopy(baseline_config).items():
                     if k not in eval_config:
@@ -1351,6 +1385,9 @@ class TiraClient(ABC):
                 "truth_format": truth_format,
                 "truth_format_configuration": json.dumps(truth_config),
                 "workflow_configuration": json.dumps(workflow_config) if workflow_config else None,
+                "evaluation_output_format": eval_output_format,
+                **({"evaluation_queue": eval_queue} if eval_queue else {}),
+                "forward_environment_variable": json.dumps(eval_forward_environment_variable),
             }
 
             if eval_measures is not None:

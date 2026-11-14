@@ -79,7 +79,11 @@ class DatasetSerializer(ModelSerializer):
         return obj.get_truth_format_configuration()
 
     def get_trusted_eval(self, obj):
-        return obj.get_trusted_evaluation()
+        ret = obj.get_trusted_evaluation()
+        if ret is not None and obj.evaluator:
+            ret["output_format"] = obj.evaluator.output_format
+            ret["forward_environment_variable"] = obj.evaluator.get_forward_environment_variable()
+        return ret
 
     def get_truth_format(self, obj):
         return obj.get_truth_format()
@@ -106,7 +110,12 @@ class DatasetSerializer(ModelSerializer):
             and obj.evaluator.git_runner_image
             and obj.evaluator.git_runner_command
         ):
-            return {"image": obj.evaluator.git_runner_image, "command": obj.evaluator.git_runner_command}
+            return {
+                "image": obj.evaluator.git_runner_image,
+                "command": obj.evaluator.git_runner_command,
+                "output_format": obj.evaluator.output_format,
+                "forward_environment_variable": obj.evaluator.get_forward_environment_variable(),
+            }
         else:
             return None
 

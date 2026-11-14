@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 import zipfile
@@ -175,6 +176,103 @@ class TestTaskSubmissions(unittest.TestCase):
 
         self.assertIsNotNone(actual)
         self.assertEqual("predictions.jsonl", post_mock.call_args_list[0].kwargs["json"]["upload_name"])
+
+
+def _copy_multi_author_dataset_with_evaluator_config(target_dir: Path, evaluator_config: str) -> Path:
+    """Copies the multi-author-analysis example dataset and appends evaluator_config to the evaluator in the README."""
+    import shutil
+
+    dataset = target_dir / "multi-author-analysis"
+    shutil.copytree(RESOURCE_DIR / "example-datasets" / "multi-author-analysis", dataset)
+    readme = dataset / "README.md"
+    content = readme.read_text()
+    anchor = 'command: "python3 /evaluator/evaluator.py -p ${inputRun} -t ${inputDataset} -o ${outputDir}"\n'
+    assert anchor in content
+    readme.write_text(content.replace(anchor, anchor + evaluator_config))
+    return dataset
+
+
+def _upload_dataset_and_return_config(dataset: Path):
+    with patch("tira.io_utils.verify_tira_installation", return_value=_fmt.OK), patch("requests.post") as post_mock:
+        responses = []
+        for content in [b'{"context":{"dataset_id":"dataset-1"}}', b'{"status":0,"message":"ok"}']:
+            response = MagicMock()
+            response.status_code = 200
+            response.content = content
+            responses.append(response)
+        post_mock.side_effect = [responses[0], responses[1], responses[1]]
+
+        client = TiraClient()
+        client.authentication_headers = MagicMock(return_value={})
+        client.fail_if_api_key_is_invalid = MagicMock()
+        client.get_csrf_token = MagicMock(return_value="csrf-token")
+        client.base_url = "https://www.tira.io"
+        client.verify = True
+
+        actual = client.submit_dataset(dataset, "task", "train", False, skip_baseline=True)
+        return actual, (post_mock.call_args_list[0].kwargs["json"] if post_mock.call_args_list else None)
+
+
+class TestEvaluatorConfigurationInDatasetReadme(unittest.TestCase):
+    def test_evaluator_defaults_if_not_configured(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), "")
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNotNone(actual)
+        self.assertEqual("prototext", config["evaluation_output_format"])
+        self.assertEqual([], json.loads(config["forward_environment_variable"]))
+
+    def test_output_format_and_forwarded_environment_variables_are_uploaded(self):
+        evaluator_config = "    output_format: json\n    forward_environment_variable: [OPENAI_API_KEY, OPENAI_BASE_URL]\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), evaluator_config)
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNotNone(actual)
+        self.assertEqual("json", config["evaluation_output_format"])
+        self.assertEqual(["OPENAI_API_KEY", "OPENAI_BASE_URL"], json.loads(config["forward_environment_variable"]))
+
+    def test_evaluator_queue_is_uploaded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), "    queue: my-evaluator-worker\n")
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNotNone(actual)
+        self.assertEqual("my-evaluator-worker", config["evaluation_queue"])
+
+    def test_evaluator_queue_is_not_uploaded_if_not_configured(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), "")
+            _, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertNotIn("evaluation_queue", config)
+
+    def test_evaluator_queue_with_whitespace_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), '    queue: "my worker"\n')
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNone(actual)
+        self.assertIsNone(config)
+
+    def test_invalid_output_format_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), "    output_format: not-a-format\n")
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNone(actual)
+        self.assertIsNone(config)
+
+    def test_forwarded_environment_variables_must_be_a_list(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset = _copy_multi_author_dataset_with_evaluator_config(
+                Path(tmp), "    forward_environment_variable: OPENAI_API_KEY\n"
+            )
+            actual, config = _upload_dataset_and_return_config(dataset)
+
+        self.assertIsNone(actual)
+        self.assertIsNone(config)
 
 
 def _submit_code_with_mocks(
