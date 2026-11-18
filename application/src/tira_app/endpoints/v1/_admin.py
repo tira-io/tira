@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
-from ...model import Run, RunningProcesses
+from ...model import DockerSoftware, DockerSoftwareReview, Run, RunningProcesses
 from ..vm_api import _run_evaluation
 
 logger = logging.getLogger("tira")
@@ -255,7 +255,52 @@ def run_statistics(request: Request) -> Response:
     return JsonResponse({"status": 0, "context": {"statistics": aggregate_run_statistics(start, end)}})
 
 
+def _serialize_docker_software_review(docker_software_id: int, review: DockerSoftwareReview | None) -> dict:
+    return {
+        "docker_software_id": docker_software_id,
+        "reviewer_id": review.reviewer_id if review else "",
+        "review_date": review.review_date if review else "",
+        "code_review": review.code_review if review else DockerSoftwareReview.Status.PENDING,
+        "execution_review": review.execution_review if review else DockerSoftwareReview.Status.PENDING,
+        "comment": review.comment if review else "",
+    }
+
+
+@api_view(["GET", "PUT"])
+@permission_classes([IsAdminUser])
+def docker_software_review(request: Request, docker_software_id: int) -> Response:
+    if not DockerSoftware.objects.filter(docker_software_id=docker_software_id).exists():
+        return JsonResponse({"status": 1, "message": "Unknown docker software."}, status=404)
+
+    review = DockerSoftwareReview.objects.filter(docker_software_id=docker_software_id).first()
+
+    if request.method == "PUT":
+        valid = DockerSoftwareReview.Status.values
+        code_review = request.data.get("code_review")
+        execution_review = request.data.get("execution_review")
+        comment = request.data.get("comment", "")
+        if code_review not in valid or execution_review not in valid or not isinstance(comment, str):
+            return JsonResponse(
+                {"status": 1, "message": f"code_review and execution_review must be one of {valid}."}, status=400
+            )
+        review, _ = DockerSoftwareReview.objects.update_or_create(
+            docker_software_id=docker_software_id,
+            defaults={
+                "reviewer_id": request.user.username,
+                "review_date": datetime.utcnow().isoformat(),
+                "code_review": code_review,
+                "execution_review": execution_review,
+                "comment": comment,
+            },
+        )
+
+    return JsonResponse(
+        {"status": 0, "context": _serialize_docker_software_review(docker_software_id, review)}
+    )
+
+
 endpoints = [
+    path("docker-software-review/<int:docker_software_id>", docker_software_review),
     path("run-statistics", run_statistics),
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
     path(

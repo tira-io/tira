@@ -818,6 +818,7 @@ class HybridDatabase(object):
             "allow_network_access_on_request": ds.allow_network_access_on_request,
             "cache_behaviour": ds.cache_behaviour,
             "mount_config": ds.get_mount_config(),
+            "released_for_users": ds.is_released_for_users(),
             "try_run_metadata": try_run_metadata,
             "metadata": ds.get_metadata(),
         }

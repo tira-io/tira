@@ -609,6 +609,14 @@ class DockerSoftware(models.Model):
     def get_metadata(self) -> "Optional[Dict[str, str]]":
         return normalize_upload_metadata(self.metadata)
 
+    def is_released_for_users(self) -> bool:
+        """Users may only run software whose code review and execution review are both approved."""
+        review = DockerSoftwareReview.objects.filter(docker_software_id=self.docker_software_id).first()
+        if review is None:
+            return False
+        approved = DockerSoftwareReview.Status.APPROVED
+        return review.code_review == approved and review.execution_review == approved
+
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:
         if cache_behaviour in (None, ""):
@@ -796,6 +804,20 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
+
+
+class DockerSoftwareReview(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "pending"
+        APPROVED = "approved", "approved"
+        REJECTED = "rejected", "rejected"
+
+    docker_software = models.OneToOneField(DockerSoftware, on_delete=models.CASCADE, related_name="review")
+    reviewer_id = models.CharField(max_length=150)
+    review_date = models.CharField(max_length=150)
+    code_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    execution_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    comment = models.TextField(default="")
 
 
 class BackendProcess(models.Model):

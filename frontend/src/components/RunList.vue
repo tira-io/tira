@@ -1,6 +1,7 @@
 <template>
   <loading :loading="loading" />
   <div v-if="!loading">
+    <docker-software-review v-if="docker_software_id && userinfo.role === 'admin'" :docker_software_id="docker_software_id" />
     <v-alert v-if="dataset_id && !leaderboard_is_public && userinfo.role !== 'admin'" type="info" variant="tonal"
       class="mb-4">
       This leaderboard is not public. Only selected baselines (that are publicly available) and your own unblinded
@@ -75,6 +76,7 @@ import { inject } from 'vue'
 
 import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
+import DockerSoftwareReview from './DockerSoftwareReview.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
 import { get_from_archive, reportError, inject_response, type UserInfo } from '../utils'
@@ -82,7 +84,7 @@ import { get_from_archive, reportError, inject_response, type UserInfo } from '.
 
 export default {
   name: "run-list",
-  components: { RunActions, SoftwareDetails, Loading, SubmissionIcon },
+  components: { DockerSoftwareReview, RunActions, SoftwareDetails, Loading, SubmissionIcon },
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed', 'from_archive'],
   data() {
     return {

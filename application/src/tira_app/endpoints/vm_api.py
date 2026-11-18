@@ -1260,6 +1260,18 @@ def run_execute_docker_software(
             }
         )
 
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    if role not in (auth.ROLE_ADMIN, auth.ROLE_TIRA) and not docker_software.get("released_for_users", False):
+        return JsonResponse(
+            {
+                "status": 1,
+                "message": (
+                    "This software was not yet released for execution: The task organizers still have to review the"
+                    " code and the outputs on a spot-check dataset."
+                ),
+            }
+        )
+
     try:
         request_payload = _load_request_payload(request)
     except Exception as e:

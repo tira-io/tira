@@ -30,6 +30,9 @@ class TestRunExecuteDockerSoftwareMountUploads(TestCase):
             mount_config=json.dumps({"primary-input": "ro", "secondary input": "rw"}),
             deleted=False,
         )
+        modeldb.DockerSoftwareReview.objects.create(
+            docker_software=cls.software, code_review="approved", execution_review="approved"
+        )
         cls.existing_run = modeldb.Run.objects.create(
             run_id="existing-run-for-mounted-directory",
             docker_software=cls.software,
