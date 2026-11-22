@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -818,6 +819,25 @@ class DockerSoftwareReview(models.Model):
     code_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     execution_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     comment = models.TextField(default="")
+
+
+class DockerSoftwareAutomaticReview(models.Model):
+    """An automatic (e.g., LLM-agent) review of a docker software. A software can have many of them.
+    The complete review is a zip on disk (TIRA_ROOT/data/software-reviews/<software id>/<id>.zip)."""
+
+    class Verdict(models.TextChoices):
+        NO_CONCERNS = "no_concerns", "no_concerns"
+        NEEDS_HUMAN_REVIEW = "needs_human_review", "needs_human_review"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, related_name="automatic_reviews")
+    title = models.CharField(max_length=200)
+    verdict = models.CharField(max_length=20, choices=Verdict.choices)
+    comment = models.TextField(default="")
+    details = models.JSONField(default=dict)
+    uploader_id = models.CharField(max_length=150)
+    review_date = models.CharField(max_length=150)
+    archive_path = models.CharField(max_length=500, default="")
 
 
 class BackendProcess(models.Model):

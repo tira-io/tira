@@ -1421,6 +1421,24 @@ class Client(TiraClient):
         query = urlencode({"start": start, "end": end})
         return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
+    def software_reviews(self, docker_software_id: int) -> list:
+        """The automatic reviews of a docker software (newest first)."""
+        return self.json_response(f"/v1/admin/docker-software-automatic-reviews/{docker_software_id}")["context"][
+            "reviews"
+        ]
+
+    def upload_software_review(
+        self, docker_software_id: int, title: str, verdict: str, comment: str, details: dict, file_path: Path
+    ) -> dict:
+        """Uploads a new automatic review (the zip of the complete review) of a docker software."""
+        ret = self.execute_post_return_json(
+            f"/v1/admin/docker-software-automatic-reviews/{docker_software_id}",
+            file_path=file_path,
+            form_data={"title": title, "verdict": verdict, "comment": comment, "details": json.dumps(details)},
+        )
+        assert ret["status"] == 0
+        return ret["context"]
+
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
         upload_to_tira = self.get_dataset(dataset_id)
@@ -1733,6 +1751,7 @@ class Client(TiraClient):
         params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
         file_path: "Path" = None,
         json_payload: "Any" = None,
+        form_data: "Optional[Dict[str, str]]" = None,
     ) -> Dict:
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
@@ -1749,12 +1768,13 @@ class Client(TiraClient):
                 resp = requests.post(
                     url=f"{self.base_url}{endpoint}",
                     files=files,
+                    data=form_data,
                     headers=headers,
                     params=params,
                     json=json_payload,
                     verify=self.verify,
                 )
-                if resp.status_code not in {200, 202}:
+                if resp.status_code not in {200, 201, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}")
                 else:
                     break

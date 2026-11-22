@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 from time import gmtime, strftime
 from typing import IO
 
+from django.conf import settings
 from django.db.models import Q
-from django.http import HttpResponseServerError, JsonResponse
+from django.http import FileResponse, HttpResponseServerError, JsonResponse
 from django.urls import path
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
@@ -18,7 +21,7 @@ from rest_framework.response import Response
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
-from ...model import DockerSoftware, DockerSoftwareReview, Run, RunningProcesses
+from ...model import DockerSoftware, DockerSoftwareAutomaticReview, DockerSoftwareReview, Run, RunningProcesses
 from ..vm_api import _run_evaluation
 
 logger = logging.getLogger("tira")
@@ -294,12 +297,98 @@ def docker_software_review(request: Request, docker_software_id: int) -> Respons
             },
         )
 
-    return JsonResponse(
-        {"status": 0, "context": _serialize_docker_software_review(docker_software_id, review)}
-    )
+    return JsonResponse({"status": 0, "context": _serialize_docker_software_review(docker_software_id, review)})
+
+
+def _serialize_automatic_review(review: DockerSoftwareAutomaticReview) -> dict:
+    return {
+        "id": str(review.id),
+        "docker_software_id": review.docker_software_id,
+        "title": review.title,
+        "verdict": review.verdict,
+        "comment": review.comment,
+        "details": review.details,
+        "uploader_id": review.uploader_id,
+        "review_date": review.review_date,
+    }
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminUser])
+def docker_software_automatic_reviews(request: Request, docker_software_id: int) -> Response:
+    """Lists (GET) or adds (POST, multipart) automatic reviews. A POST has the fields title, verdict, comment,
+    details (JSON object, e.g., the LLM that was used) and file (the zip of the complete review)."""
+    if not DockerSoftware.objects.filter(docker_software_id=docker_software_id).exists():
+        return JsonResponse({"status": 1, "message": "Unknown docker software."}, status=404)
+
+    if request.method == "POST":
+        title = str(request.data.get("title", "")).strip()
+        verdict = request.data.get("verdict")
+        archive = request.FILES.get("file")
+        try:
+            details = json.loads(request.data.get("details") or "{}")
+        except ValueError:
+            details = None
+
+        if not title or len(title) > 200 or verdict not in DockerSoftwareAutomaticReview.Verdict.values:
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": f"A title (<= 200 characters) and a verdict of "
+                    f"{DockerSoftwareAutomaticReview.Verdict.values} are required.",
+                },
+                status=400,
+            )
+        if not isinstance(details, dict) or archive is None or not zipfile.is_zipfile(archive):
+            return JsonResponse(
+                {"status": 1, "message": "details must be a JSON object and file must be a zip."}, status=400
+            )
+
+        archive.seek(0)
+        review = DockerSoftwareAutomaticReview.objects.create(
+            docker_software_id=docker_software_id,
+            title=title,
+            verdict=verdict,
+            comment=str(request.data.get("comment", "")),
+            details=details,
+            uploader_id=request.user.username,
+            review_date=datetime.utcnow().isoformat(),
+        )
+        relative = Path("data") / "software-reviews" / str(docker_software_id) / f"{review.id}.zip"
+        target = Path(settings.TIRA_ROOT) / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with open(target, "wb") as f:
+            for chunk in archive.chunks():
+                f.write(chunk)
+        review.archive_path = str(relative)
+        review.save()
+        return JsonResponse({"status": 0, "context": _serialize_automatic_review(review)}, status=201)
+
+    reviews = DockerSoftwareAutomaticReview.objects.filter(docker_software_id=docker_software_id)
+    reviews = reviews.order_by("-review_date")
+    return JsonResponse({"status": 0, "context": {"reviews": [_serialize_automatic_review(r) for r in reviews]}})
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def docker_software_automatic_review_archive(
+    request: Request, docker_software_id: int, review_id: uuid.UUID
+) -> Response:
+    reviews = DockerSoftwareAutomaticReview.objects.filter(id=review_id, docker_software_id=docker_software_id)
+    review = reviews.first()
+    path = Path(settings.TIRA_ROOT) / review.archive_path if review else None
+    if not path or not review.archive_path or not path.is_file():
+        return JsonResponse({"status": 1, "message": "Unknown review."}, status=404)
+
+    return FileResponse(open(path, "rb"), as_attachment=True, filename=f"review-{review_id}.zip")
 
 
 endpoints = [
+    path("docker-software-automatic-reviews/<int:docker_software_id>", docker_software_automatic_reviews),
+    path(
+        "docker-software-automatic-reviews/<int:docker_software_id>/<uuid:review_id>/archive",
+        docker_software_automatic_review_archive,
+    ),
     path("docker-software-review/<int:docker_software_id>", docker_software_review),
     path("run-statistics", run_statistics),
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),

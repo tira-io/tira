@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
-from tira.check_format import fmt_message
+from tira.check_format import clean_logger, fmt_message
 from tira.io_utils import (
     _fmt,
     clean_logger,
@@ -952,9 +952,222 @@ def admin_export_rag_responses(runs: str, evals: str, output: str, **kwargs) -> 
     return 0
 
 
+def admin_review_runs(
+    task: str,
+    dataset: Optional[str] = None,
+    output: Optional[str] = None,
+    max: Optional[int] = None,
+    agent_output: Optional[str] = None,
+    agent_timeout: int = 3600,
+    no_upload: bool = False,
+    **kwargs,
+) -> int:
+    import os
+
+    from tira.admin_review_agent import (
+        REQUIRED_ENVIRONMENT_VARIABLES,
+        format_summary,
+        load_reviews,
+        run_review_agent,
+        upload_reviews,
+    )
+    from tira.admin_review_runs import prepare_review_directory
+
+    missing = [i for i in REQUIRED_ENVIRONMENT_VARIABLES if not os.environ.get(i)]
+    if missing:
+        print(
+            fmt_message(
+                "The following environment variables must be set to review runs: " + ", ".join(missing) + ".",
+                _fmt.ERROR,
+            )
+        )
+        return 1
+
+    client: "TiraClient" = RestClient()
+    try:
+        directory, runs = prepare_review_directory(client, task, [dataset] if dataset else None, output, max)
+    except ValueError as e:
+        print(fmt_message(str(e), _fmt.ERROR))
+        return 1
+    if not runs:
+        print(fmt_message(f"No unreviewed runs found for task {task}.", _fmt.OK))
+        return 0
+
+    print(fmt_message(f"Downloaded {len(runs)} unreviewed run(s) to {directory}.", _fmt.OK))
+    results: list = []
+    uploaded_count = 0
+
+    def process_batch(batch_directory, agent_output_directory):
+        nonlocal uploaded_count
+        batch_results = load_reviews(directory, agent_output_directory, batch_directory)
+        results.extend(batch_results)
+        if not no_upload:
+            uploaded = upload_reviews(client, batch_results)
+            uploaded_count += len(uploaded)
+            print(fmt_message(f"Uploaded {len(uploaded)} of {len(batch_results)} review(s) of the batch.", _fmt.OK))
+
+    agent_output_directory = run_review_agent(
+        directory, agent_timeout, output_directory=agent_output, on_batch_done=process_batch
+    )
+    print("\n" + format_summary(results))
+    if not no_upload:
+        print(fmt_message(f"Uploaded {uploaded_count} of {len(results)} review(s) to TIRA.", _fmt.OK))
+    print(f"Reviews: {agent_output_directory / 'reviews'}\nAgent log: {agent_output_directory / 'agent-log.txt'}")
+    return 1 if any(r["problems"] for r in results) else 0
+
+
+def admin_review_software(
+    task: str,
+    team: str,
+    software: str,
+    output: Optional[str] = None,
+    agent_output: Optional[str] = None,
+    agent_timeout: int = 3600,
+    force: bool = False,
+    no_upload: bool = False,
+    **kwargs,
+) -> int:
+    import os
+
+    from tira.admin_review_agent import REQUIRED_ENVIRONMENT_VARIABLES, run_review_agent
+    from tira.admin_review_software import (
+        docker_software_id_of,
+        extraction_summary,
+        format_existing_reviews,
+        format_software_result,
+        load_software_review,
+        prepare_software_review_directory,
+        upload_software_review,
+    )
+
+    log = clean_logger(f"tira-cli admin review-software --task {task} --team {team} --software {software}")
+    missing = [i for i in REQUIRED_ENVIRONMENT_VARIABLES if not os.environ.get(i)]
+    if missing:
+        log("The following environment variables must be set to review software: " + ", ".join(missing), _fmt.ERROR)
+        return 1
+
+    client: "TiraClient" = RestClient()
+    try:
+        docker_software_id = docker_software_id_of(client, task, team, software)
+        existing = client.software_reviews(docker_software_id)
+    except Exception as e:
+        log(f"Could not look up the existing reviews: {e}", _fmt.ERROR)
+        return 1
+
+    if existing and not force:
+        log(f"The software already has {len(existing)} review(s), use --force to add a new one", _fmt.OK)
+        print("\n".join(["Existing reviews:"] + format_existing_reviews(existing)))
+        return 0
+
+    try:
+        directory, manifest = prepare_software_review_directory(
+            client, task, team, software, output, log=lambda message: log(message, _fmt.OK)
+        )
+    except Exception as e:
+        log(f"Could not prepare the review: {e}", _fmt.ERROR)
+        return 1
+
+    print("\nThe agent reviews the software in the TIRA sandbox (this can take a while) ...", flush=True)
+    agent_output_directory = run_review_agent(directory, agent_timeout, output_directory=agent_output)
+    result = load_software_review(agent_output_directory, task, team, software)
+    review = result["review"] or {}
+    log("Agent reviewed the software in the TIRA sandbox", _fmt.OK if review else _fmt.ERROR)
+    if review:
+        log(f"Agent extracted {extraction_summary(review)}", _fmt.OK if not result["problems"] else _fmt.WARN)
+
+    ok = not result["problems"] and review.get("verdict") == "no_concerns"
+    if ok and not no_upload:
+        try:
+            uploaded = upload_software_review(
+                client, docker_software_id, directory, agent_output_directory, result, manifest
+            )
+            log(f"Review is uploaded to TIRA (id {uploaded['id']})", _fmt.OK)
+        except Exception as e:
+            log(f"Could not upload the review: {e}", _fmt.ERROR)
+            ok = False
+    elif not ok:
+        log("Review is not uploaded because it needs human attention", _fmt.WARN)
+
+    review_file = agent_output_directory / "reviews" / team / f"{software}.json"
+    print("\n".join(format_software_result(result, review_file, agent_output_directory / "agent-log.txt")))
+    return 0 if ok else 1
+
+
 def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     subparsers = parser.add_subparsers(dest="sub-command", required=True)
+
+    review_runs = subparsers.add_parser(
+        "review-runs",
+        help=(
+            "Download all unreviewed runs of a task, let a sandboxed Copilot CLI agent review them, and print a"
+            " summary of its reviews. Requires COPILOT_PROVIDER_TYPE, COPILOT_PROVIDER_BASE_URL, COPILOT_MODEL, and"
+            " COPILOT_PROVIDER_API_KEY."
+        ),
+    )
+    review_runs.add_argument("--task", required=True, help="The task whose unreviewed runs should be downloaded.")
+    review_runs.add_argument("--dataset", help="Restrict to this dataset. Defaults to all datasets of the task.")
+    review_runs.add_argument(
+        "--output", help="Directory to write the runs and README.md to. Defaults to a new temporary directory."
+    )
+    review_runs.add_argument(
+        "--max", type=positive_int, help="Package at most this many unreviewed runs. Defaults to all of them."
+    )
+    review_runs.add_argument(
+        "--agent-output",
+        help="Directory to write the agent's reviews and logs to. Defaults to agent-output in the --output directory.",
+    )
+    review_runs.add_argument(
+        "--agent-timeout",
+        type=positive_int,
+        default=3600,
+        help="Stop the review agent after this many seconds. Defaults to 3600.",
+    )
+    review_runs.add_argument(
+        "--no-upload",
+        action="store_true",
+        help="Do not upload the reviews to TIRA. By default, reviews that do not need a human review are uploaded.",
+    )
+    review_runs.set_defaults(executable=admin_review_runs)
+
+    review_software = subparsers.add_parser(
+        "review-software",
+        help=(
+            "Download the metadata and the docker image of a code submission, let a sandboxed Copilot CLI agent review"
+            " what it does (and whether it tries to hack or leak data), and print its review. Requires"
+            " COPILOT_PROVIDER_TYPE, COPILOT_PROVIDER_BASE_URL, COPILOT_MODEL, and COPILOT_PROVIDER_API_KEY."
+        ),
+    )
+    review_software.add_argument("--task", required=True, help="The task of the software.")
+    review_software.add_argument("--team", required=True, help="The team that submitted the software.")
+    review_software.add_argument("--software", required=True, help="The (display) name of the software to review.")
+    review_software.add_argument(
+        "--output",
+        help="Directory to write the metadata, the docker image (image.tar), and README.md to. Defaults to a new"
+        " temporary directory.",
+    )
+    review_software.add_argument(
+        "--agent-output",
+        help="Directory to write the agent's review and logs to. Defaults to agent-output in the --output directory.",
+    )
+    review_software.add_argument(
+        "--agent-timeout",
+        type=positive_int,
+        default=3600,
+        help="Stop the review agent after this many seconds. Defaults to 3600.",
+    )
+    review_software.add_argument(
+        "--force",
+        action="store_true",
+        help="Review the software even if it already has a review in TIRA (adds a new review). Without --force, the"
+        " existing reviews are printed.",
+    )
+    review_software.add_argument(
+        "--no-upload",
+        action="store_true",
+        help="Do not upload the review to TIRA (it is only uploaded if no human review is needed).",
+    )
+    review_software.set_defaults(executable=admin_review_software)
 
     v_parser = subparsers.add_parser("verify-tokens", help="Batch-verify authentication tokens for a task")
     v_parser.add_argument(

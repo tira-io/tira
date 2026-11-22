@@ -53,3 +53,61 @@ class TestReleaseForUsers(TestCase):
         review.execution_review = "approved"
         review.save()
         self.assertTrue(self.software.is_released_for_users())
+
+
+class TestDockerSoftwareAutomaticReviews(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        set_up_tira_environment()
+        vm = modeldb.VirtualMachine.objects.get(vm_id="PARTICIPANT-FOR-TEST-1")
+        cls.software = modeldb.DockerSoftware.objects.create(display_name="a", vm=vm)
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        self.client = APIClient()
+        self.client.force_authenticate(User.objects.create_superuser("auto", "a@x.org", "pw"))
+        self.url = f"/v1/admin/docker-software-automatic-reviews/{self.software.docker_software_id}"
+
+    def _zip(self):
+        import io
+        import zipfile
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as z:
+            z.writestr("review.json", "{}")
+        buffer.name = "review.zip"
+        buffer.seek(0)
+        return buffer
+
+    def _post(self, **kwargs):
+        body = {"title": "t", "verdict": "no_concerns", "details": '{"llm": "m"}', "file": self._zip(), **kwargs}
+        return self.client.post(self.url, body, format="multipart")
+
+    def test_multiple_reviews_are_stored_with_zip_on_disk(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        first, second = self._post(title="first"), self._post(title="second", verdict="needs_human_review")
+        self.assertEqual((201, 201), (first.status_code, second.status_code))
+
+        reviews = self.client.get(self.url).json()["context"]["reviews"]
+        self.assertEqual(["second", "first"], [r["title"] for r in reviews])
+        self.assertEqual({"llm": "m"}, reviews[0]["details"])
+
+        stored = modeldb.DockerSoftwareAutomaticReview.objects.get(id=reviews[0]["id"])
+        self.assertTrue((Path(settings.TIRA_ROOT) / stored.archive_path).is_file())
+        expected = f"software-reviews/{self.software.docker_software_id}/{stored.id}.zip"
+        self.assertTrue(stored.archive_path.endswith(expected))
+
+        download = self.client.get(f"{self.url}/{stored.id}/archive")
+        self.assertEqual(200, download.status_code)
+        self.assertTrue(b"".join(download.streaming_content).startswith(b"PK"))
+
+    def test_invalid_uploads_are_rejected(self):
+        self.assertEqual(400, self._post(verdict="x").status_code)
+        self.assertEqual(400, self._post(title="").status_code)
+        self.assertEqual(400, self._post(details="[]").status_code)
+        self.assertEqual(400, self.client.post(self.url, {"title": "t", "verdict": "no_concerns"}).status_code)
