@@ -213,12 +213,16 @@ class PrepareAndUploadTest(unittest.TestCase):
         (review_directory / "sw-snippets.tar.gz").write_text("duplicate of the snippets directory")
         (agent_output / "agent-log.txt").write_text("log")
 
-        archive = package_review(directory, agent_output, "team", "sw", Path(tempfile.mkdtemp()) / "r.zip")
+        archive = package_review(
+            directory, agent_output, "team", "sw", Path(tempfile.mkdtemp()) / "r.zip", {"llm": "m"}
+        )
 
         names = zipfile.ZipFile(archive).namelist()
         self.assertIn("reviews/team/sw.json", names)
         self.assertIn("agent-log.txt", names)
         self.assertIn("software/extracted/files.tsv", names)
+        self.assertIn("software/metadata.json", names)
+        self.assertEqual({"llm": "m"}, json.loads(zipfile.ZipFile(archive).read("review-info.json")))
         self.assertFalse(any(n.endswith(".tar.gz") for n in names))
 
         client = MagicMock()
@@ -234,3 +238,36 @@ class PrepareAndUploadTest(unittest.TestCase):
         self.assertEqual("model-x", details["llm"])
         self.assertEqual("img:1", details["image"])
         self.assertEqual("1 code snippets", details["extracted"].split(",")[0])
+
+
+class DockerSoftwaresOfTaskTest(unittest.TestCase):
+    def test_collects_the_code_submissions_of_all_teams_with_software(self):
+        from tira.rest_api_client import Client
+
+        responses = {
+            "/api/count-of-team-software/t": {
+                "context": {
+                    "count_of_team_software": [
+                        {"team": "b", "software_count": 1},
+                        {"team": "a", "software_count": 2},
+                        {"team": "c", "software_count": 0},
+                    ]
+                }
+            },
+            "/api/submissions-for-task/t/a/code": {
+                "context": {"code": {"submissions": [{"docker_software_id": 1, "display_name": "s1"}]}}
+            },
+            "/api/submissions-for-task/t/b/code": {
+                "context": {"code": {"submissions": [{"docker_software_id": 2, "display_name": "s2"}]}}
+            },
+            "/api/submissions-for-task/t/a/docker": {
+                "context": {"docker": {"docker_softwares": [{"docker_software_id": 3, "display_name": "s3"}]}}
+            },
+            "/api/submissions-for-task/t/b/docker": {"context": {"docker": {"docker_softwares": []}}},
+        }
+        client = MagicMock()
+        client.json_response.side_effect = lambda endpoint: responses[endpoint]
+
+        ret = Client.docker_softwares_of_task(client, "t")
+
+        self.assertEqual([("a", "s1"), ("a", "s3"), ("b", "s2")], [(i["team"], i["display_name"]) for i in ret])

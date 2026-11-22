@@ -417,8 +417,26 @@ def format_existing_reviews(reviews: list) -> list[str]:
     return lines
 
 
-def package_review(directory: Path, agent_output: Path, team: str, software: str, target: Path) -> Path:
-    """Zips the complete review: the review JSON with its snippets, the agent log, and the extracted image metadata."""
+def review_details(manifest: dict, review: dict) -> dict:
+    """Who/what produced the review and which software it is about (stored in the database and in the zip)."""
+    from tira import __version__
+
+    return {
+        "llm": os.environ.get("COPILOT_MODEL"),
+        "llm_provider_type": os.environ.get("COPILOT_PROVIDER_TYPE"),
+        "agent": "GitHub Copilot CLI in a sandbox (tira-cli admin review-software)",
+        "tira_client_version": __version__,
+        "image": manifest.get("image"),
+        "command": manifest.get("command"),
+        "extracted": extraction_summary(review),
+    }
+
+
+def package_review(
+    directory: Path, agent_output: Path, team: str, software: str, target: Path, details: Optional[dict] = None
+) -> Path:
+    """Zips the complete review: the review JSON with its snippets, the agent log, the metadata of the software, the
+    extracted image metadata, and review-info.json (the details, e.g., the LLM)."""
     extracted = directory / SOFTWARE_DIRECTORY / EXTRACTED_DIRECTORY
     sources = [(agent_output / "reviews", Path("reviews")), (extracted, Path(SOFTWARE_DIRECTORY) / EXTRACTED_DIRECTORY)]
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -428,6 +446,11 @@ def package_review(directory: Path, agent_output: Path, team: str, software: str
                     archive.write(file, name / file.relative_to(source))
         if (agent_output / "agent-log.txt").is_file():
             archive.write(agent_output / "agent-log.txt", "agent-log.txt")
+        metadata = directory / SOFTWARE_DIRECTORY / METADATA_FILE
+        if metadata.is_file():
+            archive.write(metadata, Path(SOFTWARE_DIRECTORY) / METADATA_FILE)
+        if details is not None:
+            archive.writestr("review-info.json", json.dumps(details, indent=2, default=str) + "\n")
     return target
 
 
@@ -435,21 +458,11 @@ def upload_software_review(
     client: "TiraClient", docker_software_id: int, directory: Path, agent_output: Path, result: dict, manifest: dict
 ) -> dict:
     """Uploads the complete review (zip) with a short title and the details (e.g., the LLM) to TIRA."""
-    from tira import __version__
-
     review = result["review"]
     team, software = manifest["team"], manifest["software"]
-    details = {
-        "llm": os.environ.get("COPILOT_MODEL"),
-        "llm_provider_type": os.environ.get("COPILOT_PROVIDER_TYPE"),
-        "agent": "GitHub Copilot CLI in a sandbox (tira-cli admin review-software)",
-        "tira_client_version": __version__,
-        "image": manifest.get("image"),
-        "command": manifest.get("command"),
-        "extracted": extraction_summary(review),
-    }
+    details = review_details(manifest, review)
     with tempfile.TemporaryDirectory() as tmp:
-        archive = package_review(directory, agent_output, team, software, Path(tmp) / "review.zip")
+        archive = package_review(directory, agent_output, team, software, Path(tmp) / "review.zip", details)
         return client.upload_software_review(
             docker_software_id,
             f"Automatic review of {software}",

@@ -44,6 +44,15 @@ class RunSoftwareError(RuntimeError):
         self.response = response
 
 
+def _docker_software_submissions(client: "Client", task: str, team: str) -> list:
+    """The not deleted docker softwares of a team: the code submissions (with source code) and the docker
+    submissions (without)."""
+    context = client.json_response(f"/api/submissions-for-task/{task}/{team}/code")["context"]
+    ret = list(context["code"]["submissions"])
+    context = client.json_response(f"/api/submissions-for-task/{task}/{team}/docker")["context"]
+    return ret + list(context["docker"]["docker_softwares"])
+
+
 class Client(TiraClient):
     base_url: str
 
@@ -883,12 +892,9 @@ class Client(TiraClient):
 
     def private_system_details(self, approach):
         task, team, system = approach.split("/")
-        endpoint = f"/api/submissions-for-task/{task}/{team}/code"
-        systems = self.json_response(endpoint)["context"]["code"]["submissions"]
-
         docker_ids = set()
-        for system_desc in systems:
-            if system_desc["display_name"] == system:
+        for system_desc in _docker_software_submissions(self, task, team):
+            if system_desc["display_name"] == system and system_desc.get("docker_software_id") is not None:
                 docker_ids.add(system_desc["docker_software_id"])
 
         if len(docker_ids) != 1:
@@ -1421,11 +1427,39 @@ class Client(TiraClient):
         query = urlencode({"start": start, "end": end})
         return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
+    def docker_softwares_of_task(self, task_id: str) -> list:
+        """All code and docker submissions that are not deleted of all teams of a task (admin only), as dicts with
+        docker_software_id, team, and display_name."""
+        teams = self.json_response(f"/api/count-of-team-software/{task_id}")["context"]["count_of_team_software"]
+        ret = []
+        for team in sorted(i["team"] for i in teams if i["software_count"] > 0):
+            for submission in _docker_software_submissions(self, task_id, team):
+                ret.append(
+                    {
+                        "docker_software_id": submission["docker_software_id"],
+                        "team": team,
+                        "display_name": submission["display_name"],
+                    }
+                )
+        return ret
+
     def software_reviews(self, docker_software_id: int) -> list:
         """The automatic reviews of a docker software (newest first)."""
         return self.json_response(f"/v1/admin/docker-software-automatic-reviews/{docker_software_id}")["context"][
             "reviews"
         ]
+
+    def download_software_review(self, docker_software_id: int, review_id: str, target_file: Path) -> Path:
+        """Downloads the zip of an automatic review of a docker software to target_file."""
+        url = f"{self.base_url}/v1/admin/docker-software-automatic-reviews/{docker_software_id}/{review_id}/archive"
+        resp = requests.get(url, headers=self.authentication_headers(), verify=self.verify, stream=True)
+        if resp.status_code != 200:
+            raise ValueError(f"Got statuscode {resp.status_code} for {url}.")
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(target_file, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1 << 20):
+                f.write(chunk)
+        return target_file
 
     def upload_software_review(
         self, docker_software_id: int, title: str, verdict: str, comment: str, details: dict, file_path: Path

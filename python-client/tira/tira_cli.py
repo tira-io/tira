@@ -1018,6 +1018,35 @@ def admin_review_runs(
 
 def admin_review_software(
     task: str,
+    team: Optional[str] = None,
+    software: Optional[str] = None,
+    output: Optional[str] = None,
+    agent_output: Optional[str] = None,
+    **kwargs,
+) -> int:
+    """Reviews one software (--team and --software) or, without both, all softwares of all teams of the task."""
+    if bool(team) != bool(software):
+        print("Please specify both --team and --software, or none of them to review all softwares of the task.")
+        return 1
+    if team and software:
+        return _review_software(task, team, software, output, agent_output, **kwargs)
+
+    try:
+        softwares = RestClient().docker_softwares_of_task(task)
+    except Exception as e:
+        print(f"Could not list the softwares of the task {task}: {e}")
+        return 1
+
+    exit_code = 0
+    for i in softwares:
+        nested = lambda directory: str(Path(directory) / i["team"] / i["display_name"]) if directory else None
+        code = _review_software(task, i["team"], i["display_name"], nested(output), nested(agent_output), **kwargs)
+        exit_code = max(exit_code, code)
+    return exit_code
+
+
+def _review_software(
+    task: str,
     team: str,
     software: str,
     output: Optional[str] = None,
@@ -1028,12 +1057,13 @@ def admin_review_software(
     **kwargs,
 ) -> int:
     import os
+    import tempfile
+    import zipfile
 
     from tira.admin_review_agent import REQUIRED_ENVIRONMENT_VARIABLES, run_review_agent
     from tira.admin_review_software import (
         docker_software_id_of,
         extraction_summary,
-        format_existing_reviews,
         format_software_result,
         load_software_review,
         prepare_software_review_directory,
@@ -1055,8 +1085,31 @@ def admin_review_software(
         return 1
 
     if existing and not force:
-        log(f"The software already has {len(existing)} review(s), use --force to add a new one", _fmt.OK)
-        print("\n".join(["Existing reviews:"] + format_existing_reviews(existing)))
+        log(
+            f"The software already has {len(existing)} review(s), use --force to add a new one (showing the newest)",
+            _fmt.OK,
+        )
+        base = Path(output) if output else Path(tempfile.mkdtemp(prefix=f"tira-review-{software}-"))
+        for existing_review in existing[:1]:
+            review_id = existing_review["id"]
+            target = Path(client.tira_cache_dir) / "software-reviews" / f"{review_id}.zip"
+            extracted = base
+            try:
+                if not target.is_file():
+                    client.download_software_review(docker_software_id, review_id, target)
+                with zipfile.ZipFile(target) as z:
+                    z.extractall(extracted)
+            except Exception as e:
+                log(f"Could not load review {review_id}: {e}", _fmt.ERROR)
+                continue
+            result = load_software_review(extracted, task, team, software)
+            llm = (existing_review.get("details") or {}).get("llm", "unknown LLM")
+            when = existing_review["review_date"][:16].replace("T", " ")
+            log(f"Review {review_id} from {when} by {llm} is loaded from the cache", _fmt.OK)
+            if result["review"]:
+                log(f"Agent extracted {extraction_summary(result['review'])}", _fmt.OK)
+            review_file = extracted / "reviews" / team / f"{software}.json"
+            print("\n".join(format_software_result(result, review_file, extracted / "agent-log.txt")))
         return 0
 
     try:
@@ -1139,8 +1192,11 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         ),
     )
     review_software.add_argument("--task", required=True, help="The task of the software.")
-    review_software.add_argument("--team", required=True, help="The team that submitted the software.")
-    review_software.add_argument("--software", required=True, help="The (display) name of the software to review.")
+    review_software.add_argument(
+        "--team",
+        help="The team that submitted the software. Without --team and --software, all softwares are reviewed.",
+    )
+    review_software.add_argument("--software", help="The (display) name of the software to review.")
     review_software.add_argument(
         "--output",
         help="Directory to write the metadata, the docker image (image.tar), and README.md to. Defaults to a new"

@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -164,17 +165,46 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
             code = tira_cli.admin_review_software("task", "team", "sw", **kwargs)
         return code, upload
 
-    def test_existing_reviews_are_printed_without_running_the_review(self):
+    def test_existing_review_is_shown_like_a_fresh_one_from_the_cached_zip(self):
         self.cli.client.software_reviews.return_value = [
-            {"id": "u", "review_date": "2026-01-01T00:00", "verdict": "no_concerns", "title": "t", "comment": ""}
+            {"id": "u", "review_date": "2026-01-01T00:00", "verdict": "no_concerns", "details": {"llm": "gpt"}}
         ]
 
+        def download(docker_software_id, review_id, target):
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with zipfile.ZipFile(target, "w") as z:
+                z.writestr("reviews/team/sw.json", json.dumps(valid_software_review("no_concerns")))
+
+        self.cli.client.download_software_review.side_effect = download
+        target = self.directory / "out"
+        self.cli.client.tira_cache_dir = str(self.directory / "cache")
+
         with patch("builtins.print") as printed:
-            code, upload = self.review()
+            code, upload = self.review(output=str(target))
 
         self.assertEqual((0, 0), (code, self.agent_calls))
         upload.assert_not_called()
-        self.assertIn("Existing reviews:", printed.call_args[0][0])
+        self.assertIn("Result:", printed.call_args[0][0])
+        self.assertIn(str(target), printed.call_args[0][0])
+        self.assertTrue((self.directory / "cache" / "software-reviews" / "u.zip").is_file())
+
+    def test_without_team_and_software_all_softwares_of_the_task_are_reviewed(self):
+        self.cli.client.docker_softwares_of_task.return_value = [
+            {"team": "a", "display_name": "s1"},
+            {"team": "b", "display_name": "s2"},
+        ]
+
+        with patch("tira.tira_cli._review_software", side_effect=[0, 1]) as single:
+            code = tira_cli.admin_review_software("task", output="/o", agent_output=None, force=True)
+
+        self.assertEqual(1, code)
+        self.assertEqual(
+            [("task", "a", "s1", "/o/a/s1", None), ("task", "b", "s2", "/o/b/s2", None)],
+            [c[0] for c in single.call_args_list],
+        )
+
+    def test_team_without_software_is_rejected(self):
+        self.assertEqual(1, tira_cli.admin_review_software("task", team="a"))
 
     def test_force_adds_a_new_review_even_if_one_exists(self):
         self.cli.client.software_reviews.return_value = [{"id": "u"}]
