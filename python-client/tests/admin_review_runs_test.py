@@ -104,6 +104,19 @@ class PrepareReviewDirectoryTest(unittest.TestCase):
 
         self.assertIn("example", (batches[0] / "README.md").read_text().lower())
 
+    def test_evaluations_are_downloaded_and_listed_in_the_manifest(self):
+        rows = valid_examples("a-") + [
+            run_row("a-run-0"),
+            run_row("a-run-0-eval", evaluation_of="a-run-0"),
+        ]
+        output = self.prepare({"a": rows})
+
+        manifest = json.loads((output / "batches" / "0000" / "manifest.json").read_text())
+        evaluation = manifest["runs"][0]["evaluations"][0]
+        self.assertEqual("a-run-0-eval", evaluation["run_id"])
+        self.assertTrue((output / evaluation["location"] / "output" / "run.txt").is_file())
+        self.assertIn("evaluations/a/team/a-run-0/a-run-0-eval", evaluation["location"])
+
     def test_fails_without_enough_examples(self):
         with self.assertRaises(ValueError):
             self.prepare({"a": [run_row("a-run-0")]})

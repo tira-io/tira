@@ -193,6 +193,13 @@ class PrepareAndUploadTest(unittest.TestCase):
         self.assertIn("`sw` of team `team` on task `task`", readme)
         self.assertNotIn("@", readme.replace("@github", ""))
 
+    def test_docker_software_id_of(self):
+        client = MagicMock()
+        client.private_system_details.return_value = {"docker_software_id": 7}
+
+        self.assertEqual(7, software.docker_software_id_of(client, "task", "team", "sw"))
+        client.private_system_details.assert_called_once_with("task/team/sw")
+
     def test_prepare_fails_without_docker_image(self):
         with self.assertRaises(ValueError):
             self.prepare({"docker_software_id": 7})
