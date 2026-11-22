@@ -183,7 +183,8 @@ def _download_image(client: "TiraClient", task: str, team: str, image: str, targ
     execution.ensure_image_available_locally(image)
     saved = subprocess.run([execution.get_container_cli(), "save", "-o", str(target), image], capture_output=True)
     if saved.returncode != 0:
-        target.unlink(missing_ok=True)
+        if target.exists():
+            target.unlink()
         error = saved.stderr.decode(errors="replace").strip().splitlines()
         raise RuntimeError(f"'{execution.get_container_cli()} save' failed: {error[-1] if error else saved.returncode}")
 
@@ -256,7 +257,8 @@ def prepare_software_review_directory(
         try:
             _download_image(client, task, team, image, image_file)
         except Exception:
-            image_file.unlink(missing_ok=True)
+            if image_file.exists():
+                image_file.unlink()
             raise
 
     extracted = extract_image_metadata(image_file, software_directory / EXTRACTED_DIRECTORY)
