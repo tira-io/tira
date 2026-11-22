@@ -274,14 +274,36 @@ class Client(TiraClient):
         return self.json_response(f"/api/task/{task}/submission-details/{team}/{software}")["context"]["submission"]
 
     def docker_credentials(self, task_name, team_name):
-        ret = self.metadata_for_task(task_name, team_name)
-        if ret and "status" in ret and ret["status"] == 0 and "context" in ret and "docker" in ret["context"]:
-            return (
-                ret["context"]["docker"]["docker_registry_user"],
-                ret["context"]["docker"]["docker_registry_token"],
-                self.docker_registry(),
+        user, token = self._docker_registry_credentials_of_task(task_name, team_name)
+        if user and token:
+            return user, token, self.docker_registry()
+
+        # Tasks without git pipeline (i.e., that are not featured) have no registry credentials.
+        try:
+            tasks = self.json_response("/api/task-list")["context"]["task_list"]
+            featured_tasks = [i["task_id"] for i in tasks if i.get("featured") and i["task_id"] != task_name]
+        except Exception:
+            featured_tasks = []
+
+        if featured_tasks:
+            logging.warning(
+                f"The task {task_name} has no docker registry credentials, using the credentials of the featured task"
+                f" {featured_tasks[0]} instead."
             )
+            user, token = self._docker_registry_credentials_of_task(featured_tasks[0], team_name)
+            if user and token:
+                return user, token, self.docker_registry()
+        else:
+            logging.warning(f"The task {task_name} has no docker registry credentials and no featured task was found.")
+
         return None, None, self.docker_registry()
+
+    def _docker_registry_credentials_of_task(self, task_name, team_name):
+        ret = self.metadata_for_task(task_name, team_name)
+        docker = ret["context"].get("docker") if ret and ret.get("status") == 0 and "context" in ret else None
+        if isinstance(docker, dict):  # False for tasks without git pipeline
+            return docker.get("docker_registry_user"), docker.get("docker_registry_token")
+        return None, None
 
     def docker_software_details(self, approach):
         task, team, software = approach.split("/")

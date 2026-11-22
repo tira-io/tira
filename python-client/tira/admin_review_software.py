@@ -4,6 +4,7 @@ that a sandboxed agent (see admin_review_agent) can review what the software doe
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
 import tarfile
@@ -179,7 +180,10 @@ def _download_image(client: "TiraClient", task: str, team: str, image: str, targ
     from tira.local_execution_integration import LocalExecutionIntegration
 
     execution = LocalExecutionIntegration(client)
-    execution.login_docker_client(task, team)
+    try:
+        execution.login_docker_client(task, team)
+    except ValueError:  # e.g., softwares of tasks without git pipeline are in public registries
+        logging.info("No TIRA registry credentials available, pulling the image without login.")
     execution.ensure_image_available_locally(image)
     saved = subprocess.run([execution.get_container_cli(), "save", "-o", str(target), image], capture_output=True)
     if saved.returncode != 0:

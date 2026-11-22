@@ -21,6 +21,7 @@ from tira.admin_review_software import (
     security_summary,
     upload_software_review,
 )
+from tira.rest_api_client import Client
 
 
 def add_file(archive, name, content):
@@ -242,8 +243,6 @@ class PrepareAndUploadTest(unittest.TestCase):
 
 class DockerSoftwaresOfTaskTest(unittest.TestCase):
     def test_collects_the_code_submissions_of_all_teams_with_software(self):
-        from tira.rest_api_client import Client
-
         responses = {
             "/api/count-of-team-software/t": {
                 "context": {
@@ -271,3 +270,39 @@ class DockerSoftwaresOfTaskTest(unittest.TestCase):
         ret = Client.docker_softwares_of_task(client, "t")
 
         self.assertEqual([("a", "s1"), ("a", "s3"), ("b", "s2")], [(i["team"], i["display_name"]) for i in ret])
+
+    def _credentials_client(self, metadata, featured):
+        client = MagicMock()
+        client.docker_registry.return_value = "registry"
+        client.metadata_for_task.side_effect = lambda task, team: metadata[task]
+        client.json_response.return_value = {
+            "context": {"task_list": [{"task_id": t, "featured": f} for t, f in featured.items()]}
+        }
+        client._docker_registry_credentials_of_task.side_effect = lambda t, team: Client._docker_registry_credentials_of_task(
+            client, t, team
+        )
+        return client
+
+    def test_docker_credentials_fall_back_to_first_featured_task(self):
+        client = self._credentials_client(
+            {
+                "t": {"status": 0, "context": {"docker": False}},
+                "f1": {"status": 0, "context": {"docker": {"docker_registry_user": "u", "docker_registry_token": "x"}}},
+                "f2": {"status": 0, "context": {"docker": {"docker_registry_user": "v", "docker_registry_token": "y"}}},
+            },
+            {"t": False, "f1": True, "f2": True},
+        )
+
+        with self.assertLogs(level="WARNING") as logs:
+            ret = Client.docker_credentials(client, "t", "a")
+
+        self.assertEqual(("u", "x", "registry"), ret)
+        self.assertIn("featured task f1", logs.output[0])
+
+    def test_docker_credentials_without_featured_task(self):
+        client = self._credentials_client({"t": {"status": 0, "context": {"docker": False}}}, {"t": False})
+
+        with self.assertLogs(level="WARNING"):
+            ret = Client.docker_credentials(client, "t", "a")
+
+        self.assertEqual((None, None, "registry"), ret)
