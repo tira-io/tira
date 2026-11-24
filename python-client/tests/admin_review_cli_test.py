@@ -190,8 +190,8 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
 
     def test_without_team_and_software_all_softwares_of_the_task_are_reviewed(self):
         self.cli.client.docker_softwares_of_task.return_value = [
-            {"team": "a", "display_name": "s1", "automatic_review_count": 1},
-            {"team": "b", "display_name": "s2", "automatic_review_count": 0},
+            {"team": "a", "display_name": "s1", "docker_software_id": 1, "automatic_review_count": 1},
+            {"team": "b", "display_name": "s2", "docker_software_id": 2, "automatic_review_count": 0},
         ]
 
         with patch("tira.tira_cli._review_software", side_effect=[0, 1]) as single, patch(
@@ -208,6 +208,18 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
             [("task", "a", "s1", "/o/a/s1", None), ("task", "b", "s2", "/o/b/s2", None)],
             [c[0] for c in single.call_args_list],
         )
+
+    def test_softwares_with_the_same_name_are_reviewed_by_id(self):
+        self.cli.client.docker_softwares_of_task.return_value = [
+            {"team": "a", "display_name": "dup", "docker_software_id": 5, "automatic_review_count": 0},
+            {"team": "a", "display_name": "dup", "docker_software_id": 6, "automatic_review_count": 0},
+        ]
+
+        with patch("tira.tira_cli._review_software", return_value=0) as single, patch("tira.tira_cli.time.sleep"):
+            tira_cli.admin_review_software("task", output="/o", agent_output=None)
+
+        self.assertEqual(["/o/a/dup-5", "/o/a/dup-6"], [c[0][3] for c in single.call_args_list])
+        self.assertEqual([5, 6], [c[1]["docker_software_id"] for c in single.call_args_list])
 
     def test_team_without_software_is_rejected(self):
         self.assertEqual(1, tira_cli.admin_review_software("task", team="a"))

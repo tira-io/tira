@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import collections
 import argparse
 import itertools
 import logging
@@ -968,6 +969,7 @@ def admin_review_runs(
     agent_output: Optional[str] = None,
     agent_timeout: int = 3600,
     no_upload: bool = False,
+    docker_software_id: Optional[int] = None,
     **kwargs,
 ) -> int:
     import os
@@ -1061,6 +1063,7 @@ def admin_review_software(
     print(f"Starting in {delay} seconds ...", flush=True)
     time.sleep(delay)
 
+    names = collections.Counter((i["team"], i["display_name"]) for i in softwares)
     exit_code = 0
     for number, i in enumerate(softwares, start=1):
         if number > 1:
@@ -1070,8 +1073,22 @@ def admin_review_software(
                 flush=True,
             )
             time.sleep(delay)
-        nested = lambda directory: str(Path(directory) / i["team"] / i["display_name"]) if directory else None
-        code = _review_software(task, i["team"], i["display_name"], nested(output), nested(agent_output), **kwargs)
+        # Display names are not unique, so the softwares are identified by their ids.
+        name = (
+            i["display_name"]
+            if names[i["team"], i["display_name"]] == 1
+            else f"{i['display_name']}-{i['docker_software_id']}"
+        )
+        nested = lambda directory: str(Path(directory) / i["team"] / name) if directory else None
+        code = _review_software(
+            task,
+            i["team"],
+            i["display_name"],
+            nested(output),
+            nested(agent_output),
+            docker_software_id=i["docker_software_id"],
+            **kwargs,
+        )
         exit_code = max(exit_code, code)
     return exit_code
 
@@ -1085,6 +1102,7 @@ def _review_software(
     agent_timeout: int = 3600,
     force: bool = False,
     no_upload: bool = False,
+    docker_software_id: Optional[int] = None,
     **kwargs,
 ) -> int:
     import os
@@ -1101,7 +1119,8 @@ def _review_software(
         upload_software_review,
     )
 
-    log = clean_logger(f"tira-cli admin review-software --task {task} --team {team} --software {software}")
+    id_hint = f" (docker software id {docker_software_id})" if docker_software_id is not None else ""
+    log = clean_logger(f"tira-cli admin review-software --task {task} --team {team} --software {software}{id_hint}")
     missing = [i for i in REQUIRED_ENVIRONMENT_VARIABLES if not os.environ.get(i)]
     if missing:
         log("The following environment variables must be set to review software: " + ", ".join(missing), _fmt.ERROR)
@@ -1109,7 +1128,8 @@ def _review_software(
 
     client: "TiraClient" = RestClient()
     try:
-        docker_software_id = docker_software_id_of(client, task, team, software)
+        if docker_software_id is None:
+            docker_software_id = docker_software_id_of(client, task, team, software)
         existing = client.software_reviews(docker_software_id)
     except Exception as e:
         log(f"Could not look up the existing reviews: {e}", _fmt.ERROR)
@@ -1145,7 +1165,13 @@ def _review_software(
 
     try:
         directory, manifest = prepare_software_review_directory(
-            client, task, team, software, output, log=lambda message: log(message, _fmt.OK)
+            client,
+            task,
+            team,
+            software,
+            output,
+            log=lambda message: log(message, _fmt.OK),
+            docker_software_id=docker_software_id,
         )
     except Exception as e:
         log(f"Could not prepare the review: {e}", _fmt.ERROR)

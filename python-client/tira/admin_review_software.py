@@ -246,12 +246,16 @@ def prepare_software_review_directory(
     software: str,
     output: Optional[Path] = None,
     log: Optional[Callable[[str], None]] = None,
+    docker_software_id: Optional[int] = None,
 ) -> tuple[Path, dict]:
     """Download the metadata and the docker image of the software into a directory (a fresh temporary directory by
     default), extract facts from the image, and write the README.md and manifest.json (as the only batch) that
     describe the review. Each finished step is reported to `log`."""
     log = log or (lambda message: None)
-    details = client.private_system_details(f"{task}/{team}/{software}")
+    if docker_software_id is not None:
+        details = client.docker_software_details(team, docker_software_id)
+    else:
+        details = client.private_system_details(f"{task}/{team}/{software}")
     image = details.get("public_image_name") or details.get("tira_image_name") or details.get("user_image_name")
     if not image:
         raise ValueError(f"The software {task}/{team}/{software} has no docker image.")
