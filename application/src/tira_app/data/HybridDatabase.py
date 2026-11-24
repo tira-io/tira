@@ -1034,6 +1034,39 @@ class HybridDatabase(object):
 
         return ret
 
+    def get_software_to_review(self, task_id: str, include_reviewed: bool = False) -> "list[dict[str, Any]]":
+        """The not deleted docker softwares of a task that are not released for users yet (i.e., neither approved by a
+        human nor without concerns in an automatic review). With include_reviewed, all not deleted softwares."""
+        softwares = (
+            modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False)
+            .select_related("vm", "review")
+            .prefetch_related("automatic_reviews")
+            .order_by("vm__vm_id", "display_name")
+        )
+        ret = []
+        for software in softwares:
+            if software.vm_id is None:
+                continue
+            released = software.is_released_for_users()
+            if released and not include_reviewed:
+                continue
+            automatic = sorted(software.automatic_reviews.all(), key=lambda r: r.review_date, reverse=True)
+            human = getattr(software, "review", None)
+            ret.append(
+                {
+                    "docker_software_id": software.docker_software_id,
+                    "team": software.vm.vm_id,
+                    "display_name": software.display_name,
+                    "released_for_users": released,
+                    "automatic_review_count": len(automatic),
+                    "latest_automatic_verdict": automatic[0].verdict if automatic else None,
+                    "code_review": human.code_review if human else "pending",
+                    "execution_review": human.execution_review if human else "pending",
+                    "link_submission": f"/submit/{task_id}/user/{software.vm.vm_id}",
+                }
+            )
+        return ret
+
     def get_count_of_team_software_executions(self, task_id: str) -> "list[dict[str, Any]]":
         software_rows = (
             modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False)

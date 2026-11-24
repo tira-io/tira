@@ -487,6 +487,10 @@ def get_count_of_team_software(task_id: str) -> "list[dict[str, Any]]":
     return model.get_count_of_team_software(task_id)
 
 
+def get_software_to_review(task_id: str, include_reviewed: bool = False) -> "list[dict[str, Any]]":
+    return model.get_software_to_review(task_id, include_reviewed)
+
+
 def get_count_of_team_software_executions(task_id: str) -> "list[dict[str, Any]]":
     return model.get_count_of_team_software_executions(task_id)
 

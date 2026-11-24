@@ -3,7 +3,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import tira.admin_review_agent as agent
 from tira import tira_cli
@@ -190,14 +190,20 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
 
     def test_without_team_and_software_all_softwares_of_the_task_are_reviewed(self):
         self.cli.client.docker_softwares_of_task.return_value = [
-            {"team": "a", "display_name": "s1"},
-            {"team": "b", "display_name": "s2"},
+            {"team": "a", "display_name": "s1", "automatic_review_count": 1},
+            {"team": "b", "display_name": "s2", "automatic_review_count": 0},
         ]
 
-        with patch("tira.tira_cli._review_software", side_effect=[0, 1]) as single:
+        with patch("tira.tira_cli._review_software", side_effect=[0, 1]) as single, patch(
+            "tira.tira_cli.time.sleep"
+        ) as sleep, patch("builtins.print") as printed:
             code = tira_cli.admin_review_software("task", output="/o", agent_output=None, force=True)
 
         self.assertEqual(1, code)
+        self.assertEqual([call(10), call(10)], sleep.call_args_list)
+        overview = " ".join(c[0][0] for c in printed.call_args_list)
+        self.assertIn("2 submissions: 1 already reviewed, 2 to be reviewed now", overview)
+        self.assertIn("software 2 of 2 (b/s2) will be reviewed in 10 seconds", printed.call_args[0][0])
         self.assertEqual(
             [("task", "a", "s1", "/o/a/s1", None), ("task", "b", "s2", "/o/b/s2", None)],
             [c[0] for c in single.call_args_list],
@@ -222,11 +228,11 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
         upload.assert_called_once()
         self.assertTrue(any("uploaded to TIRA" in m for m in self.cli.messages))
 
-    def test_review_that_needs_a_human_is_not_uploaded_and_fails(self):
+    def test_review_that_needs_a_human_is_uploaded(self):
         code, upload = self.review(verdict="needs_human_review")
 
-        self.assertEqual(1, code)
-        upload.assert_not_called()
+        self.assertEqual(0, code)
+        upload.assert_called_once()
 
     def test_no_upload(self):
         code, upload = self.review(no_upload=True)

@@ -1449,21 +1449,12 @@ class Client(TiraClient):
         query = urlencode({"start": start, "end": end})
         return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
-    def docker_softwares_of_task(self, task_id: str) -> list:
-        """All code and docker submissions that are not deleted of all teams of a task (admin only), as dicts with
-        docker_software_id, team, and display_name."""
-        teams = self.json_response(f"/api/count-of-team-software/{task_id}")["context"]["count_of_team_software"]
-        ret = []
-        for team in sorted(i["team"] for i in teams if i["software_count"] > 0):
-            for submission in _docker_software_submissions(self, task_id, team):
-                ret.append(
-                    {
-                        "docker_software_id": submission["docker_software_id"],
-                        "team": team,
-                        "display_name": submission["display_name"],
-                    }
-                )
-        return ret
+    def docker_softwares_of_task(self, task_id: str, include_reviewed: bool = True) -> list:
+        """The code and docker submissions that are not deleted of all teams of a task (admin only), as dicts with
+        docker_software_id, team, display_name, and the review state. Without include_reviewed, only the ones that are
+        not released for users yet."""
+        query = "?include_reviewed=true" if include_reviewed else ""
+        return self.json_response(f"/api/software-to-review/{task_id}{query}")["context"]["software_to_review"]
 
     def software_reviews(self, docker_software_id: int) -> list:
         """The automatic reviews of a docker software (newest first)."""

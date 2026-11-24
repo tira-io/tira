@@ -58,6 +58,14 @@ def positive_int(value: str) -> int:
     return ret
 
 
+def non_negative_int(value: str) -> int:
+    ret = int(value)
+    if ret < 0:
+        raise argparse.ArgumentTypeError("Value must not be negative.")
+
+    return ret
+
+
 def positive_float(value: str) -> float:
     ret = float(value)
     if ret <= 0:
@@ -1022,6 +1030,8 @@ def admin_review_software(
     software: Optional[str] = None,
     output: Optional[str] = None,
     agent_output: Optional[str] = None,
+    delay: int = 10,
+    skip_reviewed: bool = False,
     **kwargs,
 ) -> int:
     """Reviews one software (--team and --software) or, without both, all softwares of all teams of the task."""
@@ -1037,8 +1047,29 @@ def admin_review_software(
         print(f"Could not list the softwares of the task {task}: {e}")
         return 1
 
+    total = len(softwares)
+    already_reviewed = sum(1 for i in softwares if i["automatic_review_count"])
+    if skip_reviewed and not kwargs.get("force"):
+        softwares = [i for i in softwares if not i["automatic_review_count"]]
+    print(
+        f"\nTask {task} has {total} submissions: {already_reviewed} already reviewed, {len(softwares)} to be reviewed now"
+        f"{'' if skip_reviewed else ' (use --skip-reviewed to skip the already reviewed ones)'}.",
+        flush=True,
+    )
+    if not softwares:
+        return 0
+    print(f"Starting in {delay} seconds ...", flush=True)
+    time.sleep(delay)
+
     exit_code = 0
-    for i in softwares:
+    for number, i in enumerate(softwares, start=1):
+        if number > 1:
+            print(
+                f"\nNext, software {number} of {len(softwares)} ({i['team']}/{i['display_name']}) will be reviewed"
+                f" in {delay} seconds ...",
+                flush=True,
+            )
+            time.sleep(delay)
         nested = lambda directory: str(Path(directory) / i["team"] / i["display_name"]) if directory else None
         code = _review_software(task, i["team"], i["display_name"], nested(output), nested(agent_output), **kwargs)
         exit_code = max(exit_code, code)
@@ -1128,18 +1159,20 @@ def _review_software(
     if review:
         log(f"Agent extracted {extraction_summary(review)}", _fmt.OK if not result["problems"] else _fmt.WARN)
 
-    ok = not result["problems"] and review.get("verdict") == "no_concerns"
+    ok = not result["problems"] and bool(review)
     if ok and not no_upload:
         try:
             uploaded = upload_software_review(
                 client, docker_software_id, directory, agent_output_directory, result, manifest
             )
             log(f"Review is uploaded to TIRA (id {uploaded['id']})", _fmt.OK)
+            if review.get("verdict") != "no_concerns":
+                log("The review needs human attention; see the verdict in the TIRA database", _fmt.WARN)
         except Exception as e:
             log(f"Could not upload the review: {e}", _fmt.ERROR)
             ok = False
     elif not ok:
-        log("Review is not uploaded because it needs human attention", _fmt.WARN)
+        log("Review is not uploaded because the agent did not produce a valid review", _fmt.WARN)
 
     review_file = agent_output_directory / "reviews" / team / f"{software}.json"
     print("\n".join(format_software_result(result, review_file, agent_output_directory / "agent-log.txt")))
@@ -1213,15 +1246,28 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         help="Stop the review agent after this many seconds. Defaults to 3600.",
     )
     review_software.add_argument(
+        "--delay",
+        type=non_negative_int,
+        default=10,
+        help="Seconds to wait between two softwares when reviewing all softwares of a task (avoids rate limits)."
+        " Defaults to 10.",
+    )
+    review_software.add_argument(
         "--force",
         action="store_true",
         help="Review the software even if it already has a review in TIRA (adds a new review). Without --force, the"
         " existing reviews are printed.",
     )
     review_software.add_argument(
+        "--skip-reviewed",
+        action="store_true",
+        help="When reviewing all softwares of a task, skip (without printing the review) the softwares that already"
+        " have a review in TIRA.",
+    )
+    review_software.add_argument(
         "--no-upload",
         action="store_true",
-        help="Do not upload the review to TIRA (it is only uploaded if no human review is needed).",
+        help="Do not upload the review to TIRA (reviews that need a human review are uploaded too, with that verdict).",
     )
     review_software.set_defaults(executable=admin_review_software)
 

@@ -68,6 +68,17 @@ def get_count_of_team_software(request, task_id):
 
 
 @check_resources_exist("json")
+def get_software_to_review(request, task_id):
+    role = auth.get_role(request, user_id=auth.get_user_id(request))
+    if role not in (auth.ROLE_ADMIN, auth.ROLE_TIRA):
+        return HttpResponseNotAllowed("Access forbidden.")
+
+    include_reviewed = request.GET.get("include_reviewed", "false").lower() == "true"
+    context = {"software_to_review": model.get_software_to_review(task_id, include_reviewed)}
+    return JsonResponse({"status": 0, "context": context})
+
+
+@check_resources_exist("json")
 def get_count_of_team_software_executions(request, task_id):
     role = auth.get_role(request, user_id=auth.get_user_id(request))
     if role not in (auth.ROLE_ADMIN, auth.ROLE_TIRA):

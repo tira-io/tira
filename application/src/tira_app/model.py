@@ -611,12 +611,19 @@ class DockerSoftware(models.Model):
         return normalize_upload_metadata(self.metadata)
 
     def is_released_for_users(self) -> bool:
-        """Users may only run software whose code review and execution review are both approved."""
-        review = DockerSoftwareReview.objects.filter(docker_software_id=self.docker_software_id).first()
-        if review is None:
-            return False
+        """Users may run software that a human approved (code and execution review), or that has an automatic review
+        without concerns. A human rejection always blocks the release."""
         approved = DockerSoftwareReview.Status.APPROVED
-        return review.code_review == approved and review.execution_review == approved
+        rejected = DockerSoftwareReview.Status.REJECTED
+        review = DockerSoftwareReview.objects.filter(docker_software_id=self.docker_software_id).first()
+        if review is not None:
+            if rejected in (review.code_review, review.execution_review):
+                return False
+            if review.code_review == approved and review.execution_review == approved:
+                return True
+        return DockerSoftwareAutomaticReview.objects.filter(
+            docker_software_id=self.docker_software_id, verdict=DockerSoftwareAutomaticReview.Verdict.NO_CONCERNS
+        ).exists()
 
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:

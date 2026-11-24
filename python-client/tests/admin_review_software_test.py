@@ -243,33 +243,15 @@ class PrepareAndUploadTest(unittest.TestCase):
 
 class DockerSoftwaresOfTaskTest(unittest.TestCase):
     def test_collects_the_code_submissions_of_all_teams_with_software(self):
-        responses = {
-            "/api/count-of-team-software/t": {
-                "context": {
-                    "count_of_team_software": [
-                        {"team": "b", "software_count": 1},
-                        {"team": "a", "software_count": 2},
-                        {"team": "c", "software_count": 0},
-                    ]
-                }
-            },
-            "/api/submissions-for-task/t/a/code": {
-                "context": {"code": {"submissions": [{"docker_software_id": 1, "display_name": "s1"}]}}
-            },
-            "/api/submissions-for-task/t/b/code": {
-                "context": {"code": {"submissions": [{"docker_software_id": 2, "display_name": "s2"}]}}
-            },
-            "/api/submissions-for-task/t/a/docker": {
-                "context": {"docker": {"docker_softwares": [{"docker_software_id": 3, "display_name": "s3"}]}}
-            },
-            "/api/submissions-for-task/t/b/docker": {"context": {"docker": {"docker_softwares": []}}},
-        }
         client = MagicMock()
-        client.json_response.side_effect = lambda endpoint: responses[endpoint]
+        client.json_response.return_value = {
+            "context": {"software_to_review": [{"team": "a", "display_name": "s1"}, {"team": "b", "display_name": "s2"}]}
+        }
 
-        ret = Client.docker_softwares_of_task(client, "t")
+        ret = Client.docker_softwares_of_task(client, "t", include_reviewed=False)
 
-        self.assertEqual([("a", "s1"), ("a", "s3"), ("b", "s2")], [(i["team"], i["display_name"]) for i in ret])
+        client.json_response.assert_called_once_with("/api/software-to-review/t")
+        self.assertEqual([("a", "s1"), ("b", "s2")], [(i["team"], i["display_name"]) for i in ret])
 
     def _credentials_client(self, metadata, featured):
         client = MagicMock()

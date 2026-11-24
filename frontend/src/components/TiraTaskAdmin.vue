@@ -65,6 +65,12 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
       <v-expansion-panel>
+        <v-expansion-panel-title>Overview Software to Review</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <overview-software-to-review :task="task" />
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+      <v-expansion-panel>
         <v-expansion-panel-title>Overview Registered Teams</v-expansion-panel-title>
         <v-expansion-panel-text>
           <overview-registered-teams :task="task" />
@@ -104,6 +110,7 @@ import { inject } from 'vue'
 import { extractTaskFromCurrentUrl, get, reportError, reportSuccess, type DatasetInfo, type UserInfo } from '../utils'
 import { VAutocomplete } from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
+import OverviewSoftwareToReview from './OverviewSoftwareToReview.vue';
 import OverviewRegisteredTeams from './OverviewRegisteredTeams.vue';
 import OverviewRegisteredTeamSoftware from './OverviewRegisteredTeamSoftware.vue';
 import OverviewTeamSoftwareExecutions from './OverviewTeamSoftwareExecutions.vue';
@@ -115,7 +122,7 @@ import ConfirmDelete from './ConfirmDelete.vue';
 
 export default {
   name: "tira-task-admin",
-  components: { OverviewMissingReviews, OverviewRegisteredTeams, OverviewRegisteredTeamSoftware, OverviewTeamSoftwareExecutions, OverviewRegisteredJobs, OverviewRegisteredWorkers, EditTask, VAutocomplete, EditDataset, ConfirmDelete },
+  components: { OverviewMissingReviews, OverviewSoftwareToReview, OverviewRegisteredTeams, OverviewRegisteredTeamSoftware, OverviewTeamSoftwareExecutions, OverviewRegisteredJobs, OverviewRegisteredWorkers, EditTask, VAutocomplete, EditDataset, ConfirmDelete },
   props: {
     'datasets': {
       type: Object as () => DatasetInfo[],
