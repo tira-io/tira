@@ -166,7 +166,7 @@ class PrepareAndUploadTest(unittest.TestCase):
         client.private_system_details.return_value = details
         log = []
 
-        def fake_download(client, task, team, image, target):
+        def fake_download(client, task, team, image, target, **kwargs):
             docker_image(target)
 
         with patch.object(software, "_download_image", fake_download):
@@ -193,6 +193,34 @@ class PrepareAndUploadTest(unittest.TestCase):
         readme = (directory / "batches" / "0000" / "README.md").read_text()
         self.assertIn("`sw` of team `team` on task `task`", readme)
         self.assertNotIn("@", readme.replace("@github", ""))
+
+    def test_incomplete_image_is_pulled_again(self):
+        client = MagicMock()
+        client.private_system_details.return_value = {"public_image_name": "img:1"}
+        calls = []
+
+        def download(client, task, team, image, target, refresh=False):
+            calls.append(refresh)
+            if len(calls) < 3:
+                target.write_bytes(b"not a tar")
+            else:
+                docker_image(target)
+
+        with patch.object(software, "_download_image", download):
+            prepare_software_review_directory(client, "task", "team", "sw", Path(tempfile.mkdtemp()))
+
+        self.assertEqual([False, True, True], calls)
+
+    def test_image_that_stays_incomplete_fails_after_three_attempts(self):
+        client = MagicMock()
+        client.private_system_details.return_value = {"public_image_name": "img:1"}
+        download = MagicMock(side_effect=lambda *a, **k: a[4].write_bytes(b"not a tar"))
+
+        with patch.object(software, "_download_image", download):
+            with self.assertRaisesRegex(RuntimeError, "incomplete.*3 attempts"):
+                prepare_software_review_directory(client, "task", "team", "sw", Path(tempfile.mkdtemp()))
+
+        self.assertEqual(3, download.call_count)
 
     def test_docker_software_id_of(self):
         client = MagicMock()
@@ -245,7 +273,9 @@ class DockerSoftwaresOfTaskTest(unittest.TestCase):
     def test_collects_the_code_submissions_of_all_teams_with_software(self):
         client = MagicMock()
         client.json_response.return_value = {
-            "context": {"software_to_review": [{"team": "a", "display_name": "s1"}, {"team": "b", "display_name": "s2"}]}
+            "context": {
+                "software_to_review": [{"team": "a", "display_name": "s1"}, {"team": "b", "display_name": "s2"}]
+            }
         }
 
         ret = Client.docker_softwares_of_task(client, "t", include_reviewed=False)
@@ -260,8 +290,8 @@ class DockerSoftwaresOfTaskTest(unittest.TestCase):
         client.json_response.return_value = {
             "context": {"task_list": [{"task_id": t, "featured": f} for t, f in featured.items()]}
         }
-        client._docker_registry_credentials_of_task.side_effect = lambda t, team: Client._docker_registry_credentials_of_task(
-            client, t, team
+        client._docker_registry_credentials_of_task.side_effect = (
+            lambda t, team: Client._docker_registry_credentials_of_task(client, t, team)
         )
         return client
 

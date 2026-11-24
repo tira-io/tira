@@ -33,6 +33,7 @@ LIST_FIELDS = [
 ]
 CHECKS = ["hacking_attempt", "data_leak_attempt", "malicious_behavior"]
 CHECK_STATUSES = {"ok", "suspicious", "unclear"}
+IMAGE_ATTEMPTS = 3
 VERDICTS = {"no_concerns", "needs_human_review"}
 
 INSTRUCTIONS = """# Review of the software `@SOFTWARE@` of team `@TEAM@` on task `@TASK@`
@@ -176,7 +177,10 @@ def _size(path: Path) -> str:
     return f"{size} bytes"
 
 
-def _download_image(client: "TiraClient", task: str, team: str, image: str, target: Path) -> None:
+def _download_image(
+    client: "TiraClient", task: str, team: str, image: str, target: Path, refresh: bool = False
+) -> None:
+    """Saves the image to target. With refresh, a local (possibly incomplete) copy of the image is removed first."""
     from tira.local_execution_integration import LocalExecutionIntegration
 
     execution = LocalExecutionIntegration(client)
@@ -184,6 +188,8 @@ def _download_image(client: "TiraClient", task: str, team: str, image: str, targ
         execution.login_docker_client(task, team)
     except ValueError:  # e.g., softwares of tasks without git pipeline are in public registries
         logging.info("No TIRA registry credentials available, pulling the image without login.")
+    if refresh:
+        subprocess.run([execution.get_container_cli(), "rmi", "-f", image], capture_output=True)
     execution.ensure_image_available_locally(image)
     saved = subprocess.run([execution.get_container_cli(), "save", "-o", str(target), image], capture_output=True)
     if saved.returncode != 0:
@@ -257,15 +263,25 @@ def prepare_software_review_directory(
     log("Metadata is downloaded")
 
     image_file = software_directory / IMAGE_FILE
-    if not image_file.exists():
+    extracted = None
+    for attempt in range(1, IMAGE_ATTEMPTS + 1):
         try:
-            _download_image(client, task, team, image, image_file)
+            if not image_file.exists():
+                _download_image(client, task, team, image, image_file, **({"refresh": True} if attempt > 1 else {}))
+            extracted = extract_image_metadata(image_file, software_directory / EXTRACTED_DIRECTORY)
+            break
+        except (KeyError, tarfile.TarError, json.JSONDecodeError) as e:
+            # An incomplete image archive, e.g., from an interrupted or concurrent pull: pull it again.
+            if image_file.exists():
+                image_file.unlink()
+            if attempt == IMAGE_ATTEMPTS:
+                raise RuntimeError(f"The saved docker image {image} is incomplete after {attempt} attempts: {e}")
+            log(f"The saved docker image is incomplete ({e}), pulling it again (attempt {attempt + 1})")
         except Exception:
             if image_file.exists():
                 image_file.unlink()
             raise
 
-    extracted = extract_image_metadata(image_file, software_directory / EXTRACTED_DIRECTORY)
     log(
         f"Docker image is downloaded and extracted ({_size(image_file)}, {extracted['layers']} layers,"
         f" {extracted['files']} files)"
