@@ -221,6 +221,28 @@ class AdminReviewSoftwareCliTest(unittest.TestCase):
         self.assertEqual(["/o/a/dup-5", "/o/a/dup-6"], [c[0][3] for c in single.call_args_list])
         self.assertEqual([5, 6], [c[1]["docker_software_id"] for c in single.call_args_list])
 
+    def test_batch_mode_deletes_its_temporary_directories_unless_nothing_is_uploaded(self):
+        from pathlib import Path
+
+        directories = []
+
+        def fake_review(*args, created_directories, **kwargs):
+            directory = Path(tempfile.mkdtemp())
+            created_directories.append(directory)
+            directories.append(directory)
+            return 0
+
+        self.cli.client.docker_softwares_of_task.return_value = [
+            {"team": "a", "display_name": "s", "docker_software_id": 1, "automatic_review_count": 0}
+        ]
+        with patch("tira.tira_cli._review_software_in_directories", side_effect=fake_review), patch(
+            "tira.tira_cli.time.sleep"
+        ):
+            tira_cli.admin_review_software("task")
+            tira_cli.admin_review_software("task", no_upload=True)
+
+        self.assertEqual([False, True], [d.exists() for d in directories])
+
     def test_team_without_software_is_rejected(self):
         self.assertEqual(1, tira_cli.admin_review_software("task", team="a"))
 

@@ -3,6 +3,7 @@ import collections
 import argparse
 import itertools
 import logging
+import shutil
 import time
 from pathlib import Path
 from platform import python_version
@@ -1087,13 +1088,26 @@ def admin_review_software(
             nested(output),
             nested(agent_output),
             docker_software_id=i["docker_software_id"],
+            cleanup=True,
             **kwargs,
         )
         exit_code = max(exit_code, code)
     return exit_code
 
 
-def _review_software(
+def _review_software(*args, cleanup: bool = False, **kwargs) -> int:
+    """Reviews one software. With cleanup, the temporary directories that were created for it (i.e., the ones for
+    which no output directory was passed) are deleted afterwards, unless the review is not uploaded (no_upload)."""
+    created: "list[Path]" = []
+    try:
+        return _review_software_in_directories(*args, created_directories=created, **kwargs)
+    finally:
+        if cleanup and not kwargs.get("no_upload"):
+            for directory in created:
+                shutil.rmtree(directory, ignore_errors=True)
+
+
+def _review_software_in_directories(
     task: str,
     team: str,
     software: str,
@@ -1103,8 +1117,10 @@ def _review_software(
     force: bool = False,
     no_upload: bool = False,
     docker_software_id: Optional[int] = None,
+    created_directories: "Optional[list[Path]]" = None,
     **kwargs,
 ) -> int:
+    created_directories = created_directories if created_directories is not None else []
     import os
     import tempfile
     import zipfile
@@ -1141,6 +1157,8 @@ def _review_software(
             _fmt.OK,
         )
         base = Path(output) if output else Path(tempfile.mkdtemp(prefix=f"tira-review-{software}-"))
+        if not output:
+            created_directories.append(base)
         for existing_review in existing[:1]:
             review_id = existing_review["id"]
             target = Path(client.tira_cache_dir) / "software-reviews" / f"{review_id}.zip"
@@ -1162,6 +1180,10 @@ def _review_software(
             review_file = extracted / "reviews" / team / f"{software}.json"
             print("\n".join(format_software_result(result, review_file, extracted / "agent-log.txt")))
         return 0
+
+    if not output:
+        output = tempfile.mkdtemp(prefix=f"tira-review-software-{task}-")
+        created_directories.append(Path(output))
 
     try:
         directory, manifest = prepare_software_review_directory(
