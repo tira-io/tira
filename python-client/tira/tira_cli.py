@@ -956,6 +956,19 @@ def admin_re_run_evaluations(dataset: str, after: str, **kwargs) -> int:
     return 0
 
 
+def admin_copy_submissions(source_dataset: str, target_dataset: str, dry_run: bool = False, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    try:
+        copied = client.copy_upload_runs(source_dataset, target_dataset, dry_run)
+    except ValueError as e:
+        print(fmt_message(str(e), _fmt.ERROR))
+        return 1
+
+    verb = "Would copy" if dry_run else "Copied"
+    print(fmt_message(f"{verb} {len(copied)} runs from {source_dataset} to {target_dataset}.", _fmt.OK))
+    return 0
+
+
 def admin_export_rag_responses(runs: str, evals: str, output: str, **kwargs) -> int:
     output_file = export_rag_responses(Path(runs), Path(evals), Path(output))
     print(fmt_message(f"Wrote {output_file}.", _fmt.OK))
@@ -1422,6 +1435,21 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
         ),
     )
     re_run_evaluations_parser.set_defaults(executable=admin_re_run_evaluations)
+
+    copy_submissions_parser = subparsers.add_parser(
+        "copy-submissions",
+        help=(
+            "Copy all run uploads of a source dataset to a target dataset of the same task: downloads each run and"
+            " uploads it again into the same upload group (preserving display name, description, and metadata)."
+            " Fails if the source dataset contains runs that are no uploads."
+        ),
+    )
+    copy_submissions_parser.add_argument("--source-dataset", required=True, help="The dataset to copy runs from.")
+    copy_submissions_parser.add_argument("--target-dataset", required=True, help="The dataset to copy runs to.")
+    copy_submissions_parser.add_argument(
+        "--dry-run", action="store_true", help="Only report which runs would be copied."
+    )
+    copy_submissions_parser.set_defaults(executable=admin_copy_submissions)
 
 
 def run_local(

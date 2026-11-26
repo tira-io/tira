@@ -656,6 +656,68 @@ class Client(TiraClient):
             for i in existing_runs.values():
                 f.write(json.dumps(i) + "\n")
 
+    def copy_upload_runs(self, source_dataset: str, target_dataset: str, dry_run: bool = False) -> "List[Dict]":
+        """Copies all run uploads of the source dataset to the target dataset (same task, same teams, same upload
+        groups, so that display name, description, and upload metadata are preserved). Upload groups that already
+        contain runs for the target dataset are skipped. Fails if the source dataset has runs that are not uploads.
+        Returns the copied runs (source run id, team, upload group, new run)."""
+        from tira.io_utils import zip_dir
+
+        task = self.get_dataset(source_dataset)["default_task"]
+        target_task = self.get_dataset(target_dataset)["default_task"]
+        if task != target_task:
+            raise ValueError(f"The datasets belong to different tasks ({task} vs. {target_task}).")
+
+        submissions = self.submissions(task, source_dataset)
+        if len(submissions) == 0:
+            raise ValueError(f'Could not find runs for dataset "{source_dataset}".')
+        submissions = submissions[submissions["input_run_id"].fillna("") == ""]
+        not_uploaded = submissions[~submissions["is_upload"].astype(bool)]
+        if len(not_uploaded) > 0:
+            raise ValueError(
+                f"Can only copy run uploads, but {len(not_uploaded)} runs of {source_dataset} are no uploads, e.g.:"
+                f" {not_uploaded.iloc[0]['run_id']}."
+            )
+
+        copied = []
+        for team in sorted(submissions["team"].unique()):
+            groups = self.json_response(f"/api/submissions-for-task/{task}/{team}/upload")["context"]["all_uploadgroups"]
+            for group in groups:
+                details = self.json_response(f"/api/upload-group-details/{task}/{team}/{group['id']}")["context"][
+                    "upload_group_details"
+                ]
+                # Upload groups also list evaluations (with an input run); only the uploaded runs are copied.
+                uploads = [r for r in details["runs"] if r["run_id"] and not r.get("input_run_id")]
+                source_runs = [r for r in uploads if r["dataset"] == source_dataset]
+                if not source_runs:
+                    continue
+                if any(r["dataset"] == target_dataset for r in uploads):
+                    logging.warning(f"Skip upload group {group['id']} of {team}: already has runs on the target.")
+                    continue
+
+                metadata = details.get("upload_metadata")
+                for run in source_runs:
+                    entry = {"source_run_id": run["run_id"], "team": team, "upload_group": group["id"]}
+                    if not dry_run:
+                        output = self.download_zip_to_cache_directory(task, source_dataset, team, run["run_id"])
+                        form_data = {
+                            "display_name": details["display_name"] or "",
+                            "description": details["description"] or "",
+                        }
+                        if metadata:
+                            form_data["upload_metadata"] = json.dumps(metadata)
+                        response = self.execute_post_return_json(
+                            f"/task/{task}/vm/{team}/upload/{target_dataset}/{group['id']}",
+                            file_path=zip_dir(Path(output)),
+                            form_data=form_data,
+                        )
+                        if response.get("status") != 0:
+                            raise ValueError(f"Upload of run {run['run_id']} failed: {response}")
+                        entry["new_run"] = response["new_run"]
+                    copied.append(entry)
+
+        return copied
+
     def evaluations(self, task, dataset, join_submissions=True):
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
