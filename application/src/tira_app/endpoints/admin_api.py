@@ -492,7 +492,7 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
 
 
 def _evaluation_queue(data: "dict[str, Any]") -> "Optional[str]":
-    """The worker queue on which the evaluator of a dataset runs. None if the key is absent, "" to reset to the default."""
+    """The worker queue of the evaluator of a dataset. None if the key is absent, "" to reset to the default."""
     if "evaluation_queue" not in data or data["evaluation_queue"] is None:
         return None
 

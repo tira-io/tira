@@ -321,11 +321,11 @@ def format_summary(results: list[dict]) -> str:
         review, run = r["review"], r["run"]
         review = review if isinstance(review, dict) else {}
 
-        def status(check):
+        def status(check: str) -> str:
             value = review.get(check)
             return value.get("status", "?") if isinstance(value, dict) else "-"
 
-        evaluations = review.get("evaluations") if isinstance(review.get("evaluations"), list) else []
+        evaluations: list = review["evaluations"] if isinstance(review.get("evaluations"), list) else []
         bad = sum(1 for e in evaluations if isinstance(e, dict) and e.get("status") != "ok")
         rows.append(
             [run["dataset"], run["team"], run["run_id"], str(review.get("verdict", "MISSING"))]

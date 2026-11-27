@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-import csv
 import json
-import os
 from glob import glob
 from pathlib import Path
 
@@ -18,21 +16,21 @@ def load_results(dirname):
         yield h5py.File(match, "r")
 
 
-def get_recall(I, gt, k):
-    assert k <= I.shape[1]
-    assert len(I) == len(gt)
+def get_recall(indices, gt, k):
+    assert k <= indices.shape[1]
+    assert len(indices) == len(gt)
 
-    n = len(I)
+    n = len(indices)
     recall = 0
     for i in range(n):
-        recall += len(set(I[i, :k]) & set(gt[i, :k]))
+        recall += len(set(indices[i, :k]) & set(gt[i, :k]))
     return recall / (n * k)
 
 
 def load_ir_metadata(input_dir):
     try:
         return yaml.safe_load((Path(input_dir) / ".tracking-results.yml").read_text())["resources"]
-    except:
+    except Exception:
         return None
 
 

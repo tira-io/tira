@@ -11,12 +11,9 @@ import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import Any, Callable, Optional
 
 from tira.admin_review_runs import BATCHES_DIRECTORY
-
-if TYPE_CHECKING:
-    from .tira_client import TiraClient
 
 SOFTWARE_DIRECTORY = "software"
 IMAGE_FILE = "image.tar"
@@ -177,9 +174,7 @@ def _size(path: Path) -> str:
     return f"{size} bytes"
 
 
-def _download_image(
-    client: "TiraClient", task: str, team: str, image: str, target: Path, refresh: bool = False
-) -> None:
+def _download_image(client: Any, task: str, team: str, image: str, target: Path, refresh: bool = False) -> None:
     """Saves the image to target. With refresh, a local (possibly incomplete) copy of the image is removed first."""
     from tira.local_execution_integration import LocalExecutionIntegration
 
@@ -240,7 +235,7 @@ def extract_image_metadata(image_file: Path, target: Path) -> dict:
 
 
 def prepare_software_review_directory(
-    client: "TiraClient",
+    client: Any,
     task: str,
     team: str,
     software: str,
@@ -429,7 +424,7 @@ def format_software_result(result: dict, review_file: Path, agent_log: Path) -> 
     return lines
 
 
-def docker_software_id_of(client: "TiraClient", task: str, team: str, software: str) -> int:
+def docker_software_id_of(client: Any, task: str, team: str, software: str) -> int:
     return client.private_system_details(f"{task}/{team}/{software}")["docker_software_id"]
 
 
@@ -483,7 +478,7 @@ def package_review(
 
 
 def upload_software_review(
-    client: "TiraClient", docker_software_id: int, directory: Path, agent_output: Path, result: dict, manifest: dict
+    client: Any, docker_software_id: int, directory: Path, agent_output: Path, result: dict, manifest: dict
 ) -> dict:
     """Uploads the complete review (zip) with a short title and the details (e.g., the LLM) to TIRA."""
     review = result["review"]

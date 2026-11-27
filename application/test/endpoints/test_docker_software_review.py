@@ -75,10 +75,12 @@ class TestSoftwareToReview(TestCase):
         set_up_tira_environment()
         vm = modeldb.VirtualMachine.objects.get(vm_id="PARTICIPANT-FOR-TEST-1")
         task = modeldb.Task.objects.get(task_id="shared-task-1")
-        make = lambda name, **kwargs: modeldb.DockerSoftware.objects.create(
-            display_name=name, vm=vm, task=task, **kwargs
-        )
-        pending, concerns, clean, _ = make("pending"), make("concerns"), make("clean"), make("deleted", deleted=True)
+
+        def make(name, **kwargs):
+            return modeldb.DockerSoftware.objects.create(display_name=name, vm=vm, task=task, **kwargs)
+
+        make("pending")
+        concerns, clean, _ = make("concerns"), make("clean"), make("deleted", deleted=True)
         auto = dict(title="t", uploader_id="u", review_date="d")
         modeldb.DockerSoftwareAutomaticReview.objects.create(
             docker_software=concerns, verdict="needs_human_review", **auto

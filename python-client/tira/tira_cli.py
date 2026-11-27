@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from tira import __version__
 from tira.admin_rag_export import export_rag_responses
-from tira.check_format import clean_logger, fmt_message
+from tira.check_format import fmt_message
 from tira.io_utils import (
     _fmt,
     clean_logger,
@@ -1009,7 +1009,9 @@ def admin_review_runs(
 
     client: "TiraClient" = RestClient()
     try:
-        directory, runs = prepare_review_directory(client, task, [dataset] if dataset else None, output, max)
+        directory, runs = prepare_review_directory(
+            client, task, [dataset] if dataset else None, Path(output) if output else None, max
+        )
     except ValueError as e:
         print(fmt_message(str(e), _fmt.ERROR))
         return 1
@@ -1036,7 +1038,10 @@ def admin_review_runs(
             raise
 
     agent_output_directory = run_review_agent(
-        directory, agent_timeout, output_directory=agent_output, on_batch_done=process_batch
+        directory,
+        agent_timeout,
+        output_directory=Path(agent_output) if agent_output else None,
+        on_batch_done=process_batch,
     )
     print("\n" + format_summary(results))
     if not no_upload:
@@ -1073,7 +1078,8 @@ def admin_review_software(
     if skip_reviewed and not kwargs.get("force"):
         softwares = [i for i in softwares if not i["automatic_review_count"]]
     print(
-        f"\nTask {task} has {total} submissions: {already_reviewed} already reviewed, {len(softwares)} to be reviewed now"
+        f"\nTask {task} has {total} submissions: {already_reviewed} already reviewed, "
+        f"{len(softwares)} to be reviewed now"
         f"{'' if skip_reviewed else ' (use --skip-reviewed to skip the already reviewed ones)'}.",
         flush=True,
     )
@@ -1098,7 +1104,10 @@ def admin_review_software(
             if names[i["team"], i["display_name"]] == 1
             else f"{i['display_name']}-{i['docker_software_id']}"
         )
-        nested = lambda directory: str(Path(directory) / i["team"] / name) if directory else None
+
+        def nested(directory, i=i, name=name):
+            return str(Path(directory) / i["team"] / name) if directory else None
+
         code = _review_software(
             task,
             i["team"],
@@ -1222,7 +1231,9 @@ def _review_software_in_directories(
         return 1
 
     print("\nThe agent reviews the software in the TIRA sandbox (this can take a while) ...", flush=True)
-    agent_output_directory = run_review_agent(directory, agent_timeout, output_directory=agent_output)
+    agent_output_directory = run_review_agent(
+        directory, agent_timeout, output_directory=Path(agent_output) if agent_output else None
+    )
     result = load_software_review(agent_output_directory, task, team, software)
     review = result["review"] or {}
     log("Agent reviewed the software in the TIRA sandbox", _fmt.OK if review else _fmt.ERROR)
@@ -1271,7 +1282,10 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     )
     review_runs.add_argument(
         "--agent-output",
-        help="Directory to write the agent's reviews and logs to. Defaults to agent-output in the --output directory. Each run uses a fresh subdirectory.",
+        help=(
+            "Directory to write the agent's reviews and logs to. Defaults to agent-output in the --output directory. "
+            "Each run uses a fresh subdirectory."
+        ),
     )
     review_runs.add_argument(
         "--agent-timeout",
@@ -1307,7 +1321,10 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     )
     review_software.add_argument(
         "--agent-output",
-        help="Directory to write the agent's review and logs to. Defaults to agent-output in the --output directory. Each run uses a fresh subdirectory.",
+        help=(
+            "Directory to write the agent's review and logs to. Defaults to agent-output in the --output directory. "
+            "Each run uses a fresh subdirectory."
+        ),
     )
     review_software.add_argument(
         "--agent-timeout",

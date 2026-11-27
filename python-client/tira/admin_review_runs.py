@@ -1,13 +1,11 @@
+# flake8: noqa: E501 (the instructions for the agent are long lines of text)
 from __future__ import annotations
 
 import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    from .tira_client import TiraClient
+from typing import Any, Optional
 
 MAX_PREVIEW_CHARS = 1500
 MAX_LISTED_FILES = 30
@@ -44,7 +42,7 @@ def _run_description(
     }
 
 
-def find_unreviewed_runs(client: "TiraClient", task: str, datasets: list[str]) -> list[dict]:
+def find_unreviewed_runs(client: Any, task: str, datasets: list[str]) -> list[dict]:
     """Return all non-evaluation runs of the task on the given datasets that have no review verdict yet, and the runs
     that are reviewed but have evaluations without review verdict (marked with only_evaluations=True; only the
     unreviewed evaluations are included for them)."""
@@ -83,7 +81,7 @@ def is_reviewed_valid(run: dict) -> bool:
     )
 
 
-def find_example_runs(client: "TiraClient", task: str, datasets: list[str], count: int = EXAMPLE_RUNS) -> list[dict]:
+def find_example_runs(client: Any, task: str, datasets: list[str], count: int = EXAMPLE_RUNS) -> list[dict]:
     """Return the earliest `count` non-evaluation runs of the task on the datasets that were reviewed as valid.
     TIRA run ids start with their creation time (e.g., 2024-05-30-10-22-11),
     so the earliest runs are the first in the sorted run ids.
@@ -424,7 +422,7 @@ def _render_readme(output: Path, runs: list[dict], task: str, example_runs: Opti
     return "\n".join(lines)
 
 
-def _download_run(client: "TiraClient", output: Path, run: dict, runs_directory: str, evaluations_directory: str):
+def _download_run(client: Any, output: Path, run: dict, runs_directory: str, evaluations_directory: str):
     """Downloads the run and its evaluations below the output directory and adds location and details to the run."""
     target = output / runs_directory / run["dataset"] / run["team"] / run["run_id"]
     if not target.exists():
@@ -457,7 +455,7 @@ def _download_run(client: "TiraClient", output: Path, run: dict, runs_directory:
 
 
 def prepare_review_directory(
-    client: "TiraClient",
+    client: Any,
     task: str,
     datasets: Optional[list[str]] = None,
     output: Optional[Path] = None,
