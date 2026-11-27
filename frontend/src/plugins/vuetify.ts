@@ -7,6 +7,7 @@
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+import './discourse-compat.css'
 import * as components from 'vuetify/components'
 import * as labsComponents from 'vuetify/labs/components'
 

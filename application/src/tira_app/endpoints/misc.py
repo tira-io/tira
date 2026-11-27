@@ -12,6 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tira import __version__ as tira_version
 from tira.check_format import SUPPORTED_FORMATS
+from tira.evaluation_output import SUPPORTED_OUTPUT_FORMATS
 from tira.evaluators import MEASURE_TO_EVALUATORS
 
 from .. import model as modeldb
@@ -73,6 +74,7 @@ def info_endpoint(request: Request) -> Response:
             "datasetCount": DATASET_COUNT,
             "taskCount": TASK_COUNT,
             "supportedFormats": SUPPORTED_FORMATS,
+            "supportedEvaluationOutputFormats": SUPPORTED_OUTPUT_FORMATS,
             "trustedEvaluators": TRUSTED_EVALUATORS,
         }
     )

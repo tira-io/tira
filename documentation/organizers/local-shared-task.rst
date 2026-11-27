@@ -123,11 +123,24 @@ your task:
      evaluator:
        image: "ghcr.io/<owner>/<evaluator>:<version>"
        command: "<evaluator-command> --input ${inputRun} --truths ${inputDataset} --output ${outputDir}"
+       output_format: "prototext"  # optional: prototext (default), json, *.jsonl, *.tsv, or trec-eval-leaderboard
+       forward_environment_variable: ["OPENAI_API_KEY"]  # optional: names of variables forwarded to the evaluator
+       queue: "my-evaluator-worker"  # optional: worker queue on which the evaluator runs (default: evaluator)
    ---
 
    # My Task Smoke Test
 
    Explain the task, file formats, license, and origin of the data here.
+
+The optional ``evaluator.output_format`` configures the format in which the evaluator writes its results (see
+:doc:`organizing-tasks`). The optional ``evaluator.forward_environment_variable`` lists the names of environment
+variables that are forwarded to the evaluator; only the names are stored in TIRA, and the values are read from the
+environment that runs the evaluation (e.g., your shell for ``tira-cli`` or the TIRA worker).
+
+The optional ``evaluator.queue`` pins the evaluator to a worker queue: evaluations of this dataset are only executed by
+workers that listen on this queue (default: ``evaluator``). Start a dedicated worker for that queue to run the
+evaluator always on a specific machine, e.g., ``celery -A tira_worker:app worker -Q my-evaluator-worker --concurrency=1``
+(see the worker README).
 
 ``default_upload_name`` is required and specifies the filename TIRA suggests for participant uploads. The
 ``inputs`` configuration is exposed to submitted systems. The ``truths`` configuration is only exposed to the

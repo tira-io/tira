@@ -168,6 +168,11 @@ urlpatterns: list[Union[URLResolver, URLPattern]] = [
         name="get_count_of_team_software",
     ),
     path(
+        "api/software-to-review/<str:task_id>",
+        organizer_api.get_software_to_review,
+        name="get_software_to_review",
+    ),
+    path(
         "api/count-of-team-software-executions/<str:task_id>",
         organizer_api.get_count_of_team_software_executions,
         name="get_count_of_team_software_executions",

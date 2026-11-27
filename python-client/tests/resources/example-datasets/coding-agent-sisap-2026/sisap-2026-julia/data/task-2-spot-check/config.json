@@ -1,0 +1,9 @@
+{
+    "task": "task2",
+    "data": "train",
+    "queries": "test/queries",
+    "gt_I": "test/knns",
+    "k": 30,
+    "dataset_name": "llama-small",
+    "filename": "benchmark-dev-llama-small.h5"
+}

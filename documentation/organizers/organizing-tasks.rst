@@ -101,6 +101,12 @@ Evaluators get three variables as input in TIRA:
 (3) the :code:`$outputDir` variable points to the directory at which the evaluator should create the
      :code:`evaluation.prototext` file containing the evaluation results.
 
+The default output format of an evaluator is :code:`prototext`. In the dataset settings, you can configure a different output format for the evaluator: :code:`json` (:code:`evaluation.json`, an object that maps measures to values), :code:`*.jsonl` (:code:`evaluation.jsonl`, one :code:`{"key": ..., "value": ...}` object per line), :code:`*.tsv` (:code:`evaluation.tsv`, :code:`measure<TAB>value`), or :code:`trec-eval-leaderboard` (:code:`evaluation.txt`, lines of :code:`run query measure value` where TIRA uses the entries of the query :code:`all`).
+
+To run the evaluator of a dataset always on a specific worker, configure :code:`evaluator.queue` in the dataset card (:code:`tira-cli` upload, see :doc:`local-shared-task`) and start a worker that listens only on this queue. The queue defaults to :code:`evaluator`.
+
+If your evaluator needs secrets or settings via environment variables (e.g., :code:`OPENAI_API_KEY`), add their names in the dataset settings under "Environment variables forwarded to the evaluator" (via the API: :code:`forward_environment_variable`, a JSON list such as :code:`["OPENAI_API_KEY"]`). Only the names are stored. The values are read from the environment of the process that runs the evaluation (e.g., the TIRA worker or your local :code:`tira-cli`) and are forwarded to the evaluator container. The evaluation fails with a clear message if a variable is not set.
+
 Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).
 
 Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:

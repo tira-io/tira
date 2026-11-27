@@ -1,0 +1,13 @@
+/*
+ * Vuetify's reset (ress.css) sets box-sizing/background-repeat on every element. TIRA runs inside Discourse (via
+ * Disraptor), so this changed the sizes of Discourse's header and user menu (e.g., icons, badges, and tabs).
+ * Restore the browser defaults (which Discourse's own CSS builds upon) for everything outside the TIRA app.
+ * :where() keeps the specificity at zero, so all explicit Discourse rules still win. This file has to be
+ * imported after 'vuetify/styles'.
+ */
+:where(*:not(#app, #app *, :has(#app))),
+:where(*:not(#app, #app *, :has(#app)))::before,
+:where(*:not(#app, #app *, :has(#app)))::after {
+  box-sizing: content-box;
+  background-repeat: repeat;
+}

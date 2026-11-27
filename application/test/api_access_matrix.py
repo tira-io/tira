@@ -556,6 +556,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="api/software-to-review/<str:task_id>",
+        params={"task_id": "shared-task-1"},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern="api/count-of-team-software-executions/<str:task_id>",
         params={"task_id": "shared-task-1"},
         group_to_expected_status_code={
@@ -1934,6 +1945,66 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 403,
             ORGANIZER: 403,
             ADMIN: 400,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/docker-software-review/<int:docker_software_id>",
+        params={"docker_software_id": 999999},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/docker-software-review/<int:docker_software_id>",
+        params={"docker_software_id": 999999},
+        method="PUT",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/docker-software-automatic-reviews/<int:docker_software_id>",
+        params={"docker_software_id": 999999},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/docker-software-automatic-reviews/<int:docker_software_id>",
+        params={"docker_software_id": 999999},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/admin/docker-software-automatic-reviews/<int:docker_software_id>/<uuid:review_id>/archive",
+        params={"docker_software_id": 999999, "review_id": "00000000-0000-0000-0000-000000000000"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now

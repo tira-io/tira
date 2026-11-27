@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from google.protobuf.text_format import Parse
+from tira.evaluation_output import DEFAULT_OUTPUT_FORMAT, flatten_evaluation, parse_evaluation_output
 from tqdm import tqdm
 
 from .. import model as modeldb
@@ -91,6 +92,10 @@ def _parse_run(run_id: str, task_id: str, run_proto: modelpb.Run, vm: str, datas
     return r
 
 
+def _is_evaluation(run: modeldb.Run) -> bool:
+    return run.evaluator_id is not None or run.input_run_id is not None
+
+
 def _auto_unblind(run: modeldb.Run) -> bool:
     """Returns True if the run should automatically be unblinded, based on the dataset's
     auto_unblind_runs/auto_unblind_evaluation configuration. A run is considered an evaluation if it
@@ -99,9 +104,7 @@ def _auto_unblind(run: modeldb.Run) -> bool:
     if not dataset:
         return False
 
-    is_evaluation = run.evaluator_id is not None or run.input_run_id is not None
-
-    if is_evaluation:
+    if _is_evaluation(run):
         return bool(dataset.auto_unblind_evaluation)
     else:
         return bool(dataset.auto_unblind_runs)
@@ -146,7 +149,14 @@ def _parse_review(run_dir: "Path", run: modeldb.Run) -> None:
 
 
 def _parse_evalutions(run_dir: "Path", run: modeldb.Run) -> None:
-    if (run_dir / "output/evaluation.prototext").exists() and not (run_dir / "output/evaluation.bin").exists():
+    output_format = None
+    if _is_evaluation(run) and run.input_dataset and run.input_dataset.evaluator:
+        output_format = run.input_dataset.evaluator.output_format
+
+    if output_format and output_format != DEFAULT_OUTPUT_FORMAT:
+        if not (run_dir / "output/evaluation.bin").exists():
+            _convert_evaluation_to_bin(run_dir, output_format)
+    elif (run_dir / "output/evaluation.prototext").exists() and not (run_dir / "output/evaluation.bin").exists():
         evaluation = Parse((run_dir / "output/evaluation.prototext").read_bytes(), modelpb.Evaluation())
         (run_dir / "output" / "evaluation.bin").write_bytes(evaluation.SerializeToString())
 
@@ -156,6 +166,23 @@ def _parse_evalutions(run_dir: "Path", run: modeldb.Run) -> None:
         evaluation.ParseFromString((run_dir / "output/evaluation.bin").read_bytes())
         for measure in evaluation.measure:
             modeldb.Evaluation.objects.update_or_create(measure_key=measure.key, run=run, measure_value=measure.value)
+
+
+def _convert_evaluation_to_bin(run_dir: "Path", output_format: str) -> None:
+    """Parse the evaluation that is written in a non-default output format and store it as evaluation.bin."""
+    output_dir = run_dir / "output"
+    try:
+        evaluation_dict = parse_evaluation_output(output_dir, output_format)
+    except ValueError as e:
+        logger.warning(f"Could not parse the evaluation in {output_dir} with the format {output_format}: {e}")
+        return
+
+    evaluation = modelpb.Evaluation()
+    for key, value in flatten_evaluation(evaluation_dict).items():
+        measure = evaluation.measure.add()
+        measure.key = str(key)
+        measure.value = str(value)
+    (output_dir / "evaluation.bin").write_bytes(evaluation.SerializeToString())
 
 
 def parse_runs_for_vm(runs_dir_path: "Path", dataset_id: str, vm_id: str, verbose: bool = False) -> None:

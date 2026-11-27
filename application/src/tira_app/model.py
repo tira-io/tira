@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -372,6 +373,16 @@ class Evaluator(models.Model):
     git_runner_command = models.CharField(max_length=500, null=True, default=None)
     git_repository_id = models.CharField(max_length=200, null=True, default=None)
     trusted_evaluation = models.TextField(default=None, null=True)
+    output_format = models.CharField(max_length=100, default="prototext")
+    forward_environment_variable = models.TextField(default=None, null=True)
+
+    def get_forward_environment_variable(self) -> "Optional[List[str]]":
+        if not self.forward_environment_variable:
+            return None
+        try:
+            return json.loads(self.forward_environment_variable)
+        except json.JSONDecodeError:
+            return None
 
 
 class VirtualMachineHasEvaluator(models.Model):
@@ -599,6 +610,20 @@ class DockerSoftware(models.Model):
     def get_metadata(self) -> "Optional[Dict[str, str]]":
         return normalize_upload_metadata(self.metadata)
 
+    def is_released_for_users(self) -> bool:
+        """Users may run software that a human approved (code and execution review), or that has an automatic review
+        without concerns. A human rejection always blocks the release."""
+        approved = DockerSoftwareReview.Status.APPROVED
+        rejected = DockerSoftwareReview.Status.REJECTED
+        review = getattr(self, "review", None)  # uses select_related when available
+        if review is not None:
+            if rejected in (review.code_review, review.execution_review):
+                return False
+            if review.code_review == approved and review.execution_review == approved:
+                return True
+        no_concerns = DockerSoftwareAutomaticReview.Verdict.NO_CONCERNS
+        return any(r.verdict == no_concerns for r in self.automatic_reviews.all())  # uses prefetch_related
+
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:
         if cache_behaviour in (None, ""):
@@ -786,6 +811,39 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
+
+
+class DockerSoftwareReview(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "pending"
+        APPROVED = "approved", "approved"
+        REJECTED = "rejected", "rejected"
+
+    docker_software = models.OneToOneField(DockerSoftware, on_delete=models.CASCADE, related_name="review")
+    reviewer_id = models.CharField(max_length=150)
+    review_date = models.CharField(max_length=150)
+    code_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    execution_review = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    comment = models.TextField(default="")
+
+
+class DockerSoftwareAutomaticReview(models.Model):
+    """An automatic (e.g., LLM-agent) review of a docker software. A software can have many of them.
+    The complete review is a zip on disk (TIRA_ROOT/data/software-reviews/<software id>/<id>.zip)."""
+
+    class Verdict(models.TextChoices):
+        NO_CONCERNS = "no_concerns", "no_concerns"
+        NEEDS_HUMAN_REVIEW = "needs_human_review", "needs_human_review"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, related_name="automatic_reviews")
+    title = models.CharField(max_length=200)
+    verdict = models.CharField(max_length=20, choices=Verdict.choices)
+    comment = models.TextField(default="")
+    details = models.JSONField(default=dict)
+    uploader_id = models.CharField(max_length=150)
+    review_date = models.CharField(max_length=150)
+    archive_path = models.CharField(max_length=500, default="")
 
 
 class BackendProcess(models.Model):

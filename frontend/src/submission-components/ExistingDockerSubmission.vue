@@ -54,7 +54,12 @@
       <v-divider></v-divider>
       
       <v-card-title>Run the Software</v-card-title>
-      <v-form ref="form" v-model="valid">
+      <v-alert v-if="!released_for_users" type="info" variant="tonal" class="mb-4">
+        Your software was successfully submitted. The task organizers run it on a spot-check dataset and review the
+        outputs to ensure that the software works. Please allow that this might take one or two days. After that, the software can be executed all test datasets.
+        <span v-if="userinfo.role === 'admin'"><br>As admin, you can still run it.</span>
+      </v-alert>
+      <v-form ref="form" v-model="valid" v-if="released_for_users || userinfo.role === 'admin'">
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
         <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
         <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
@@ -298,6 +303,9 @@ export default {
     }
   },
   computed: {
+    released_for_users(): boolean {
+      return (this.docker_software_details as any).released_for_users === true
+    },
     allResources() {
       let ret = []
 

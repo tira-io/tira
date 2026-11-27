@@ -1,0 +1,10 @@
+[package]
+name = "sisap2026"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hdf5-metno = "0.10"
+ndarray = "0.16"
+rayon = "1"
+serde_json = "1"

@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 from time import gmtime, strftime
-from typing import IO
+from typing import IO, Optional, Union
 
+from django.conf import settings
 from django.db.models import Q
-from django.http import HttpResponseServerError, JsonResponse
+from django.http import FileResponse, HttpResponseServerError, JsonResponse
 from django.urls import path
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
@@ -18,7 +22,7 @@ from rest_framework.response import Response
 
 from ... import tira_model as model
 from ...checks import check_conditional_permissions
-from ...model import Run, RunningProcesses
+from ...model import DockerSoftware, DockerSoftwareAutomaticReview, DockerSoftwareReview, Run, RunningProcesses
 from ..vm_api import _run_evaluation
 
 logger = logging.getLogger("tira")
@@ -255,7 +259,153 @@ def run_statistics(request: Request) -> Response:
     return JsonResponse({"status": 0, "context": {"statistics": aggregate_run_statistics(start, end)}})
 
 
+def _serialize_docker_software_review(docker_software_id: int, review: DockerSoftwareReview | None) -> dict:
+    return {
+        "docker_software_id": docker_software_id,
+        "reviewer_id": review.reviewer_id if review else "",
+        "review_date": review.review_date if review else "",
+        "code_review": review.code_review if review else DockerSoftwareReview.Status.PENDING,
+        "execution_review": review.execution_review if review else DockerSoftwareReview.Status.PENDING,
+        "comment": review.comment if review else "",
+    }
+
+
+@api_view(["GET", "PUT"])
+@permission_classes([IsAdminUser])
+def docker_software_review(request: Request, docker_software_id: int) -> Response:
+    if not DockerSoftware.objects.filter(docker_software_id=docker_software_id).exists():
+        return JsonResponse({"status": 1, "message": "Unknown docker software."}, status=404)
+
+    review = DockerSoftwareReview.objects.filter(docker_software_id=docker_software_id).first()
+
+    if request.method == "PUT":
+        valid = DockerSoftwareReview.Status.values
+        code_review = request.data.get("code_review")
+        execution_review = request.data.get("execution_review")
+        comment = request.data.get("comment", "")
+        if code_review not in valid or execution_review not in valid or not isinstance(comment, str):
+            return JsonResponse(
+                {"status": 1, "message": f"code_review and execution_review must be one of {valid}."}, status=400
+            )
+        review, _ = DockerSoftwareReview.objects.update_or_create(
+            docker_software_id=docker_software_id,
+            defaults={
+                "reviewer_id": request.user.username,
+                "review_date": datetime.utcnow().isoformat(),
+                "code_review": code_review,
+                "execution_review": execution_review,
+                "comment": comment,
+            },
+        )
+
+    return JsonResponse({"status": 0, "context": _serialize_docker_software_review(docker_software_id, review)})
+
+
+def _serialize_automatic_review(review: DockerSoftwareAutomaticReview) -> dict:
+    return {
+        "id": str(review.id),
+        "docker_software_id": review.docker_software_id,
+        "title": review.title,
+        "verdict": review.verdict,
+        "comment": review.comment,
+        "details": review.details,
+        "uploader_id": review.uploader_id,
+        "review_date": review.review_date,
+    }
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminUser])
+def docker_software_automatic_reviews(request: Request, docker_software_id: int) -> Response:
+    """Lists (GET) or adds (POST, multipart) automatic reviews. A POST has the fields title, verdict, comment,
+    details (JSON object, e.g., the LLM that was used) and file (the zip of the complete review)."""
+    if not DockerSoftware.objects.filter(docker_software_id=docker_software_id).exists():
+        return JsonResponse({"status": 1, "message": "Unknown docker software."}, status=404)
+
+    if request.method == "POST":
+        title = str(request.data.get("title", "")).strip()
+        verdict = request.data.get("verdict")
+        archive = request.FILES.get("file")
+        try:
+            details = json.loads(request.data.get("details") or "{}")
+        except ValueError:
+            details = None
+
+        if not title or len(title) > 200 or verdict not in DockerSoftwareAutomaticReview.Verdict.values:
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": f"A title (<= 200 characters) and a verdict of "
+                    f"{DockerSoftwareAutomaticReview.Verdict.values} are required.",
+                },
+                status=400,
+            )
+        if not isinstance(details, dict) or archive is None or not zipfile.is_zipfile(archive):
+            return JsonResponse(
+                {"status": 1, "message": "details must be a JSON object and file must be a zip."}, status=400
+            )
+
+        archive.seek(0)
+        review_id = uuid.uuid4()
+        relative = Path("data") / "software-reviews" / str(docker_software_id) / f"{review_id}.zip"
+        target = _safe_archive_path(relative)
+        if target is None:
+            return JsonResponse({"status": 1, "message": "Invalid review archive path."}, status=400)
+
+        # The archive is written first, so that a failing write never leaves a (release-granting) review row behind.
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "wb") as f:
+                for chunk in archive.chunks():
+                    f.write(chunk)
+            review = DockerSoftwareAutomaticReview.objects.create(
+                id=review_id,
+                archive_path=str(relative),
+                docker_software_id=docker_software_id,
+                title=title,
+                verdict=verdict,
+                comment=str(request.data.get("comment", "")),
+                details=details,
+                uploader_id=request.user.username,
+                review_date=datetime.utcnow().isoformat(),
+            )
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise
+        return JsonResponse({"status": 0, "context": _serialize_automatic_review(review)}, status=201)
+
+    reviews = DockerSoftwareAutomaticReview.objects.filter(docker_software_id=docker_software_id)
+    reviews = reviews.order_by("-review_date")
+    return JsonResponse({"status": 0, "context": {"reviews": [_serialize_automatic_review(r) for r in reviews]}})
+
+
+def _safe_archive_path(relative: Union[str, Path]) -> Optional[Path]:
+    root = os.path.realpath(settings.TIRA_ROOT)
+    path = os.path.realpath(os.path.join(root, str(relative)))
+    return Path(path) if path.startswith(root + os.sep) else None
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def docker_software_automatic_review_archive(
+    request: Request, docker_software_id: int, review_id: uuid.UUID
+) -> Response:
+    reviews = DockerSoftwareAutomaticReview.objects.filter(id=review_id, docker_software_id=docker_software_id)
+    review = reviews.first()
+    path = _safe_archive_path(review.archive_path) if review and review.archive_path else None
+    if not path or not path.is_file():
+        return JsonResponse({"status": 1, "message": "Unknown review."}, status=404)
+
+    return FileResponse(open(path, "rb"), as_attachment=True, filename=f"review-{review_id}.zip")
+
+
 endpoints = [
+    path("docker-software-automatic-reviews/<int:docker_software_id>", docker_software_automatic_reviews),
+    path(
+        "docker-software-automatic-reviews/<int:docker_software_id>/<uuid:review_id>/archive",
+        docker_software_automatic_review_archive,
+    ),
+    path("docker-software-review/<int:docker_software_id>", docker_software_review),
     path("run-statistics", run_statistics),
     path("upload-response/<str:vm_id>/<str:job_id>", upload_response),
     path(

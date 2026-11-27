@@ -44,6 +44,15 @@ class RunSoftwareError(RuntimeError):
         self.response = response
 
 
+def _docker_software_submissions(client: "Client", task: str, team: str) -> list:
+    """The not deleted docker softwares of a team: the code submissions (with source code) and the docker
+    submissions (without)."""
+    context = client.json_response(f"/api/submissions-for-task/{task}/{team}/code")["context"]
+    ret = list(context["code"]["submissions"])
+    context = client.json_response(f"/api/submissions-for-task/{task}/{team}/docker")["context"]
+    return ret + list(context["docker"]["docker_softwares"])
+
+
 class Client(TiraClient):
     base_url: str
 
@@ -265,14 +274,36 @@ class Client(TiraClient):
         return self.json_response(f"/api/task/{task}/submission-details/{team}/{software}")["context"]["submission"]
 
     def docker_credentials(self, task_name, team_name):
-        ret = self.metadata_for_task(task_name, team_name)
-        if ret and "status" in ret and ret["status"] == 0 and "context" in ret and "docker" in ret["context"]:
-            return (
-                ret["context"]["docker"]["docker_registry_user"],
-                ret["context"]["docker"]["docker_registry_token"],
-                self.docker_registry(),
+        user, token = self._docker_registry_credentials_of_task(task_name, team_name)
+        if user and token:
+            return user, token, self.docker_registry()
+
+        # Tasks without git pipeline (i.e., that are not featured) have no registry credentials.
+        try:
+            tasks = self.json_response("/api/task-list")["context"]["task_list"]
+            featured_tasks = [i["task_id"] for i in tasks if i.get("featured") and i["task_id"] != task_name]
+        except Exception:
+            featured_tasks = []
+
+        if featured_tasks:
+            logging.warning(
+                f"The task {task_name} has no docker registry credentials, using the credentials of the featured task"
+                f" {featured_tasks[0]} instead."
             )
+            user, token = self._docker_registry_credentials_of_task(featured_tasks[0], team_name)
+            if user and token:
+                return user, token, self.docker_registry()
+        else:
+            logging.warning(f"The task {task_name} has no docker registry credentials and no featured task was found.")
+
         return None, None, self.docker_registry()
+
+    def _docker_registry_credentials_of_task(self, task_name, team_name):
+        ret = self.metadata_for_task(task_name, team_name)
+        docker = ret["context"].get("docker") if ret and ret.get("status") == 0 and "context" in ret else None
+        if isinstance(docker, dict):  # False for tasks without git pipeline
+            return docker.get("docker_registry_user"), docker.get("docker_registry_token")
+        return None, None
 
     def docker_software_details(self, approach):
         task, team, software = approach.split("/")
@@ -625,6 +656,77 @@ class Client(TiraClient):
             for i in existing_runs.values():
                 f.write(json.dumps(i) + "\n")
 
+    def copy_upload_runs(self, source_dataset: str, target_dataset: str, dry_run: bool = False) -> "List[Dict]":
+        """Copies all run uploads of the source dataset to the target dataset (same task, same teams, same upload
+        groups, so that display name, description, and upload metadata are preserved). Upload groups that already
+        contain all runs for the target dataset are skipped (partially copied groups are an error). Fails if the source dataset has runs that are not uploads.
+        Returns the copied runs (source run id, team, upload group, new run)."""
+        from tira.io_utils import zip_dir
+
+        task = self.get_dataset(source_dataset)["default_task"]
+        target_task = self.get_dataset(target_dataset)["default_task"]
+        if task != target_task:
+            raise ValueError(f"The datasets belong to different tasks ({task} vs. {target_task}).")
+
+        submissions = self.submissions(task, source_dataset)
+        if len(submissions) == 0:
+            raise ValueError(f'Could not find runs for dataset "{source_dataset}".')
+        submissions = submissions[submissions["input_run_id"].fillna("") == ""]
+        not_uploaded = submissions[~submissions["is_upload"].astype(bool)]
+        if len(not_uploaded) > 0:
+            raise ValueError(
+                f"Can only copy run uploads, but {len(not_uploaded)} runs of {source_dataset} are no uploads, e.g.:"
+                f" {not_uploaded.iloc[0]['run_id']}."
+            )
+
+        copied = []
+        for team in sorted(submissions["team"].unique()):
+            groups = self.json_response(f"/api/submissions-for-task/{task}/{team}/upload")["context"][
+                "all_uploadgroups"
+            ]
+            for group in groups:
+                details = self.json_response(f"/api/upload-group-details/{task}/{team}/{group['id']}")["context"][
+                    "upload_group_details"
+                ]
+                # Upload groups also list evaluations (with an input run); only the uploaded runs are copied.
+                uploads = [r for r in details["runs"] if r["run_id"] and not r.get("input_run_id")]
+                source_runs = [r for r in uploads if r["dataset"] == source_dataset]
+                if not source_runs:
+                    continue
+                already_copied = [r for r in uploads if r["dataset"] == target_dataset]
+                if len(already_copied) >= len(source_runs):
+                    logging.warning(f"Skip upload group {group['id']} of {team}: already has runs on the target.")
+                    continue
+                if already_copied:
+                    # Runs do not record their source, so the missing ones can not be identified safely.
+                    raise ValueError(
+                        f"Upload group {group['id']} of {team} has only {len(already_copied)} of {len(source_runs)}"
+                        f" runs on {target_dataset} (an earlier copy was interrupted). Delete them and copy again."
+                    )
+
+                metadata = details.get("upload_metadata")
+                for run in source_runs:
+                    entry = {"source_run_id": run["run_id"], "team": team, "upload_group": group["id"]}
+                    if not dry_run:
+                        output = self.download_zip_to_cache_directory(task, source_dataset, team, run["run_id"])
+                        form_data = {
+                            "display_name": details["display_name"] or "",
+                            "description": details["description"] or "",
+                        }
+                        if metadata:
+                            form_data["upload_metadata"] = json.dumps(metadata)
+                        response = self.execute_post_return_json(
+                            f"/task/{task}/vm/{team}/upload/{target_dataset}/{group['id']}",
+                            file_path=zip_dir(Path(output)),
+                            form_data=form_data,
+                        )
+                        if response.get("status") != 0:
+                            raise ValueError(f"Upload of run {run['run_id']} failed: {response}")
+                        entry["new_run"] = response["new_run"]
+                    copied.append(entry)
+
+        return copied
+
     def evaluations(self, task, dataset, join_submissions=True):
         response = self.json_response(f"/api/evaluations/{task}/{dataset}")["context"]
         ret = []
@@ -883,18 +985,19 @@ class Client(TiraClient):
 
     def private_system_details(self, approach):
         task, team, system = approach.split("/")
-        endpoint = f"/api/submissions-for-task/{task}/{team}/code"
-        systems = self.json_response(endpoint)["context"]["code"]["submissions"]
-
         docker_ids = set()
-        for system_desc in systems:
-            if system_desc["display_name"] == system:
+        for system_desc in _docker_software_submissions(self, task, team):
+            if system_desc["display_name"] == system and system_desc.get("docker_software_id") is not None:
                 docker_ids.add(system_desc["docker_software_id"])
 
         if len(docker_ids) != 1:
             raise ValueError(f"I did not find a unique system with name {system}. Found {docker_ids}")
 
-        endpoint = f"/api/docker-softwares-details/{team}/{list(docker_ids)[0]}"
+        return self.docker_software_details_by_id(team, list(docker_ids)[0])
+
+    def docker_software_details_by_id(self, team: str, docker_software_id: int) -> dict:
+        """The details of a docker software by its id (display names of softwares are not necessarily unique)."""
+        endpoint = f"/api/docker-softwares-details/{team}/{docker_software_id}"
         return self.json_response(endpoint)["context"]["docker_software_details"]
 
     def get_run_execution_or_none(self, approach: str, dataset: str, previous_stage_run_id: str = None) -> Dict:
@@ -1421,6 +1524,43 @@ class Client(TiraClient):
         query = urlencode({"start": start, "end": end})
         return self.json_response(f"/v1/admin/run-statistics?{query}")["context"]["statistics"]
 
+    def docker_softwares_of_task(self, task_id: str, include_reviewed: bool = True) -> list:
+        """The code and docker submissions that are not deleted of all teams of a task (admin only), as dicts with
+        docker_software_id, team, display_name, and the review state. Without include_reviewed, only the ones that are
+        not released for users yet."""
+        query = "?include_reviewed=true" if include_reviewed else ""
+        return self.json_response(f"/api/software-to-review/{task_id}{query}")["context"]["software_to_review"]
+
+    def software_reviews(self, docker_software_id: int) -> list:
+        """The automatic reviews of a docker software (newest first)."""
+        return self.json_response(f"/v1/admin/docker-software-automatic-reviews/{docker_software_id}")["context"][
+            "reviews"
+        ]
+
+    def download_software_review(self, docker_software_id: int, review_id: str, target_file: Path) -> Path:
+        """Downloads the zip of an automatic review of a docker software to target_file."""
+        url = f"{self.base_url}/v1/admin/docker-software-automatic-reviews/{docker_software_id}/{review_id}/archive"
+        resp = requests.get(url, headers=self.authentication_headers(), verify=self.verify, stream=True)
+        if resp.status_code != 200:
+            raise ValueError(f"Got statuscode {resp.status_code} for {url}.")
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(target_file, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1 << 20):
+                f.write(chunk)
+        return target_file
+
+    def upload_software_review(
+        self, docker_software_id: int, title: str, verdict: str, comment: str, details: dict, file_path: Path
+    ) -> dict:
+        """Uploads a new automatic review (the zip of the complete review) of a docker software."""
+        ret = self.execute_post_return_json(
+            f"/v1/admin/docker-software-automatic-reviews/{docker_software_id}",
+            file_path=file_path,
+            form_data={"title": title, "verdict": verdict, "comment": comment, "details": json.dumps(details)},
+        )
+        assert ret["status"] == 0
+        return ret["context"]
+
     def upload_run_anonymous(self, file_path: Path, dataset_id: str, dry_run: bool = False, verbose: bool = False):
         print(f"I check that the submission in directory '{file_path}' is valid...")
         upload_to_tira = self.get_dataset(dataset_id)
@@ -1733,6 +1873,7 @@ class Client(TiraClient):
         params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
         file_path: "Path" = None,
         json_payload: "Any" = None,
+        form_data: "Optional[Dict[str, str]]" = None,
     ) -> Dict:
         assert endpoint.startswith("/")
         csrf = self.get_csrf_token()
@@ -1749,12 +1890,13 @@ class Client(TiraClient):
                 resp = requests.post(
                     url=f"{self.base_url}{endpoint}",
                     files=files,
+                    data=form_data,
                     headers=headers,
                     params=params,
                     json=json_payload,
                     verify=self.verify,
                 )
-                if resp.status_code not in {200, 202}:
+                if resp.status_code not in {200, 201, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}")
                 else:
                     break

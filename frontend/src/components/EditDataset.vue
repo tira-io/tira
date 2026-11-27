@@ -204,6 +204,10 @@
 
                 <v-autocomplete v-model="trusted_measures" v-if="evaluation_type === 'eval-5' && !use_dockerized_evaluator" clearable chips label="Retrieval Measures" :items="serverinfo.trustedEvaluators.Retrieval" multiple :rules="[v => v && v.length >= 1 || 'Please provide at least one retrieval measure.']" required></v-autocomplete>
 
+                <v-combobox v-model="forward_environment_variable" v-if="use_dockerized_evaluator || (sandboxed + '').toLowerCase() == 'false'" multiple chips clearable label="Environment variables forwarded to the evaluator (names only, e.g., OPENAI_API_KEY; the values must be set in the environment of the worker)"/>
+
+                <v-select v-model="output_format" :items="serverinfo.supportedEvaluationOutputFormats" label="Output format of the evaluator (default: prototext)" clearable/>
+
                 <span v-if="evaluation_type === 'eval-6'">
                   The evaluator loads the run and the truth data. From both, it extracts one field as an ID to join the run with the truth data and then compares a label field in the run with a label field in the truth data to calculate the provided measure(s) with the <a href="https://huggingface.co/docs/evaluate/index" target="_blank">HuggingFace evaluate method</a>.
 
@@ -252,7 +256,7 @@
         systemFileHandle: undefined, truthFileHandle: undefined,
         git_repository_id: '', rest_endpoint: inject("REST base URL") as string, file_listing: '',
         userinfo: inject('userinfo') as UserInfo, serverinfo: inject("serverInfo") as ServerInfo,
-        trusted_measures: undefined, sandboxed: "later", additional_args: undefined,
+        trusted_measures: undefined, sandboxed: "later", additional_args: undefined, output_format: 'prototext', forward_environment_variable: [] as string[],
         format_configuration: '', truth_format_configuration: ''
       }),
       computed: {
@@ -400,6 +404,8 @@
               'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
               'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format, 'truth_format': this.truth_format, 'description': this.description,
               'chatnoir_id': this.chatnoir_id, 'ir_datasets_id': this.ir_datasets_id,
+              'evaluation_output_format': this.output_format || 'prototext',
+              'forward_environment_variable': JSON.stringify(this.forward_environment_variable || []),
           }
 
           if (this.newDataset() && this.upload_type === 'upload-0') {

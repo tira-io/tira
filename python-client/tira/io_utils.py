@@ -879,11 +879,12 @@ def parse_prototext_key_values(file_name):
             yield ret
 
 
-def to_prototext(m: List[Dict[str, Any]], upper_k: str = "") -> str:
-    ret = ""
+def flatten_measures(m: List[Dict[str, Any]], upper_k: str = "") -> "List[Tuple[str, Any]]":
+    """Flatten (nested) dicts of measures to a list of (measure name, value) with the normalized measure names that
+    are also used in the prototext of evaluations."""
+    ret = []
 
-    def _to_prototext(d: Dict[str, Any], upper_k: str = "") -> str:
-        ret = ""
+    def _flatten(d: Dict[str, Any], upper_k: str = "") -> None:
         for k, v in d.items():
             new_k = upper_k
             if not new_k:
@@ -891,15 +892,20 @@ def to_prototext(m: List[Dict[str, Any]], upper_k: str = "") -> str:
             elif not new_k.endswith(k):
                 new_k = upper_k + "_" + k
             if isinstance(v, dict):
-                ret += _to_prototext(v, upper_k=new_k)
+                _flatten(v, upper_k=new_k)
             else:
-                ret += 'measure{\n  key: "' + str(new_k.replace("_", " ").title()) + '"\n  value: "' + str(v) + '"\n}\n'
-        return ret
+                ret.append((str(new_k.replace("_", " ").title()), v))
 
     for d in m:
-        ret += _to_prototext(d, upper_k=upper_k)
+        _flatten(d, upper_k=upper_k)
 
     return ret
+
+
+def to_prototext(m: List[Dict[str, Any]], upper_k: str = "") -> str:
+    return "".join(
+        'measure{\n  key: "' + k + '"\n  value: "' + str(v) + '"\n}\n' for k, v in flatten_measures(m, upper_k)
+    )
 
 
 def all_environment_variables_for_github_action_or_fail(params):
@@ -1053,11 +1059,15 @@ def _remove_unicode_categories(text: str, categories: set[str]) -> str:
     return "".join(i for i in text if not (ord(i) > 127 and unicodedata.category(i) in categories))
 
 
-def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Union[Dict, pd.DataFrame]":
-    files = glob(str(directory) + "/*")
-
+def load_output_of_directory(
+    directory: Path, evaluation: bool = False, output_format: "Optional[str]" = None
+) -> "Union[Dict, pd.DataFrame]":
     if evaluation:
-        files = [i for i in files if i.endswith(".prototext")]
+        from tira.evaluation_output import parse_evaluation_output
+
+        return parse_evaluation_output(Path(directory), output_format)
+
+    files = glob(str(directory) + "/*")
 
     if len(files) != 1:
         raise ValueError("Expected exactly one output file. Got: ", files)
@@ -1066,17 +1076,7 @@ def load_output_of_directory(directory: Path, evaluation: bool = False) -> "Unio
 
     logging.debug(f"Read file from {files}")
 
-    if evaluation:
-        ret = {}
-        for i in [i for i in open(files, "r").read().split("measure") if "key:" in i and "value:" in i]:
-            key = i.split("key:")[1].split("value")[0].split('"')[1]
-            value = i.split("key:")[1].split("value")[1].split('"')[1]
-
-            ret[key.strip()] = __num(value.strip())
-
-        return ret
-    else:
-        return pd.read_json(files, lines=True, orient="records")
+    return pd.read_json(files, lines=True, orient="records")
 
 
 def docker_supported_target_platform() -> str:

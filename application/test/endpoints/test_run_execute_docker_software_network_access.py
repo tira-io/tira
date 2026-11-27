@@ -30,13 +30,17 @@ class TestRunExecuteDockerSoftwareNetworkAccess(TestCase):
         modeldb.Task.objects.filter(task_id=TASK_ID).update(allow_network_access_on_request=value)
 
     def _software(self, allow_network_access_on_request):
-        return modeldb.DockerSoftware.objects.create(
+        software = modeldb.DockerSoftware.objects.create(
             display_name="software-network-" + str(allow_network_access_on_request),
             vm=self.vm,
             task=self.task,
             allow_network_access_on_request=allow_network_access_on_request,
             deleted=False,
         )
+        modeldb.DockerSoftwareReview.objects.create(
+            docker_software=software, code_review="approved", execution_review="approved"
+        )
+        return software
 
     def _call_endpoint(self, software, data):
         request = self.factory.post(
