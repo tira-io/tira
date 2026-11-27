@@ -178,7 +178,7 @@ class PrepareAndUploadTest(unittest.TestCase):
 
     def test_prepare_writes_metadata_extracted_files_and_the_single_batch(self):
         directory, manifest, log = self.prepare(
-            {"docker_software_id": 7, "public_image_name": "img:1", "command": "run it"}
+            {"docker_software_id": 7, "tira_image_name": "img:1", "command": "run it"}
         )
 
         self.assertEqual(7, manifest["docker_software_id"])
@@ -196,7 +196,7 @@ class PrepareAndUploadTest(unittest.TestCase):
 
     def test_incomplete_image_is_pulled_again(self):
         client = MagicMock()
-        client.private_system_details.return_value = {"public_image_name": "img:1"}
+        client.private_system_details.return_value = {"tira_image_name": "img:1"}
         calls = []
 
         def download(client, task, team, image, target, refresh=False):
@@ -213,7 +213,7 @@ class PrepareAndUploadTest(unittest.TestCase):
 
     def test_image_that_stays_incomplete_fails_after_three_attempts(self):
         client = MagicMock()
-        client.private_system_details.return_value = {"public_image_name": "img:1"}
+        client.private_system_details.return_value = {"tira_image_name": "img:1"}
         download = MagicMock(side_effect=lambda *a, **k: a[4].write_bytes(b"not a tar"))
 
         with patch.object(software, "_download_image", download):
@@ -234,7 +234,7 @@ class PrepareAndUploadTest(unittest.TestCase):
             self.prepare({"docker_software_id": 7})
 
     def test_package_and_upload(self):
-        directory, manifest, _ = self.prepare({"docker_software_id": 7, "public_image_name": "img:1"})
+        directory, manifest, _ = self.prepare({"docker_software_id": 7, "tira_image_name": "img:1"})
         agent_output = Path(tempfile.mkdtemp())
         review_directory = agent_output / "reviews" / "team"
         (review_directory / "sw-snippets").mkdir(parents=True)

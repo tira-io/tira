@@ -32,10 +32,15 @@ class TestEvaluationOutput(unittest.TestCase):
             (Path(d) / "results.txt").write_text("run q1 ndcg 0.1\nrun all ndcg 0.5\nrun all P@10 0.25\n")
             self.assertEqual({"ndcg": 0.5, "P@10": 0.25}, parse_evaluation_output(Path(d), "trec-eval-leaderboard"))
 
-    def test_trec_eval_leaderboard_rejects_measures_with_whitespace(self):
+    def test_nested_measures_are_flattened_and_leaderboard_names_have_no_whitespace(self):
+        evaluation = {"group": {"ndcg_cut_10": 0.5}, "Docs Per Query": 1}
+        expected = {"Group Ndcg Cut 10": 0.5, "Docs Per Query": 1}
         with tempfile.TemporaryDirectory() as d:
-            with self.assertRaises(ValueError):
-                write_evaluation_output({"Docs Per Query": 1}, Path(d), "trec-eval-leaderboard")
+            write_evaluation_output(evaluation, Path(d), "json")
+            self.assertEqual(expected, parse_evaluation_output(Path(d), "json"))
+            write_evaluation_output(evaluation, Path(d), "trec-eval-leaderboard")
+            parsed = parse_evaluation_output(Path(d), "trec-eval-leaderboard")
+            self.assertEqual({k.replace(" ", "_"): v for k, v in expected.items()}, parsed)
 
     def test_invalid_format_is_rejected(self):
         with self.assertRaises(ValueError):

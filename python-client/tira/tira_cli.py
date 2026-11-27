@@ -1020,15 +1020,20 @@ def admin_review_runs(
     print(fmt_message(f"Downloaded {len(runs)} unreviewed run(s) to {directory}.", _fmt.OK))
     results: list = []
     uploaded_count = 0
+    processing_failed = False
 
     def process_batch(batch_directory, agent_output_directory):
-        nonlocal uploaded_count
-        batch_results = load_reviews(directory, agent_output_directory, batch_directory)
-        results.extend(batch_results)
-        if not no_upload:
-            uploaded = upload_reviews(client, batch_results)
-            uploaded_count += len(uploaded)
-            print(fmt_message(f"Uploaded {len(uploaded)} of {len(batch_results)} review(s) of the batch.", _fmt.OK))
+        nonlocal uploaded_count, processing_failed
+        try:
+            batch_results = load_reviews(directory, agent_output_directory, batch_directory)
+            results.extend(batch_results)
+            if not no_upload:
+                uploaded = upload_reviews(client, batch_results)
+                uploaded_count += len(uploaded)
+                print(fmt_message(f"Uploaded {len(uploaded)} of {len(batch_results)} review(s) of the batch.", _fmt.OK))
+        except Exception:
+            processing_failed = True  # run_review_agent logs the error and continues with the next batch
+            raise
 
     agent_output_directory = run_review_agent(
         directory, agent_timeout, output_directory=agent_output, on_batch_done=process_batch
@@ -1037,7 +1042,7 @@ def admin_review_runs(
     if not no_upload:
         print(fmt_message(f"Uploaded {uploaded_count} of {len(results)} review(s) to TIRA.", _fmt.OK))
     print(f"Reviews: {agent_output_directory / 'reviews'}\nAgent log: {agent_output_directory / 'agent-log.txt'}")
-    return 1 if any(r["problems"] for r in results) else 0
+    return 1 if processing_failed or any(r["problems"] for r in results) else 0
 
 
 def admin_review_software(
@@ -1110,12 +1115,16 @@ def admin_review_software(
 
 def _review_software(*args, cleanup: bool = False, **kwargs) -> int:
     """Reviews one software. With cleanup, the temporary directories that were created for it (i.e., the ones for
-    which no output directory was passed) are deleted afterwards, unless the review is not uploaded (no_upload)."""
+    which no output directory was passed) are deleted afterwards, unless the review is not uploaded (no_upload) or
+    failed."""
     created: "list[Path]" = []
+    code = 1
     try:
-        return _review_software_in_directories(*args, created_directories=created, **kwargs)
+        code = _review_software_in_directories(*args, created_directories=created, **kwargs)
+        return code
     finally:
-        if cleanup and not kwargs.get("no_upload"):
+        # failed attempts are kept as they contain the only findings, logs, and evidence of the agent
+        if cleanup and code == 0 and not kwargs.get("no_upload"):
             for directory in created:
                 shutil.rmtree(directory, ignore_errors=True)
 
@@ -1262,7 +1271,7 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     )
     review_runs.add_argument(
         "--agent-output",
-        help="Directory to write the agent's reviews and logs to. Defaults to agent-output in the --output directory.",
+        help="Directory to write the agent's reviews and logs to. Defaults to agent-output in the --output directory. Each run uses a fresh subdirectory.",
     )
     review_runs.add_argument(
         "--agent-timeout",
@@ -1298,7 +1307,7 @@ def setup_admin_command(parser: argparse.ArgumentParser) -> None:
     )
     review_software.add_argument(
         "--agent-output",
-        help="Directory to write the agent's review and logs to. Defaults to agent-output in the --output directory.",
+        help="Directory to write the agent's review and logs to. Defaults to agent-output in the --output directory. Each run uses a fresh subdirectory.",
     )
     review_software.add_argument(
         "--agent-timeout",

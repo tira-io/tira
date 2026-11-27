@@ -7,7 +7,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 from time import gmtime, strftime
-from typing import IO
+from typing import IO, Optional, Union
 
 from django.conf import settings
 from django.db.models import Q
@@ -355,7 +355,10 @@ def docker_software_automatic_reviews(request: Request, docker_software_id: int)
             review_date=datetime.utcnow().isoformat(),
         )
         relative = Path("data") / "software-reviews" / str(docker_software_id) / f"{review.id}.zip"
-        target = Path(settings.TIRA_ROOT) / relative
+        target = _safe_archive_path(relative)
+        if target is None:
+            review.delete()
+            return JsonResponse({"status": 1, "message": "Invalid review archive path."}, status=400)
         target.parent.mkdir(parents=True, exist_ok=True)
         with open(target, "wb") as f:
             for chunk in archive.chunks():
@@ -369,6 +372,12 @@ def docker_software_automatic_reviews(request: Request, docker_software_id: int)
     return JsonResponse({"status": 0, "context": {"reviews": [_serialize_automatic_review(r) for r in reviews]}})
 
 
+def _safe_archive_path(relative: Union[str, Path]) -> Optional[Path]:
+    root = Path(settings.TIRA_ROOT).resolve()
+    path = (root / relative).resolve()
+    return path if path.is_relative_to(root) else None
+
+
 @api_view(["GET"])
 @permission_classes([IsAdminUser])
 def docker_software_automatic_review_archive(
@@ -376,8 +385,8 @@ def docker_software_automatic_review_archive(
 ) -> Response:
     reviews = DockerSoftwareAutomaticReview.objects.filter(id=review_id, docker_software_id=docker_software_id)
     review = reviews.first()
-    path = Path(settings.TIRA_ROOT) / review.archive_path if review else None
-    if not path or not review.archive_path or not path.is_file():
+    path = _safe_archive_path(review.archive_path) if review and review.archive_path else None
+    if not path or not path.is_file():
         return JsonResponse({"status": 1, "message": "Unknown review."}, status=404)
 
     return FileResponse(open(path, "rb"), as_attachment=True, filename=f"review-{review_id}.zip")

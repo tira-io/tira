@@ -984,9 +984,9 @@ class Client(TiraClient):
         if len(docker_ids) != 1:
             raise ValueError(f"I did not find a unique system with name {system}. Found {docker_ids}")
 
-        return self.docker_software_details(team, list(docker_ids)[0])
+        return self.docker_software_details_by_id(team, list(docker_ids)[0])
 
-    def docker_software_details(self, team: str, docker_software_id: int) -> dict:
+    def docker_software_details_by_id(self, team: str, docker_software_id: int) -> dict:
         """The details of a docker software by its id (display names of softwares are not necessarily unique)."""
         endpoint = f"/api/docker-softwares-details/{team}/{docker_software_id}"
         return self.json_response(endpoint)["context"]["docker_software_details"]

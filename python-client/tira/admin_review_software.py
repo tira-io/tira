@@ -253,12 +253,12 @@ def prepare_software_review_directory(
     describe the review. Each finished step is reported to `log`."""
     log = log or (lambda message: None)
     if docker_software_id is not None:
-        details = client.docker_software_details(team, docker_software_id)
+        details = client.docker_software_details_by_id(team, docker_software_id)
     else:
         details = client.private_system_details(f"{task}/{team}/{software}")
-    image = details.get("public_image_name") or details.get("tira_image_name") or details.get("user_image_name")
+    image = details.get("tira_image_name")  # the image that TIRA executes, and thus the one that must be reviewed
     if not image:
-        raise ValueError(f"The software {task}/{team}/{software} has no docker image.")
+        raise ValueError(f"The software {task}/{team}/{software} has no tira_image_name.")
 
     output = Path(output) if output else Path(tempfile.mkdtemp(prefix=f"tira-review-software-{task}-"))
     software_directory = output / SOFTWARE_DIRECTORY
@@ -359,6 +359,10 @@ def load_software_review(output_directory: Path, task: str, team: str, software:
 
     if review.get("verdict") not in VERDICTS:
         problems.append(f"'verdict' must be one of {sorted(VERDICTS)}")
+    elif review["verdict"] == "no_concerns" and any(
+        not isinstance(review.get(c), dict) or review[c].get("status") != "ok" for c in CHECKS
+    ):
+        problems.append("'verdict' is 'no_concerns' but not all checks are 'ok'")
 
     return {"review": review, "problems": problems}
 

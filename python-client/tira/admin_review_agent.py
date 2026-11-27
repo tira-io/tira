@@ -9,6 +9,8 @@ import json
 import logging
 import os
 import shutil
+import time
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Optional
 from urllib.parse import urlparse
@@ -94,7 +96,8 @@ def run_review_agent(
     """Runs the agent on the batches of the review directory (mounted read-only) and returns the output directory of the
     agent
     (mounted read-write), which will contain the reviews. The output directory defaults to `agent-output` in the
-    review directory (recreated on each run); a configured one is created if needed but never cleared.
+    review directory (recreated on each run); for a configured one, a fresh subdirectory is created in it on each
+    run (so that reviews of earlier runs can never be mistaken for the reviews of this run).
     The agent can only reach the host of COPILOT_PROVIDER_BASE_URL (through a filtering proxy). After each batch,
     on_batch_done is called with the directory of the batch and the output directory (errors
     of the callback are logged and do not stop the remaining batches)."""
@@ -116,6 +119,8 @@ def run_review_agent(
     if output_directory is None:
         output_directory = review_directory / "agent-output"
         shutil.rmtree(output_directory, ignore_errors=True)
+    else:
+        output_directory = Path(output_directory) / f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
     output_directory = Path(output_directory).resolve()
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -197,8 +202,13 @@ def _check_review(review: Any, run: dict) -> list[str]:
         elif value["status"] not in ("ok", "unclear") and not value.get("evidence"):
             problems.append(f"'{check}' has status '{value['status']}' but no evidence")
 
-    if review.get("verdict") not in VERDICTS:
+    verdict = review.get("verdict")
+    if verdict not in VERDICTS:
         problems.append(f"'verdict' must be one of {sorted(VERDICTS)}")
+
+    checks = [] if only_evaluations else [review.get(c) for c in CHECKS]
+    if verdict == "valid" and any(not isinstance(c, dict) or c.get("status") != "ok" for c in checks):
+        problems.append("'verdict' is 'valid' but not all checks are 'ok'")
 
     tira_review = review.get("tira_review")
     if only_evaluations:
@@ -207,15 +217,26 @@ def _check_review(review: Any, run: dict) -> list[str]:
         problems.append("'tira_review' needs a non-empty 'comment'")
     elif any(not isinstance(tira_review.get(k), bool) for k in ("no_errors", "output_error", "software_error")):
         problems.append("'tira_review' needs boolean 'no_errors', 'output_error', and 'software_error'")
+    elif tira_review["no_errors"] and (tira_review["output_error"] or tira_review["software_error"]):
+        problems.append("'tira_review' has 'no_errors' together with an error flag")
+    elif verdict == "invalid" and tira_review["no_errors"]:
+        problems.append("'verdict' is 'invalid' but 'tira_review' has 'no_errors'")
 
     evaluations = review.get("evaluations")
     expected = {e["run_id"] for e in run.get("evaluations", [])}
     if not isinstance(evaluations, list):
         problems.append("'evaluations' must be a list")
     else:
-        reviewed = {e.get("run_id") for e in evaluations if isinstance(e, dict)}
-        if expected - reviewed:
-            problems.append(f"evaluations not reviewed: {sorted(expected - reviewed)}")
+        if not all(isinstance(e, dict) and isinstance(e.get("run_id"), str) for e in evaluations):
+            problems.append("each of the 'evaluations' must be an object with a 'run_id'")
+        else:
+            ids = [e["run_id"] for e in evaluations]
+            if len(ids) != len(set(ids)):
+                problems.append("'evaluations' contains duplicate run ids")
+            if expected - set(ids):
+                problems.append(f"evaluations not reviewed: {sorted(expected - set(ids))}")
+            if set(ids) - expected:
+                problems.append(f"evaluations that are not in the manifest: {sorted(set(ids) - expected)}")
 
     return problems
 
@@ -251,10 +272,7 @@ def needs_human_attention(result: dict) -> bool:
     return isinstance(review, dict) and bool(
         review.get("needs_human_review")
         or review.get("verdict") == "needs_human_review"
-        or any(
-            isinstance(review.get(c), dict) and review[c].get("status") == "suspicious"
-            for c in ("hacking_attempt", "data_leak_attempt")
-        )
+        or any(isinstance(review.get(c), dict) and review[c].get("status") != "ok" for c in CHECKS)
     )
 
 

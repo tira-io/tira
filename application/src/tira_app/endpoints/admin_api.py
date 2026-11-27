@@ -250,8 +250,14 @@ def admin_add_dataset(request: "HttpRequest", task_id: str) -> "HttpResponse":
             output_format = validate_output_format(data.get("evaluation_output_format"))
             forward_environment_variable = _forward_environment_variable(data) or None
             evaluation_queue = _evaluation_queue(data)
-        except ValueError as e:
-            return JsonResponse({"status": 1, "message": str(e)})
+        except ValueError:
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": "Invalid evaluation configuration: check evaluation_output_format, "
+                    "forward_environment_variable, and evaluation_queue.",
+                }
+            )
 
         is_git_runner = data.get("is_git_runner", False)
         git_runner_image = data.get("git_runner_image", "")
@@ -628,8 +634,14 @@ def admin_edit_dataset(request: "HttpRequest", dataset_id: str) -> "HttpResponse
                 validate_output_format(output_format)
             forward_environment_variable = _forward_environment_variable(data)
             evaluation_queue = _evaluation_queue(data)
-        except ValueError as e:
-            return JsonResponse({"status": 1, "message": str(e)})
+        except ValueError:
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": "Invalid evaluation configuration: check evaluation_output_format, "
+                    "forward_environment_variable, and evaluation_queue.",
+                }
+            )
 
         try:
             dataset_format, dataset_format_configuration = _format_and_configuration(data, "format")

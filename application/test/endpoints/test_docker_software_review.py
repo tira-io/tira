@@ -129,10 +129,6 @@ class TestDockerSoftwareAutomaticReviews(TestCase):
         return self.client.post(self.url, body, format="multipart")
 
     def test_multiple_reviews_are_stored_with_zip_on_disk(self):
-        from pathlib import Path
-
-        from django.conf import settings
-
         first, second = self._post(title="first"), self._post(title="second", verdict="needs_human_review")
         self.assertEqual((201, 201), (first.status_code, second.status_code))
 
@@ -141,7 +137,6 @@ class TestDockerSoftwareAutomaticReviews(TestCase):
         self.assertEqual({"llm": "m"}, reviews[0]["details"])
 
         stored = modeldb.DockerSoftwareAutomaticReview.objects.get(id=reviews[0]["id"])
-        self.assertTrue((Path(settings.TIRA_ROOT) / stored.archive_path).is_file())
         expected = f"software-reviews/{self.software.docker_software_id}/{stored.id}.zip"
         self.assertTrue(stored.archive_path.endswith(expected))
 

@@ -345,6 +345,10 @@ class HybridDatabase(object):
             "truth_format_configuration": truth_format_configuration,
             "workflow_configuration": workflow_configuration,
             "queue": dataset.queue,
+            "output_format": dataset.evaluator.output_format if evaluator_id else None,
+            "forward_environment_variable": (
+                dataset.evaluator.get_forward_environment_variable() if evaluator_id else None
+            ),
         }
 
         if trusted_eval:

@@ -142,6 +142,14 @@ def parse_evaluation_output(directory: Path, output_format: "Optional[str]" = No
     return _PARSERS[output_format](_single_file(directory, output_format))
 
 
+def flatten_evaluation(evaluation: "Dict[str, Any]") -> "Dict[str, Any]":
+    """Flatten nested measures (e.g., groups of measures) to individual measures with the same normalized measure
+    names as in the prototext of an evaluation."""
+    from tira.io_utils import flatten_measures
+
+    return dict(flatten_measures([evaluation]))
+
+
 def format_evaluation_output(evaluation: "Dict[str, Any]", output_format: "Optional[str]" = None) -> str:
     """Serialize the evaluation (a dict of measures to values) to the content of an evaluation file."""
     output_format = validate_output_format(output_format)
@@ -150,6 +158,8 @@ def format_evaluation_output(evaluation: "Dict[str, Any]", output_format: "Optio
         from tira.io_utils import to_prototext
 
         return to_prototext([evaluation])
+
+    evaluation = flatten_evaluation(evaluation)
     if output_format == "json":
         return json.dumps(evaluation, indent=2) + "\n"
     if output_format == "*.jsonl":
@@ -157,11 +167,11 @@ def format_evaluation_output(evaluation: "Dict[str, Any]", output_format: "Optio
     if output_format == "*.tsv":
         return "".join(f"{k}\t{v}\n" for k, v in evaluation.items())
 
-    for measure in evaluation:
-        if len(str(measure).split()) != 1:
-            raise ValueError(f"The measure '{measure}' can not be written in the whitespace-separated {output_format}.")
-
-    return "".join(f"{TREC_EVAL_RUN_ID} {TREC_EVAL_AGGREGATE_QUERY} {k} {v}\n" for k, v in evaluation.items())
+    # the leaderboard format is whitespace-separated, so whitespace in measure names is replaced
+    return "".join(
+        f"{TREC_EVAL_RUN_ID} {TREC_EVAL_AGGREGATE_QUERY} {'_'.join(str(k).split())} {v}\n"
+        for k, v in evaluation.items()
+    )
 
 
 def write_evaluation_output(

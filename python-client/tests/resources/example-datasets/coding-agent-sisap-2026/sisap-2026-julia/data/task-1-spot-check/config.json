@@ -1,0 +1,8 @@
+{
+    "task": "task1", 
+    "data": "train",
+    "gt_I": ["allknn", "knns"],
+    "k": 15,
+    "dataset_name": "gooaq-small",
+    "filename": "benchmark-dev-gooaq-small.h5"
+}

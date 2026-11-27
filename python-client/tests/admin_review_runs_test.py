@@ -186,6 +186,7 @@ class ReviewLoadingAndUploadTest(unittest.TestCase):
         run = self.run_entry("r")
         review = valid_review("r")
         review["hacking_attempt"] = {"status": "suspicious", "summary": "s"}
+        review["verdict"] = "needs_human_review"
         review["tira_review"]["comment"] = " "
         self.write_manifest([run])
         self.write_review(run, review)
