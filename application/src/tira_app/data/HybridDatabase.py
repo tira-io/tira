@@ -2922,7 +2922,11 @@ class HybridDatabase(object):
             git_repository_id=git_repository_id,
             trusted_evaluation=trusted_evaluation,
             **({} if output_format is None else {"output_format": validate_output_format(output_format)}),
-            **({} if forward_environment_variable is None else {"forward_environment_variable": forward_environment_variable or None}),
+            **(
+                {}
+                if forward_environment_variable is None
+                else {"forward_environment_variable": forward_environment_variable or None}
+            ),
         )
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 

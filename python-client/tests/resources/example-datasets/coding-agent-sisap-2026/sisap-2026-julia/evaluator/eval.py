@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+import csv
+import json
+import os
+from glob import glob
+from pathlib import Path
+
 import h5py
 import numpy as np
-import os
-import csv
-from glob import glob
-import json
-from pathlib import Path
 import yaml
 
 
@@ -34,15 +35,14 @@ def load_ir_metadata(input_dir):
     except:
         return None
 
+
 def detect_task(input_dir):
     config_files = glob(f"{input_dir}/*.json")
     assert len(config_files) == 1
     cfg = json.loads(Path(config_files[0]).read_text())
     task_keys = [k for k in cfg.keys() if k.startswith("task")]
     if len(task_keys) != 1:
-        raise ValueError(
-            f"Expected exactly one task in config, found: {task_keys}"
-        )
+        raise ValueError(f"Expected exactly one task in config, found: {task_keys}")
     return task_keys[0]
 
 
@@ -61,7 +61,7 @@ def get_h5_item(f, path):
 def run_evaluation(task_description, input_file, results_file):
     cfg = json.loads(Path(task_description).read_text())
     with h5py.File(input_file, "r") as f_gt:
-        gt_I = np.array(get_h5_item(f_gt, cfg['gt_I']))
+        gt_I = np.array(get_h5_item(f_gt, cfg["gt_I"]))
 
     values = {
         "recall": [],
@@ -71,9 +71,7 @@ def run_evaluation(task_description, input_file, results_file):
 
     for results in load_results(results_file):
         with results:
-            values["recall"].append(
-                get_recall(np.array(results["knns"]), gt_I, cfg['k'])
-            )
+            values["recall"].append(get_recall(np.array(results["knns"]), gt_I, cfg["k"]))
             values["buildtime"].append(float(results.attrs["buildtime"]))
             values["querytime"].append(float(results.attrs["querytime"]))
 
@@ -86,7 +84,8 @@ def run_evaluation(task_description, input_file, results_file):
 
 def persist_prototext(results, filename):
     from tira.io_utils import to_prototext
-    with open(filename, 'w') as f:
+
+    with open(filename, "w") as f:
         for field_to_delete in ["algo", "dataset", "params", "task"]:
             if field_to_delete in results:
                 del results[field_to_delete]
@@ -98,12 +97,7 @@ def persist_prototext(results, filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '--private',
-        help="private queries held out for evaluation",
-        action='store_true',
-        default=False
-    )
+    parser.add_argument("--private", help="private queries held out for evaluation", action="store_true", default=False)
 
     parser.add_argument("task_description")
     parser.add_argument("truth_data")

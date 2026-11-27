@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import collections
 import argparse
+import collections
 import itertools
 import logging
 import shutil

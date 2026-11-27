@@ -224,7 +224,9 @@ class TestEvaluatorConfigurationInDatasetReadme(unittest.TestCase):
         self.assertEqual([], json.loads(config["forward_environment_variable"]))
 
     def test_output_format_and_forwarded_environment_variables_are_uploaded(self):
-        evaluator_config = "    output_format: json\n    forward_environment_variable: [OPENAI_API_KEY, OPENAI_BASE_URL]\n"
+        evaluator_config = (
+            "    output_format: json\n    forward_environment_variable: [OPENAI_API_KEY, OPENAI_BASE_URL]\n"
+        )
         with tempfile.TemporaryDirectory() as tmp:
             dataset = _copy_multi_author_dataset_with_evaluator_config(Path(tmp), evaluator_config)
             actual, config = _upload_dataset_and_return_config(dataset)

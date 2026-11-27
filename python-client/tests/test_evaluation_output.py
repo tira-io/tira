@@ -50,11 +50,16 @@ class TestEvaluationOutput(unittest.TestCase):
 class TestEvaluateWithOutputFormat(unittest.TestCase):
     def test_evaluate_writes_configured_output_format_from_trusted_eval(self):
         import pandas as pd
+
         from tira.evaluators import evaluate
 
         config = {
             "run_format": "*.jsonl",
-            "run_format_configuration": {"required_field": ["id", "response"], "id_field": "id", "value_field": "response"},
+            "run_format_configuration": {
+                "required_field": ["id", "response"],
+                "id_field": "id",
+                "value_field": "response",
+            },
             "truth_format": None,
             "measures": ["Words (Min)"],
             "trusted_eval": {"output_format": "json"},
@@ -63,7 +68,9 @@ class TestEvaluateWithOutputFormat(unittest.TestCase):
             run, out = Path(d) / "run", Path(d) / "out"
             run.mkdir()
             out.mkdir()
-            pd.DataFrame([{"id": "1", "response": "a b c"}, {"id": "2", "response": "d"}]).to_json(run / "run.jsonl", lines=True, orient="records")
+            pd.DataFrame([{"id": "1", "response": "a b c"}, {"id": "2", "response": "d"}]).to_json(
+                run / "run.jsonl", lines=True, orient="records"
+            )
             expected = evaluate(run, Path(d), config, out)
 
             self.assertEqual(["evaluation.json"], [i.name for i in out.iterdir()])

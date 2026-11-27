@@ -567,7 +567,8 @@ def evaluate(
 
     # Fail early if the environment variables that the evaluator requires are not available
     environment_variables_to_forward(
-        config.get("forward_environment_variable") or (config.get("trusted_eval") or {}).get("forward_environment_variable")
+        config.get("forward_environment_variable")
+        or (config.get("trusted_eval") or {}).get("forward_environment_variable")
     )
 
     if monitored:

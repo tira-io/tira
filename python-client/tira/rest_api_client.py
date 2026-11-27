@@ -681,7 +681,9 @@ class Client(TiraClient):
 
         copied = []
         for team in sorted(submissions["team"].unique()):
-            groups = self.json_response(f"/api/submissions-for-task/{task}/{team}/upload")["context"]["all_uploadgroups"]
+            groups = self.json_response(f"/api/submissions-for-task/{task}/{team}/upload")["context"][
+                "all_uploadgroups"
+            ]
             for group in groups:
                 details = self.json_response(f"/api/upload-group-details/{task}/{team}/{group['id']}")["context"][
                     "upload_group_details"
