@@ -462,24 +462,62 @@ def review_details(manifest: dict, review: dict) -> dict:
     }
 
 
-def _is_regular_file_inside(file: Path, source: Path) -> bool:
-    """The agent output is untrusted: symlinks (and anything resolving outside of source) are never packaged."""
-    if file.is_symlink() or not file.is_file():
+def _is_regular_file_inside(file: Path, root: Path) -> bool:
+    """The agent output is untrusted: only regular files are packaged, and neither the file nor any directory between
+    the root and the file may be a symlink (so nothing outside of the root can end up in the archive)."""
+    root = Path(root)
+    try:
+        parts = Path(file).relative_to(root).parts
+    except ValueError:
         return False
-    return file.resolve().is_relative_to(Path(source).resolve())
+
+    current = root
+    for part in parts:
+        current = current / part
+        if current.is_symlink():
+            return False
+    return current.is_file() and current.resolve().is_relative_to(root.resolve())
+
+
+def _packageable_files(source: Path, root: Path) -> list:
+    """All regular files below source, where source itself must be a real directory inside of root."""
+    if not _is_directory_inside(source, root):
+        return []
+    files = []
+    for current, directories, names in os.walk(source, followlinks=False):
+        directories[:] = [d for d in sorted(directories) if not (Path(current) / d).is_symlink()]
+        files += [Path(current) / n for n in sorted(names) if _is_regular_file_inside(Path(current) / n, root)]
+    return files
+
+
+def _is_directory_inside(directory: Path, root: Path) -> bool:
+    directory, root = Path(directory), Path(root)
+    try:
+        parts = directory.relative_to(root).parts
+    except ValueError:
+        return False
+    current = root
+    for part in parts:
+        current = current / part
+        if current.is_symlink():
+            return False
+    return current.is_dir() and current.resolve().is_relative_to(root.resolve())
 
 
 def package_review(
     directory: Path, agent_output: Path, team: str, software: str, target: Path, details: Optional[dict] = None
 ) -> Path:
     """Zips the complete review: the review JSON with its snippets, the agent log, the metadata of the software, the
-    extracted image metadata, and review-info.json (the details, e.g., the LLM)."""
+    extracted image metadata, and review-info.json (the details, e.g., the LLM). Symlinks are never followed."""
     extracted = directory / SOFTWARE_DIRECTORY / EXTRACTED_DIRECTORY
-    sources = [(agent_output / "reviews", Path("reviews")), (extracted, Path(SOFTWARE_DIRECTORY) / EXTRACTED_DIRECTORY)]
+    sources = [
+        (agent_output / "reviews", agent_output, Path("reviews")),
+        (extracted, directory, Path(SOFTWARE_DIRECTORY) / EXTRACTED_DIRECTORY),
+    ]
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
-        for source, name in sources:
-            for file in sorted(source.rglob("*")):
-                if _is_regular_file_inside(file, source) and not file.name.endswith("-snippets.tar.gz"):
+        for source, root, name in sources:
+            for file in _packageable_files(source, root):
+                if not file.name.endswith("-snippets.tar.gz"):
                     archive.write(file, name / file.relative_to(source))
         if _is_regular_file_inside(agent_output / "agent-log.txt", agent_output):
             archive.write(agent_output / "agent-log.txt", "agent-log.txt")

@@ -268,6 +268,29 @@ class PrepareAndUploadTest(unittest.TestCase):
         self.assertEqual("img:1", details["image"])
         self.assertEqual("1 code snippets", details["extracted"].split(",")[0])
 
+    def test_package_never_follows_symlinks(self):
+        directory, _, _ = self.prepare({"docker_software_id": 7, "tira_image_name": "img:1"})
+        secret = Path(tempfile.mkdtemp())
+        (secret / "secret.txt").write_text("host only")
+        agent_output = Path(tempfile.mkdtemp())
+        review_directory = agent_output / "reviews" / "team"
+        review_directory.mkdir(parents=True)
+        (review_directory / "sw.json").write_text("{}")
+        (review_directory / "link.txt").symlink_to(secret / "secret.txt")
+        (review_directory / "linked-directory").symlink_to(secret)
+        (agent_output / "agent-log.txt").symlink_to(secret / "secret.txt")
+
+        archive = package_review(directory, agent_output, "team", "sw", Path(tempfile.mkdtemp()) / "r.zip")
+        names = zipfile.ZipFile(archive).namelist()
+        self.assertIn("reviews/team/sw.json", names)
+        self.assertFalse(any("link" in n or n == "agent-log.txt" for n in names))
+
+        # the whole reviews directory is a link to a directory outside of the agent output
+        other_output = Path(tempfile.mkdtemp())
+        (other_output / "reviews").symlink_to(secret)
+        archive = package_review(directory, other_output, "team", "sw", Path(tempfile.mkdtemp()) / "r2.zip")
+        self.assertFalse(any(n.startswith("reviews/") for n in zipfile.ZipFile(archive).namelist()))
+
 
 class DockerSoftwaresOfTaskTest(unittest.TestCase):
     def test_collects_the_code_submissions_of_all_teams_with_software(self):
