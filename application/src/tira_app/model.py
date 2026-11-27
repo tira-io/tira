@@ -615,15 +615,14 @@ class DockerSoftware(models.Model):
         without concerns. A human rejection always blocks the release."""
         approved = DockerSoftwareReview.Status.APPROVED
         rejected = DockerSoftwareReview.Status.REJECTED
-        review = DockerSoftwareReview.objects.filter(docker_software_id=self.docker_software_id).first()
+        review = getattr(self, "review", None)  # uses select_related when available
         if review is not None:
             if rejected in (review.code_review, review.execution_review):
                 return False
             if review.code_review == approved and review.execution_review == approved:
                 return True
-        return DockerSoftwareAutomaticReview.objects.filter(
-            docker_software_id=self.docker_software_id, verdict=DockerSoftwareAutomaticReview.Verdict.NO_CONCERNS
-        ).exists()
+        no_concerns = DockerSoftwareAutomaticReview.Verdict.NO_CONCERNS
+        return any(r.verdict == no_concerns for r in self.automatic_reviews.all())  # uses prefetch_related
 
     @classmethod
     def normalize_cache_behaviour(cls, cache_behaviour: Optional[str]) -> Optional[str]:

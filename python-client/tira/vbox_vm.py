@@ -47,14 +47,20 @@ def _require_vboxmanage() -> str:
     return binary
 
 
+def _redact_passwords(cmd: List[str]) -> List[str]:
+    """Hides the values of --password options (they must never end up in logs or error messages)."""
+    return ["***" if i > 0 and cmd[i - 1] == "--password" else part for i, part in enumerate(cmd)]
+
+
 def vboxmanage(args: List[str], check: bool = True) -> subprocess.CompletedProcess:
     """Run a VBoxManage subcommand and return the completed process."""
     binary = _require_vboxmanage()
     cmd = [binary] + args
-    logger.debug("Running: %s", " ".join(cmd))
+    printable = " ".join(_redact_passwords(cmd))
+    logger.debug("Running: %s", printable)
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if check and proc.returncode != 0:
-        raise VBoxCommandError(f"Command failed ({' '.join(cmd)}):\n{proc.stdout}\n{proc.stderr}".strip())
+        raise VBoxCommandError(f"Command failed ({printable}):\n{proc.stdout}\n{proc.stderr}".strip())
     return proc
 
 

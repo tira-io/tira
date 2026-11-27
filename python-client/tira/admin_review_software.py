@@ -262,6 +262,7 @@ def prepare_software_review_directory(
     log("Metadata is downloaded")
 
     image_file = software_directory / IMAGE_FILE
+    image_file.unlink(missing_ok=True)  # a leftover archive in a reused directory may belong to another software
     extracted = None
     for attempt in range(1, IMAGE_ATTEMPTS + 1):
         try:
@@ -310,10 +311,16 @@ def prepare_software_review_directory(
     return output, manifest
 
 
-def load_software_review(output_directory: Path, task: str, team: str, software: str) -> dict:
+def load_software_review(
+    output_directory: Path, task: str, team: str, software: str, renamed_software: bool = False
+) -> dict:
     """Loads the review of the software from the output directory of the agent.
-    Returns {review, problems}. 'review' is None if the file is missing or not parseable."""
+    With renamed_software (an archived review of a software that was renamed since), the only review of the team is
+    loaded. Returns {review, problems}. 'review' is None if the file is missing or not parseable."""
     path = Path(output_directory) / "reviews" / team / f"{software}.json"
+    candidates = sorted((Path(output_directory) / "reviews" / team).glob("*.json"))
+    if not path.is_file() and renamed_software and len(candidates) == 1:
+        path = candidates[0]
     if not path.is_file():
         return {"review": None, "problems": [f"missing review file {path.relative_to(output_directory)}"]}
 
@@ -340,7 +347,7 @@ def load_software_review(output_directory: Path, task: str, team: str, software:
         if not isinstance(review.get(field), list):
             problems.append(f"'{field}' must be a list")
 
-    snippets = path.parent / f"{software}-snippets"
+    snippets = path.parent / f"{path.stem}-snippets"
     for snippet in review.get("key_snippets") if isinstance(review.get("key_snippets"), list) else []:
         name = snippet.get("snippet_file") if isinstance(snippet, dict) else None
         if name and not (snippets / name).resolve().is_relative_to(snippets.resolve()):
@@ -349,7 +356,7 @@ def load_software_review(output_directory: Path, task: str, team: str, software:
             problems.append(f"snippet_file '{name}' does not exist in {snippets.name}")
 
     if snippets.is_dir() and not problems:
-        with tarfile.open(path.parent / f"{software}-snippets.tar.gz", "w:gz") as archive:
+        with tarfile.open(path.parent / f"{path.stem}-snippets.tar.gz", "w:gz") as archive:
             archive.add(snippets, arcname=snippets.name)
 
     if review.get("verdict") not in VERDICTS:
@@ -455,6 +462,13 @@ def review_details(manifest: dict, review: dict) -> dict:
     }
 
 
+def _is_regular_file_inside(file: Path, source: Path) -> bool:
+    """The agent output is untrusted: symlinks (and anything resolving outside of source) are never packaged."""
+    if file.is_symlink() or not file.is_file():
+        return False
+    return file.resolve().is_relative_to(Path(source).resolve())
+
+
 def package_review(
     directory: Path, agent_output: Path, team: str, software: str, target: Path, details: Optional[dict] = None
 ) -> Path:
@@ -465,12 +479,12 @@ def package_review(
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for source, name in sources:
             for file in sorted(source.rglob("*")):
-                if file.is_file() and not file.name.endswith("-snippets.tar.gz"):
+                if _is_regular_file_inside(file, source) and not file.name.endswith("-snippets.tar.gz"):
                     archive.write(file, name / file.relative_to(source))
-        if (agent_output / "agent-log.txt").is_file():
+        if _is_regular_file_inside(agent_output / "agent-log.txt", agent_output):
             archive.write(agent_output / "agent-log.txt", "agent-log.txt")
         metadata = directory / SOFTWARE_DIRECTORY / METADATA_FILE
-        if metadata.is_file():
+        if _is_regular_file_inside(metadata, directory):
             archive.write(metadata, Path(SOFTWARE_DIRECTORY) / METADATA_FILE)
         if details is not None:
             archive.writestr("review-info.json", json.dumps(details, indent=2, default=str) + "\n")

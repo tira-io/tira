@@ -659,7 +659,7 @@ class Client(TiraClient):
     def copy_upload_runs(self, source_dataset: str, target_dataset: str, dry_run: bool = False) -> "List[Dict]":
         """Copies all run uploads of the source dataset to the target dataset (same task, same teams, same upload
         groups, so that display name, description, and upload metadata are preserved). Upload groups that already
-        contain runs for the target dataset are skipped. Fails if the source dataset has runs that are not uploads.
+        contain all runs for the target dataset are skipped (partially copied groups are an error). Fails if the source dataset has runs that are not uploads.
         Returns the copied runs (source run id, team, upload group, new run)."""
         from tira.io_utils import zip_dir
 
@@ -693,9 +693,16 @@ class Client(TiraClient):
                 source_runs = [r for r in uploads if r["dataset"] == source_dataset]
                 if not source_runs:
                     continue
-                if any(r["dataset"] == target_dataset for r in uploads):
+                already_copied = [r for r in uploads if r["dataset"] == target_dataset]
+                if len(already_copied) >= len(source_runs):
                     logging.warning(f"Skip upload group {group['id']} of {team}: already has runs on the target.")
                     continue
+                if already_copied:
+                    # Runs do not record their source, so the missing ones can not be identified safely.
+                    raise ValueError(
+                        f"Upload group {group['id']} of {team} has only {len(already_copied)} of {len(source_runs)}"
+                        f" runs on {target_dataset} (an earlier copy was interrupted). Delete them and copy again."
+                    )
 
                 metadata = details.get("upload_metadata")
                 for run in source_runs:

@@ -133,15 +133,15 @@ def run_review_agent(
 
     container_environment = {k: environment[k] for k in REQUIRED_ENVIRONMENT_VARIABLES}
     container_environment["AGENT_TIMEOUT_SECONDS"] = str(timeout_seconds)
-    proxy = start_network_proxy(client, [hostname], access_log_file=output_directory / "network-access.log")
-    container_environment.update(proxy.environment_variables)
-
     # One container per batch of runs. A batch is independent of everything else: the agent only gets the README.md and
     # manifest.json of the batch and the directories of the runs, examples, and evaluations that the batch lists.
     batch_directories = sorted((review_directory / BATCHES_DIRECTORY).glob("*"))
     batches = [_batch_mounts(review_directory, d) for d in batch_directories]
     if not batches:
         logging.warning(f"No batches found in {review_directory}, nothing to review.")
+
+    proxy = start_network_proxy(client, [hostname], access_log_file=output_directory / "network-access.log")
+    container_environment.update(proxy.environment_variables)
 
     logs = []
     try:
@@ -219,8 +219,10 @@ def _check_review(review: Any, run: dict) -> list[str]:
         problems.append("'tira_review' needs boolean 'no_errors', 'output_error', and 'software_error'")
     elif tira_review["no_errors"] and (tira_review["output_error"] or tira_review["software_error"]):
         problems.append("'tira_review' has 'no_errors' together with an error flag")
-    elif verdict == "invalid" and tira_review["no_errors"]:
-        problems.append("'verdict' is 'invalid' but 'tira_review' has 'no_errors'")
+    elif verdict == "valid" and not tira_review["no_errors"]:
+        problems.append("'verdict' is 'valid' but 'tira_review' has no 'no_errors'")
+    elif verdict == "invalid" and not (tira_review["output_error"] or tira_review["software_error"]):
+        problems.append("'verdict' is 'invalid' but 'tira_review' has neither 'output_error' nor 'software_error'")
 
     evaluations = review.get("evaluations")
     expected = {e["run_id"] for e in run.get("evaluations", [])}

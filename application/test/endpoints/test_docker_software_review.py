@@ -46,26 +46,31 @@ class TestReleaseForUsers(TestCase):
         vm = modeldb.VirtualMachine.objects.get(vm_id="PARTICIPANT-FOR-TEST-1")
         cls.software = modeldb.DockerSoftware.objects.create(display_name="r", vm=vm)
 
+    @staticmethod
+    def _released(software):
+        # a fresh instance, because the review relations are cached on an instance
+        return modeldb.DockerSoftware.objects.get(pk=software.pk).is_released_for_users()
+
     def test_software_without_review_is_not_released(self):
-        self.assertFalse(self.software.is_released_for_users())
+        self.assertFalse(self._released(self.software))
 
     def test_release_requires_both_aspects_approved(self):
         review = modeldb.DockerSoftwareReview.objects.create(docker_software=self.software, code_review="approved")
-        self.assertFalse(self.software.is_released_for_users())
+        self.assertFalse(self._released(self.software))
         review.execution_review = "approved"
         review.save()
-        self.assertTrue(self.software.is_released_for_users())
+        self.assertTrue(self._released(self.software))
 
     def test_automatic_review_without_concerns_releases_unless_rejected(self):
         vm = modeldb.VirtualMachine.objects.get(vm_id="PARTICIPANT-FOR-TEST-1")
         software = modeldb.DockerSoftware.objects.create(display_name="auto", vm=vm)
         auto = dict(docker_software=software, title="t", uploader_id="u", review_date="d")
         modeldb.DockerSoftwareAutomaticReview.objects.create(verdict="needs_human_review", **auto)
-        self.assertFalse(software.is_released_for_users())
+        self.assertFalse(self._released(software))
         modeldb.DockerSoftwareAutomaticReview.objects.create(verdict="no_concerns", **auto)
-        self.assertTrue(software.is_released_for_users())
+        self.assertTrue(self._released(software))
         modeldb.DockerSoftwareReview.objects.create(docker_software=software, code_review="rejected")
-        self.assertFalse(software.is_released_for_users())
+        self.assertFalse(self._released(software))
 
 
 class TestSoftwareToReview(TestCase):

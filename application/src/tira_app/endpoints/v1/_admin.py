@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import uuid
 import zipfile
 from datetime import datetime
@@ -345,26 +346,32 @@ def docker_software_automatic_reviews(request: Request, docker_software_id: int)
             )
 
         archive.seek(0)
-        review = DockerSoftwareAutomaticReview.objects.create(
-            docker_software_id=docker_software_id,
-            title=title,
-            verdict=verdict,
-            comment=str(request.data.get("comment", "")),
-            details=details,
-            uploader_id=request.user.username,
-            review_date=datetime.utcnow().isoformat(),
-        )
-        relative = Path("data") / "software-reviews" / str(docker_software_id) / f"{review.id}.zip"
+        review_id = uuid.uuid4()
+        relative = Path("data") / "software-reviews" / str(docker_software_id) / f"{review_id}.zip"
         target = _safe_archive_path(relative)
         if target is None:
-            review.delete()
             return JsonResponse({"status": 1, "message": "Invalid review archive path."}, status=400)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with open(target, "wb") as f:
-            for chunk in archive.chunks():
-                f.write(chunk)
-        review.archive_path = str(relative)
-        review.save()
+
+        # The archive is written first, so that a failing write never leaves a (release-granting) review row behind.
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "wb") as f:
+                for chunk in archive.chunks():
+                    f.write(chunk)
+            review = DockerSoftwareAutomaticReview.objects.create(
+                id=review_id,
+                archive_path=str(relative),
+                docker_software_id=docker_software_id,
+                title=title,
+                verdict=verdict,
+                comment=str(request.data.get("comment", "")),
+                details=details,
+                uploader_id=request.user.username,
+                review_date=datetime.utcnow().isoformat(),
+            )
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise
         return JsonResponse({"status": 0, "context": _serialize_automatic_review(review)}, status=201)
 
     reviews = DockerSoftwareAutomaticReview.objects.filter(docker_software_id=docker_software_id)
@@ -373,9 +380,9 @@ def docker_software_automatic_reviews(request: Request, docker_software_id: int)
 
 
 def _safe_archive_path(relative: Union[str, Path]) -> Optional[Path]:
-    root = Path(settings.TIRA_ROOT).resolve()
-    path = (root / relative).resolve()
-    return path if path.is_relative_to(root) else None
+    root = os.path.realpath(settings.TIRA_ROOT)
+    path = os.path.realpath(os.path.join(root, str(relative)))
+    return Path(path) if path.startswith(root + os.sep) else None
 
 
 @api_view(["GET"])

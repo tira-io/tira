@@ -1202,13 +1202,16 @@ def _review_software_in_directories(
             except Exception as e:
                 log(f"Could not load review {review_id}: {e}", _fmt.ERROR)
                 continue
-            result = load_software_review(extracted, task, team, software)
+            result = load_software_review(extracted, task, team, software, renamed_software=True)
+            if not result["review"]:
+                log(f"Could not load review {review_id}: {'; '.join(result['problems'])}", _fmt.ERROR)
+                return 1
             llm = (existing_review.get("details") or {}).get("llm", "unknown LLM")
             when = existing_review["review_date"][:16].replace("T", " ")
             log(f"Review {review_id} from {when} by {llm} is loaded from the cache", _fmt.OK)
             if result["review"]:
                 log(f"Agent extracted {extraction_summary(result['review'])}", _fmt.OK)
-            review_file = extracted / "reviews" / team / f"{software}.json"
+            review_file = next(iter(sorted((extracted / "reviews" / team).glob("*.json"))))
             print("\n".join(format_software_result(result, review_file, extracted / "agent-log.txt")))
         return 0
 
